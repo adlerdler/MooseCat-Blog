@@ -5,10 +5,20 @@
 *   **Aesthetics:** 严格遵循 **Extreme Minimalism**。UI 必须采用 **Glassmorphism**（毛玻璃）风格，保持白净、高透、低信息密度的视觉链路。
 
 ### ### 02. Tech Stack Protocol
-*   **Infrastructure:** 本地开发基于 PHP 8.2+，生产环境支持标准 LEMP 栈或 Docker 部署。
-*   **Backend:** Laravel 11 (精简模式) + Eloquent ORM + SQLite/MySQL。
-*   **Frontend:** Vue 3 + Vite + Tailwind CSS (Inertia.js 暂未集成，目前为 API 模式)。
+*   **Infrastructure:** PHP 8.2+ / Laravel 11 (精简模式) / MySQL.
+*   **Frontend:** Blade + Vue 3 (局部增强模式).
+*   **CSS:** Tailwind CSS.
+*   **Build:** Vite + laravel-vite-plugin.
+*   **Editor:** Vditor (Markdown).
 *   **Core AI:** 深度集成 Trae/Claude 进行 Agentic 开发。
+
+### ### 03. Architecture & Routing
+*   **Front-facing (/):** 纯 Blade 渲染，无需认证，SEO 优先。
+*   **Admin (/admin/*):** 独立 Controller，必须通过 `auth` 中件认证。
+*   **Vue Boundary:**
+    - **Blade Only:** 文章列表、详情、分类页。
+    - **Vue Components:** 编辑器 (Vditor)、评论区、图片上传、搜索框。
+    - **Blade Forms:** 标签管理、分类管理。
 
 ### ### 03. Development Constraints (Non-negotiable)
 *   **Pragmatism First:** 禁止过度设计，任何功能模块（如：文章同步、视频嵌入）必须有明确的业务价值（ROI）。

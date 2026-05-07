@@ -43,6 +43,39 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'last_login_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Get the posts for the user.
+     */
+    public function posts(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Post::class, 'author_id');
+    }
+
+    /**
+     * Get the comments for the user.
+     */
+    public function comments(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Comment::class);
+    }
+
+    /**
+     * Get the interactions for the user.
+     */
+    public function interactions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Interaction::class);
+    }
+
+    /**
+     * Get the journal entries for the user.
+     */
+    public function journals(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Journal::class);
     }
 }

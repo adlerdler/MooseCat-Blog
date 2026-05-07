@@ -6,7 +6,7 @@
 
 ### ### 01. Repository Mental Map (项目脑图)
 *   **Core Logic:** 一个支持多渠道分发（即将实现）、Markdown 原生、高度自动化的博客系统。
-*   **Data Flow:** Vue (Frontend) -> Laravel API -> SQLite/MySQL (Persistence)。
+*   **Data Flow:** Vue (Components) <-> Laravel Blade (Context) <-> Laravel API (Data) -> SQLite/MySQL (Persistence)。
 *   **Critical Paths:** `app/Models`, `app/Http/Controllers`, `resources/js/components` (核心业务逻辑所在)。
 
 ### ### 02. Coding DNA (代码基因)

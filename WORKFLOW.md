@@ -9,8 +9,9 @@
 
 ### ### Stage 02: Iterative Execution (迭代执行)
 1.  **Drafting:** `Coder-Agent` 根据 `CLAUDE.md` 规范生成 Laravel 后端与 Vue 前端代码。
-2.  **Self-Correction:** AI 会进行本地环境运行检查。若报错，则自动修正。
-3.  **Refining:** 优化 UI，确保符合 Glassmorphism 风格。
+2.  **Hybrid Rendering:** 在 Web 端路由中，优先返回 Blade 视图并将数据注入 Vue 组件。
+3.  **Self-Correction:** AI 会进行本地环境运行检查。若报错，则自动修正。
+4.  **Refining:** 优化 UI，确保符合 Glassmorphism 风格。
 
 ### ### Stage 03: The Skeptic's Audit (怀疑论审计)
 *   **Agent:** `Auditor-Agent`。

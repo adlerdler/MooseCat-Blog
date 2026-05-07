@@ -17,4 +17,5 @@
 
 ### ### 04. Orchestration Protocol (via Trae/Claude)
 *   **Handover:** Architect (设计) -> Coder (实现) -> Auditor (审计) -> Master Branch (合并)。
+*   **Frontend Note:** PC 端开发优先使用“混合模式”（Blade + Vue 3），利用 `@json` 传递初始数据，保持架构直观。
 *   **Conflict Resolution:** 当逻辑冲突时，回退至 `command.md` 的 `/refactor-minimal` 逻辑。
