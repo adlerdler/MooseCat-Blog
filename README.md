@@ -1,159 +1,125 @@
-# MooseCat Blog / 驼鹿猫博客系统 🦌🐱
+# Archyx Blog System / Archyx 博客系统 🏛️✨
 
-> 一款面向开发者、内容创作者的现代化博客系统，支持 Markdown 编辑、文章一键同步社媒、视频嵌入（YouTube/Bilibili）、图文记录与资源管理。
-> A modern blog CMS designed for developers & creators. Markdown editing, video embedding (YouTube/Bilibili), content sync, and visual journaling.
+<p align="center">
+  <img src="https://img.shields.io/badge/Laravel-11.x-FF2D20?style=for-the-badge&logo=laravel" alt="Laravel 11">
+  <img src="https://img.shields.io/badge/Vue.js-3.x-4FC08D?style=for-the-badge&logo=vue.js" alt="Vue 3">
+  <img src="https://img.shields.io/badge/Tailwind_CSS-3.x-38B2AC?style=for-the-badge&logo=tailwind-css" alt="Tailwind CSS">
+  <img src="https://img.shields.io/badge/AI--First-Driven-blueviolet?style=for-the-badge" alt="AI-First">
+  <img src="https://img.shields.io/badge/License-Personal-yellow?style=for-the-badge" alt="License">
+</p>
 
 ---
 
-⚠️ **本项目采用严格的非商业个人学习许可证，详见 LICENSE 文件。**
+### 🌟 项目愿景 | Vision
+
+> **Archyx** 旨在构建一个面向开发者、极致极简且由 AI 驱动的现代化内容创作与分发系统。
+> **Archyx** aims to build a modern content creation and distribution system designed for developers, featuring extreme minimalism and AI-driven evolution.
+
+![Archyx Hero Image](https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=1200&q=80)
+*示意图：极简主义与现代技术的融合 | Minimalist fusion of modern technology*
+
+---
+
+⚠️ **法律声明 | Legal Notice**
+
+> **本项目采用严格的非商业个人学习许可证。**
+> **This project is licensed under a strict Personal Non-Commercial Learning License.**
+
+<details>
+<summary>点击展开详细声明 | Click to expand details</summary>
 
 - 仅限个人学习和非商业用途。
 - 严禁任何商业化、企业、组织、机构、盈利性或成品代码使用。
-- 禁止将本代码作为产品、SaaS、服务、成品、商业项目、闭源项目、衍生品等交付、集成、分发、销售、租赁、托管、转让、再许可、再分发、再包装、再发布、再授权、再利用、再开发、再加工、再创作、再生产、再传播、再展示、再演绎、再翻译、再汇编、再组合、再合并、再链接、再嵌入、再调用、再引用、再依赖等。
-- 个人用户在网站或可见界面必须注明作者的 GitHub 地址，格式为“Powered by [https://github.com/yourgithub]”，并包含超链接。
-
----
-
-⚠️ **This project is licensed under a strict Personal Non-Commercial Learning License. See LICENSE for details.**
-
+- 个人用户必须注明作者 GitHub 地址：“Powered by [adlerdler](https://github.com/adlerdler)”。
 - For personal learning and non-commercial use only.
-- Any commercial, enterprise, organizational, institutional, for-profit, or product code use is strictly prohibited.
-- It is forbidden to deliver, integrate, distribute, sell, rent, host, transfer, sublicense, repackage, republish, relicense, reuse, redevelop, rework, recreate, reproduce, disseminate, display, perform, translate, compile, combine, merge, link, embed, call, reference, depend on, or otherwise use this code as part of any product, SaaS, service, commercial project, closed-source project, or derivative work.
-- Personal users must display the author's GitHub address in a prominent place on their website, in the format “Powered by [https://github.com/yourgithub]” with a hyperlink.
+- Commercial/Enterprise use is strictly prohibited.
+- Attribution required: “Powered by [adlerdler](https://github.com/adlerdler)”.
+</details>
 
 ---
 
 ## ✨ 功能特性 | Features
 
-- 博客文章展示 | Blog post display
-- Markdown 编辑与预览 | Markdown editing & preview
-- 响应式 UI，适配多端 | Responsive UI
-- 用户注册与登录（基础用户模型）| User registration & login (basic model)
-- 现代前后端分离架构 | Modern frontend-backend separation
+| 特性 | 描述 | Description |
+| :--- | :--- | :--- |
+| 🎨 **Glassmorphism UI** | 基于毛玻璃美学的极简界面。 | Minimalist UI based on Glassmorphism aesthetics. |
+| ✍️ **Markdown Native** | 原生 Markdown 支持，实时预览。 | Native Markdown support with live preview. |
+| 🤖 **AI-First Workflow** | 深度集成 Trae/Claude，支持 Agentic 开发。 | Deep Trae/Claude integration for Agentic development. |
+| 📱 **Responsive Design** | 完美适配移动端与桌面端。 | Seamless experience across mobile and desktop. |
+| 🔒 **Modern Auth** | 安全可靠的 Laravel 11 认证系统。 | Secure Laravel 11 authentication system. |
 
 ---
 
 ## 🛠 技术栈 | Tech Stack
 
-- **前端 | Frontend**：Vue 3、Vite、Tailwind CSS
-- **后端 | Backend**：Laravel 11、Eloquent ORM
-- **构建工具 | Build Tool**：Vite
-- **数据库 | Database**：MySQL / SQLite（默认支持 SQLite，配置可切换 | SQLite by default, configurable）
+### Backend (Laravel 11)
+- **Extreme Minimalism**: 移除冗余提供者与配置。
+- **Eloquent ORM**: 优雅的数据处理。
+- **SQLite/MySQL**: 灵活的持久化选择。
+
+### Frontend (Vue 3)
+- **Vite**: 极速构建体验。
+- **Tailwind CSS**: 实用优先的样式定义。
+- **Composition API**: 现代化的组件逻辑。
 
 ---
 
 ## 📁 目录结构 | Directory Structure
 
-```
-laravel-vue-app/
-├── app/                # Laravel 核心代码 | Laravel core
-├── resources/
-│   ├── js/             # 前端 Vue 组件与入口 | Vue components & entry
-│   ├── css/            # Tailwind CSS
-│   └── views/          # Blade 模板 | Blade templates
-├── routes/             # 路由定义 | Routes
-├── database/           # 数据库迁移与种子 | Migrations & seeders
-├── public/             # 公共资源与入口 | Public assets & entry
-├── config/             # 配置文件 | Config files
-├── tests/              # 测试 | Tests
-├── package.json        # 前端依赖 | Frontend deps
-├── composer.json       # 后端依赖 | Backend deps
-└── README.md           # 项目说明 | Project doc
+```mermaid
+graph TD
+    A[Archyx Root] --> B[app/ Laravel Core]
+    A --> C[resources/js/ Vue Components]
+    A --> D[routes/ API & Web]
+    A --> E[database/ Migrations]
+    A --> F[public/ Assets]
 ```
 
 ---
 
 ## 🚀 快速开始 | Quick Start
 
-### 1. 克隆项目 | Clone
+### 1. 环境准备 | Prerequisites
+- PHP 8.2+
+- Node.js 18+
+- Composer
+
+### 2. 核心步骤 | Core Steps
 
 ```bash
-git clone <your-repo-url>
-cd laravel-vue-app
-```
+# 克隆并进入目录
+git clone <your-repo-url> && cd laravel-vue-app
 
-### 2. 安装依赖 | Install dependencies
+# 安装前后端依赖
+composer install && npm install
 
-- **后端 | Backend**
+# 配置环境
+cp .env.example .env && php artisan key:generate
 
-  ```bash
-  composer install
-  ```
+# 数据库迁移与初始化
+php artisan migrate --seed
 
-- **前端 | Frontend**
-
-  ```bash
-  npm install
-  # or pnpm install
-  ```
-
-### 3. 环境配置 | Environment setup
-
-复制 `.env.example` 为 `.env`，并根据实际情况配置数据库等信息：
-Copy `.env.example` to `.env` and configure as needed:
-
-```bash
-cp .env.example .env
-php artisan key:generate
-```
-
-### 4. 数据库迁移与填充 | Migrate & seed
-
-```bash
-php artisan migrate
-php artisan db:seed
-```
-
-### 5. 启动开发环境 | Start dev server
-
-```bash
-# 启动后端 | Backend
-php artisan serve
-
-# 启动前端 | Frontend (new terminal)
-npm run dev
-```
-
-访问 `http://localhost:8000` 查看效果。
-Visit `http://localhost:8000` to view.
-
----
-
-## 🧩 构建与部署 | Build & Deploy
-
-- 构建前端静态资源 | Build frontend:
-
-  ```bash
-  npm run build
-  ```
-
-- 部署时请确保 `.env` 配置正确，运行数据库迁移和静态资源发布。
-  Ensure `.env` is correct, run migrations and publish assets for deployment.
-
----
-
-## 📝 测试 | Test
-
-```bash
-# 后端测试 | Backend test
-phpunit
-
-# 前端测试（如有配置）| Frontend test (if configured)
-# npm run test
+# 启动引擎
+php artisan serve & npm run dev
 ```
 
 ---
 
-## 📄 其他说明 | Other Notes
+## 📄 开发规范 | Development Guidelines
 
-- 前端样式采用 Tailwind CSS，遵循团队样式指南。
-  Tailwind CSS is used for frontend styling, following team guidelines.
-- 代码风格遵循《代码整洁之道》，优先使用 async/await，完善错误处理。
-  Code style follows Clean Code, prefers async/await, robust error handling.
-- 欢迎二次开发与贡献。
-  Contributions are welcome.
+本项目遵循 **Extreme Minimalism** 哲学：
+1. **函数原子化**: 保持逻辑单一。
+2. **代码即文档**: 优先编写自解释代码。
+3. **AI 协同**: 每次重大变更需更新 `evolution.md`。
 
 ---
 
-如需详细文档或有任何问题，请提交 Issue。
-For more docs or questions, please submit an Issue.
+## 📝 演进历程 | Evolution
+
+查看 [evolution.md](file:///i:/Code%20editing/bolg_laravel_adlerian/laravel-vue-app/evolution.md) 了解 AI 导师与人类导师如何共同塑造 Archyx。
+
+---
+
+<p align="center">
+  Built with ❤️ by AI and <a href="https://github.com/adlerdler">adlerdler</a>
+</p>
