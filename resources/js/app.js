@@ -2,6 +2,7 @@ import './bootstrap';
 import '../css/app.css';
 
 import { createApp } from 'vue';
+import { i18n } from './i18n';
 
 const app = createApp({});
 
@@ -16,5 +17,7 @@ import Home from './Pages/Home.vue';
 
 app.component('WelcomePage', WelcomePage);
 app.component('Home', Home);
+
+app.use(i18n);
 
 app.mount('#app');

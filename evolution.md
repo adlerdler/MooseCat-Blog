@@ -71,3 +71,27 @@
   - 确保 API 响应的结构稳定性，方便移动端（Flutter）对接。
   - Web 控制器统一返回 `view()`，配合 `compact()` 将数据送入 Blade。
 - **Status:** `PostController` 和 `CommentController` 已完成双端适配。
+
+### 2026-05-08: 完整 API 路由体系与管理后台建设 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 完成所有模块的 API 和 Web 路由配置，并建立 `/admin/*` 管理后台路由体系。
+- **Rationale:** 
+  - 使用 `php artisan make:controller` 命令标准化创建控制器，确保代码风格一致。
+  - API 层覆盖 Posts、Comments、Videos、Projects、Resources、Categories、Tags、Users 八个模块。
+  - 管理后台采用 RESTful 资源路由，完整支持 CRUD 操作，并通过 `auth` 中间件保护。
+- **Status:** 
+  - 创建 6 个新 API 控制器（Video、Project、Resource、Category、Tag、User）。
+  - 创建 4 个新 Web 控制器（Video、Project、Resource、Category）。
+  - 创建 6 个 Admin 控制器（Post、Video、Project、Resource、Category、Tag）。
+  - 更新 `routes/web.php` 和 `routes/api.php`，共配置 73 个路由。
+
+### 2026-05-08: API 文档与管理后台规范完善 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 全面更新 `docs/controllers.md` 和 `docs/admin_panel.md`，补充完整的接口文档。
+- **Rationale:** 
+  - 为前端开发和移动端对接提供清晰的 API 契约。
+  - 定义管理后台的路由规范和安全策略。
+  - 确保团队协作时所有成员都能快速理解接口结构。
+- **Status:** 
+  - `docs/controllers.md`：添加完整的 API 端点列表、请求参数、响应示例。
+  - `docs/admin_panel.md`：添加详细的管理后台路由表和安全考虑事项。

@@ -19,3 +19,12 @@
 *   **Handover:** Architect (设计) -> Coder (实现) -> Auditor (审计) -> Master Branch (合并)。
 *   **Frontend Note:** PC 端开发优先使用“混合模式”（Blade + Vue 3），利用 `@json` 传递初始数据，保持架构直观。
 *   **Conflict Resolution:** 当逻辑冲突时，回退至 `command.md` 的 `/refactor-minimal` 逻辑。
+*   **Current Phase:** 后端 API 与管理后台路由已完成，进入前端 Vue 组件开发阶段。
+
+### ### 05. Current Development Status
+*   **Backend:** ✅ 数据库模型完整（12 个表）
+*   **API:** ✅ 8 个模块完整（Posts、Comments、Videos、Projects、Resources、Categories、Tags、Users）
+*   **Web:** ✅ 6 个控制器就绪（Post、Video、Project、Resource、Category、Comment）
+*   **Admin:** ✅ 6 个资源路由（Posts、Videos、Projects、Resources、Categories、Tags）
+*   **Frontend:** ⚠️ Vue 组件待实现（编辑器、评论区）
+*   **Docs:** ✅ API 文档与管理后台规范已更新

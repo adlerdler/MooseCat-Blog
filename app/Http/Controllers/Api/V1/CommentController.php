@@ -9,12 +9,23 @@ use App\Models\Post;
 use App\Services\CommentService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class CommentController extends Controller
 {
     public function __construct(
         protected CommentService $commentService
     ) {}
+
+    /**
+     * 获取文章评论列表
+     */
+    public function index(Post $post): AnonymousResourceCollection
+    {
+        $comments = $post->comments()->with('user')->orderBy('created_at', 'desc')->paginate(20);
+        
+        return \App\Http\Resources\V1\CommentResource::collection($comments);
+    }
 
     /**
      * 提交评论

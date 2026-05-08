@@ -1,264 +1,357 @@
 <script setup>
-import { Building2, Users, Award, ChevronDown, ArrowRight, Mail, Phone, MapPin } from 'lucide-vue-next';
+import { ref, computed, onMounted } from 'vue'
+import { Search, ArrowRight, Send, Mail, Twitter, Linkedin, Github } from 'lucide-vue-next'
+import { MotionComponent as Motion, fade, slideBottom } from '@vueuse/motion'
+import SidebarMenu from '../components/SidebarMenu.vue'
+import Footer from '../components/Footer.vue'
+import { useTheme } from '../composables/useTheme'
+
+const { initTheme } = useTheme()
+
+const isFooterVisible = ref(true)
+
+onMounted(() => {
+  initTheme()
+
+  const saved = sessionStorage.getItem('footer_visible')
+  if (saved !== null) {
+    isFooterVisible.value = saved === 'true'
+  }
+})
+
+const searchQuery = ref('')
+const activeCategory = ref('ALL')
+
+const categories = ['ALL', 'THEORY', 'DESIGN', 'HISTORY', 'CULTURE']
+
+const marqueeText = 'ARCHYX VOL. 2026 // BUILDING SYSTEM // MINIMALISM //'
+
+const techStack = ['TYPESCRIPT', 'VUE', 'LARAVEL', 'TAILWIND', 'NODE.JS', 'POSTGRES']
+
+const featuredPosts = computed(() => {
+  return [
+    {
+      id: 1,
+      title: 'ARCHITECTURAL PRINCIPLES',
+      excerpt: 'Exploring the fundamental concepts that define modern structural design and digital innovation.',
+      category: 'THEORY',
+      categoryLabel: '理论',
+      views_count: 1234
+    },
+    {
+      id: 2,
+      title: 'DIGITAL FABRICATION',
+      excerpt: 'How computational design is revolutionizing the way we approach construction and manufacturing.',
+      category: 'DESIGN',
+      categoryLabel: '设计',
+      views_count: 987
+    },
+    {
+      id: 3,
+      title: 'SUSTAINABLE MATERIALS',
+      excerpt: 'An investigation into eco-friendly building materials and their impact on environmental architecture.',
+      category: 'HISTORY',
+      categoryLabel: '历史',
+      views_count: 756
+    }
+  ]
+})
 </script>
 
 <template>
-    <div class="min-h-screen bg-construct-paper">
-        <section class="relative min-h-screen flex items-center justify-center overflow-hidden bg-construct-black">
-            <div class="absolute top-16 left-16 w-32 h-32 border-8 border-construct-red/30 rotate-12 hidden md:block animate-fade-in"></div>
-            <div class="absolute bottom-32 right-16 w-24 h-24 bg-construct-red/20 rotate-45 hidden md:block animate-fade-in"></div>
-            <div class="absolute top-1/2 right-1/4 w-16 h-16 bg-white/10 hidden md:block animate-fade-in"></div>
+  <div class="min-h-screen selection:bg-construct-red selection:text-white">
+    <!-- Sidebar Menu -->
+    <SidebarMenu
+      v-model:is-footer-visible="isFooterVisible"
+    />
 
-            <div class="relative z-10 text-center px-6">
-                <div class="inline-block mb-8 animate-slide-up">
-                    <span class="text-construct-red text-xs md:text-sm font-bold tracking-[0.4em] uppercase">
-                        BLDG_SYSTEM // 2026
-                    </span>
-                </div>
+    <!-- Main Content with left margin for sidebar -->
+    <div class="ml-16">
 
-                <h1 class="font-black text-6xl md:text-8xl lg:text-9xl text-white tracking-tighter leading-none mb-6 animate-slide-up" style="animation-delay: 0.2s">
-                    ARCHYX
-                </h1>
+    <!-- Hero Section -->
+    <header class="relative min-h-screen bg-construct-paper overflow-hidden flex items-center py-32">
+      <div class="absolute top-0 right-0 w-3/4 h-full bg-construct-red construct-diagonal z-0"></div>
 
-                <p class="text-white/70 text-lg md:text-xl tracking-wide max-w-2xl mx-auto mb-12 animate-slide-up" style="animation-delay: 0.4s">
-                    探索建筑与技术的边界，构建未来的数字空间体验
+      <div class="container mx-auto px-8 relative z-10">
+        <div class="max-w-4xl">
+          <Motion
+            :initial="{ opacity: 0, y: 50 }"
+            :enter="{ opacity: 1, y: 0 }"
+            :transition="{ duration: 0.8, ease: 'easeOut' }"
+          >
+            <div class="inline-block bg-construct-black text-white px-4 py-1 text-sm font-bold tracking-tighter mb-4">
+              EST. VOL.2026
+            </div>
+          </Motion>
+
+          <Motion
+            :initial="{ opacity: 0, y: 50 }"
+            :enter="{ opacity: 1, y: 0 }"
+            :transition="{ duration: 0.8, ease: 'easeOut', delay: 0.2 }"
+          >
+            <h1 class="font-display text-5xl sm:text-7xl md:text-8xl lg:text-9xl leading-[0.85] tracking-tighter text-construct-black mb-8 w-full">
+              <div class="ml-4 sm:ml-8 md:ml-16">ARCHYX</div>
+              <div class="text-right mt-2 sm:mt-4 pr-4 sm:pr-8 md:pr-0">
+                <span class="text-white">BLOG</span>
+              </div>
+            </h1>
+          </Motion>
+
+          <Motion
+            :initial="{ opacity: 0, y: 50 }"
+            :enter="{ opacity: 1, y: 0 }"
+            :transition="{ duration: 0.8, ease: 'easeOut', delay: 0.4 }"
+          >
+            <p class="text-xl md:text-2xl font-medium max-w-xl text-construct-black/80 mb-12">
+              探索建筑与技术的边界，构建未来的数字空间体验
+            </p>
+          </Motion>
+
+          <!-- Search Bar -->
+          <Motion
+            :initial="{ opacity: 0, y: 50 }"
+            :enter="{ opacity: 1, y: 0 }"
+            :transition="{ duration: 0.8, ease: 'easeOut', delay: 0.6 }"
+          >
+            <div class="flex flex-col sm:flex-row items-stretch max-w-2xl group relative">
+              <div class="relative flex-1">
+                <Search class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-construct-black/40" />
+                <input
+                  v-model="searchQuery"
+                  type="text"
+                  placeholder="搜索文章..."
+                  class="w-full bg-white border-4 border-construct-black px-12 py-4 text-sm font-bold tracking-widest focus:outline-none transition-all focus:bg-construct-paper relative z-20"
+                />
+              </div>
+              <a
+                href="/posts"
+                class="bg-construct-black text-white px-8 py-4 sm:py-0 flex items-center justify-center font-display tracking-widest text-sm font-bold hover:bg-construct-red cursor-pointer transition-colors active:translate-x-1 active:translate-y-1 whitespace-nowrap relative z-20"
+              >
+                搜索
+              </a>
+            </div>
+          </Motion>
+        </div>
+      </div>
+
+      <!-- Marquee -->
+      <div class="absolute bottom-0 left-0 w-full overflow-hidden bg-construct-black text-white py-2">
+        <div class="marquee-container">
+          <div class="marquee-content">
+            <span class="marquee-text">{{ marqueeText }}</span>
+            <span class="marquee-text">{{ marqueeText }}</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Featured Section -->
+    <section class="bg-construct-black text-white min-h-screen py-32 px-8 overflow-hidden relative flex items-center">
+      <div class="absolute top-0 right-0 w-1/2 h-full bg-white opacity-5 construct-diagonal pointer-events-none"></div>
+
+      <div class="container mx-auto relative z-10">
+        <div class="flex flex-col md:flex-row justify-between items-end mb-24 gap-8">
+          <div class="max-w-2xl">
+            <h2 class="font-display text-5xl md:text-6xl lg:text-8xl tracking-tighter leading-none mb-8 whitespace-pre-line">
+              精选文章
+            </h2>
+            <div class="text-[10px] font-bold tracking-[0.4em] opacity-40 uppercase">
+              FEATURED ARTIFACTS // 最新发布的技术文章与研究
+            </div>
+          </div>
+          <a href="/posts" class="group flex flex-col items-end gap-2">
+            <div class="flex items-center gap-4 text-xs font-bold tracking-widest uppercase hover:text-construct-red transition-colors">
+              <span>访问全部归档</span>
+              <ArrowRight class="w-4 h-4 transition-transform group-hover:translate-x-2" />
+            </div>
+          </a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
+          <Motion
+            v-for="(post, idx) in featuredPosts"
+            :key="post.id"
+            :initial="{ opacity: 0, y: 30 }"
+            :enter="{ opacity: 1, y: 0 }"
+            :hovered="{ scale: 1.02, x: 8, y: -8 }"
+            :transition="{ duration: 0.3, delay: idx * 0.1 }"
+          >
+            <div class="p-6 sm:p-10 border-4 border-white h-full flex flex-col justify-between bg-transparent hover:bg-construct-red transition-colors duration-300">
+              <div>
+                <span class="text-[10px] font-bold tracking-widest opacity-40 mb-8 sm:mb-12 block">
+                  {{ post.category }} // VOL_{{ post.id }}
+                </span>
+                <h3 class="font-display text-3xl sm:text-4xl tracking-tighter leading-[0.9] mb-6">
+                  {{ post.title }}
+                </h3>
+                <p class="text-sm opacity-60 line-clamp-3 mb-12 font-medium leading-relaxed">
+                  {{ post.excerpt }}
                 </p>
-
-                <div class="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up" style="animation-delay: 0.6s">
-                    <a
-                        href="#about"
-                        class="group relative px-8 py-4 bg-construct-red text-white font-bold tracking-widest uppercase overflow-hidden transition-all hover:shadow-[8px_8px_0px_#fff] hover:-translate-x-1 hover:-translate-y-1"
-                    >
-                        <span class="relative z-10 flex items-center justify-center gap-2">
-                            探索更多
-                            <ArrowRight :size="20" />
-                        </span>
-                    </a>
-
-                    <a
-                        href="#projects"
-                        class="px-8 py-4 border-2 border-white/50 text-white font-bold tracking-widest uppercase hover:bg-white hover:text-construct-black transition-all flex items-center justify-center gap-2"
-                    >
-                        查看项目
-                        <ArrowRight :size="20" />
-                    </a>
-                </div>
+              </div>
+              <a
+                :href="`/posts/${post.id}`"
+                class="inline-flex items-center gap-4 text-[10px] font-bold tracking-widest hover:translate-x-4 transition-transform duration-300 uppercase"
+              >
+                查看详情
+                <ArrowRight class="w-4 h-4" />
+              </a>
             </div>
+          </Motion>
+        </div>
+      </div>
+    </section>
 
-            <div class="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce">
-                <ChevronDown :size="32" class="text-white/50" />
+    <!-- About The Author -->
+    <section class="min-h-screen py-32 px-8 bg-construct-paper flex items-center relative overflow-hidden">
+      <div class="container mx-auto relative z-10">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-16 items-center">
+          <div class="md:col-span-5 relative">
+            <div class="aspect-square w-full bg-construct-black flex items-center justify-center p-8 border-4 border-construct-red relative group">
+              <div class="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-luminosity grayscale transition-all duration-700 group-hover:grayscale-0 group-hover:opacity-100" style="background-image: url('https://images.unsplash.com/photo-1549692520-acc6669e2f0c?q=80&w=1000')"></div>
+              <span class="font-display text-9xl text-white text-center leading-none tracking-tighter relative z-10 opacity-80 transition-opacity duration-500 group-hover:opacity-0">
+                A
+              </span>
+              <div class="absolute -bottom-8 -right-8 w-32 h-32 bg-construct-red flex items-center justify-center font-display text-4xl text-white tracking-widest shadow-[-4px_4px_0px_#000]">
+                JS
+              </div>
             </div>
-        </section>
-
-        <section id="about" class="py-24 md:py-32 bg-construct-paper">
-            <div class="max-w-7xl mx-auto px-6">
-                <div class="grid md:grid-cols-2 gap-16 items-center">
-                    <div>
-                        <span class="text-construct-red text-xs font-bold tracking-[0.3em] uppercase mb-4 block animate-slide-up">
-                            ABOUT // 关于我们
-                        </span>
-                        <h2 class="font-black text-4xl md:text-6xl text-construct-black tracking-tight mb-8 animate-slide-up" style="animation-delay: 0.1s">
-                            架构师的<br />数字实验室
-                        </h2>
-                        <p class="text-gray-600 text-lg leading-relaxed mb-8 animate-slide-up" style="animation-delay: 0.2s">
-                            ARCHYX 是一个专注于建筑数字化与创新技术的研究平台。我们探索如何将传统建筑设计与现代数字技术相结合，创造出更智能、更可持续的建筑空间。
-                        </p>
-                        <div class="flex gap-8 animate-slide-up" style="animation-delay: 0.3s">
-                            <div class="text-center">
-                                <div class="flex items-center justify-center mb-2">
-                                    <Building2 :size="24" class="text-construct-red mr-2" />
-                                    <span class="font-black text-4xl text-construct-red">15+</span>
-                                </div>
-                                <p class="text-sm text-gray-500 uppercase tracking-wider">年经验</p>
-                            </div>
-                            <div class="text-center">
-                                <div class="flex items-center justify-center mb-2">
-                                    <Award :size="24" class="text-construct-red mr-2" />
-                                    <span class="font-black text-4xl text-construct-red">100+</span>
-                                </div>
-                                <p class="text-sm text-gray-500 uppercase tracking-wider">项目</p>
-                            </div>
-                            <div class="text-center">
-                                <div class="flex items-center justify-center mb-2">
-                                    <Users :size="24" class="text-construct-red mr-2" />
-                                    <span class="font-black text-4xl text-construct-red">50+</span>
-                                </div>
-                                <p class="text-sm text-gray-500 uppercase tracking-wider">团队</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="relative animate-scale-in">
-                        <div class="aspect-square bg-construct-red/20 flex items-center justify-center">
-                            <div class="w-3/4 h-3/4 border-4 border-construct-red flex items-center justify-center">
-                                <span class="font-black text-6xl text-construct-red">AX</span>
-                            </div>
-                        </div>
-                        <div class="absolute -bottom-4 -right-4 w-24 h-24 bg-construct-black flex items-center justify-center">
-                            <span class="text-white font-bold tracking-widest">EST. 2010</span>
-                        </div>
-                    </div>
-                </div>
+          </div>
+          <div class="md:col-span-7 flex flex-col justify-center">
+            <div class="inline-block bg-construct-red text-white px-3 py-1 text-[10px] font-black tracking-[0.3em] uppercase w-fit mb-8">
+              作者简介
             </div>
-        </section>
+            <h4 class="font-display text-5xl md:text-6xl lg:text-7xl tracking-tighter mb-8 leading-none whitespace-pre-line text-construct-black">
+              结构诚实
+            </h4>
+            <p class="text-xl md:text-2xl font-medium tracking-wide opacity-80 max-w-2xl leading-relaxed">
+              专注于探索建筑数字化与技术创新的边界，致力于将传统设计理念与现代计算方法相融合，创造更智能、更可持续的数字空间。
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
 
-        <section id="projects" class="py-24 md:py-32 bg-construct-black">
-            <div class="max-w-7xl mx-auto px-6">
-                <div class="text-center mb-16">
-                    <span class="text-construct-red text-xs font-bold tracking-[0.3em] uppercase mb-4 block animate-slide-up">
-                        PROJECTS // 精选项目
-                    </span>
-                    <h2 class="font-black text-4xl md:text-6xl text-white tracking-tight animate-slide-up" style="animation-delay: 0.1s">
-                        标志性建筑
-                    </h2>
-                </div>
+    <!-- Core Tech Stack -->
+    <section class="py-32 px-8 bg-construct-black text-white relative border-y-8 border-construct-red">
+      <div class="container mx-auto max-w-6xl">
+        <div class="flex flex-col md:flex-row gap-16 items-start">
+          <div class="md:w-1/3">
+            <h2 class="font-display text-4xl md:text-5xl lg:text-6xl tracking-tighter leading-[0.85] mb-6 whitespace-pre-line">
+              技术栈
+            </h2>
+            <p class="text-sm font-medium tracking-widest uppercase opacity-60 max-w-xs leading-relaxed">
+              核心工具与技术选型
+            </p>
+          </div>
+          <div class="md:w-2/3 grid grid-cols-2 sm:grid-cols-3 gap-8">
+            <Motion
+              v-for="(tech, idx) in techStack"
+              :key="idx"
+              :hovered="{ scale: 1.05 }"
+              :transition="{ duration: 0.2 }"
+            >
+              <div class="p-6 border-2 border-white/20 hover:border-construct-red hover:bg-construct-red transition-all duration-300 flex items-center justify-center min-h-[140px] group">
+                <span class="font-display text-xl sm:text-2xl font-black tracking-widest text-center">
+                  {{ tech }}
+                </span>
+              </div>
+            </Motion>
+          </div>
+        </div>
+      </div>
+    </section>
 
-                <div class="grid md:grid-cols-3 gap-6">
-                    <div class="group relative aspect-[3/4] bg-gray-800 overflow-hidden cursor-pointer animate-slide-up transition-transform hover:scale-102">
-                        <div class="absolute inset-0 bg-gradient-to-t from-construct-black/80 via-transparent to-transparent z-10"></div>
-                        <div class="absolute inset-0 flex items-center justify-center">
-                            <span class="text-white/20 font-black text-8xl">01</span>
-                        </div>
-                        <div class="absolute bottom-0 left-0 right-0 p-6 z-20">
-                            <span class="text-construct-red text-xs font-bold tracking-widest uppercase block mb-2">
-                                商业建筑
-                            </span>
-                            <h3 class="text-white text-xl font-bold mb-2">云端大厦</h3>
-                            <p class="text-white/60 text-sm">2024 · 上海</p>
-                        </div>
-                        <div class="absolute inset-0 border-2 border-transparent group-hover:border-construct-red transition-colors"></div>
-                    </div>
-
-                    <div class="group relative aspect-[3/4] bg-gray-800 overflow-hidden cursor-pointer animate-slide-up transition-transform hover:scale-102" style="animation-delay: 0.1s">
-                        <div class="absolute inset-0 bg-gradient-to-t from-construct-black/80 via-transparent to-transparent z-10"></div>
-                        <div class="absolute inset-0 flex items-center justify-center">
-                            <span class="text-white/20 font-black text-8xl">02</span>
-                        </div>
-                        <div class="absolute bottom-0 left-0 right-0 p-6 z-20">
-                            <span class="text-construct-red text-xs font-bold tracking-widest uppercase block mb-2">
-                                文化建筑
-                            </span>
-                            <h3 class="text-white text-xl font-bold mb-2">艺术中心</h3>
-                            <p class="text-white/60 text-sm">2023 · 北京</p>
-                        </div>
-                        <div class="absolute inset-0 border-2 border-transparent group-hover:border-construct-red transition-colors"></div>
-                    </div>
-
-                    <div class="group relative aspect-[3/4] bg-gray-800 overflow-hidden cursor-pointer animate-slide-up transition-transform hover:scale-102" style="animation-delay: 0.2s">
-                        <div class="absolute inset-0 bg-gradient-to-t from-construct-black/80 via-transparent to-transparent z-10"></div>
-                        <div class="absolute inset-0 flex items-center justify-center">
-                            <span class="text-white/20 font-black text-8xl">03</span>
-                        </div>
-                        <div class="absolute bottom-0 left-0 right-0 p-6 z-20">
-                            <span class="text-construct-red text-xs font-bold tracking-widest uppercase block mb-2">
-                                住宅建筑
-                            </span>
-                            <h3 class="text-white text-xl font-bold mb-2">绿色家园</h3>
-                            <p class="text-white/60 text-sm">2025 · 深圳</p>
-                        </div>
-                        <div class="absolute inset-0 border-2 border-transparent group-hover:border-construct-red transition-colors"></div>
-                    </div>
-                </div>
+    <!-- Newsletter -->
+    <section class="py-32 px-8 bg-construct-paper">
+      <div class="container mx-auto max-w-4xl text-center">
+        <div class="inline-block bg-construct-black text-white px-3 py-1 text-[10px] font-black tracking-[0.3em] uppercase mb-8">
+          TRANSMISSION
+        </div>
+        <h2 class="font-display text-5xl md:text-7xl tracking-tighter text-construct-black mb-8">
+          订阅更新
+        </h2>
+        <p class="text-lg font-medium opacity-60 mb-12 max-w-xl mx-auto">
+          订阅我们的Newsletter，获取最新文章和技术见解
+        </p>
+        <Motion
+          :hovered="{ scale: 1.02 }"
+          :transition="{ duration: 0.2 }"
+        >
+          <form class="max-w-2xl mx-auto relative flex flex-col sm:flex-row items-stretch shadow-[-8px_8px_0px_#000] bg-white focus-within:ring-4 focus-within:ring-construct-black transition-all duration-300">
+            <div class="flex-1 bg-construct-black/5 flex items-center pl-6">
+              <Mail class="w-5 h-5 text-construct-black/40 mr-4" />
+              <input
+                type="email"
+                placeholder="输入邮箱地址..."
+                class="w-full bg-transparent py-6 outline-none font-display font-medium text-lg uppercase tracking-widest placeholder:text-construct-black/20 text-construct-black"
+                required
+              />
             </div>
-        </section>
+            <button
+              type="submit"
+              class="bg-construct-red text-white px-12 py-6 font-display font-black tracking-widest text-lg hover:bg-construct-black transition-colors duration-300 flex items-center justify-center gap-2"
+            >
+              订阅
+              <Send class="w-5 h-5" />
+            </button>
+          </form>
+        </Motion>
+      </div>
+    </section>
 
-        <footer class="bg-construct-black border-t border-white/10 py-16">
-            <div class="max-w-7xl mx-auto px-6">
-                <div class="grid md:grid-cols-4 gap-12">
-                    <div class="md:col-span-2">
-                        <h3 class="font-black text-4xl text-white tracking-tighter mb-4 animate-fade-in">
-                            ARCHYX
-                        </h3>
-                        <p class="text-white/60 text-sm max-w-sm animate-fade-in">
-                            探索建筑与技术的边界，构建未来的数字空间体验
-                        </p>
-                    </div>
-                    <div>
-                        <h4 class="text-white font-bold tracking-widest uppercase text-sm mb-6 animate-fade-in">
-                            导航
-                        </h4>
-                        <ul class="space-y-3">
-                            <li><a href="#" class="text-white/60 hover:text-construct-red transition-colors text-sm flex items-center gap-2"><ArrowRight :size="14" /> 首页</a></li>
-                            <li><a href="#about" class="text-white/60 hover:text-construct-red transition-colors text-sm flex items-center gap-2"><ArrowRight :size="14" /> 关于</a></li>
-                            <li><a href="#projects" class="text-white/60 hover:text-construct-red transition-colors text-sm flex items-center gap-2"><ArrowRight :size="14" /> 项目</a></li>
-                            <li><a href="#" class="text-white/60 hover:text-construct-red transition-colors text-sm flex items-center gap-2"><ArrowRight :size="14" /> 联系</a></li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h4 class="text-white font-bold tracking-widest uppercase text-sm mb-6 animate-fade-in">
-                            联系
-                        </h4>
-                        <ul class="space-y-3">
-                            <li class="text-white/60 text-sm flex items-center gap-2">
-                                <Mail :size="14" />
-                                hello@archyx.com
-                            </li>
-                            <li class="text-white/60 text-sm flex items-center gap-2">
-                                <Phone :size="14" />
-                                +86 021 1234 5678
-                            </li>
-                            <li class="text-white/60 text-sm flex items-center gap-2">
-                                <MapPin :size="14" />
-                                上海市浦东新区
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="mt-12 pt-8 border-t border-white/10 text-center animate-fade-in">
-                    <p class="text-white/40 text-xs font-bold tracking-[0.2em] uppercase">
-                        © 2026 ARCHYX. ALL RIGHTS RESERVED.
-                    </p>
-                </div>
-            </div>
-        </footer>
-    </div>
+    <!-- Footer -->
+    <Footer v-model="isFooterVisible" />
+
+    </div><!-- End of ml-16 wrapper -->
+
+  </div>
 </template>
 
 <style scoped>
-@keyframes fade-in {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
+.font-display {
+  font-family: system-ui, -apple-system, sans-serif;
 }
 
-@keyframes slide-up {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+/* Marquee Animation */
+.marquee-container {
+  overflow: hidden;
+  width: 100%;
 }
 
-@keyframes scale-in {
-    from {
-        opacity: 0;
-        transform: scale(0.9);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
+.marquee-content {
+  display: flex;
+  animation: marquee 20s linear infinite;
 }
 
-.animate-fade-in {
-    animation: fade-in 0.8s ease-out forwards;
+.marquee-text {
+  display: inline-block;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 0.75rem;
+  font-weight: bold;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  padding: 0 2rem;
 }
 
-.animate-slide-up {
-    opacity: 0;
-    animation: slide-up 0.8s ease-out forwards;
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
 }
 
-.animate-scale-in {
-    animation: scale-in 0.8s ease-out forwards;
+.construct-diagonal {
+  clip-path: polygon(15% 0, 100% 0, 100% 100%, 0% 100%);
 }
 
-.hover\:scale-102:hover {
-    transform: scale(1.02);
+.shadow-\[-4px_4px_0px_\#000\] {
+  box-shadow: -4px 4px 0px #000;
+}
+
+.shadow-\[8px_8px_0px_\#000\] {
+  box-shadow: 8px 8px 0px #000;
 }
 </style>

@@ -5,9 +5,15 @@
 > **Philosophy:** Pragmatism, Extreme Minimalism, Skeptical Verification.
 
 ### ### 01. Repository Mental Map (项目脑图)
-*   **Core Logic:** 一个支持多渠道分发（即将实现）、Markdown 原生、高度自动化的博客系统。
+*   **Core Logic:** 一个支持多渠道分发、Markdown 原生、高度自动化的博客系统。
 *   **Data Flow:** Vue (Components) <-> Laravel Blade (Context) <-> Laravel API (Data) -> SQLite/MySQL (Persistence)。
-*   **Critical Paths:** `app/Models`, `app/Http/Controllers`, `resources/js/components` (核心业务逻辑所在)。
+*   **Critical Paths:** 
+    - `app/Models` - 数据库模型与关联
+    - `app/Http/Controllers` - 三层控制器（Api/V1、Web、Admin）
+    - `app/Services` - 业务逻辑层
+    - `resources/js/components` - Vue 组件
+    - `routes/` - API、Web、Admin 路由配置
+*   **Current Status:** 后端 API 完整（8 个模块），管理后台路由就绪（6 个资源），前端 Vue 组件待完善。
 
 ### ### 02. Coding DNA (代码基因)
 *   **UI/UX:** 必须使用 **Glassmorphism**。保持 `backdrop-blur` 和 `opacity` 的黄金比例。使用 Tailwind CSS 实现。

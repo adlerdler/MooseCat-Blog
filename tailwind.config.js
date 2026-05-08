@@ -14,9 +14,19 @@ export default {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
             },
             colors: {
-                'construct-red': '#CF202E',
+                'construct-red': 'var(--accent, #CF202E)',
                 'construct-black': '#000000',
                 'construct-paper': '#F5F5F5',
+                accent: 'var(--accent, #CF202E)',
+            },
+            backgroundColor: {
+                accent: 'var(--accent, #CF202E)',
+            },
+            borderColor: {
+                accent: 'var(--accent, #CF202E)',
+            },
+            textColor: {
+                accent: 'var(--accent, #CF202E)',
             },
             animation: {
                 'spin-slow': 'spin 20s linear infinite',
