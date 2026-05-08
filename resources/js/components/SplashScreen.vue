@@ -26,7 +26,7 @@ onMounted(() => {
                 <div class="absolute bottom-0 left-0 w-32 h-32 md:w-40 md:h-40 opacity-20 animate-spin-slow">
                     <Hexagon
                         :size="160"
-                        class="text-[#CF202E] rotate-45 -translate-x-1/2 translate-y-1/3"
+                        class="text-accent rotate-45 -translate-x-1/2 translate-y-1/3"
                         :stroke-width="12"
                     />
                 </div>
@@ -37,7 +37,7 @@ onMounted(() => {
             </div>
 
             <div class="relative z-10 w-full">
-                <div class="w-full h-40 md:h-52 bg-[#CF202E] flex items-center justify-center animate-banner">
+                <div class="w-full h-40 md:h-52 bg-accent flex items-center justify-center animate-banner">
                     <div class="text-center">
                         <h1 class="font-black text-5xl md:text-7xl lg:text-8xl text-white tracking-tighter leading-none animate-title">
                             ARCHYX

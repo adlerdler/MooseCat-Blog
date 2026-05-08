@@ -18,12 +18,12 @@ const toggleFooter = () => {
 <template>
   <footer
     v-if="props.modelValue"
-    class="p-8 md:p-16 bg-[#F5F5F5] border-t-8 border-black grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-12 sm:gap-8 md:gap-12"
+    class="p-8 md:p-16 bg-construct-paper border-t-8 border-black grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-12 sm:gap-8 md:gap-12"
   >
     <div class="sm:col-span-2">
       <a
         href="/"
-        class="font-display text-5xl md:text-6xl tracking-tighter mb-4 block hover:text-[#CF202E] transition-colors"
+        class="font-display text-5xl md:text-6xl tracking-tighter mb-4 block hover:text-accent transition-colors"
       >
         ARCHYX
       </a>
@@ -67,22 +67,22 @@ const toggleFooter = () => {
       </h4>
       <ul class="text-xs space-y-3 font-bold tracking-widest uppercase">
         <li>
-          <a href="/" class="hover:text-[#CF202E] hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
+          <a href="/" class="hover:text-accent hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
             / 理论
           </a>
         </li>
         <li>
-          <a href="/" class="hover:text-[#CF202E] hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
+          <a href="/" class="hover:text-accent hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
             / 设计
           </a>
         </li>
         <li>
-          <a href="/blog" class="hover:text-[#CF202E] hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
+          <a href="/blog" class="hover:text-accent hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
             / 博客
           </a>
         </li>
         <li>
-          <a href="/author" class="hover:text-[#CF202E] hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
+          <a href="/author" class="hover:text-accent hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
             / 关于
           </a>
         </li>
@@ -93,13 +93,13 @@ const toggleFooter = () => {
         数据
       </h4>
       <ul class="text-xs space-y-3 font-bold tracking-widest uppercase">
-        <li class="hover:text-[#CF202E] hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
+        <li class="hover:text-accent hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
           RSS FEED
         </li>
-        <li class="hover:text-[#CF202E] hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
+        <li class="hover:text-accent hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
           API ACCESS
         </li>
-        <li class="hover:text-[#CF202E] hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
+        <li class="hover:text-accent hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
           GITHUB
         </li>
       </ul>

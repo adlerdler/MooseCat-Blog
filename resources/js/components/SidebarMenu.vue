@@ -17,6 +17,11 @@ const { t, locale } = useI18n();
 
 const isMenuOpen = ref(false);
 const isSettingsOpen = ref(false);
+const footerVisible = ref(props.isFooterVisible);
+
+watch(() => props.isFooterVisible, (val) => {
+  footerVisible.value = val;
+});
 
 watch(isMenuOpen, (newValue) => {
   if (newValue) {
@@ -32,7 +37,8 @@ onUnmounted(() => {
 });
 
 const toggleFooter = () => {
-  emit('update:is-footer-visible', !props.isFooterVisible);
+  footerVisible.value = !footerVisible.value;
+  emit('update:is-footer-visible', footerVisible.value);
 };
 
 const toggleMenu = () => {
@@ -92,7 +98,7 @@ const showSidebar = computed(() => true);
         class="hover:text-accent transition-colors"
         title="Toggle Footer"
       >
-        <ChevronDown v-if="props.isFooterVisible" class="w-6 h-6" />
+        <ChevronDown v-if="footerVisible" class="w-6 h-6" />
         <ChevronUp v-else class="w-6 h-6" />
       </button>
       <Menu

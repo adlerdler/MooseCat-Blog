@@ -1,7 +1,7 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { Search, ArrowRight, Send, Mail, Twitter, Linkedin, Github } from 'lucide-vue-next'
-import { MotionComponent as Motion, fade, slideBottom } from '@vueuse/motion'
+import { MotionComponent as Motion } from '@vueuse/motion'
 import SidebarMenu from '../components/SidebarMenu.vue'
 import Footer from '../components/Footer.vue'
 import { useTheme } from '../composables/useTheme'
@@ -17,6 +17,10 @@ onMounted(() => {
   if (saved !== null) {
     isFooterVisible.value = saved === 'true'
   }
+})
+
+watch(isFooterVisible, (newVal) => {
+  sessionStorage.setItem('footer_visible', String(newVal))
 })
 
 const searchQuery = ref('')
@@ -76,7 +80,7 @@ const featuredPosts = computed(() => {
         <div class="max-w-4xl">
           <Motion
             :initial="{ opacity: 0, y: 50 }"
-            :enter="{ opacity: 1, y: 0 }"
+            :visible="{ opacity: 1, y: 0 }"
             :transition="{ duration: 0.8, ease: 'easeOut' }"
           >
             <div class="inline-block bg-construct-black text-white px-4 py-1 text-sm font-bold tracking-tighter mb-4">
@@ -86,7 +90,7 @@ const featuredPosts = computed(() => {
 
           <Motion
             :initial="{ opacity: 0, y: 50 }"
-            :enter="{ opacity: 1, y: 0 }"
+            :visible="{ opacity: 1, y: 0 }"
             :transition="{ duration: 0.8, ease: 'easeOut', delay: 0.2 }"
           >
             <h1 class="font-display text-5xl sm:text-7xl md:text-8xl lg:text-9xl leading-[0.85] tracking-tighter text-construct-black mb-8 w-full">
@@ -99,7 +103,7 @@ const featuredPosts = computed(() => {
 
           <Motion
             :initial="{ opacity: 0, y: 50 }"
-            :enter="{ opacity: 1, y: 0 }"
+            :visible="{ opacity: 1, y: 0 }"
             :transition="{ duration: 0.8, ease: 'easeOut', delay: 0.4 }"
           >
             <p class="text-xl md:text-2xl font-medium max-w-xl text-construct-black/80 mb-12">
@@ -110,7 +114,7 @@ const featuredPosts = computed(() => {
           <!-- Search Bar -->
           <Motion
             :initial="{ opacity: 0, y: 50 }"
-            :enter="{ opacity: 1, y: 0 }"
+            :visible="{ opacity: 1, y: 0 }"
             :transition="{ duration: 0.8, ease: 'easeOut', delay: 0.6 }"
           >
             <div class="flex flex-col sm:flex-row items-stretch max-w-2xl group relative">
@@ -172,11 +176,10 @@ const featuredPosts = computed(() => {
             v-for="(post, idx) in featuredPosts"
             :key="post.id"
             :initial="{ opacity: 0, y: 30 }"
-            :enter="{ opacity: 1, y: 0 }"
-            :hovered="{ scale: 1.02, x: 8, y: -8 }"
+            :visible="{ opacity: 1, y: 0 }"
             :transition="{ duration: 0.3, delay: idx * 0.1 }"
           >
-            <div class="p-6 sm:p-10 border-4 border-white h-full flex flex-col justify-between bg-transparent hover:bg-construct-red transition-colors duration-300">
+            <div class="p-6 sm:p-10 border-4 border-white h-full flex flex-col justify-between bg-transparent hover:bg-construct-red transition-all duration-300 hover:scale-[1.02] hover:translate-x-2 hover:-translate-y-2">
               <div>
                 <span class="text-[10px] font-bold tracking-widest opacity-40 mb-8 sm:mb-12 block">
                   {{ post.category }} // VOL_{{ post.id }}
@@ -244,18 +247,15 @@ const featuredPosts = computed(() => {
             </p>
           </div>
           <div class="md:w-2/3 grid grid-cols-2 sm:grid-cols-3 gap-8">
-            <Motion
+            <div
               v-for="(tech, idx) in techStack"
               :key="idx"
-              :hovered="{ scale: 1.05 }"
-              :transition="{ duration: 0.2 }"
+              class="p-6 border-2 border-white/20 hover:border-construct-red hover:bg-construct-red transition-all duration-300 flex items-center justify-center min-h-[140px] group hover:scale-105"
             >
-              <div class="p-6 border-2 border-white/20 hover:border-construct-red hover:bg-construct-red transition-all duration-300 flex items-center justify-center min-h-[140px] group">
-                <span class="font-display text-xl sm:text-2xl font-black tracking-widest text-center">
-                  {{ tech }}
-                </span>
-              </div>
-            </Motion>
+              <span class="font-display text-xl sm:text-2xl font-black tracking-widest text-center">
+                {{ tech }}
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -273,29 +273,24 @@ const featuredPosts = computed(() => {
         <p class="text-lg font-medium opacity-60 mb-12 max-w-xl mx-auto">
           订阅我们的Newsletter，获取最新文章和技术见解
         </p>
-        <Motion
-          :hovered="{ scale: 1.02 }"
-          :transition="{ duration: 0.2 }"
-        >
-          <form class="max-w-2xl mx-auto relative flex flex-col sm:flex-row items-stretch shadow-[-8px_8px_0px_#000] bg-white focus-within:ring-4 focus-within:ring-construct-black transition-all duration-300">
-            <div class="flex-1 bg-construct-black/5 flex items-center pl-6">
-              <Mail class="w-5 h-5 text-construct-black/40 mr-4" />
-              <input
-                type="email"
-                placeholder="输入邮箱地址..."
-                class="w-full bg-transparent py-6 outline-none font-display font-medium text-lg uppercase tracking-widest placeholder:text-construct-black/20 text-construct-black"
-                required
-              />
-            </div>
-            <button
-              type="submit"
-              class="bg-construct-red text-white px-12 py-6 font-display font-black tracking-widest text-lg hover:bg-construct-black transition-colors duration-300 flex items-center justify-center gap-2"
-            >
-              订阅
-              <Send class="w-5 h-5" />
-            </button>
-          </form>
-        </Motion>
+        <form class="max-w-2xl mx-auto relative flex flex-col sm:flex-row items-stretch shadow-[-8px_8px_0px_#000] bg-white focus-within:ring-4 focus-within:ring-construct-black transition-all duration-300 hover:scale-[1.02]">
+          <div class="flex-1 bg-construct-black/5 flex items-center pl-6">
+            <Mail class="w-5 h-5 text-construct-black/40 mr-4" />
+            <input
+              type="email"
+              placeholder="输入邮箱地址..."
+              class="w-full bg-transparent py-6 outline-none font-display font-medium text-lg uppercase tracking-widest placeholder:text-construct-black/20 text-construct-black"
+              required
+            />
+          </div>
+          <button
+            type="submit"
+            class="bg-construct-red text-white px-12 py-6 font-display font-black tracking-widest text-lg hover:bg-construct-black transition-colors duration-300 flex items-center justify-center gap-2"
+          >
+            订阅
+            <Send class="w-5 h-5" />
+          </button>
+        </form>
       </div>
     </section>
 
