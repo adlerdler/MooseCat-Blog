@@ -4,11 +4,14 @@ import '../css/app.css';
 import { createApp } from 'vue';
 import { i18n } from './i18n';
 import { useTheme } from './composables/useTheme';
+import router from './router';
 
 const { initTheme } = useTheme();
 initTheme();
 
-const app = createApp({});
+const app = createApp({
+  template: '<router-view />',
+});
 
 const components = import.meta.glob('./components/*.vue', { eager: true });
 if (components && typeof components === 'object') {
@@ -20,12 +23,7 @@ if (components && typeof components === 'object') {
     });
 }
 
-import WelcomePage from './Pages/Welcome.vue';
-import Home from './Pages/Home.vue';
-
-app.component('WelcomePage', WelcomePage);
-app.component('Home', Home);
-
 app.use(i18n);
+app.use(router);
 
 app.mount('#app');

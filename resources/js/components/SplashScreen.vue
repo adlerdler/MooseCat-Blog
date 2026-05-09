@@ -61,14 +61,16 @@ onMounted(() => {
     </Teleport>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
+// 动画变量
+$animation-duration: 0.8s;
+$ease-out: ease-out;
+$forwards: forwards;
+
+// 动画关键帧
 @keyframes banner {
-    from {
-        transform: scaleX(0);
-    }
-    to {
-        transform: scaleX(1);
-    }
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
 }
 
 @keyframes title {
@@ -94,40 +96,33 @@ onMounted(() => {
 }
 
 @keyframes dots {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 @keyframes spin-slow {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
+// 动画类
 .animate-banner {
-    animation: banner 0.8s ease-out forwards;
+    animation: banner $animation-duration $ease-out $forwards;
     transform-origin: left;
 }
 
 .animate-title {
-    animation: title 0.6s ease-out 0.3s forwards;
+    animation: title 0.6s $ease-out 0.3s $forwards;
     opacity: 0;
 }
 
 .animate-subtitle {
-    animation: subtitle 0.6s ease-out 0.6s forwards;
+    animation: subtitle 0.6s $ease-out 0.6s $forwards;
     opacity: 0;
 }
 
 .animate-dots {
-    animation: dots 0.5s ease-out 1s forwards;
+    animation: dots 0.5s $ease-out 1s $forwards;
     opacity: 0;
 }
 

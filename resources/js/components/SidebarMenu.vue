@@ -1,7 +1,9 @@
 <script setup>
 import { ref, computed, watch, onUnmounted } from 'vue';
+import { RouterLink } from 'vue-router';
 import { Menu, Search, User, ChevronDown, ChevronUp, X, ArrowRight, Globe } from 'lucide-vue-next';
 import SettingsPanel from './SettingsPanel.vue';
+import SearchOverlay from './SearchOverlay.vue';
 import { useI18n } from 'vue-i18n';
 
 const props = defineProps({
@@ -17,6 +19,7 @@ const { t, locale } = useI18n();
 
 const isMenuOpen = ref(false);
 const isSettingsOpen = ref(false);
+const isSearchOpen = ref(false);
 const footerVisible = ref(props.isFooterVisible);
 
 watch(() => props.isFooterVisible, (val) => {
@@ -27,6 +30,7 @@ watch(isMenuOpen, (newValue) => {
   if (newValue) {
     document.body.classList.add('overflow-hidden');
     isSettingsOpen.value = false;
+    isSearchOpen.value = false;
   } else {
     document.body.classList.remove('overflow-hidden');
   }
@@ -55,6 +59,14 @@ const toggleSettings = () => {
   isSettingsOpen.value = !isSettingsOpen.value;
 };
 
+const toggleSearch = () => {
+  isSearchOpen.value = !isSearchOpen.value;
+};
+
+const closeSearch = () => {
+  isSearchOpen.value = false;
+};
+
 const menuLinks = computed(() => [
   { name: t('nav_home'), path: '/' },
   { name: t('nav_blog'), path: '/blog' },
@@ -72,23 +84,24 @@ const showSidebar = computed(() => true);
   <nav v-if="showSidebar" class="fixed top-0 left-0 h-screen w-16 bg-black text-white flex flex-col items-center justify-between py-4 z-50 hidden md:flex">
     <!-- Top: Branding -->
     <div class="flex flex-col items-center gap-8">
-      <a href="/" class="font-display font-black text-2xl tracking-tighter hover:text-accent transition-colors">
+      <RouterLink to="/" class="font-display font-black text-2xl tracking-tighter hover:text-accent transition-colors">
         AS
-      </a>
+      </RouterLink>
     </div>
 
     <!-- Middle: Systematic Tools -->
     <div class="flex flex-col gap-10 items-center">
-      <a href="/blog">
+      <RouterLink to="/blog">
         <Menu class="w-6 h-6 cursor-pointer transition-colors hover:text-accent" />
-      </a>
+      </RouterLink>
       <Search
         class="w-6 h-6 cursor-pointer transition-colors hover:text-accent"
-        @click="emit('toggle-search')"
+        :class="{ 'text-accent': isSearchOpen }"
+        @click="toggleSearch"
       />
-      <a href="/author">
+      <RouterLink to="/author">
         <User class="w-6 h-6 cursor-pointer hover:text-accent transition-colors" />
-      </a>
+      </RouterLink>
     </div>
 
     <!-- Bottom: Menu Toggle -->
@@ -110,11 +123,11 @@ const showSidebar = computed(() => true);
 
   <!-- Mobile Header -->
   <header v-if="showSidebar" class="fixed top-0 left-0 w-full h-16 bg-black text-white px-4 flex items-center justify-between z-50 md:hidden">
-    <a href="/" class="font-display font-black text-xl tracking-tighter">
+    <RouterLink to="/" class="font-display font-black text-xl tracking-tighter">
       AS
-    </a>
+    </RouterLink>
     <div class="flex items-center gap-3">
-      <Search class="w-5 h-5 cursor-pointer" @click="emit('toggle-search')" />
+      <Search class="w-5 h-5 cursor-pointer" @click="toggleSearch" />
       <Menu class="w-5 h-5 cursor-pointer" @click="toggleMenu" />
     </div>
   </header>
@@ -147,10 +160,10 @@ const showSidebar = computed(() => true);
 
             <!-- Navigation Links -->
             <nav class="space-y-2 sm:space-y-3 md:space-y-4">
-              <a
+              <RouterLink
                 v-for="(link, idx) in menuLinks"
                 :key="link.name"
-                :href="link.path"
+                :to="link.path"
                 @click="closeMenu"
                 class="group flex items-center gap-2 sm:gap-4 md:gap-6 py-2 sm:py-3 md:py-4"
               >
@@ -158,7 +171,7 @@ const showSidebar = computed(() => true);
                   {{ link.name }}
                 </span>
                 <ArrowRight class="w-4 h-4 sm:w-6 sm:h-6 md:w-8 md:h-8 text-white opacity-0 group-hover:opacity-100 transition-all -translate-x-4 sm:-translate-x-8 group-hover:translate-x-0" />
-              </a>
+              </RouterLink>
             </nav>
 
             <!-- Mobile Footer Info -->
@@ -207,34 +220,49 @@ const showSidebar = computed(() => true);
         </Transition>
       </div>
     </Transition>
+
+    <!-- Search Overlay -->
+    <SearchOverlay :is-open="isSearchOpen" @close="closeSearch" />
   </Teleport>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
+// 字体变量
+$font-display: system-ui, -apple-system, sans-serif;
+$transition-ease: ease;
+$transition-duration: 0.3s;
+
 .font-display {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: $font-display;
 }
 
-.slide-enter-active,
-.slide-leave-active {
-  transition: transform 0.3s ease;
+// Slide 过渡动画
+.slide {
+  &-enter-active,
+  &-leave-active {
+    transition: transform $transition-duration $transition-ease;
+  }
+
+  &-enter-from,
+  &-leave-to {
+    transform: translateX(-100%);
+  }
 }
 
-.slide-enter-from,
-.slide-leave-to {
-  transform: translateX(-100%);
+// Fade 过渡动画
+.fade {
+  &-enter-active,
+  &-leave-active {
+    transition: opacity 0.2s $transition-ease;
+  }
+
+  &-enter-from,
+  &-leave-to {
+    opacity: 0;
+  }
 }
 
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-
+// 现代高度支持
 @supports (height: 100dvh) {
   .min-h-full {
     min-height: 100dvh;

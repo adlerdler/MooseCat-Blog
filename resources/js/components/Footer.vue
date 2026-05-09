@@ -1,4 +1,5 @@
 <script setup>
+import { RouterLink } from 'vue-router';
 import { Twitter, Github, Linkedin, Instagram } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -21,12 +22,12 @@ const toggleFooter = () => {
     class="p-8 md:p-16 bg-construct-paper border-t-8 border-black grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-12 sm:gap-8 md:gap-12"
   >
     <div class="sm:col-span-2">
-      <a
-        href="/"
+      <RouterLink
+        to="/"
         class="font-display text-5xl md:text-6xl tracking-tighter mb-4 block hover:text-accent transition-colors"
       >
         ARCHYX
-      </a>
+      </RouterLink>
       <p class="max-w-xs text-sm uppercase font-bold tracking-tight opacity-60 min-h-[3rem]">
         探索建筑与技术的边界，构建未来的数字空间体验
       </p>
@@ -67,24 +68,24 @@ const toggleFooter = () => {
       </h4>
       <ul class="text-xs space-y-3 font-bold tracking-widest uppercase">
         <li>
-          <a href="/" class="hover:text-accent hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
+          <RouterLink to="/" class="hover:text-accent hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
             / 理论
-          </a>
+          </RouterLink>
         </li>
         <li>
-          <a href="/" class="hover:text-accent hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
+          <RouterLink to="/" class="hover:text-accent hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
             / 设计
-          </a>
+          </RouterLink>
         </li>
         <li>
-          <a href="/blog" class="hover:text-accent hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
+          <RouterLink to="/blog" class="hover:text-accent hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
             / 博客
-          </a>
+          </RouterLink>
         </li>
         <li>
-          <a href="/author" class="hover:text-accent hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
+          <RouterLink to="/author" class="hover:text-accent hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
             / 关于
-          </a>
+          </RouterLink>
         </li>
       </ul>
     </div>
@@ -107,8 +108,11 @@ const toggleFooter = () => {
   </footer>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
+// 字体变量
+$font-display: system-ui, -apple-system, sans-serif;
+
 .font-display {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: $font-display;
 }
 </style>

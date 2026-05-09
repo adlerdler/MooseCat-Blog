@@ -34,14 +34,15 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: var(--construct-red);
+    background: var(--accent);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #a01824;
+    background: var(--accent);
+    filter: brightness(0.8);
 }
 
 ::selection {
-    background: var(--construct-red);
+    background: var(--accent);
     color: white;
 }

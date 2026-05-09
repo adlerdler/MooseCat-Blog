@@ -1,14 +1,17 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
+import { RouterLink } from 'vue-router'
 import { Search, ArrowRight, Send, Mail, Twitter, Linkedin, Github } from 'lucide-vue-next'
 import { MotionComponent as Motion } from '@vueuse/motion'
 import SidebarMenu from '../components/SidebarMenu.vue'
 import Footer from '../components/Footer.vue'
+import SearchOverlay from '../components/SearchOverlay.vue'
 import { useTheme } from '../composables/useTheme'
 
 const { initTheme } = useTheme()
 
 const isFooterVisible = ref(true)
+const isSearchOpen = ref(false)
 
 onMounted(() => {
   initTheme()
@@ -22,6 +25,14 @@ onMounted(() => {
 watch(isFooterVisible, (newVal) => {
   sessionStorage.setItem('footer_visible', String(newVal))
 })
+
+const openSearch = () => {
+  isSearchOpen.value = true
+}
+
+const closeSearch = () => {
+  isSearchOpen.value = false
+}
 
 const searchQuery = ref('')
 const activeCategory = ref('ALL')
@@ -117,22 +128,23 @@ const featuredPosts = computed(() => {
             :visible="{ opacity: 1, y: 0 }"
             :transition="{ duration: 0.8, ease: 'easeOut', delay: 0.6 }"
           >
-            <div class="flex flex-col sm:flex-row items-stretch max-w-2xl group relative">
+            <div 
+              class="flex flex-col sm:flex-row items-stretch max-w-2xl group relative cursor-pointer"
+              @click="openSearch"
+            >
               <div class="relative flex-1">
                 <Search class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-construct-black/40" />
-                <input
-                  v-model="searchQuery"
-                  type="text"
-                  placeholder="搜索文章..."
-                  class="w-full bg-white border-4 border-construct-black px-12 py-4 text-sm font-bold tracking-widest focus:outline-none transition-all focus:bg-construct-paper relative z-20"
-                />
+                <div
+                  class="w-full bg-white border-4 border-construct-black px-12 py-4 text-sm font-bold tracking-widest transition-all cursor-pointer"
+                >
+                  搜索文章...
+                </div>
               </div>
-              <a
-                href="/posts"
+              <div
                 class="bg-construct-black text-white px-8 py-4 sm:py-0 flex items-center justify-center font-display tracking-widest text-sm font-bold hover:bg-construct-red cursor-pointer transition-colors active:translate-x-1 active:translate-y-1 whitespace-nowrap relative z-20"
               >
                 搜索
-              </a>
+              </div>
             </div>
           </Motion>
         </div>
@@ -163,12 +175,12 @@ const featuredPosts = computed(() => {
               FEATURED ARTIFACTS // 最新发布的技术文章与研究
             </div>
           </div>
-          <a href="/posts" class="group flex flex-col items-end gap-2">
+          <RouterLink to="/posts" class="group flex flex-col items-end gap-2">
             <div class="flex items-center gap-4 text-xs font-bold tracking-widest uppercase hover:text-construct-red transition-colors">
               <span>访问全部归档</span>
               <ArrowRight class="w-4 h-4 transition-transform group-hover:translate-x-2" />
             </div>
-          </a>
+          </RouterLink>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
@@ -297,36 +309,48 @@ const featuredPosts = computed(() => {
     <!-- Footer -->
     <Footer v-model="isFooterVisible" />
 
+    <!-- Search Overlay -->
+    <SearchOverlay :is-open="isSearchOpen" @close="closeSearch" />
+
     </div><!-- End of ml-16 wrapper -->
 
   </div>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
+// 基础变量
+$font-display: system-ui, -apple-system, sans-serif;
+$marquee-duration: 20s;
+$marquee-spacing: 2rem;
+$text-sm: 0.75rem;
+$spacing-2: 0.5rem;
+
 .font-display {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: $font-display;
 }
 
-/* Marquee Animation */
-.marquee-container {
-  overflow: hidden;
-  width: 100%;
-}
+// Marquee 动画
+.marquee {
+  &-container {
+    overflow: hidden;
+    width: 100%;
+  }
 
-.marquee-content {
-  display: flex;
-  animation: marquee 20s linear infinite;
-}
+  &-content {
+    display: flex;
+    animation: marquee $marquee-duration linear infinite;
+  }
 
-.marquee-text {
-  display: inline-block;
-  font-family: system-ui, -apple-system, sans-serif;
-  font-size: 0.75rem;
-  font-weight: bold;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  padding: 0 2rem;
+  &-text {
+    display: inline-block;
+    font-family: $font-display;
+    font-size: $text-sm;
+    font-weight: bold;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    padding: 0 $marquee-spacing;
+  }
 }
 
 @keyframes marquee {
@@ -338,15 +362,8 @@ const featuredPosts = computed(() => {
   }
 }
 
+// 构造样式 - clip-path 由 Tailwind 处理
 .construct-diagonal {
   clip-path: polygon(15% 0, 100% 0, 100% 100%, 0% 100%);
-}
-
-.shadow-\[-4px_4px_0px_\#000\] {
-  box-shadow: -4px 4px 0px #000;
-}
-
-.shadow-\[8px_8px_0px_\#000\] {
-  box-shadow: 8px 8px 0px #000;
 }
 </style>

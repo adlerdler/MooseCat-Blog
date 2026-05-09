@@ -15,7 +15,7 @@ const message = ref("Welcome to the Laravel + Vue Blog!");
 const message1 = ref("欢迎访问我的博客 --- Moose cat");
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 /* h1 {
     color: #2d3748;
 } */
