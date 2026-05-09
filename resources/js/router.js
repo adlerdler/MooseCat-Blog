@@ -2,6 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router';
 import WelcomePage from './Pages/Welcome.vue';
 import Home from './Pages/Home.vue';
 import Blog from './Pages/Blog.vue';
+import Author from './Pages/Author.vue';
+import ErrorPage from './components/ErrorPage.vue';
 
 const routes = [
   {
@@ -20,29 +22,18 @@ const routes = [
     component: Blog,
   },
   {
-    path: '/posts',
-    name: 'posts',
-    component: Home,
-  },
-  {
-    path: '/videos',
-    name: 'videos',
-    component: Home,
-  },
-  {
-    path: '/projects',
-    name: 'projects',
-    component: Home,
-  },
-  {
-    path: '/resources',
-    name: 'resources',
-    component: Home,
-  },
-  {
-    path: '/author',
+    path: '/author/:id?',
     name: 'author',
-    component: Home,
+    component: Author,
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'not-found',
+    component: ErrorPage,
+    props: (route) => ({ 
+      errorCode: parseInt(route.params.errorCode) || 404,
+      errorPath: route.fullPath 
+    }),
   },
 ];
 

@@ -42,10 +42,11 @@
 
 | 特性 | 描述 | Description |
 | :--- | :--- | :--- |
-| 🎨 **Glassmorphism UI** | 基于毛玻璃美学的极简界面。 | Minimalist UI based on Glassmorphism aesthetics. |
+| 🎨 **Constructivist UI** | 基于构成主义美学的激进界面。 | Radical interface based on Constructivist aesthetics. |
 | ✍️ **Markdown Native** | 原生 Markdown 支持，实时预览。 | Native Markdown support with live preview. |
 | 🤖 **AI-First Workflow** | 深度集成 Trae/Claude，支持 Agentic 开发。 | Deep Trae/Claude integration for Agentic development. |
-| 📱 **Responsive Design** | 完美适配移动端与桌面端。 | Seamless experience across mobile and desktop. |
+| 📱 **SPA Architecture** | Vue 3 + Vue Router 单页应用架构。 | Vue 3 + Vue Router Single Page Application architecture. |
+| 🌍 **i18n Support** | 多语言国际化支持。 | Multi-language internationalization support. |
 | 🔒 **Modern Auth** | 安全可靠的 Laravel 11 认证系统。 | Secure Laravel 11 authentication system. |
 
 ---
@@ -57,10 +58,13 @@
 - **Eloquent ORM**: 优雅的数据处理。
 - **SQLite/MySQL**: 灵活的持久化选择。
 
-### Frontend (Vue 3)
+### Frontend (Vue 3 SPA)
+- **Vue Router**: 客户端路由管理。
+- **Vue I18n**: 多语言国际化。
 - **Vite**: 极速构建体验。
 - **Tailwind CSS**: 实用优先的样式定义。
-- **Composition API**: 现代化的组件逻辑。
+- **Lucide Icons**: 现代化图标库。
+- **@vueuse/motion**: 动画与过渡效果。
 
 ---
 

@@ -2,25 +2,83 @@
 import { computed } from 'vue'
 import { ArrowLeft, AlertTriangle } from 'lucide-vue-next'
 import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
 
 const props = defineProps({
   errorCode: {
     type: Number,
     default: 404
+  },
+  errorPath: {
+    type: String,
+    default: ''
   }
 })
 
 const { t } = useI18n()
+const route = useRoute()
+
+const pathSegments = computed(() => {
+  const path = props.errorPath || route.fullPath
+  return path.split('/').filter(segment => segment !== '')
+})
+
+const detectedError = computed(() => {
+  const segments = pathSegments.value
+  const errorCode = props.errorCode
+
+  if (segments.length === 0) {
+    return { type: 'unknown', title: 'Page Not Found', hint: '' }
+  }
+
+  const firstSegment = segments[0].toLowerCase()
+
+  const pathErrorMap = {
+    'post': { type: 'post', title: t('article_not_found'), hint: t('article_not_found_desc') },
+    'posts': { type: 'post', title: t('article_not_found'), hint: t('article_not_found_desc') },
+    'video': { type: 'video', title: t('video_not_found'), hint: t('video_not_found_desc') },
+    'videos': { type: 'video', title: t('video_not_found'), hint: t('video_not_found_desc') },
+    'project': { type: 'project', title: t('project_not_found'), hint: t('project_not_found_desc') },
+    'projects': { type: 'project', title: t('project_not_found'), hint: t('project_not_found_desc') },
+    'resource': { type: 'resource', title: t('resource_not_found'), hint: t('resource_not_found_desc') },
+    'resources': { type: 'resource', title: t('resource_not_found'), hint: t('resource_not_found_desc') },
+    'author': { type: 'author', title: t('author_not_found'), hint: t('author_not_found_desc') },
+    'category': { type: 'category', title: t('category_not_found'), hint: t('category_not_found_desc') },
+    'tag': { type: 'tag', title: t('tag_not_found'), hint: t('tag_not_found_desc') },
+    'admin': { type: 'admin', title: t('access_denied'), hint: t('admin_access_denied_desc'), code: 403 },
+    'api': { type: 'api', title: t('api_not_found'), hint: t('api_not_found_desc') }
+  }
+
+  if (pathErrorMap[firstSegment]) {
+    const result = pathErrorMap[firstSegment]
+    return {
+      ...result,
+      errorCode: result.code || errorCode,
+      path: props.errorPath || route.fullPath
+    }
+  }
+
+  return {
+    type: 'page',
+    title: 'Page Not Found',
+    hint: '',
+    errorCode,
+    path: props.errorPath || route.fullPath
+  }
+})
 
 const errorInfo = computed(() => {
+  const code = detectedError.value.errorCode || props.errorCode
+  const detected = detectedError.value
+
   const codes = {
     404: {
-      title: t('data_corruption'),
-      subtitle: t('not_found_subtitle'),
-      desc: t('not_found_desc'),
-      code: 'E_STRUC_NODE_NOT_FOUND',
+      title: detected.title || t('data_corruption'),
+      subtitle: detected.hint ? detected.hint : t('not_found_subtitle'),
+      desc: detected.hint ? '' : t('not_found_desc'),
+      code: detected.type ? `E_${detected.type.toUpperCase()}_NOT_FOUND` : 'E_STRUC_NODE_NOT_FOUND',
       integrity: 'COMPROMISED',
-      sector: 'UNKNOWN'
+      sector: detected.type.toUpperCase() || 'UNKNOWN'
     },
     403: {
       title: t('access_denied'),
@@ -39,12 +97,20 @@ const errorInfo = computed(() => {
       sector: 'CORE'
     }
   }
-  return codes[props.errorCode] || codes[404]
+  return codes[code] || codes[404]
 })
 
 const currentTimestamp = computed(() => {
   return new Date().toISOString()
 })
+
+const goBack = () => {
+  if (window.history.length > 1) {
+    window.history.back()
+  } else {
+    window.location.href = '/'
+  }
+}
 </script>
 
 <template>
@@ -61,7 +127,7 @@ const currentTimestamp = computed(() => {
       <!-- Large Geometric Error Code -->
       <div class="relative mb-4">
         <div class="font-display text-[20vw] md:text-[16vw] lg:text-[14vw] leading-none tracking-tighter text-construct-black text-center select-none">
-          {{ errorCode }}
+          {{ errorInfo.errorCode || errorCode }}
         </div>
         <div class="absolute top-1/2 left-0 w-full h-3 bg-accent -translate-y-1/2 mix-blend-multiply" />
       </div>
@@ -77,20 +143,20 @@ const currentTimestamp = computed(() => {
           </div>
 
           <h2 class="text-sm md:text-base lg:text-lg font-bold tracking-widest text-construct-black mb-3 uppercase">
-            {{ errorInfo.subtitle }} // {{ errorCode }}
+            {{ errorInfo.subtitle }} // {{ errorInfo.errorCode || errorCode }}
           </h2>
 
-          <p class="text-xs md:text-sm font-medium opacity-60 max-w-lg leading-relaxed mb-6 uppercase tracking-wide">
+          <p v-if="errorInfo.desc" class="text-xs md:text-sm font-medium opacity-60 max-w-lg leading-relaxed mb-6 uppercase tracking-wide">
             {{ errorInfo.desc }}
           </p>
 
-          <a
-            href="/"
+          <button
+            @click="goBack"
             class="group inline-flex items-center gap-4 bg-construct-black text-white hover:bg-accent py-3 px-6 md:py-4 md:px-8 font-bold text-xs md:text-sm tracking-[0.15em] uppercase transition-all border-4 border-construct-black active:translate-x-0.5 active:translate-y-0.5"
           >
             <ArrowLeft class="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-            {{ t('return_home') }}
-          </a>
+            {{ t('go_back') || 'Go Back' }}
+          </button>
         </div>
 
         <!-- Right Side - Diagnostics -->
@@ -108,6 +174,10 @@ const currentTimestamp = computed(() => {
             <div class="flex justify-between gap-4">
               <span class="opacity-40 uppercase">Sector:</span>
               <span class="font-bold underline">{{ errorInfo.sector }}</span>
+            </div>
+            <div class="flex justify-between gap-4">
+              <span class="opacity-40 uppercase">Resource Type:</span>
+              <span class="font-bold capitalize">{{ detectedError.type }}</span>
             </div>
             <div class="flex justify-between gap-4">
               <span class="opacity-40 uppercase">Timestamp:</span>

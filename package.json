@@ -19,12 +19,16 @@
     "dependencies": {
         "@inertiajs/vue3": "^3.1.1",
         "@tailwindcss/forms": "^0.5.9",
+        "@vueuse/integrations": "^14.3.0",
         "@vueuse/motion": "^3.0.3",
         "lucide-vue-next": "^1.0.0",
         "motion": "^12.38.0",
+        "tippy.js": "^6.3.7",
+        "vitesse": "github:zyyv/vue-github-calendar",
         "vue": "^3.5.13",
         "vue-i18n": "^9.14.4",
         "vue-router": "^4.6.4",
+        "vue3-calendar-heatmap": "^2.0.5",
         "ziggy-js": "^2.6.2"
     }
 }

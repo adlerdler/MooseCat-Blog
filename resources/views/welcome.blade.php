@@ -8,6 +8,6 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body id="app">
-    <welcome-page></welcome-page>
+    <router-view></router-view>
 </body>
 </html>
