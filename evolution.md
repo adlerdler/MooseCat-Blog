@@ -215,3 +215,27 @@
   - 使用 `ml-16` wrapper 为固定侧边栏（64px）留出空间。
   - 添加 `isFooterVisible` 状态管理页脚显示/隐藏。
   - 修复模板标签闭合问题，确保 Vue 编译通过。
+
+### 2026-05-10: 启动页 (SplashScreen) 集成到首页流程 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 将启动页逻辑从独立路由 `/welcome` 迁移到首页 `/`，实现访问首页时先显示启动动画。
+- **Rationale:**
+  - 用户希望点击首页时能够看到启动页动画，而不是单独打开页面。
+  - 将 SplashScreen 组件集成到 Home.vue，首次访问时显示动画，之后直接显示内容。
+  - 使用 sessionStorage 标记首次访问状态，避免刷新页面重复播放动画。
+- **Status:**
+  - 修改路由配置，移除 `/welcome` 路由，`/` 直接指向 Home。
+  - 在 Home.vue 中集成 SplashScreen 组件。
+  - 添加 `showSplash` 和 `showContent` 状态控制启动动画和内容显示。
+  - 使用 sessionStorage 存储 `splash_shown` 标记，避免重复播放。
+  - Welcome.vue 文件保留备用。
+
+### 2026-05-10: 全局滚动条样式隐藏 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 隐藏全局滚动条，实现更纯净的视觉体验。
+- **Rationale:**
+  - 用户反馈全局滚动条影响美观，需要隐藏。
+  - 使用 CSS 同时兼容 Chrome、Safari、Firefox、IE/Edge 等主流浏览器。
+- **Status:**
+  - 在 `resources/css/app.css` 中添加 `::-webkit-scrollbar { display: none; }` 等规则。
+  - 添加 `scrollbar-width: none` 和 `-ms-overflow-style: none` 实现跨浏览器兼容。

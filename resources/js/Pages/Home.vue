@@ -6,12 +6,15 @@ import { MotionComponent as Motion } from '@vueuse/motion'
 import SidebarMenu from '../components/SidebarMenu.vue'
 import Footer from '../components/Footer.vue'
 import SearchOverlay from '../components/SearchOverlay.vue'
+import SplashScreen from '../components/SplashScreen.vue'
 import { useTheme } from '../composables/useTheme'
 
 const { initTheme } = useTheme()
 
 const isFooterVisible = ref(true)
 const isSearchOpen = ref(false)
+const showSplash = ref(false)
+const showContent = ref(false)
 
 onMounted(() => {
   initTheme()
@@ -20,11 +23,26 @@ onMounted(() => {
   if (saved !== null) {
     isFooterVisible.value = saved === 'true'
   }
+
+  const splashShown = sessionStorage.getItem('splash_shown')
+  if (splashShown !== 'true') {
+    showSplash.value = true
+  } else {
+    showContent.value = true
+  }
 })
 
 watch(isFooterVisible, (newVal) => {
   sessionStorage.setItem('footer_visible', String(newVal))
 })
+
+const handleSplashComplete = () => {
+  showSplash.value = false
+  sessionStorage.setItem('splash_shown', 'true')
+  setTimeout(() => {
+    showContent.value = true
+  }, 100)
+}
 
 const openSearch = () => {
   isSearchOpen.value = true
@@ -75,6 +93,14 @@ const featuredPosts = computed(() => {
 
 <template>
   <div class="min-h-screen selection:bg-construct-red selection:text-white">
+    <!-- Splash Screen -->
+    <SplashScreen
+      v-if="showSplash"
+      @complete="handleSplashComplete"
+    />
+
+    <!-- Main Content -->
+    <template v-if="showContent">
     <!-- Sidebar Menu -->
     <SidebarMenu
       v-model:is-footer-visible="isFooterVisible"
@@ -313,6 +339,8 @@ const featuredPosts = computed(() => {
     <SearchOverlay :is-open="isSearchOpen" @close="closeSearch" />
 
     </div><!-- End of ml-16 wrapper -->
+
+    </template><!-- End of showContent -->
 
   </div>
 </template>

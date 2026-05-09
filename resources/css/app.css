@@ -26,20 +26,24 @@ body {
 }
 
 ::-webkit-scrollbar {
-    width: 8px;
+    display: none;
 }
 
 ::-webkit-scrollbar-track {
-    background: var(--construct-black);
+    display: none;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: var(--accent);
+    display: none;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: var(--accent);
-    filter: brightness(0.8);
+    display: none;
+}
+
+* {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
 
 ::selection {
