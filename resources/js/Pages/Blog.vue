@@ -127,7 +127,7 @@ const isFooterVisible = ref(true);
               getSpanClass(idx)
             ]"
           >
-            <RouterLink :to="`/post/${post.id}`" class="absolute inset-0 z-20" :aria-label="`Read ${post.title}`"></RouterLink>
+            <RouterLink :to="`/blog/${post.id}`" class="absolute inset-0 z-20" :aria-label="`Read ${post.title}`"></RouterLink>
 
             <!-- Decorative ID Background -->
             <div

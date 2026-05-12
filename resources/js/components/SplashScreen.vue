@@ -5,8 +5,22 @@ import { Hexagon, Sparkles } from 'lucide-vue-next';
 const emit = defineEmits(['complete']);
 
 const isVisible = ref(true);
+const SESSION_KEY = 'archyx_splash_shown';
 
 onMounted(() => {
+    // 检查是否是新会话（新标签页）
+    const hasShown = sessionStorage.getItem(SESSION_KEY);
+    
+    if (hasShown) {
+        // 已有会话，跳过启动页
+        isVisible.value = false;
+        emit('complete');
+        return;
+    }
+    
+    // 新会话，显示启动页
+    sessionStorage.setItem(SESSION_KEY, 'true');
+    
     setTimeout(() => {
         isVisible.value = false;
         setTimeout(() => {

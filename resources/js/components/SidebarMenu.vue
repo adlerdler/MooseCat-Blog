@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, watch, onUnmounted } from 'vue';
 import { RouterLink } from 'vue-router';
-import { Menu, Search, User, ChevronDown, ChevronUp, X, ArrowRight, Globe } from 'lucide-vue-next';
+import { Menu, Search, User, ChevronDown, ChevronUp, X, ArrowRight, Globe, FileText } from 'lucide-vue-next';
 import SettingsPanel from './SettingsPanel.vue';
 import SearchOverlay from './SearchOverlay.vue';
 import { useI18n } from 'vue-i18n';
@@ -92,7 +92,7 @@ const showSidebar = computed(() => true);
     <!-- Middle: Systematic Tools -->
     <div class="flex flex-col gap-10 items-center">
       <RouterLink to="/blog">
-        <Menu class="w-6 h-6 cursor-pointer transition-colors hover:text-accent" />
+        <FileText class="w-6 h-6 cursor-pointer transition-colors hover:text-accent" />
       </RouterLink>
       <Search
         class="w-6 h-6 cursor-pointer transition-colors hover:text-accent"

@@ -1,0 +1,333 @@
+<script setup>
+import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { useRoute, useRouter, RouterLink } from 'vue-router';
+import { MotionComponent as Motion } from '@vueuse/motion';
+import { useTheme } from '../composables/useTheme';
+import { PROJECTS } from '../data/projects';
+import { ExternalLink, Github, ArrowLeft, ArrowUp, Terminal, Cpu, Layers, Globe, Code } from 'lucide-vue-next';
+
+const { initTheme } = useTheme();
+const route = useRoute();
+const router = useRouter();
+
+const project = computed(() => {
+  return PROJECTS.find((p) => p.id === route.params.id);
+});
+
+const showBackToTop = ref(false);
+
+const handleScroll = () => {
+  showBackToTop.value = window.scrollY > 300;
+};
+
+onMounted(() => {
+  initTheme();
+  window.addEventListener('scroll', handleScroll);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll);
+});
+
+const goBack = () => {
+  router.back();
+};
+
+const scrollToTop = () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+</script>
+
+<template>
+  <div class="min-h-screen bg-construct-paper text-construct-black pb-32">
+    <!-- 回退按钮 -->
+    <button
+      @click="goBack"
+      class="fixed top-4 left-4 z-50 w-12 h-12 bg-construct-black text-white flex items-center justify-center hover:bg-construct-red transition-colors shadow-lg"
+    >
+      <ArrowLeft class="w-6 h-6" />
+    </button>
+
+    <!-- 回到顶部按钮 -->
+    <Transition name="fade">
+      <button
+        v-if="showBackToTop"
+        @click="scrollToTop"
+        class="fixed bottom-4 right-4 z-50 w-12 h-12 bg-construct-red text-white flex items-center justify-center hover:bg-construct-black transition-colors shadow-lg"
+      >
+        <ArrowUp class="w-6 h-6" />
+      </button>
+    </Transition>
+
+    <!-- 404状态 -->
+    <div v-if="!project" class="min-h-screen flex items-center justify-center bg-construct-paper">
+      <div class="text-center">
+        <h1 class="font-display text-4xl mb-4 uppercase">Node not found</h1>
+        <RouterLink
+          to="/projects"
+          class="font-bold tracking-widest text-construct-red hover:underline"
+        >
+          RETURN TO REPOSITORY
+        </RouterLink>
+      </div>
+    </div>
+
+    <!-- 项目详情内容 -->
+    <template v-else>
+      <!-- 头部 / 顶部导航 -->
+      <header class="fixed top-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-md border-b border-construct-black/10 z-40 flex items-center justify-between px-6 md:px-12">
+        <div class="flex items-center gap-4">
+          <span class="text-[10px] font-black tracking-[0.4em] uppercase opacity-40">
+            PROJ_{project.id.padStart(2, '0')} // ARCHIVE
+          </span>
+        </div>
+        <div class="flex items-center gap-6">
+          <button
+            @click="goBack"
+            class="flex items-center gap-2 text-xs font-bold tracking-widest uppercase hover:text-construct-red transition-colors"
+          >
+            <ArrowLeft size="16" />
+            EXIT
+          </button>
+          <a
+            v-if="project.githubUrl"
+            :href="project.githubUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="hover:text-construct-red transition-colors"
+          >
+            <Github size="20" />
+          </a>
+          <a
+            v-if="project.url"
+            :href="project.url"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="bg-construct-black text-white px-4 py-1.5 text-[10px] font-bold tracking-widest uppercase hover:bg-construct-red transition-colors flex items-center gap-2"
+          >
+            LIVE VIEW
+            <ExternalLink size="12" />
+          </a>
+        </div>
+      </header>
+
+      <!-- 主内容布局 -->
+      <div class="pt-24 px-6 md:px-12 max-w-[1700px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 xl:gap-24">
+        <!-- 左列：标题和介绍 -->
+        <div class="lg:col-span-8">
+          <Motion
+            :initial="{ opacity: 0, x: -30 }"
+            :visible="{ opacity: 1, x: 0 }"
+            :transition="{ duration: 0.6 }"
+          >
+            <div class="flex items-center gap-4 mb-4">
+              <div class="w-12 h-1 bg-construct-red" />
+              <span class="text-xs font-bold tracking-[0.5em] text-construct-red uppercase">
+                {{ project.year || '2026' }} DEPLOYMENT
+              </span>
+            </div>
+            <h1 class="font-display text-5xl md:text-7xl lg:text-8xl xl:text-[10rem] leading-[0.8] tracking-tighter mb-12 uppercase italic whitespace-pre-line">
+              {{ project.title.replace('_', '_\n') }}
+            </h1>
+          </Motion>
+
+          <!-- 主图 / 可视化 -->
+          <Motion
+            :initial="{ opacity: 0, y: 50 }"
+            :visible="{ opacity: 1, y: 0 }"
+            :transition="{ delay: 0.2, duration: 0.8 }"
+            class="relative mb-24 group"
+          >
+            <div class="absolute -top-4 -left-4 w-24 h-24 border-t-4 border-l-4 border-construct-red z-10" />
+            <div class="absolute -bottom-4 -right-4 w-24 h-24 border-b-4 border-r-4 border-construct-red z-10" />
+            <div class="overflow-hidden border-4 border-construct-black aspect-video bg-construct-black">
+              <img
+                :src="project.image"
+                :alt="project.title"
+                class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700 grayscale hover:grayscale-0"
+              />
+            </div>
+            <!-- 技术覆盖层 -->
+            <div class="absolute top-4 right-4 text-[8px] font-mono text-white tracking-widest leading-loose flex flex-col items-end pointer-events-none opacity-40">
+              <span>RESOLUTION: AUTO</span>
+              <span>GEOMETRY: OPTIMIZED</span>
+              <span>SYSTEM: OK</span>
+            </div>
+          </Motion>
+
+          <!-- 长描述 -->
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-12 mb-24">
+            <div class="md:col-span-4">
+              <h3 class="font-display text-2xl uppercase tracking-tighter mb-4 border-b-2 border-construct-black pb-2">
+                Abstract //
+              </h3>
+              <p class="text-sm font-bold tracking-widest uppercase opacity-40 leading-relaxed">
+                Structural analysis and deployment parameters.
+              </p>
+            </div>
+            <div class="md:col-span-8">
+              <p class="font-medium text-xl md:text-2xl leading-relaxed text-construct-black italic">
+                {{ project.longDescription || project.description }}
+              </p>
+            </div>
+          </div>
+
+          <!-- 交互查看器 / 沙箱 -->
+          <Motion
+            v-if="project.url"
+            :initial="{ opacity: 0 }"
+            :visible-once="{ opacity: 1 }"
+            class="mb-24"
+          >
+            <div class="bg-construct-black text-white p-4 flex items-center justify-between border-x-4 border-t-4 border-construct-black">
+              <div class="flex items-center gap-3">
+                <Globe size="16" class="text-construct-red" />
+                <span class="text-[10px] font-bold tracking-[0.2em] uppercase">VIEWPORT_LIVE_PROJECTION</span>
+              </div>
+              <div class="flex gap-2">
+                <div class="w-2 h-2 rounded-full bg-white/20" />
+                <div class="w-2 h-2 rounded-full bg-white/20" />
+                <div class="w-2 h-2 rounded-full bg-construct-red" />
+              </div>
+            </div>
+            <div class="w-full aspect-video border-4 border-construct-black bg-white shadow-2xl relative">
+              <iframe
+                :src="project.url"
+                class="w-full h-full"
+                :title="project.title"
+              />
+              <div class="absolute bottom-4 right-4 pointer-events-none">
+                <div class="bg-construct-red text-white text-[8px] font-black tracking-widest px-2 py-1 flex items-center gap-2">
+                  <Terminal size="10" /> LINKED_IFRAME_PROTOCOL
+                </div>
+              </div>
+            </div>
+          </Motion>
+        </div>
+
+        <!-- 右列：技术规格 / 固定 -->
+        <aside class="lg:col-span-4 lg:sticky lg:top-24 xl:top-32 lg:h-fit">
+          <Motion
+            :initial="{ opacity: 0, y: 30 }"
+            :visible="{ opacity: 1, y: 0 }"
+            :transition="{ delay: 0.4 }"
+            class="border-4 md:border-8 border-construct-black p-6 md:p-10 lg:p-12 bg-white relative overflow-hidden"
+          >
+            <!-- 背景图形 -->
+            <div class="absolute top-0 right-0 font-display text-[200px] text-construct-black/5 leading-none translate-x-1/4 -translate-y-1/4 pointer-events-none">
+              #
+            </div>
+
+            <h2 class="font-display text-4xl mb-12 tracking-tighter uppercase relative z-10">Specs //</h2>
+
+            <div class="space-y-10 relative z-10">
+              <div class="group">
+                <div class="flex items-center gap-3 text-xs font-black tracking-widest opacity-30 mb-2 uppercase group-hover:text-construct-red group-hover:opacity-100 transition-all">
+                  <div class="w-4 h-[1px] bg-current" />
+                  Role / Contribution
+                </div>
+                <div class="text-xl font-display uppercase tracking-tight">
+                  {{ project.role || 'Lead Designer' }}
+                </div>
+              </div>
+
+              <div class="group">
+                <div class="flex items-center gap-3 text-xs font-black tracking-widest opacity-30 mb-2 uppercase group-hover:text-construct-red group-hover:opacity-100 transition-all">
+                  <div class="w-4 h-[1px] bg-current" />
+                  Technologies
+                </div>
+                <div class="flex flex-wrap gap-2">
+                  <span
+                    v-for="tech in project.technologies"
+                    :key="tech"
+                    class="bg-gray-100 px-2 py-1 text-[10px] font-bold tracking-widest uppercase flex items-center gap-2 border border-construct-black/10"
+                  >
+                    <Code size="10" /> {{ tech }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="group">
+                <div class="flex items-center gap-3 text-xs font-black tracking-widest opacity-30 mb-2 uppercase group-hover:text-construct-red group-hover:opacity-100 transition-all">
+                  <div class="w-4 h-[1px] bg-current" />
+                  Category Tags
+                </div>
+                <div class="flex flex-wrap gap-2">
+                  <span
+                    v-for="tag in project.tags"
+                    :key="tag"
+                    class="bg-construct-black text-white px-3 py-1.5 text-[9px] font-black tracking-widest uppercase hover:bg-construct-red transition-colors cursor-default"
+                  >
+                    {{ tag }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="pt-8 border-t border-construct-black/10 flex flex-col gap-4">
+                <a
+                  v-if="project.githubUrl"
+                  :href="project.githubUrl"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="flex items-center justify-between group/link"
+                >
+                  <span class="text-xs font-bold tracking-widest uppercase flex items-center gap-3">
+                    <Github size="16" /> Source Code
+                  </span>
+                  <ArrowLeft size="16" class="rotate-180 opacity-0 group-hover/link:opacity-100 transition-all group-hover/link:translate-x-2" />
+                </a>
+                <a
+                  v-if="project.url"
+                  :href="project.url"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="flex items-center justify-between group/link"
+                >
+                  <span class="text-xs font-bold tracking-widest uppercase flex items-center gap-3 text-construct-red">
+                    <Globe size="16" /> Production Live
+                  </span>
+                  <ArrowLeft size="16" class="rotate-180 text-construct-red opacity-0 group-hover/link:opacity-100 transition-all group-hover/link:translate-x-2" />
+                </a>
+              </div>
+            </div>
+          </Motion>
+
+          <div class="mt-8 p-6 bg-construct-black text-white flex flex-col gap-4">
+            <div class="flex items-center gap-3">
+              <div class="w-2 h-2 bg-construct-red animate-pulse" />
+              <span class="text-[10px] font-bold tracking-[0.5em] uppercase">SYSTEM_STATUS_ONLINE</span>
+            </div>
+            <p class="text-[9px] font-mono opacity-40 leading-relaxed uppercase">
+              ARCHIVING COMPLETE. DATA CLUSTERS VERIFIED. NODE STABILITY 99.4%.
+            </p>
+          </div>
+        </aside>
+      </div>
+
+      <!-- 底部导航 -->
+      <footer class="container mx-auto px-6 md:px-12 mt-32">
+        <div class="h-4 w-full bg-construct-black mb-12" />
+        <RouterLink to="/projects" class="group inline-flex flex-col">
+          <span class="text-sm font-bold tracking-[0.5em] opacity-40 group-hover:opacity-100 transition-opacity uppercase mb-2">Back to Repository</span>
+          <span class="font-display text-4xl md:text-6xl tracking-tighter uppercase group-hover:italic transition-all">All Artifacts //</span>
+        </RouterLink>
+      </footer>
+    </template>
+  </div>
+</template>
+
+<style lang="scss" scoped>
+.font-display {
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>
