@@ -254,3 +254,22 @@
   - 优化代码块 CSS 样式：采用 JetBrains Mono 字体、1.6 行高、圆角边框及横向滚动支持。
   - 修复了 `prism-markup-templating` 依赖缺失导致的 PHP 等语言高亮失效问题。
 
+### 2026-05-12: 代码块增强与页面布局优化 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 增强代码块功能并优化文章详情页布局。
+- **Rationale:**
+  - 完善代码块用户体验：行号显示、复制功能、语言标签，使用 Prism 官方插件实现。
+  - 优化文章阅读体验：增大主文章区域，缩小左右侧边栏，提升内容可读性。
+  - 改进国际化覆盖：完善 Footer 组件和管理后台的语言支持。
+- **Status:**
+  - 集成 Prism 插件：`line-numbers`（行号）、`show-language`（语言标签）、`copy-to-clipboard`（复制功能）、`toolbar`（工具栏）。
+  - 使用 Okaidia 主题，移除自定义样式，完全使用 Prism 官方默认样式。
+  - 调整代码字体大小从 `0.875rem` 到 `1rem`。
+  - 文章详情页布局优化：左右侧边栏从 `col-span-3` 减到 `col-span-2`，主内容从 `col-span-6` 增到 `col-span-8`，最大宽度从 `max-w-2xl` 增到 `max-w-4xl`。
+  - 语言文件新增：作者页面相关翻译（`role_designation`、`architect_designer`、`manifesto`、`skill_*`）、Footer 组件翻译（`footer_tagline`、`footer_categories`、`footer_theory`、`footer_design`、`footer_blog`、`footer_about`、`footer_data`、`footer_rss`、`footer_api`）。
+  - 修复菜单组件：将 `nav_about` 改为 `nav_author`，与语言文件保持一致。
+  - 重构 Footer 组件：使用 `useI18n`，将所有硬编码文本替换为翻译调用。
+  - 管理后台完善：添加 `useI18n` 支持，更新统计标签和菜单项为翻译调用。
+  - i18n 配置优化：添加命名导出 `{ i18n }`，同时支持默认导出和命名导出。
+  - 浏览器语言检测优化：支持完整语言匹配 → 基础语言匹配 → 默认英文的降级策略，增加 `SUPPORTED_LOCALES` 常量定义。
+
