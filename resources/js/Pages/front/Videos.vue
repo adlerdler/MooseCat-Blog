@@ -17,7 +17,9 @@ import { RouterLink } from 'vue-router';
 import { Motion, AnimatePresence } from 'motion-v';
 import { useTheme } from '../../composables/useTheme';
 import { VIDEOS } from '../../data/videos';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const { initTheme } = useTheme();
 const isFooterVisible = ref(true);
 
@@ -41,10 +43,10 @@ onMounted(() => {
       <div class="container mx-auto px-4 md:px-8 py-16">
         <header class="mb-16">
           <h1 class="font-display text-6xl md:text-6xl lg:text-8xl tracking-tighter leading-none mb-6">
-            VIDEOS //
+            {{ t('videos_title') }}
           </h1>
           <p class="text-sm font-medium opacity-60 uppercase tracking-widest">
-            A COLLECTION OF DIGITAL BROADCASTS AND VIDEO LOGS.
+            {{ t('videos_subtitle') }}
           </p>
         </header>
 

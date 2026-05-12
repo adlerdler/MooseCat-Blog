@@ -1,6 +1,6 @@
 <script setup>
 /**
- * SettingsPanel.vue - 设置面板组件
+ * SettingsPanel.vue - 前台设置面板组件
  * 
  * 功能说明：
  * - 提供主题切换功能
@@ -112,7 +112,7 @@ const activeThemeLabel = computed(() => {
     <!-- Copyright -->
     <div class="w-12 h-0.5 bg-accent mx-auto mt-4"></div>
     <p class="text-[10px] uppercase tracking-[0.2em] font-bold text-white/40 text-right">
-      © 2026 BLDG_SYSTEM
+      © 2026 Archyx-Blog-System
     </p>
   </div>
 </template>

@@ -33,7 +33,7 @@ const { initTheme } = useTheme();
 initTheme();
 
 const app = createApp({
-  template: '<router-view />',
+    template: '<router-view />',
 });
 
 // 注册全局组件

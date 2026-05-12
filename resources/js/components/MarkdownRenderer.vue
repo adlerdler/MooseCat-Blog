@@ -4,20 +4,27 @@
  * 
  * 功能说明：
  * - 将 Markdown 格式文本渲染为 HTML
- * - 集成 Prism.js 实现代码语法高亮
- * - 支持 Vue 代码块的语法识别
+ * - 使用 Prism.js 原生功能实现代码语法高亮
+ * - 支持代码行数显示、复制功能、语言标识
  * 
  * 技术实现：
  * - 使用 marked 库解析 Markdown
- * - 自定义 Prism 语言扩展支持 Vue SFC
- * - 处理代码块的语言标识
+ * - 使用 Prism 原生高亮方法 Prism.highlightElement()
+ * - 集成 Prism 行号插件和复制插件
+ * - 自定义 Vue SFC 语法支持
  * 
  * 使用示例：
  * <MarkdownRenderer :content="post.content" />
  */
-import { computed } from 'vue';
+import { ref, computed, onMounted, nextTick } from 'vue';
 import { marked } from 'marked';
 import Prism from 'prismjs';
+import 'prismjs/plugins/toolbar/prism-toolbar.js';
+import 'prismjs/plugins/show-language/prism-show-language.js';
+import 'prismjs/plugins/copy-to-clipboard/prism-copy-to-clipboard.js';
+import 'prismjs/plugins/line-numbers/prism-line-numbers.js';
+import 'prismjs/plugins/toolbar/prism-toolbar.css';
+import 'prismjs/plugins/line-numbers/prism-line-numbers.css';
 
 if (Prism.languages.markup) {
   Prism.languages.vue = Prism.languages.extend('markup', {});
@@ -51,35 +58,20 @@ const props = defineProps({
   }
 });
 
-const escapeHtml = (text) => {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-};
+const containerRef = ref(null);
 
 marked.use({
   renderer: {
     code(token) {
       const code = token.text || '';
       const lang = token.lang || 'text';
-
-      let highlightedCode;
-
-      if (lang && Prism.languages[lang]) {
-        try {
-          highlightedCode = Prism.highlight(code, Prism.languages[lang], lang);
-        } catch (e) {
-          console.warn('Highlight error for', lang, e.message);
-          highlightedCode = escapeHtml(code);
-        }
-      } else {
-        highlightedCode = escapeHtml(code);
-      }
-
-      return `<pre class="language-${lang}"><code class="language-${lang}">${highlightedCode}</code></pre>`;
+      const escapedCode = Prism.util.encode(code);
+      
+      return `
+        <div class="code-block-wrapper">
+          <pre class="language-${lang} line-numbers" data-src="" data-toolbar><code class="language-${lang}">${escapedCode}</code></pre>
+        </div>
+      `;
     }
   }
 });
@@ -98,10 +90,24 @@ const renderedContent = computed(() => {
 
   return html;
 });
+
+onMounted(async () => {
+  await nextTick();
+  if (containerRef.value) {
+    const codeBlocks = containerRef.value.querySelectorAll('pre code');
+    codeBlocks.forEach((codeBlock) => {
+      try {
+        Prism.highlightElement(codeBlock);
+      } catch (e) {
+        console.warn('Prism highlight error:', e.message);
+      }
+    });
+  }
+});
 </script>
 
 <template>
-  <div class="markdown-body" v-html="renderedContent"></div>
+  <div ref="containerRef" class="markdown-body" v-html="renderedContent"></div>
 </template>
 
 <style lang="scss" scoped>
@@ -166,16 +172,52 @@ const renderedContent = computed(() => {
     border-radius: 4px;
   }
 
-  :deep(pre) {
+  :deep(.code-block-wrapper) {
     margin: 1.5rem 0;
     border-radius: 0.5rem;
+    overflow: hidden;
+    background: #272822;
+  }
+
+  :deep(pre) {
+    margin: 0;
+    padding: 1rem;
     overflow-x: auto;
   }
 
   :deep(pre code) {
     font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
-    font-size: 0.9rem;
+    font-size: 1rem;
     line-height: 1.6;
+    color: #f8f8f2;
+    background: transparent !important;
+    padding: 0 !important;
+  }
+
+  :deep(.line-numbers) {
+    counter-reset: line;
+  }
+
+  :deep(.line-numbers-rows) {
+    border-right: 1px solid #3d3d3d;
+    margin-right: 0.75rem;
+    padding-right: 0.75rem;
+    user-select: none;
+    opacity: 0.5;
+  }
+
+  :deep(.line-numbers-row) {
+    counter-increment: line;
+    
+    &::before {
+      content: counter(line);
+      display: inline-block;
+      width: 1.5rem;
+      text-align: right;
+      margin-right: 0.75rem;
+      color: #858585;
+      font-size: 0.75rem;
+    }
   }
 }
 </style>

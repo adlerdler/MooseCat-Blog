@@ -17,7 +17,9 @@ import { Motion, AnimatePresence } from 'motion-v';
 import { useTheme } from '../../composables/useTheme';
 import { RESOURCES } from '../../data/resources';
 import { Download } from 'lucide-vue-next';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const { initTheme } = useTheme();
 const isFooterVisible = ref(true);
 const selectedResource = ref(null);
@@ -53,10 +55,10 @@ const closeModal = () => {
       <div class="container flex-1 mx-auto px-4 md:px-8 py-16">
         <header class="mb-16">
           <h1 class="font-display text-6xl md:text-6xl lg:text-8xl tracking-tighter leading-none mb-6">
-            RESOURCES //
+            {{ t('resources_title') }}
           </h1>
           <p class="text-sm font-medium opacity-60 uppercase tracking-widest mb-12 max-w-xl">
-            A COLLECTION OF DESIGN ASSETS, CODE SNIPPETS AND STRUCTURAL BLUEPRINTS.
+            {{ t('resources_subtitle') }}
           </p>
 
           <!-- Categories -->

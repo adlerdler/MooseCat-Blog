@@ -40,36 +40,38 @@ import {
   Trash2,
   Plus
 } from 'lucide-vue-next';
+import { useI18n } from 'vue-i18n';
 import { POSTS } from '../../data/posts';
 import { VIDEOS } from '../../data/videos';
 import { PROJECTS } from '../../data/projects';
 
+const { t } = useI18n();
 const activeSection = ref('dashboard');
 
 const stats = computed(() => [
   { 
-    label: 'POSTS', 
+    label: t('admin_total_posts'), 
     value: POSTS.length, 
     change: '+12%',
     icon: FileText,
     color: 'text-construct-red'
   },
   { 
-    label: 'VIDEOS', 
+    label: t('admin_total_videos'), 
     value: VIDEOS.length, 
     change: '+8%',
     icon: Play,
     color: 'text-blue-500'
   },
   { 
-    label: 'PROJECTS', 
+    label: t('admin_total_projects'), 
     value: PROJECTS.length, 
     change: '+15%',
     icon: FolderKanban,
     color: 'text-green-500'
   },
   { 
-    label: 'VISITORS', 
+    label: t('admin_total_resources'), 
     value: '2.4K', 
     change: '+23%',
     icon: Eye,
@@ -81,14 +83,14 @@ const recentPosts = computed(() => POSTS.slice(0, 5));
 const recentVideos = computed(() => VIDEOS.slice(0, 5));
 
 const menuItems = [
-  { id: 'dashboard', label: 'DASHBOARD', icon: LayoutDashboard },
-  { id: 'posts', label: 'POSTS', icon: FileText },
-  { id: 'videos', label: 'VIDEOS', icon: Play },
-  { id: 'projects', label: 'PROJECTS', icon: FolderKanban },
-  { id: 'resources', label: 'RESOURCES', icon: BookOpen },
+  { id: 'dashboard', label: t('admin_dashboard'), icon: LayoutDashboard },
+  { id: 'posts', label: t('admin_posts'), icon: FileText },
+  { id: 'videos', label: t('admin_videos'), icon: Play },
+  { id: 'projects', label: t('admin_projects'), icon: FolderKanban },
+  { id: 'resources', label: t('admin_resources'), icon: BookOpen },
   { id: 'users', label: 'USERS', icon: Users },
   { id: 'analytics', label: 'ANALYTICS', icon: BarChart3 },
-  { id: 'settings', label: 'SETTINGS', icon: Settings },
+  { id: 'settings', label: t('admin_settings'), icon: Settings },
 ];
 
 const activityLog = [
@@ -455,13 +457,13 @@ const activityLog = [
         <!-- Settings Section -->
         <div v-if="activeSection === 'settings'">
           <div class="mb-8">
-            <h2 class="font-display text-4xl tracking-tighter mb-2">SYSTEM SETTINGS</h2>
+            <h2 class="font-display text-4xl tracking-tighter mb-2">{{ t('admin_settings') }}</h2>
             <p class="text-gray-400 text-sm font-bold tracking-widest uppercase">Configuration</p>
           </div>
           
           <div class="bg-gray-800 border border-gray-700 p-8 text-center">
             <Settings size="64" class="mx-auto text-gray-600 mb-4" />
-            <p class="font-display text-xl tracking-tighter text-gray-400">SYSTEM SETTINGS</p>
+            <p class="font-display text-xl tracking-tighter text-gray-400">{{ t('admin_settings') }}</p>
             <p class="text-sm text-gray-500 mt-2">Configure system preferences and options</p>
           </div>
         </div>

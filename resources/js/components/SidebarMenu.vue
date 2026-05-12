@@ -90,7 +90,7 @@ const menuLinks = computed(() => [
   { name: t('nav_videos'), path: '/videos' },
   { name: t('nav_projects'), path: '/projects' },
   { name: t('nav_resources'), path: '/resources' },
-  { name: t('nav_about'), path: '/author' },
+  { name: t('nav_author'), path: '/author' },
 ]);
 
 const showSidebar = computed(() => true);
@@ -197,7 +197,7 @@ const showSidebar = computed(() => true);
                 Archyx v0.1
               </p>
               <p class="text-white/40 text-[10px] uppercase tracking-[0.2em] mt-2">
-                © 2026 BLDG_SYSTEM
+                © 2026 Archyx-Blog-System
               </p>
             </div>
           </div>

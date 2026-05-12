@@ -18,7 +18,9 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useRoute, useRouter, RouterLink } from 'vue-router';
 import { ArrowLeft, Share2, Bookmark, Clock, User, BookOpen, ChevronRight } from 'lucide-vue-next';
 import { POSTS } from '../../data/posts';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 
@@ -135,7 +137,7 @@ onUnmounted(() => {
     <div class="text-center">
       <h1 class="font-display text-4xl md:text-6xl mb-8 tracking-tighter">DATA CORRUPTION</h1>
       <RouterLink to="/blog" class="bg-construct-black text-white px-8 py-3 font-display tracking-widest text-sm hover:bg-construct-red transition-colors inline-block">
-        RETURN TO BLOG
+        {{ t('post_return_to_blog') }}
       </RouterLink>
     </div>
   </div>
@@ -208,12 +210,12 @@ onUnmounted(() => {
     </header>
 
     <!-- Content Section -->
-    <article class="container mx-auto px-4 sm:px-8 py-16 md:py-32 grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-16">
+    <article class="container mx-auto px-4 sm:px-8 py-16 md:py-32 grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
       <!-- 左侧：文章目录 -->
-      <aside class="md:col-span-3 space-y-8 md:space-y-12 order-1">
+      <aside class="md:col-span-2 space-y-8 md:space-y-12 order-1">
         <div class="relative md:sticky md:top-24">
           <div class="mb-6">
-            <h4 class="font-display text-sm tracking-widest text-construct-black mb-4 uppercase">CONTENTS //</h4>
+            <h4 class="font-display text-sm tracking-widest text-construct-black mb-4 uppercase">{{ t('post_contents') }}</h4>
             <nav class="space-y-2">
               <div
                 v-for="heading in tableOfContents"
@@ -223,8 +225,8 @@ onUnmounted(() => {
                   'cursor-pointer transition-all hover:text-construct-red',
                   {
                     'pl-0 text-sm font-bold': heading.level === 1,
-                    'pl-3 text-xs font-medium': heading.level === 2,
-                    'pl-6 text-[11px] opacity-70': heading.level === 3
+                    'pl-2 text-xs font-medium': heading.level === 2,
+                    'pl-4 text-[11px] opacity-70': heading.level === 3
                   }
                 ]"
               >
@@ -236,13 +238,13 @@ onUnmounted(() => {
       </aside>
 
       <!-- 中间：文章内容 -->
-      <div class="md:col-span-6 max-w-2xl order-2">
+      <div class="md:col-span-8 max-w-4xl order-2">
         <div class="prose prose-lg font-medium text-lg md:text-xl leading-relaxed text-construct-black space-y-8">
           <MarkdownRenderer :content="post.content" />
         </div>
 
         <div class="mt-24 pt-16 border-t-4 border-construct-black">
-          <h4 class="font-display text-2xl mb-8 tracking-tighter">END OF TRANSMISSION //</h4>
+          <h4 class="font-display text-2xl mb-8 tracking-tighter">{{ t('post_end_transmission') }}</h4>
         </div>
 
         <!-- Comment Section -->
@@ -250,7 +252,7 @@ onUnmounted(() => {
       </div>
 
       <!-- 右侧：文章元数据 -->
-      <aside class="md:col-span-3 space-y-8 md:space-y-12 order-3">
+      <aside class="md:col-span-2 space-y-8 md:space-y-12 order-3">
         <div class="relative md:sticky md:top-24">
           <div class="mb-4">
             <button

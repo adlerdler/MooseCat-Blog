@@ -17,8 +17,10 @@ import { ArrowUpRight, Hash, BookOpen, Lightbulb, Users, Cog } from 'lucide-vue-
 import { RouterLink } from 'vue-router';
 import { POSTS } from '../../data/posts';
 import { useI18n } from 'vue-i18n';
+import { useTheme } from '../../composables/useTheme';
 
 const { t } = useI18n();
+const { initTheme } = useTheme();
 const activeFilter = ref('all');
 const currentPage = ref(1);
 const itemsPerPage = 14;
@@ -110,7 +112,7 @@ const isFooterVisible = ref(true);
         <div class="container mx-auto px-0">
           <div class="flex overflow-x-auto items-center">
             <div class="px-6 py-4 bg-construct-black text-white font-bold text-xs tracking-widest flex items-center shrink-0 h-full uppercase gap-2 hidden md:flex">
-              <Hash size="14" /> FILTER:
+              <Hash size="14" /> {{ t('filter_label') }}
             </div>
             <div class="flex flex-1 px-4 md:px-6 gap-2 py-2 md:py-0">
               <button
@@ -120,7 +122,7 @@ const isFooterVisible = ref(true);
                 class="px-4 md:px-6 py-3 text-[10px] md:text-xs font-bold tracking-[0.2em] transition-all whitespace-nowrap uppercase"
                 :class="activeFilter === filter ? 'bg-construct-red text-white' : 'text-construct-black hover:bg-black/5'"
               >
-                {{ filter === 'all' ? 'ALL' : filter }}
+                {{ filter === 'all' ? t('filter_all') : filter }}
               </button>
             </div>
           </div>
@@ -240,7 +242,7 @@ const isFooterVisible = ref(true);
         <!-- Empty State -->
         <div v-if="filteredPosts.length === 0" class="py-32 text-center border-4 border-dashed border-construct-black/20 mt-12 bg-white">
           <p class="font-display text-xl md:text-4xl opacity-40 uppercase tracking-widest">
-            NO ARTIFACTS FOUND
+            {{ t('no_artifacts') }}
           </p>
         </div>
       </main>

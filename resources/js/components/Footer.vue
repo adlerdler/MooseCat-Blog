@@ -18,6 +18,9 @@
  */
 import { RouterLink } from 'vue-router';
 import { Twitter, Github, Linkedin, Instagram } from 'lucide-vue-next'
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   modelValue: {
@@ -46,7 +49,7 @@ const toggleFooter = () => {
         ARCHYX
       </RouterLink>
       <p class="max-w-xs text-sm uppercase font-bold tracking-tight opacity-60 min-h-[3rem]">
-        探索建筑与技术的边界，构建未来的数字空间体验
+        {{ t('footer_tagline') }}
       </p>
       <div class="flex gap-4 mt-8">
         <a
@@ -81,41 +84,41 @@ const toggleFooter = () => {
     </div>
     <div>
       <h4 class="font-display mb-6 tracking-widest text-sm uppercase bg-black text-white inline-block px-3 py-1">
-        分类
+        {{ t('footer_categories') }}
       </h4>
       <ul class="text-xs space-y-3 font-bold tracking-widest uppercase">
         <li>
           <RouterLink to="/" class="hover:text-accent hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
-            / 理论
+            / {{ t('footer_theory') }}
           </RouterLink>
         </li>
         <li>
           <RouterLink to="/" class="hover:text-accent hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
-            / 设计
+            / {{ t('footer_design') }}
           </RouterLink>
         </li>
         <li>
           <RouterLink to="/blog" class="hover:text-accent hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
-            / 博客
+            / {{ t('footer_blog') }}
           </RouterLink>
         </li>
         <li>
           <RouterLink to="/author" class="hover:text-accent hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
-            / 关于
+            / {{ t('footer_about') }}
           </RouterLink>
         </li>
       </ul>
     </div>
     <div>
       <h4 class="font-display mb-6 tracking-widest text-sm uppercase bg-black text-white inline-block px-3 py-1">
-        数据
+        {{ t('footer_data') }}
       </h4>
       <ul class="text-xs space-y-3 font-bold tracking-widest uppercase">
         <li class="hover:text-accent hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
-          RSS FEED
+          {{ t('footer_rss') }}
         </li>
         <li class="hover:text-accent hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
-          API ACCESS
+          {{ t('footer_api') }}
         </li>
         <li class="hover:text-accent hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
           GITHUB

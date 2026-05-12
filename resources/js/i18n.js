@@ -1,245 +1,57 @@
 import { createI18n } from 'vue-i18n'
 
+import en from './lang/en.json'
+import zh from './lang/zh.json'
+import zhTW from './lang/zh-TW.json'
+
 const messages = {
-  en: {
-    nav_title: 'ARCHYX',
-    nav_home: 'HOME',
-    nav_blog: 'BLOG',
-    nav_videos: 'VIDEOS',
-    nav_projects: 'PROJECTS',
-    nav_resources: 'RESOURCES',
-    nav_about: 'AUTHOR',
-    hero_subtitle: 'PERSONAL BLOG',
-    interface_lang: 'INTERFACE LANGUAGE',
-    accent_theme: 'ACCENT THEME',
-    subscribe_title: 'ESTABLISH CONNECTION //',
-    subscribe_desc: 'Subscribe to the transmission for the latest research and thoughts.',
-    subscribe_input: 'ENTER EMAIL ADDRESS',
-    subscribe_btn: 'TRANSMIT',
-    footer_desc: 'Exploring the intersection of architecture and technology.',
-    footer_sections: 'SECTIONS',
-    footer_data: 'DATA',
-    copyright: '© 2026 BLDG_SYSTEM',
-    version: 'Archyx v0.1',
-    settings: 'SETTINGS',
-    data_corruption: 'DATA CORRUPTION',
-    not_found_subtitle: 'REQUESTED NODE NOT FOUND',
-    not_found_desc: 'The link you followed may be broken, or the page may have been moved to another sector of the archive.',
-    access_denied: 'ACCESS DENIED',
-    forbidden_subtitle: 'AUTHORIZATION REQUIRED',
-    forbidden_desc: 'You do not have the necessary permissions to access this sector. Please verify your credentials.',
-    system_error: 'SYSTEM ERROR',
-    server_error_subtitle: 'INTERNAL SYSTEM FAILURE',
-    server_error_desc: 'An unexpected error has occurred. The system is working to resolve the issue. Please try again later.',
-    return_home: 'RETURN TO HOME',
-    go_back: 'GO BACK',
-    article_not_found: 'ARTICLE NOT FOUND',
-    article_not_found_desc: 'The article you are looking for does not exist or has been removed.',
-    video_not_found: 'VIDEO NOT FOUND',
-    video_not_found_desc: 'The video content you are looking for does not exist.',
-    project_not_found: 'PROJECT NOT FOUND',
-    project_not_found_desc: 'The project you are looking for does not exist.',
-    resource_not_found: 'RESOURCE NOT FOUND',
-    resource_not_found_desc: 'The resource you are looking for does not exist.',
-    author_not_found: 'AUTHOR NOT FOUND',
-    author_not_found_desc: 'The author page you are looking for does not exist.',
-    category_not_found: 'CATEGORY NOT FOUND',
-    category_not_found_desc: 'The category you are looking for does not exist.',
-    tag_not_found: 'TAG NOT FOUND',
-    tag_not_found_desc: 'The tag you are looking for does not exist.',
-    admin_access_denied_desc: 'You need proper authorization to access this area.',
-    api_not_found: 'API ENDPOINT NOT FOUND',
-    api_not_found_desc: 'The API endpoint you requested does not exist.',
-    role_designation: 'STRUCTURAL DESIGNATION',
-    architect_designer: 'STRUCTURAL ARCHITECT & DIGITAL DESIGNER',
-    author_status: 'SYSTEM_STATUS',
-    building_systems: 'BUILDING SYSTEMS',
-    manifesto: 'MANIFESTO // THE STRUCTURE',
-    manifesto_p1: 'Design is not a decorative overlay; it is the structural integrity of communication.',
-    manifesto_p2: 'I focus on the intersection of constructivism and modern interface design, building systems that treat form as function. Clarity, integrity, and uncompromising precision. We construct, we don\'t decorate.',
-    manifesto_p3: 'On digital architecture: a return to function, clarity, and uncompromising precision. We construct, we don\'t decorate.',
-    capability_metrics: 'CAPABILITY METRICS',
-    skill_1: 'Digital Architecture & Design Systems',
-    skill_1_desc: 'Systems thinking applied to digital spaces',
-    skill_2: 'Structural Frontend Engineering',
-    skill_2_desc: 'Building performant, scalable interfaces',
-    skill_3: 'Algorithmic Arts & Data Visualization',
-    skill_3_desc: 'Transforming data into meaningful experiences',
-    github_contributions: 'GITHUB_CONTRIBUTIONS',
-    view_on_github: 'VIEW ON GITHUB',
-    active_development: 'ACTIVE_DEVELOPMENT',
-    access_dossier: 'ACCESS FULL DOSSIER',
-    cta_title: 'CONTACT ME',
-    cta_submit: 'SUBMIT',
-  },
-  zh: {
-    nav_title: 'ARCHYX',
-    nav_home: '首页',
-    nav_blog: '博客',
-    nav_videos: '视频',
-    nav_projects: '项目',
-    nav_resources: '资源',
-    nav_about: '作者',
-    hero_subtitle: '个人博客',
-    interface_lang: '界面语言',
-    accent_theme: '主题颜色',
-    subscribe_title: '建立连接 //',
-    subscribe_desc: '订阅以获取最新的开发日志与技术洞察。',
-    subscribe_input: '输入邮箱地址',
-    subscribe_btn: '发送',
-    footer_desc: '探索建筑与技术的边界，构建未来的数字空间体验',
-    footer_sections: '板块',
-    footer_data: '数据',
-    copyright: '© 2026 BLDG_SYSTEM',
-    version: 'Archyx v0.1',
-    settings: '设置',
-    data_corruption: '数据损坏',
-    not_found_subtitle: '请求的节点不存在',
-    not_found_desc: '您访问的链接可能已断开，或者该页面已被移动到档案库的其他区域。',
-    access_denied: '访问拒绝',
-    forbidden_subtitle: '需要授权',
-    forbidden_desc: '您没有访问此区域的必要权限，请验证您的凭证。',
-    system_error: '系统错误',
-    server_error_subtitle: '内部系统故障',
-    server_error_desc: '发生了意外错误，系统正在努力解决问题，请稍后重试。',
-    return_home: '返回首页',
-    go_back: '回到上级',
-    article_not_found: '文章不存在',
-    article_not_found_desc: '您查找的文章不存在或已被删除。',
-    video_not_found: '视频不存在',
-    video_not_found_desc: '您查找的视频内容不存在。',
-    project_not_found: '项目不存在',
-    project_not_found_desc: '您查找的项目不存在。',
-    resource_not_found: '资源不存在',
-    resource_not_found_desc: '您查找的资源不存在。',
-    author_not_found: '作者不存在',
-    author_not_found_desc: '您查找的作者页面不存在。',
-    category_not_found: '分类不存在',
-    category_not_found_desc: '您查找的分类不存在。',
-    tag_not_found: '标签不存在',
-    tag_not_found_desc: '您查找的标签不存在。',
-    admin_access_denied_desc: '您需要适当的授权才能访问此区域。',
-    api_not_found: 'API接口不存在',
-    api_not_found_desc: '您请求的API接口不存在。',
-    role_designation: '结构定位',
-    architect_designer: '结构建筑师 & 数字设计师',
-    author_status: '系统状态',
-    building_systems: '构建系统中',
-    manifesto: '宣言 // 结构',
-    manifesto_p1: '设计不是装饰性的覆盖层；它是沟通的结构完整性。',
-    manifesto_p2: '我专注于建构主义与现代界面设计的交汇处，构建将形式视为功能的系统。清晰、完整、毫不妥协的精确性。我们构建，而非装饰。',
-    manifesto_p3: '关于数字建筑：回归功能、清晰和毫不妥协的精确性。我们构建，而非装饰。',
-    capability_metrics: '能力指标',
-    skill_1: '数字建筑与设计系统',
-    skill_1_desc: '系统思维应用于数字空间',
-    skill_2: '结构前端工程',
-    skill_2_desc: '构建高性能、可扩展的界面',
-    skill_3: '算法艺术与数据可视化',
-    skill_3_desc: '将数据转化为有意义的体验',
-    github_contributions: 'GitHub贡献',
-    view_on_github: '在GitHub上查看',
-    active_development: '活跃开发',
-    access_dossier: '访问完整档案',
-    cta_title: '联系我',
-    cta_submit: '提交',
-  },
-  'zh-TW': {
-    nav_title: 'ARCHYX',
-    nav_home: '首頁',
-    nav_blog: '部落格',
-    nav_videos: '影片',
-    nav_projects: '專案',
-    nav_resources: '資源',
-    nav_about: '作者',
-    hero_subtitle: '個人部落格',
-    interface_lang: '介面語言',
-    accent_theme: '主題顏色',
-    subscribe_title: '建立連線 //',
-    subscribe_desc: '訂閱以獲取最新的開發日誌與技術洞察。',
-    subscribe_input: '輸入信箱地址',
-    subscribe_btn: '發送',
-    footer_desc: '探索建築與技術的邊界，構建未來的數位空間體驗',
-    footer_sections: '板塊',
-    footer_data: '數據',
-    copyright: '© 2026 BLDG_SYSTEM',
-    version: 'Archyx v0.1',
-    settings: '設置',
-    data_corruption: '數據損壞',
-    not_found_subtitle: '請求的節點不存在',
-    not_found_desc: '您訪問的鏈接可能已斷開，或者該頁面已被移動到檔案庫的其他區域。',
-    access_denied: '訪問拒絕',
-    forbidden_subtitle: '需要授權',
-    forbidden_desc: '您沒有訪問此區域的必要權限，請驗證您的憑證。',
-    system_error: '系統錯誤',
-    server_error_subtitle: '內部系統故障',
-    server_error_desc: '發生了意外錯誤，系統正在努力解決問題，請稍後重試。',
-    return_home: '返回首頁',
-    go_back: '回到上級',
-    article_not_found: '文章不存在',
-    article_not_found_desc: '您查找的文章不存在或已被刪除。',
-    video_not_found: '視頻不存在',
-    video_not_found_desc: '您查找的視頻內容不存在。',
-    project_not_found: '項目不存在',
-    project_not_found_desc: '您查找的項目不存在。',
-    resource_not_found: '資源不存在',
-    resource_not_found_desc: '您查找的資源不存在。',
-    author_not_found: '作者不存在',
-    author_not_found_desc: '您查找的作者頁面不存在。',
-    category_not_found: '分類不存在',
-    category_not_found_desc: '您查找的分類不存在。',
-    tag_not_found: '標籤不存在',
-    tag_not_found_desc: '您查找的標籤不存在。',
-    admin_access_denied_desc: '您需要適當的授權才能訪問此區域。',
-    api_not_found: 'API接口不存在',
-    api_not_found_desc: '您請求的API接口不存在。',
-    role_designation: '結構定位',
-    architect_designer: '結構建築師 & 數位設計師',
-    author_status: '系統狀態',
-    building_systems: '構建系統中',
-    manifesto: '宣言 // 結構',
-    manifesto_p1: '設計不是裝飾性的覆蓋層；它是溝通的結構完整性。',
-    manifesto_p2: '我專注於建構主義與現代介面設計的交匯處，構建將形式視為功能的系統。清晰、完整、毫不妥協的精確性。我們構建，而非裝飾。',
-    manifesto_p3: '關於數位建築：迴歸功能、清晰和毫不妥協的精確性。我們構建，而非裝飾。',
-    capability_metrics: '能力指標',
-    skill_1: '數位建築與設計系統',
-    skill_1_desc: '系統思維應用於數位空間',
-    skill_2: '結構前端工程',
-    skill_2_desc: '構建高性能、可擴展的介面',
-    skill_3: '演算法藝術與數據可視化',
-    skill_3_desc: '將數據轉化為有意義的體驗',
-    github_contributions: 'GitHub貢獻',
-    view_on_github: '在GitHub上查看',
-    active_development: '活躍開發',
-    access_dossier: '訪問完整檔案',
-    cta_title: '聯繫我',
-    cta_submit: '提交',
-  },
+  en,
+  zh,
+  'zh-TW': zhTW
 }
 
+const SUPPORTED_LOCALES = ['en', 'zh', 'zh-TW']
+
 function getLocale() {
-  const saved = localStorage.getItem('lang')
-  if (saved && messages[saved]) {
-    return saved
+  const storedLocale = localStorage.getItem('locale')
+  if (storedLocale && SUPPORTED_LOCALES.includes(storedLocale)) {
+    return storedLocale
   }
-  const browserLang = navigator.language.toLowerCase()
-  if (browserLang.startsWith('zh-tw') || browserLang.startsWith('zh-hk')) {
-    return 'zh-TW'
-  } else if (browserLang.startsWith('zh')) {
-    return 'zh'
+  
+  const browserLocale = navigator.language || navigator.userLanguage
+  
+  if (browserLocale && SUPPORTED_LOCALES.includes(browserLocale)) {
+    return browserLocale
   }
+  
+  if (browserLocale) {
+    const baseLocale = browserLocale.split('-')[0]
+    if (baseLocale === 'zh') {
+      if (browserLocale === 'zh-TW' || browserLocale === 'zh-HK' || browserLocale === 'zh-MO') {
+        return 'zh-TW'
+      }
+      return 'zh'
+    }
+    
+    if (SUPPORTED_LOCALES.includes(baseLocale)) {
+      return baseLocale
+    }
+  }
+  
   return 'en'
 }
 
-export const i18n = createI18n({
+const i18n = createI18n({
   legacy: false,
   locale: getLocale(),
   fallbackLocale: 'en',
-  messages,
+  messages
 })
 
 export function setLocale(locale) {
-  if (messages[locale]) {
-    i18n.global.locale.value = locale
-    localStorage.setItem('lang', locale)
-  }
+  i18n.global.locale.value = locale
+  localStorage.setItem('locale', locale)
 }
+
+export { i18n }
+export default i18n

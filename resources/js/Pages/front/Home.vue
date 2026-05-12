@@ -18,7 +18,9 @@ import { RouterLink } from 'vue-router'
 import { Search, ArrowRight, Send, Mail, Twitter, Linkedin, Github } from 'lucide-vue-next'
 import { Motion, AnimatePresence } from 'motion-v'
 import { useTheme } from '../../composables/useTheme'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const { initTheme } = useTheme()
 
 const isFooterVisible = ref(true)
@@ -153,7 +155,7 @@ const featuredPosts = computed(() => {
             :transition="{ delay: 0.4 }"
           >
             <p class="text-xl md:text-2xl font-medium max-w-xl text-construct-black/80 mb-12">
-              探索建筑与技术的边界，构建未来的数字空间体验
+              {{ t('footer_desc') }}
             </p>
           </Motion>
 
@@ -172,13 +174,13 @@ const featuredPosts = computed(() => {
                 <div
                   class="w-full bg-white border-4 border-construct-black px-12 py-4 text-sm font-bold tracking-widest transition-all cursor-pointer"
                 >
-                  搜索文章...
+                  {{ t('subscribe_input') }}
                 </div>
               </div>
               <div
                 class="bg-construct-black text-white px-8 py-4 sm:py-0 flex items-center justify-center font-display tracking-widest text-sm font-bold hover:bg-construct-red cursor-pointer transition-colors active:translate-x-1 active:translate-y-1 whitespace-nowrap relative z-20"
               >
-                搜索
+                {{ t('subscribe_btn') }}
               </div>
             </div>
           </Motion>
@@ -325,10 +327,10 @@ const featuredPosts = computed(() => {
           TRANSMISSION
         </div>
         <h2 class="font-display text-5xl md:text-7xl tracking-tighter text-construct-black mb-8">
-          订阅更新
+          {{ t('subscribe_title') }}
         </h2>
         <p class="text-lg font-medium opacity-60 mb-12 max-w-xl mx-auto">
-          订阅我们的Newsletter，获取最新文章和技术见解
+          {{ t('subscribe_desc') }}
         </p>
         <form class="max-w-2xl mx-auto relative flex flex-col sm:flex-row items-stretch shadow-[-8px_8px_0px_#000] bg-white focus-within:ring-4 focus-within:ring-construct-black transition-all duration-300 hover:scale-[1.02]">
           <div class="flex-1 bg-construct-black/5 flex items-center pl-6">
