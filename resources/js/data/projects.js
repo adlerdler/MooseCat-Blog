@@ -1,3 +1,23 @@
+/**
+ * projects.js - 项目数据
+ * 
+ * 功能说明：
+ * - 存储所有已完成项目的静态数据
+ * - 包含项目描述、技术栈、链接等信息
+ * 
+ * 数据字段：
+ * - id: 项目唯一标识
+ * - title: 项目名称
+ * - description: 简短描述
+ * - longDescription: 详细描述
+ * - image: 项目图片 URL
+ * - url: 项目网址
+ * - githubUrl: GitHub 仓库地址
+ * - tags: 标签数组
+ * - role: 担任角色
+ * - year: 完成年份
+ * - technologies: 技术栈数组
+ */
 export const PROJECTS = [
   {
     id: '1',

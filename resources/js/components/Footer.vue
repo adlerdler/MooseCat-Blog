@@ -1,4 +1,21 @@
 <script setup>
+/**
+ * Footer.vue - 页脚组件
+ * 
+ * 功能说明：
+ * - 网站全局页脚，显示品牌信息和社交链接
+ * - 支持显示/隐藏控制（通过 v-model）
+ * - 响应式多列布局
+ * 
+ * 内容区域：
+ * - 品牌Logo和标语
+ * - 快速导航链接
+ * - 社交媒体链接
+ * - 版权信息
+ * 
+ * 使用示例：
+ * <Footer v-model="isFooterVisible" />
+ */
 import { RouterLink } from 'vue-router';
 import { Twitter, Github, Linkedin, Instagram } from 'lucide-vue-next'
 
@@ -110,7 +127,7 @@ const toggleFooter = () => {
 
 <style lang="scss" scoped>
 // 字体变量
-$font-display: system-ui, -apple-system, sans-serif;
+$font-display: 'Space Grotesk', system-ui, sans-serif;
 
 .font-display {
   font-family: $font-display;

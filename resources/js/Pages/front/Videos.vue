@@ -1,11 +1,22 @@
 <script setup>
+/**
+ * Videos.vue - 视频列表页
+ * 
+ * 功能说明：
+ * - 展示所有视频内容的列表
+ * - 支持按平台筛选（YouTube/Bilibili）
+ * - 视频卡片展示缩略图和基本信息
+ * 
+ * 页面特色：
+ * - 响应式网格布局
+ * - Hover 动画效果
+ * - 点击跳转到视频详情页
+ */
 import { ref, onMounted } from 'vue';
 import { RouterLink } from 'vue-router';
-import { MotionComponent as Motion } from '@vueuse/motion';
-import { useTheme } from '../composables/useTheme';
-import { VIDEOS } from '../data/videos';
-import SidebarMenu from '../components/SidebarMenu.vue';
-import Footer from '../components/Footer.vue';
+import { Motion, AnimatePresence } from 'motion-v';
+import { useTheme } from '../../composables/useTheme';
+import { VIDEOS } from '../../data/videos';
 
 const { initTheme } = useTheme();
 const isFooterVisible = ref(true);
@@ -42,7 +53,7 @@ onMounted(() => {
             v-for="(video, idx) in VIDEOS"
             :key="video.id"
             :initial="{ opacity: 0, y: 20 }"
-            :visible="{ opacity: 1, y: 0 }"
+            :animate="{ opacity: 1, y: 0 }"
             :transition="{ delay: idx * 0.1 }"
             class="group block border-4 border-construct-black hover:border-construct-red transition-colors"
           >
@@ -73,6 +84,6 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .font-display {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: 'Space Grotesk', system-ui, sans-serif;
 }
 </style>

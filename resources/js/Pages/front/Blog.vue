@@ -1,10 +1,23 @@
-<script setup>import { ref, computed, h } from 'vue';
+<script setup>
+/**
+ * Blog.vue - 博客列表页
+ * 
+ * 功能说明：
+ * - 展示所有博客文章的列表，采用不对称网格布局
+ * - 支持按分类筛选（Theory/Design/Technology/Culture）
+ * - 实现分页功能，每页显示14篇文章
+ * 
+ * 页面特色：
+ * - 卡片大小根据索引变化，形成视觉节奏感
+ * - Hover 时卡片背景变色效果
+ * - 装饰性编号背景增强品牌感
+ */
+import { ref, computed, h } from 'vue';
 import { ArrowUpRight, Hash, BookOpen, Lightbulb, Users, Cog } from 'lucide-vue-next';
 import { RouterLink } from 'vue-router';
-import { POSTS } from '../data/posts';
+import { POSTS } from '../../data/posts';
 import { useI18n } from 'vue-i18n';
-import SidebarMenu from '../components/SidebarMenu.vue';
-import Footer from '../components/Footer.vue';
+
 const { t } = useI18n();
 const activeFilter = ref('all');
 const currentPage = ref(1);
@@ -143,11 +156,11 @@ const isFooterVisible = ref(true);
                 <span class="p-2 transition-colors duration-500" :class="post.color === 'red' ? 'bg-construct-red text-white group-hover:bg-white group-hover:text-construct-red' : 'bg-construct-black text-white group-hover:bg-white group-hover:text-construct-black'">
                   <component :is="getCatIcon(post.category)" />
                 </span>
-                <span class="text-[10px] md:text-xs font-bold tracking-[0.3em] uppercase">
+                <span class="text-[10px] md:text-xs font-bold tracking-[0.3em] uppercase group-hover:text-white">
                   {{ post.category }}
                 </span>
               </div>
-              <span class="text-[10px] font-bold tracking-widest opacity-60">
+              <span class="text-[10px] font-bold tracking-widest opacity-60 group-hover:text-white">
                 {{ post.date }}
               </span>
             </div>
@@ -174,17 +187,17 @@ const isFooterVisible = ref(true);
                 <span
                   v-for="tag in post.tags"
                   :key="tag"
-                  class="text-[8px] md:text-[9px] font-black tracking-widest px-3 py-1 border border-current uppercase"
+                  class="text-[8px] md:text-[9px] font-black tracking-widest px-3 py-1 border border-current uppercase group-hover:text-white"
                 >
                   #{{ tag }}
                 </span>
               </div>
               <div class="flex items-center gap-4 text-[10px] md:text-xs font-bold tracking-widest uppercase shrink-0">
-                <span class="opacity-60 group-hover:opacity-100 transition-opacity">
+                <span class="opacity-60 group-hover:opacity-100 group-hover:text-white transition-opacity">
                   AUTHOR: {{ post.author }}
                 </span>
                 <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all duration-500 group-hover:rotate-45 shrink-0" :class="post.color === 'red' ? 'border-construct-black group-hover:border-white' : 'border-construct-black group-hover:border-white'">
-                  <ArrowUpRight size="16" />
+                  <ArrowUpRight size="16" class="group-hover:text-white" />
                 </div>
               </div>
             </div>
@@ -240,7 +253,7 @@ const isFooterVisible = ref(true);
 
 <style lang="scss" scoped>
 .font-display {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: 'Space Grotesk', system-ui, sans-serif;
 }
 
 ::-webkit-scrollbar {

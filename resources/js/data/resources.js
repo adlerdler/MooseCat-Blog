@@ -1,3 +1,21 @@
+/**
+ * resources.js - 资源下载数据
+ * 
+ * 功能说明：
+ * - 存储可供下载的设计资源信息
+ * - 支持多种云盘来源
+ * 
+ * 数据字段：
+ * - id: 资源唯一标识
+ * - category: 分类（DESIGN/TYPOGRAPHY/CODE等）
+ * - title: 资源标题
+ * - description: 资源描述
+ * - image: 预览图 URL
+ * - format: 资源格式
+ * - fileSize: 文件大小
+ * - directLink: 直链
+ * - drives: 云盘链接数组（google/baidu/ali）
+ */
 export const RESOURCES = [
   {
     id: 'r01',

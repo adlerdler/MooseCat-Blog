@@ -1,4 +1,16 @@
 <script setup>
+/**
+ * Author.vue - 作者介绍页
+ * 
+ * 功能说明：
+ * - 展示网站作者/开发者的个人信息
+ * - 集成 GitHub 贡献日历热力图
+ * - 显示 GitHub 统计数据（提交次数、PR、仓库数）
+ * - 响应式社交媒体链接
+ * 
+ * 数据来源：
+ * - GitHub API 获取用户信息和贡献数据
+ */
 import { ref, onMounted, computed } from 'vue';
 import { Github, Twitter, Linkedin, Mail, ArrowRight } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';

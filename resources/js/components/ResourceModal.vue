@@ -1,4 +1,20 @@
 <script setup>
+/**
+ * ResourceModal.vue - 资源详情模态框组件
+ * 
+ * 功能说明：
+ * - 展示资源的详细信息
+ * - 支持复制下载链接
+ * - 显示多种云盘来源（Google Drive/Baidu/Ali Cloud）
+ * 
+ * 交互功能：
+ * - 点击复制按钮复制下载链接
+ * - 选择不同的云盘来源
+ * - 点击外部链接跳转到下载页面
+ * 
+ * 使用示例：
+ * <ResourceModal :resource="selectedResource" @close="closeModal" />
+ */
 import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { X, Download, Copy, Check } from 'lucide-vue-next';
 
@@ -211,6 +227,6 @@ onUnmounted(() => {
 }
 
 .font-display {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: 'Space Grotesk', system-ui, sans-serif;
 }
 </style>

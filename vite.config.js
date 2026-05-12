@@ -1,9 +1,8 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
-
-// 引入 vue
 import vue from '@vitejs/plugin-vue';
-import path from 'path'
+import path from 'path';
+import prismjs from 'vite-plugin-prismjs';
 
 export default defineConfig({
     
@@ -20,7 +19,11 @@ export default defineConfig({
                 },
             },
         }),
-
+        prismjs({
+            languages: ['javascript', 'typescript', 'python', 'java', 'css', 'scss', 'markup', 'json', 'yaml', 'bash', 'jsx', 'tsx', 'sql', 'rust', 'go', 'php'],
+            theme: 'okaidia',
+            css: true,
+        }),
     ],
     resolve: {
         alias: {

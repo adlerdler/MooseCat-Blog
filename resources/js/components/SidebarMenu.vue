@@ -1,4 +1,21 @@
 <script setup>
+/**
+ * SidebarMenu.vue - 侧边栏菜单组件
+ * 
+ * 功能说明：
+ * - 网站主导航侧边栏
+ * - 响应式设计，移动端可折叠
+ * - 集成设置面板和搜索功能
+ * 
+ * 功能模块：
+ * - 主导航链接（首页/博客/视频/项目/资源/关于）
+ * - 设置面板（主题/语言）
+ * - 搜索覆盖层
+ * - Footer 显示控制
+ * 
+ * 使用示例：
+ * <SidebarMenu v-model:is-footer-visible="isFooterVisible" />
+ */
 import { ref, computed, watch, onUnmounted } from 'vue';
 import { RouterLink } from 'vue-router';
 import { Menu, Search, User, ChevronDown, ChevronUp, X, ArrowRight, Globe, FileText } from 'lucide-vue-next';
@@ -228,7 +245,7 @@ const showSidebar = computed(() => true);
 
 <style lang="scss" scoped>
 // 字体变量
-$font-display: system-ui, -apple-system, sans-serif;
+$font-display: 'Space Grotesk', system-ui, sans-serif;
 $transition-ease: ease;
 $transition-duration: 0.3s;
 

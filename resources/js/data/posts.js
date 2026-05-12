@@ -1,3 +1,21 @@
+/**
+ * posts.js - 博客文章数据
+ * 
+ * 功能说明：
+ * - 存储所有博客文章的静态数据
+ * - 包含文章内容、分类、标签等信息
+ * 
+ * 数据字段：
+ * - id: 文章唯一标识
+ * - title: 文章标题
+ * - category: 分类（THEORY/DESIGN/TECHNOLOGY/CULTURE）
+ * - date: 发布日期
+ * - author: 作者
+ * - excerpt: 摘要
+ * - content: Markdown 格式的文章内容
+ * - color: 卡片颜色主题（red/black）
+ * - tags: 标签数组
+ */
 export const POSTS = [
   {
     id: '1',
@@ -65,7 +83,7 @@ defineProps({
     default: 'default'
   }
 });
-</script>
+<\/script>
 
 <style scoped>
 .card {
@@ -73,7 +91,7 @@ defineProps({
   padding: 24px;
   background: white;
 }
-</style>
+<\/style>
 \`\`\`
 
 This approach allows for:
@@ -171,8 +189,8 @@ Rodchenko famously used type as a weapon of clarity. Monospaced fonts are the mo
 // Typography system configuration
 const typography = {
   display: {
-    family: 'Figtree',
-    weights: [700, 900],
+    family: 'Space Grotesk',
+    weights: [700],
     tracking: '-0.05em'
   },
   body: {

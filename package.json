@@ -14,17 +14,20 @@
         "postcss": "^8.4.49",
         "sass": "^1.99.0",
         "tailwindcss": "^3.4.15",
-        "vite": "^5.0"
+        "vite": "^5.0",
+        "vite-plugin-prismjs": "^0.0.11"
     },
     "dependencies": {
         "@inertiajs/vue3": "^3.1.1",
         "@tailwindcss/forms": "^0.5.9",
         "@vueuse/integrations": "^14.3.0",
         "@vueuse/motion": "^3.0.3",
+        "highlight.js": "^11.11.1",
         "lucide-vue-next": "^1.0.0",
         "marked": "^18.0.3",
         "motion": "^12.38.0",
         "motion-v": "^2.2.1",
+        "prismjs": "^1.30.0",
         "tippy.js": "^6.3.7",
         "vitesse": "github:zyyv/vue-github-calendar",
         "vue": "^3.5.13",

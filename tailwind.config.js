@@ -11,7 +11,13 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                sans: ['Figtree', ...defaultTheme.fontFamily.sans],
+                sans: ['Inter', ...defaultTheme.fontFamily.sans],
+                display: ['Space Grotesk', ...defaultTheme.fontFamily.sans],
+            },
+            fontWeight: {
+                normal: '400',
+                medium: '500',
+                semibold: '600',
             },
             colors: {
                 'construct-red': 'var(--accent, #CF202E)',

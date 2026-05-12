@@ -1,11 +1,23 @@
-<script setup>import { ref, computed, onMounted, TransitionGroup } from 'vue';
-import { MotionComponent as Motion } from '@vueuse/motion';
-import { useTheme } from '../composables/useTheme';
-import { RESOURCES } from '../data/resources';
-import SidebarMenu from '../components/SidebarMenu.vue';
-import Footer from '../components/Footer.vue';
-import ResourceModal from '../components/ResourceModal.vue';
+<script setup>
+/**
+ * Resources.vue - 资源下载页
+ * 
+ * 功能说明：
+ * - 展示可供下载的设计资源列表
+ * - 支持按分类筛选资源
+ * - 点击资源卡片可查看详情并下载
+ * 
+ * 页面特色：
+ * - 分类标签横向滚动筛选
+ * - 资源卡片网格布局
+ * - 模态框展示资源详情
+ */
+import { ref, computed, onMounted, TransitionGroup } from 'vue';
+import { Motion, AnimatePresence } from 'motion-v';
+import { useTheme } from '../../composables/useTheme';
+import { RESOURCES } from '../../data/resources';
 import { Download } from 'lucide-vue-next';
+
 const { initTheme } = useTheme();
 const isFooterVisible = ref(true);
 const selectedResource = ref(null);
@@ -71,7 +83,7 @@ const closeModal = () => {
               v-for="(resource, idx) in filteredResources"
               :key="resource.id"
               :initial="{ opacity: 0, y: 20 }"
-              :visible="{ opacity: 1, y: 0 }"
+              :animate="{ opacity: 1, y: 0 }"
               :transition="{ duration: 0.3 }"
               @click="selectResource(resource)"
               class="group cursor-pointer flex flex-col"
@@ -129,7 +141,7 @@ const closeModal = () => {
 
 <style lang="scss" scoped>
 .font-display {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: 'Space Grotesk', system-ui, sans-serif;
 }
 
 .resource-list {

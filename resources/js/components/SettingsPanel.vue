@@ -1,4 +1,20 @@
 <script setup>
+/**
+ * SettingsPanel.vue - 设置面板组件
+ * 
+ * 功能说明：
+ * - 提供主题切换功能
+ * - 支持多语言切换（EN/中文简体/中文繁体）
+ * - 主题和语言偏好本地存储
+ * 
+ * 技术实现：
+ * - 使用 vue-i18n 进行国际化
+ * - 使用 useTheme composable 管理主题
+ * - localStorage 持久化用户偏好
+ * 
+ * 使用示例：
+ * <SettingsPanel :is-mobile="isMobile" />
+ */
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTheme } from '../composables/useTheme'

@@ -1,4 +1,13 @@
 <!-- resources/js/components/BlogPost.vue -->
+<!-- 
+  BlogPost.vue - 博客文章组件（示例/测试组件）
+  
+  功能说明：
+  - 用于展示博客文章内容的示例组件
+  - 演示 Vue 3 组合式 API 的基本用法
+  
+  注意：此组件为静态示例，实际项目中可能未使用
+-->
 <template>
 
    <div class="max-w-4xl mx-auto p-8 bg-white shadow-md rounded-lg">

@@ -1,3 +1,19 @@
+/**
+ * videos.js - 视频数据
+ * 
+ * 功能说明：
+ * - 存储所有视频的静态数据
+ * - 支持 YouTube 和 Bilibili 两个平台
+ * 
+ * 数据字段：
+ * - id: 视频唯一标识
+ * - title: 视频标题
+ * - description: 视频描述
+ * - thumbnail: 缩略图 URL
+ * - videoId: 视频平台ID
+ * - platform: 平台（youtube/bilibili）
+ * - date: 发布日期
+ */
 export const VIDEOS = [
   {
     id: 'rick-astley',

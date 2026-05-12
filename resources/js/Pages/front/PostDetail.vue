@@ -1,0 +1,443 @@
+<script setup>
+/**
+ * PostDetail.vue - 文章详情页
+ * 
+ * 功能说明：
+ * - 展示单篇文章的完整内容
+ * - 支持 Markdown 格式渲染，包含代码高亮
+ * - 自动提取文章目录结构，方便导航
+ * - 集成评论区功能
+ * 
+ * 交互功能：
+ * - 分享按钮（支持多种平台）
+ * - 书签收藏功能
+ * - 返回顶部按钮
+ * - 评论区评论提交
+ */
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
+import { useRoute, useRouter, RouterLink } from 'vue-router';
+import { ArrowLeft, Share2, Bookmark, Clock, User, BookOpen, ChevronRight } from 'lucide-vue-next';
+import { POSTS } from '../../data/posts';
+
+const route = useRoute();
+const router = useRouter();
+
+const post = computed(() => {
+  const foundPost = POSTS.find(p => p.id === route.params.id);
+  if (!foundPost) {
+    return POSTS[0];
+  }
+  return foundPost;
+});
+
+const updatePageTitle = () => {
+  if (post.value?.title) {
+    document.title = `POST // ${post.value.title}`;
+  }
+};
+
+watch(post, () => {
+  updatePageTitle();
+}, { immediate: true });
+
+onMounted(() => {
+  updatePageTitle();
+});
+
+const tableOfContents = computed(() => {
+  if (!post.value?.content) return [];
+  
+  const headings = [];
+  const lines = post.value.content.split('\n');
+  
+  lines.forEach(line => {
+    const headingMatch = line.match(/^(#{1,3})\s+(.+)$/);
+    if (headingMatch) {
+      const level = headingMatch[1].length;
+      const text = headingMatch[2].trim();
+      const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      headings.push({ level, text, id });
+    }
+  });
+  
+  return headings;
+});
+
+const showBackToTop = ref(false);
+const isMetaOpen = ref(true);
+const showShareModal = ref(false);
+
+const calculateReadTime = (content) => {
+  const wordsPerMinute = 200;
+  const words = content.trim().split(/\s+/).length;
+  const minutes = Math.ceil(words / wordsPerMinute);
+  return Math.max(1, minutes);
+};
+
+const handleScroll = () => {
+  showBackToTop.value = window.scrollY > 300;
+};
+
+const goBack = () => {
+  router.back();
+};
+
+const scrollToTop = () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+const scrollToHeading = (id) => {
+  const element = document.getElementById(id);
+  if (element) {
+    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+};
+
+const copyCode = (button) => {
+  const codeBlock = button.closest('.code-block-wrapper');
+  const codeElement = codeBlock.querySelector('code');
+  const codeText = codeElement.textContent;
+  
+  navigator.clipboard.writeText(codeText).then(() => {
+    const copyText = button.querySelector('.copy-text');
+    const originalText = copyText.textContent;
+    copyText.textContent = 'Copied!';
+    button.classList.add('copied');
+    
+    setTimeout(() => {
+      copyText.textContent = originalText;
+      button.classList.remove('copied');
+    }, 2000);
+  }).catch((err) => {
+    console.error('Failed to copy code:', err);
+  });
+};
+
+if (typeof window !== 'undefined') {
+  window.copyCode = copyCode;
+}
+
+const handleCommentSubmitted = (comment) => {
+  console.log('New comment submitted:', comment);
+};
+
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll);
+});
+</script>
+
+<template>
+  <div v-if="!post" class="min-h-screen bg-construct-paper flex items-center justify-center p-8">
+    <div class="text-center">
+      <h1 class="font-display text-4xl md:text-6xl mb-8 tracking-tighter">DATA CORRUPTION</h1>
+      <RouterLink to="/blog" class="bg-construct-black text-white px-8 py-3 font-display tracking-widest text-sm hover:bg-construct-red transition-colors inline-block">
+        RETURN TO BLOG
+      </RouterLink>
+    </div>
+  </div>
+
+  <div v-else class="bg-construct-paper min-h-screen">
+    <!-- Back Button -->
+    <button
+      @click="goBack"
+      class="fixed top-4 left-4 z-50 w-12 h-12 bg-construct-black text-white flex items-center justify-center hover:bg-construct-red transition-colors shadow-lg"
+    >
+      <ArrowLeft class="w-6 h-6" />
+    </button>
+
+    <!-- Back to Top Button -->
+    <Transition name="fade">
+      <button
+        v-if="showBackToTop"
+        @click="scrollToTop"
+        class="fixed bottom-4 right-4 z-50 w-12 h-12 bg-construct-red text-white flex items-center justify-center hover:bg-construct-black transition-colors shadow-lg"
+      >
+        <ChevronRight class="w-6 h-6 rotate-[-90deg]" />
+      </button>
+    </Transition>
+
+    <!-- Header Panel -->
+    <header :class="['relative py-24 md:py-32 px-8 overflow-hidden', post.color === 'red' ? 'bg-construct-red text-white' : 'bg-construct-black text-white']">
+      <div class="absolute right-0 bottom-0 w-1/2 h-1/2 bg-white/10" />
+      
+      <div class="container mx-auto relative z-10 md:pl-24">
+        <div class="max-w-4xl">
+          <div class="text-xs font-bold tracking-[0.4em] mb-4 opacity-70 animate-slide-down">
+            FILE: {{ post.category }} // ID: {{ post.id.padStart(4, '0') }}
+          </div>
+          
+          <div class="font-display text-4xl sm:text-5xl md:text-6xl lg:text-8xl leading-[0.9] tracking-tighter mb-8 animate-slide-down" style="animation-delay: 0.1s">
+            {{ post.title }}
+          </div>
+
+          <div class="flex flex-wrap gap-8 items-center text-[10px] sm:text-xs font-bold tracking-[0.2em] opacity-80 animate-fade-in" style="animation-delay: 0.2s">
+            <div class="flex items-center gap-2">
+              <User size="14" class="text-white/40" />
+              <RouterLink :to="`/author/${encodeURIComponent(post.author)}`" class="hover:underline">{{ post.author }}</RouterLink>
+            </div>
+            <div class="flex items-center gap-2">
+              <Clock size="14" class="text-white/40" />
+              {{ post.date }}
+            </div>
+            <div class="flex items-center gap-2">
+              <BookOpen size="14" class="text-white/40" />
+              {{ calculateReadTime(post.content || '') }} MIN READ
+            </div>
+            <div class="h-4 w-[1px] bg-white/20 hidden sm:block" />
+            <div class="flex flex-wrap gap-2">
+              <span
+                v-for="tag in post.tags"
+                :key="tag"
+                class="text-[10px] font-black tracking-widest px-2 py-1 bg-white/10 hover:bg-white/20 transition-colors cursor-default"
+              >
+                #{{ tag }}
+              </span>
+            </div>
+            <div class="h-4 w-[1px] bg-white/20 hidden sm:block" />
+            <div class="flex gap-4">
+              <button @click="showShareModal = true" class="hover:text-construct-black transition-colors"><Share2 size="16" /></button>
+              <button class="hover:text-construct-black transition-colors"><Bookmark size="16" /></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Content Section -->
+    <article class="container mx-auto px-4 sm:px-8 py-16 md:py-32 grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-16">
+      <!-- 左侧：文章目录 -->
+      <aside class="md:col-span-3 space-y-8 md:space-y-12 order-1">
+        <div class="relative md:sticky md:top-24">
+          <div class="mb-6">
+            <h4 class="font-display text-sm tracking-widest text-construct-black mb-4 uppercase">CONTENTS //</h4>
+            <nav class="space-y-2">
+              <div
+                v-for="heading in tableOfContents"
+                :key="heading.id"
+                @click="scrollToHeading(heading.id)"
+                :class="[
+                  'cursor-pointer transition-all hover:text-construct-red',
+                  {
+                    'pl-0 text-sm font-bold': heading.level === 1,
+                    'pl-3 text-xs font-medium': heading.level === 2,
+                    'pl-6 text-[11px] opacity-70': heading.level === 3
+                  }
+                ]"
+              >
+                {{ heading.text }}
+              </div>
+            </nav>
+          </div>
+        </div>
+      </aside>
+
+      <!-- 中间：文章内容 -->
+      <div class="md:col-span-6 max-w-2xl order-2">
+        <div class="prose prose-lg font-medium text-lg md:text-xl leading-relaxed text-construct-black space-y-8">
+          <MarkdownRenderer :content="post.content" />
+        </div>
+
+        <div class="mt-24 pt-16 border-t-4 border-construct-black">
+          <h4 class="font-display text-2xl mb-8 tracking-tighter">END OF TRANSMISSION //</h4>
+        </div>
+
+        <!-- Comment Section -->
+        <CommentSection @comment-submitted="handleCommentSubmitted" />
+      </div>
+
+      <!-- 右侧：文章元数据 -->
+      <aside class="md:col-span-3 space-y-8 md:space-y-12 order-3">
+        <div class="relative md:sticky md:top-24">
+          <div class="mb-4">
+            <button
+              @click="isMetaOpen = !isMetaOpen"
+              class="group flex items-center justify-between w-full bg-construct-black text-white px-4 py-2 text-[10px] font-black tracking-widest uppercase hover:bg-construct-red transition-colors"
+              :title="isMetaOpen ? 'Retract details' : 'Expand details'"
+            >
+              <span>{{ isMetaOpen ? '[-] RETRACT_METADATA' : '[+] EXPAND_METADATA' }}</span>
+              <div :class="['transition-transform duration-300', isMetaOpen ? 'rotate-90' : '']">
+                <ChevronRight size="14" />
+              </div>
+            </button>
+          </div>
+
+          <div
+            v-show="isMetaOpen"
+            class="overflow-hidden space-y-6 transition-all duration-300"
+            :style="{
+              opacity: isMetaOpen ? 1 : 0,
+              transform: isMetaOpen ? 'translateX(0)' : 'translateX(20px)'
+            }"
+          >
+            <div class="p-6 bg-white border-4 border-construct-black">
+              <h4 class="font-display text-sm tracking-widest text-construct-red mb-4 uppercase">ABSTRACT //</h4>
+              <p class="text-xs font-medium leading-relaxed italic opacity-80">
+                {{ post.excerpt }}
+              </p>
+            </div>
+
+            <div class="p-6 border-2 border-construct-black bg-gray-100">
+              <h4 class="font-display text-sm tracking-widest text-construct-black mb-4 uppercase">METADATA // TAGS</h4>
+              <div class="flex flex-wrap gap-2">
+                <span
+                  v-for="tag in post.tags"
+                  :key="tag"
+                  class="text-[9px] font-black tracking-tighter px-2 py-1 bg-construct-black text-white hover:bg-construct-red transition-colors cursor-pointer uppercase"
+                >
+                  {{ tag }}
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="space-y-4 py-6">
+            <span class="text-[10px] font-bold tracking-widest opacity-40 block uppercase">ENCRYPTION: AES-256</span>
+            <span class="text-[10px] font-bold tracking-widest opacity-40 block uppercase">STATUS: PUBLIC ARCHIVE</span>
+            <span class="text-[10px] font-bold tracking-widest opacity-40 block uppercase">TRANSMISSION: FIXED RATE</span>
+          </div>
+        </div>
+      </aside>
+    </article>
+
+    <!-- Decorative Footer -->
+    <footer class="h-64 bg-construct-black flex items-center justify-center overflow-hidden relative">
+      <div class="absolute inset-0 opacity-10 pointer-events-none flex flex-col justify-around">
+        <div v-for="i in 5" :key="i" class="h-px bg-white w-full" />
+      </div>
+      <span class="font-display text-[20vw] opacity-5 text-white pointer-events-none select-none">
+        CONSTRUCT
+      </span>
+    </footer>
+
+    <!-- Share Modal -->
+    <ShareModal 
+      :show="showShareModal" 
+      :title="post.title"
+      @close="showShareModal = false" 
+    />
+  </div>
+</template>
+
+<style lang="scss" scoped>
+.font-display {
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+}
+
+:deep(.markdown-body) {
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-weight: 900;
+    letter-spacing: -0.025em;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+  }
+
+  h1 { font-size: 2.5rem; }
+  h2 { font-size: 2rem; }
+  h3 { font-size: 1.5rem; }
+  h4 { font-size: 1.25rem; }
+
+  p {
+    margin-bottom: 1.5rem;
+    line-height: 1.8;
+  }
+
+  ul, ol {
+    margin-bottom: 1.5rem;
+    padding-left: 1.5rem;
+  }
+
+  li {
+    margin-bottom: 0.5rem;
+    line-height: 1.8;
+  }
+
+  strong {
+    font-weight: 900;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+  }
+
+  a:hover {
+    color: #ef4444;
+  }
+
+  blockquote {
+    border-left: 4px solid #000;
+    padding-left: 1.5rem;
+    font-style: italic;
+    margin: 1.5rem 0;
+  }
+
+  code {
+    font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
+    background: #2d2d2d;
+    color: #ccc;
+    padding: 0.2rem 0.4rem;
+    font-size: 0.875em;
+    border-radius: 4px;
+  }
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.slide-enter-active,
+.slide-leave-active {
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.slide-enter-from,
+.slide-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-down {
+  animation: slideDown 0.5s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+</style>

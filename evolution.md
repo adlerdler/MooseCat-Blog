@@ -239,3 +239,18 @@
 - **Status:**
   - 在 `resources/css/app.css` 中添加 `::-webkit-scrollbar { display: none; }` 等规则。
   - 添加 `scrollbar-width: none` 和 `-ms-overflow-style: none` 实现跨浏览器兼容。
+
+### 2026-05-12: 代码高亮系统重构与 PrismJS 深度集成 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 废弃原有的简单代码块渲染，引入 PrismJS 并通过 `vite-plugin-prismjs` 实现自动化管理。
+- **Rationale:**
+  - **Professional Highlighting:** PrismJS 提供更精准的语法解析和更丰富的主题支持（选用 Okaidia）。
+  - **Automation:** 引入 `vite-plugin-prismjs` 插件，实现语言包的按需自动加载，避免手动导入 20+ 个语言文件的冗余。
+  - **Vue SFC Support:** 针对 Vue 单文件组件，手动扩展了 PrismJS 的 `markup` 语言定义，支持 `<script>` 和 `<style>` 块的嵌套高亮。
+  - **Clean Architecture:** 移除了自定义的 `code-block-wrapper` 等冗余 DOM 结构，回归 PrismJS 原生渲染模式，确保样式表现的一致性。
+- **Status:**
+  - 安装并配置 `vite-plugin-prismjs` 插件。
+  - 重构 `MarkdownRenderer.vue`，简化导入逻辑并修复 `escapeHtml` 导致的二次转义问题。
+  - 优化代码块 CSS 样式：采用 JetBrains Mono 字体、1.6 行高、圆角边框及横向滚动支持。
+  - 修复了 `prism-markup-templating` 依赖缺失导致的 PHP 等语言高亮失效问题。
+

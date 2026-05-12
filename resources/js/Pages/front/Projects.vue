@@ -1,11 +1,22 @@
 <script setup>
+/**
+ * Projects.vue - 项目列表页
+ * 
+ * 功能说明：
+ * - 展示所有已完成项目的列表
+ * - 卡片形式展示项目信息
+ * - 点击进入项目详情页
+ * 
+ * 页面特色：
+ * - 不对称网格布局
+ * - 渐变背景效果
+ * - 项目技术栈标签展示
+ */
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { MotionComponent as Motion } from '@vueuse/motion';
-import { useTheme } from '../composables/useTheme';
-import { PROJECTS } from '../data/projects';
-import SidebarMenu from '../components/SidebarMenu.vue';
-import Footer from '../components/Footer.vue';
+import { Motion, AnimatePresence } from 'motion-v';
+import { useTheme } from '../../composables/useTheme';
+import { PROJECTS } from '../../data/projects';
 
 const { initTheme } = useTheme();
 const router = useRouter();
@@ -47,7 +58,7 @@ const goToProject = (projectId) => {
             v-for="(project, idx) in PROJECTS"
             :key="project.id"
             :initial="{ opacity: 0, y: 20 }"
-            :visible="{ opacity: 1, y: 0 }"
+            :animate="{ opacity: 1, y: 0 }"
             :transition="{ delay: idx * 0.1 }"
             @click="goToProject(project.id)"
             class="group cursor-pointer border-4 border-construct-black bg-white hover:bg-construct-red transition-colors p-4"
@@ -81,6 +92,6 @@ const goToProject = (projectId) => {
 
 <style lang="scss" scoped>
 .font-display {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: 'Space Grotesk', system-ui, sans-serif;
 }
 </style>

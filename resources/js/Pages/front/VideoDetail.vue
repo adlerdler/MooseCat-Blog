@@ -1,9 +1,21 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+/**
+ * VideoDetail.vue - 视频详情页
+ * 
+ * 功能说明：
+ * - 展示单个视频的播放页面
+ * - 支持 YouTube 和 Bilibili 嵌入式播放器
+ * - 动态生成嵌入 URL
+ * 
+ * 交互功能：
+ * - 返回上一页按钮
+ * - 返回顶部按钮
+ */
+import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { MotionComponent as Motion } from '@vueuse/motion';
-import { useTheme } from '../composables/useTheme';
-import { VIDEOS } from '../data/videos';
+import { Motion, AnimatePresence } from 'motion-v';
+import { useTheme } from '../../composables/useTheme';
+import { VIDEOS } from '../../data/videos';
 import { ArrowLeft, ArrowUp } from 'lucide-vue-next';
 
 const { initTheme } = useTheme();
@@ -15,6 +27,18 @@ const video = computed(() => {
   return VIDEOS.find((v) => v.id === route.params.id);
 });
 
+// 动态更新页面标题
+const updatePageTitle = () => {
+  if (video.value?.title) {
+    document.title = `VIDEO // ${video.value.title}`;
+  }
+};
+
+// 监听video变化更新标题
+watch(video, () => {
+  updatePageTitle();
+}, { immediate: true });
+
 const embedUrl = computed(() => {
   if (!video.value) return '';
   return video.value.platform === 'youtube'
@@ -24,6 +48,7 @@ const embedUrl = computed(() => {
 
 onMounted(() => {
   initTheme();
+  updatePageTitle();
 
   window.addEventListener('scroll', handleScroll);
 });
@@ -56,7 +81,7 @@ const scrollToTop = () => {
       <div v-if="video">
         <Motion
           :initial="{ opacity: 0, y: 20 }"
-          :visible="{ opacity: 1, y: 0 }"
+          :animate="{ opacity: 1, y: 0 }"
         >
           <h1 class="font-display text-4xl md:text-6xl tracking-tighter mb-8">
             {{ video.title }}
@@ -107,7 +132,7 @@ const scrollToTop = () => {
 
 <style lang="scss" scoped>
 .font-display {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: 'Space Grotesk', system-ui, sans-serif;
 }
 
 .fade {

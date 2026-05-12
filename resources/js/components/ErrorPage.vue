@@ -1,4 +1,19 @@
 <script setup>
+/**
+ * ErrorPage.vue - 错误页面组件
+ * 
+ * 功能说明：
+ * - 展示404、403等错误页面
+ * - 根据访问路径智能推断错误类型
+ * - 提供返回首页的导航
+ * 
+ * 错误类型映射：
+ * - /post/* - 文章未找到
+ * - /video/* - 视频未找到
+ * - /project/* - 项目未找到
+ * - /admin/* - 访问被拒绝（403）
+ * - 其他 - 页面未找到（404）
+ */
 import { computed } from 'vue'
 import { ArrowLeft, AlertTriangle } from 'lucide-vue-next'
 import { useI18n } from 'vue-i18n'

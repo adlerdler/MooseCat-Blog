@@ -1,9 +1,22 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+/**
+ * ProjectDetail.vue - 项目详情页
+ * 
+ * 功能说明：
+ * - 展示单个项目的详细信息
+ * - 包含项目描述、技术栈、使用技术图标展示
+ * - 外部链接和 GitHub 仓库跳转
+ * 
+ * 页面特色：
+ * - 响应式技术栈网格
+ * - 外部链接图标动画
+ * - 项目元数据展示
+ */
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useRoute, useRouter, RouterLink } from 'vue-router';
-import { MotionComponent as Motion } from '@vueuse/motion';
-import { useTheme } from '../composables/useTheme';
-import { PROJECTS } from '../data/projects';
+import { Motion, AnimatePresence } from 'motion-v';
+import { useTheme } from '../../composables/useTheme';
+import { PROJECTS } from '../../data/projects';
 import { ExternalLink, Github, ArrowLeft, ArrowUp, Terminal, Cpu, Layers, Globe, Code } from 'lucide-vue-next';
 
 const { initTheme } = useTheme();
@@ -14,6 +27,18 @@ const project = computed(() => {
   return PROJECTS.find((p) => p.id === route.params.id);
 });
 
+// 动态更新页面标题
+const updatePageTitle = () => {
+  if (project.value?.title) {
+    document.title = `PROJECT // ${project.value.title}`;
+  }
+};
+
+// 监听project变化更新标题
+watch(project, () => {
+  updatePageTitle();
+}, { immediate: true });
+
 const showBackToTop = ref(false);
 
 const handleScroll = () => {
@@ -22,6 +47,7 @@ const handleScroll = () => {
 
 onMounted(() => {
   initTheme();
+  updatePageTitle();
   window.addEventListener('scroll', handleScroll);
 });
 
@@ -117,7 +143,7 @@ const scrollToTop = () => {
         <div class="lg:col-span-8">
           <Motion
             :initial="{ opacity: 0, x: -30 }"
-            :visible="{ opacity: 1, x: 0 }"
+            :animate="{ opacity: 1, x: 0 }"
             :transition="{ duration: 0.6 }"
           >
             <div class="flex items-center gap-4 mb-4">
@@ -134,7 +160,7 @@ const scrollToTop = () => {
           <!-- 主图 / 可视化 -->
           <Motion
             :initial="{ opacity: 0, y: 50 }"
-            :visible="{ opacity: 1, y: 0 }"
+            :animate="{ opacity: 1, y: 0 }"
             :transition="{ delay: 0.2, duration: 0.8 }"
             class="relative mb-24 group"
           >
@@ -318,7 +344,7 @@ const scrollToTop = () => {
 
 <style lang="scss" scoped>
 .font-display {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: 'Space Grotesk', system-ui, sans-serif;
 }
 
 .fade-enter-active,

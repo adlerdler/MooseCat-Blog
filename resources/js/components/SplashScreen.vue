@@ -1,4 +1,20 @@
 <script setup>
+/**
+ * SplashScreen.vue - 启动画面组件
+ * 
+ * 功能说明：
+ * - 网站首次访问的加载动画
+ * - 品牌展示和过渡效果
+ * - 仅在会话首次访问时显示
+ * 
+ * 技术实现：
+ * - sessionStorage 控制显示频率
+ * - CSS 动画实现过渡效果
+ * - 2.5秒后自动关闭
+ * 
+ * 使用示例：
+ * <SplashScreen @complete="onSplashComplete" />
+ */
 import { ref, onMounted } from 'vue';
 import { Hexagon, Sparkles } from 'lucide-vue-next';
 

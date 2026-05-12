@@ -1,4 +1,20 @@
 <script setup>
+/**
+ * SearchOverlay.vue - 搜索覆盖层组件
+ * 
+ * 功能说明：
+ * - 全屏搜索界面
+ * - 实时搜索文章标题和摘要
+ * - 键盘导航支持
+ * 
+ * 技术实现：
+ * - 使用 computed 属性实现实时过滤
+ * - 键盘事件监听（Escape 关闭）
+ * - 点击遮罩层关闭搜索
+ * 
+ * 使用示例：
+ * <SearchOverlay :is-open="isSearchOpen" @close="closeSearch" />
+ */
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { RouterLink } from 'vue-router';
 import { Search, X, ArrowUpRight } from 'lucide-vue-next';

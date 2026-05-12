@@ -1,3 +1,19 @@
+/**
+ * app.js - Vue 应用入口文件
+ * 
+ * 功能说明：
+ * - 创建并配置 Vue 应用实例
+ * - 注册全局组件和插件
+ * - 初始化主题和国际化
+ * 
+ * 初始化流程：
+ * 1. 初始化主题系统
+ * 2. 创建 Vue 应用实例
+ * 3. 注册全局组件（通过 glob 批量导入）
+ * 4. 注册页面组件（支持 Blade 模板使用）
+ * 5. 使用插件（i18n、router）
+ * 6. 挂载应用到 DOM
+ */
 import './bootstrap';
 import '../css/app.css';
 
@@ -7,11 +23,11 @@ import { useTheme } from './composables/useTheme';
 import router from './router';
 
 // 页面组件
-import Home from './Pages/Home.vue';
-import Blog from './Pages/Blog.vue';
-import Projects from './Pages/Projects.vue';
-import Resources from './Pages/Resources.vue';
-import Videos from './Pages/Videos.vue';
+import Home from './Pages/Front/Home.vue';
+import Blog from './Pages/Front/Blog.vue';
+import Projects from './Pages/Front/Projects.vue';
+import Resources from './Pages/Front/Resources.vue';
+import Videos from './Pages/Front/Videos.vue';
 
 const { initTheme } = useTheme();
 initTheme();
