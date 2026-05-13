@@ -1,0 +1,251 @@
+<script setup>
+/**
+ * AdminVideos.vue - 视频管理页面
+ * 
+ * 功能说明：
+ * - 管理系统中的所有视频
+ * - 支持搜索和平台筛选功能
+ * - 支持视频的增删改查操作
+ */
+import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+import {
+  Play,
+  Plus,
+  Search,
+  Edit3,
+  Trash2,
+  Eye,
+  Clock,
+  ChevronLeft,
+  ChevronRight,
+  Filter,
+  Youtube,
+  Video
+} from 'lucide-vue-next';
+import { VIDEOS } from '../../data/videos';
+import { useTheme } from '../../composables/useTheme';
+
+const { t } = useI18n();
+const { isDarkMode } = useTheme();
+
+const searchQuery = ref('');
+const currentPage = ref(1);
+const itemsPerPage = 10;
+const selectedPlatform = ref('all');
+
+const platforms = ['all', 'YouTube', 'Vimeo', 'Bilibili'];
+
+const getPlatformIcon = (platform) => {
+  switch (platform) {
+    case 'YouTube': return Youtube;
+    case 'Vimeo': return Video;
+    case 'Bilibili': return Video;
+    default: return Play;
+  }
+};
+
+const filteredVideos = computed(() => {
+  let result = [...VIDEOS];
+  
+  if (selectedPlatform.value !== 'all') {
+    result = result.filter(video => video.platform === selectedPlatform.value);
+  }
+  
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase();
+    result = result.filter(video =>
+      video.title.toLowerCase().includes(query) ||
+      video.description.toLowerCase().includes(query)
+    );
+  }
+  
+  return result;
+});
+
+const paginatedVideos = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage;
+  const end = start + itemsPerPage;
+  return filteredVideos.value.slice(start, end);
+});
+
+const totalPages = computed(() => {
+  return Math.ceil(filteredVideos.value.length / itemsPerPage);
+});
+
+const handleDelete = (id) => {
+  if (confirm('Are you sure you want to delete this video?')) {
+    console.log('Delete video:', id);
+  }
+};
+
+const handleEdit = (id) => {
+  console.log('Edit video:', id);
+};
+
+const goToPage = (page) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page;
+  }
+};
+</script>
+
+<template>
+  <div class="p-8">
+    <!-- Page Header -->
+    <div class="mb-8">
+      <h2 class="font-display text-4xl tracking-tighter mb-2">{{ t('admin_videos') }}</h2>
+      <p class="text-gray-400 text-sm font-bold tracking-widest uppercase">{{ t('admin_videos_subtitle') }}</p>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="flex flex-col md:flex-row gap-4 mb-6">
+      <!-- Search -->
+      <div class="relative flex-1">
+        <Search :class="['absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5', isDarkMode ? 'text-gray-500' : 'text-gray-400']" />
+        <input
+          v-model="searchQuery"
+          type="text"
+          :placeholder="t('admin_search_placeholder')"
+          :class="[
+            'w-full pl-10 pr-4 py-3 border focus:border-construct-red focus:outline-none transition-colors',
+            isDarkMode ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
+          ]"
+        />
+      </div>
+      
+      <!-- Platform Filter -->
+      <div class="relative">
+        <Filter :class="['absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5', isDarkMode ? 'text-gray-500' : 'text-gray-400']" />
+        <select
+          v-model="selectedPlatform"
+          :class="[
+            'pl-10 pr-8 py-3 border focus:border-construct-red focus:outline-none appearance-none cursor-pointer min-w-[150px]',
+            isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'
+          ]"
+        >
+          <option v-for="p in platforms" :key="p" :value="p">
+            {{ p === 'all' ? t('admin_filter_all') : p }}
+          </option>
+        </select>
+      </div>
+      
+      <!-- Add Button -->
+      <button
+        class="flex items-center gap-2 px-6 py-3 bg-construct-red text-white font-bold tracking-widest uppercase text-sm hover:bg-red-700 transition-colors rounded"
+      >
+        <Plus size="16" class="!text-white" />
+        {{ t('admin_add_new') }}
+      </button>
+    </div>
+
+    <!-- Videos Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div
+        v-for="video in paginatedVideos"
+        :key="video.id"
+        :class="[
+          'border overflow-hidden hover:border-construct-red transition-colors',
+          isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+        ]"
+      >
+        <!-- Video Thumbnail -->
+        <div class="relative aspect-video bg-gray-900">
+          <img
+            v-if="video.thumbnail"
+            :src="video.thumbnail"
+            :alt="video.title"
+            class="w-full h-full object-cover"
+          />
+          <div v-else class="w-full h-full flex items-center justify-center">
+            <component :is="getPlatformIcon(video.platform)" class="w-12 h-12 text-gray-600" />
+          </div>
+          <div class="absolute bottom-2 right-2 px-2 py-1 bg-black/80 text-white text-xs font-bold uppercase">
+            {{ video.platform }}
+          </div>
+        </div>
+        
+        <!-- Video Info -->
+        <div class="p-4">
+          <h3 :class="['font-bold mb-2 line-clamp-2', isDarkMode ? 'text-white' : 'text-gray-900']">{{ video.title }}</h3>
+          <p :class="['text-sm mb-4 line-clamp-2', isDarkMode ? 'text-gray-400' : 'text-gray-600']">{{ video.description }}</p>
+          
+          <div class="flex items-center justify-between">
+            <div :class="['flex items-center gap-2 text-xs', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
+              <Clock size="12" />
+              {{ video.date }}
+            </div>
+            
+            <div class="flex gap-2">
+              <button
+                @click="handleEdit(video.id)"
+                :class="[
+                  'p-2 transition-colors',
+                  isDarkMode ? 'text-gray-400 hover:text-blue-400 hover:bg-gray-700' : 'text-gray-500 hover:text-blue-500 hover:bg-gray-100'
+                ]"
+                :title="t('admin_edit')"
+              >
+                <Edit3 size="14" />
+              </button>
+              <button
+                :class="[
+                  'p-2 transition-colors',
+                  isDarkMode ? 'text-gray-400 hover:text-green-400 hover:bg-gray-700' : 'text-gray-500 hover:text-green-500 hover:bg-gray-100'
+                ]"
+                :title="t('admin_view')"
+              >
+                <Eye size="14" />
+              </button>
+              <button
+                @click="handleDelete(video.id)"
+                :class="[
+                  'p-2 transition-colors',
+                  isDarkMode ? 'text-gray-400 hover:text-red-400 hover:bg-gray-700' : 'text-gray-500 hover:text-red-500 hover:bg-gray-100'
+                ]"
+                :title="t('admin_delete')"
+              >
+                <Trash2 size="14" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="flex items-center justify-between mt-8">
+      <div class="text-sm text-gray-400">
+        {{ t('admin_showing') }} {{ (currentPage - 1) * itemsPerPage + 1 }} - {{ Math.min(currentPage * itemsPerPage, filteredVideos.length) }} {{ t('admin_of') }} {{ filteredVideos.length }}
+      </div>
+      <div class="flex gap-2">
+        <button
+          @click="goToPage(currentPage - 1)"
+          :disabled="currentPage === 1"
+          class="p-2 border border-gray-700 text-gray-400 hover:text-white hover:border-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          <ChevronLeft size="18" />
+        </button>
+        <button
+          v-for="page in totalPages"
+          :key="page"
+          @click="goToPage(page)"
+          :class="[
+            'px-4 py-2 border text-sm font-bold transition-colors',
+            page === currentPage
+              ? 'border-construct-red text-construct-red bg-gray-800'
+              : 'border-gray-700 text-gray-400 hover:text-white hover:border-gray-500'
+          ]"
+        >
+          {{ page }}
+        </button>
+        <button
+          @click="goToPage(currentPage + 1)"
+          :disabled="currentPage === totalPages"
+          class="p-2 border border-gray-700 text-gray-400 hover:text-white hover:border-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          <ChevronRight size="18" />
+        </button>
+      </div>
+    </div>
+  </div>
+</template>

@@ -33,8 +33,14 @@ Route::get('/categories/{category:slug}', [CategoryController::class, 'show'])->
 // 标签相关路由
 Route::get('/tags/{tag:slug}', [CategoryController::class, 'tag'])->name('tags.show');
 
+// 管理后台登录路由
+Route::get('/admin/login', [FrontendController::class, 'adminLogin'])->name('login');
+
 // 管理后台路由（需要认证）
 Route::prefix('admin')->middleware(['auth'])->group(function () {
+    // 首页
+    Route::get('/', [FrontendController::class, 'admin'])->name('admin');
+    
     // 文章管理
     Route::resource('posts', AdminPostController::class);
     

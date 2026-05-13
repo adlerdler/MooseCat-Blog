@@ -21,6 +21,7 @@ import { createApp } from 'vue';
 import { i18n } from './i18n';
 import { useTheme } from './composables/useTheme';
 import router from './router';
+import App from './App.vue';
 
 // 页面组件
 import Home from './Pages/Front/Home.vue';
@@ -32,9 +33,7 @@ import Videos from './Pages/Front/Videos.vue';
 const { initTheme } = useTheme();
 initTheme();
 
-const app = createApp({
-    template: '<router-view />',
-});
+const app = createApp(App);
 
 // 注册全局组件
 const components = import.meta.glob('./components/*.vue', { eager: true });

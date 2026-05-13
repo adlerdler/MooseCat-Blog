@@ -273,3 +273,67 @@
   - i18n 配置优化：添加命名导出 `{ i18n }`，同时支持默认导出和命名导出。
   - 浏览器语言检测优化：支持完整语言匹配 → 基础语言匹配 → 默认英文的降级策略，增加 `SUPPORTED_LOCALES` 常量定义。
 
+### 2026-05-13: 管理后台登录系统实现 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 实现管理后台登录功能，保护管理后台入口。
+- **Rationale:**
+  - 确保管理后台安全访问，防止未授权访问。
+  - 实现完整的登录流程：登录页面 → 验证 → 管理后台首页。
+  - 支持本地存储登录状态，避免重复登录。
+- **Status:**
+  - 创建 `Login.vue` 登录页面，包含邮箱和密码输入框。
+  - 登录凭据：邮箱 `Archyx@admin.com`，密码 `Archyx_admin123`。
+  - 添加路由配置：`/admin/login` 登录页，`/admin` 管理后台页（需要认证）。
+  - 实现路由守卫：检查 `requiresAuth` 路由元信息，未登录用户自动跳转到登录页。
+  - 已登录用户访问登录页自动跳转到管理后台首页。
+  - 管理后台首页添加用户信息显示和登出按钮。
+  - 登录状态存储在 localStorage：`admin_logged_in`（登录标记）、`admin_email`（邮箱）、`admin_login_time`（登录时间）。
+  - 登出功能：清除 localStorage 中的登录信息，跳转到登录页。
+
+### 2026-05-13: 管理后台完整功能建设 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 扩展管理后台功能，新增分类、标签、评论、角色、媒体库管理页面，并将数据分析整合到控制台首页。
+- **Rationale:**
+  - 完善管理后台的内容管理能力，覆盖博客系统的完整运营需求。
+  - 将数据分析整合到控制台首页，提供一站式的数据概览体验。
+  - 保持界面设计的一致性和操作的便捷性。
+- **Status:**
+  - 新增页面：
+    - `AdminCategories.vue` - 分类管理（增删改查、状态切换）
+    - `AdminTags.vue` - 标签管理（增删改查、使用统计）
+    - `AdminComments.vue` - 评论管理（审核、回复、删除）
+    - `AdminRoles.vue` - 角色管理（权限配置、用户统计）
+    - `AdminMedia.vue` - 媒体库（文件上传、预览、删除、批量操作）
+  - 更新路由配置：新增 `/admin/categories`、`/admin/tags`、`/admin/comments`、`/admin/roles`、`/admin/media` 路由。
+  - 更新国际化翻译：新增 EN/ZH/ZH-TW 三种语言的管理后台翻译。
+  - 更新侧边栏菜单：添加所有新页面的导航项。
+  - 整合数据分析到控制台：在 `Index.vue` 中集成流量趋势图表、内容统计、热门页面、流量来源分析模块。
+  - 移除独立的 `AdminAnalytics.vue` 页面，避免功能重复。
+  - 最终管理后台包含 13 个功能模块：控制台、文章、视频、项目、资源、分类、标签、评论、用户、角色、媒体库、系统设置。
+
+### 2026-05-13: 管理后台浅色模式支持 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 为管理后台添加浅色模式（Light Mode）支持，提供明暗主题切换功能。
+- **Rationale:**
+  - 满足不同用户的视觉偏好，减轻长时间使用的视觉疲劳。
+  - 主题状态持久化存储到 localStorage，刷新页面后保持用户选择。
+  - 保持界面设计的一致性和操作的便捷性。
+- **Status:**
+  - 在 `AdminLayout.vue` 中添加主题切换按钮（太阳/月亮图标）。
+  - 实现主题状态管理：`isDarkMode` 响应式状态 + localStorage 持久化。
+  - 在 `app.css` 中添加浅色模式 CSS 变量和样式类。
+  - 更新所有管理后台布局元素的条件样式（header、sidebar、content）。
+  - 添加国际化翻译支持（EN/ZH/ZH-TW）。
+
+### 2026-05-13: 设置页面图标与开关样式优化 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 修复设置页面的图标颜色和开关样式，确保在浅色/深色模式下正确显示。
+- **Rationale:**
+  - 保存按钮图标和 Tab 选中状态图标未正确显示为白色，影响视觉体验。
+  - 开关关闭状态背景色未跟随主题模式切换，导致浅色模式下仍显示深色灰色。
+- **Status:**
+  - 修复 `AdminSettings.vue` 保存按钮图标：使用内联样式 `:style="{ color: '#ffffff' }"` 强制设置为白色。
+  - 修复 Tab 选中状态图标：使用条件内联样式 `:style="activeTab === tab.id ? { color: '#ffffff' } : {}"`。
+  - 修复所有开关关闭状态背景色：使用动态类 `(isDarkMode ? 'bg-gray-600' : 'bg-gray-400')`。
+  - 修复开关标签文字颜色：使用动态类 `(isDarkMode ? 'text-gray-300' : 'text-gray-700')`。
+

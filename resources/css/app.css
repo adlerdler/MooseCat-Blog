@@ -53,3 +53,160 @@ body {
     background: var(--accent);
     color: white;
 }
+
+/* Admin Light Mode Styles */
+.light {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8fafc;
+    --bg-tertiary: #f1f5f9;
+    --border-color: #e2e8f0;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+    --accent-color: #CF202E;
+    --hover-bg: #e2e8f0;
+}
+
+.light body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+/* Main container */
+.light .admin-layout {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+/* Header */
+.light .admin-header {
+    background-color: var(--bg-primary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+.light .admin-header .font-display {
+    color: var(--text-primary);
+}
+
+/* Sidebar */
+.light .admin-sidebar {
+    background-color: var(--bg-primary);
+    border-color: var(--border-color);
+}
+
+.light .admin-sidebar button {
+    color: var(--text-secondary);
+}
+
+.light .admin-sidebar button:hover {
+    background-color: var(--hover-bg);
+    color: var(--text-primary);
+}
+
+.light .admin-sidebar button.active {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+/* Main Content */
+.light .admin-content {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+.light .admin-content p,
+.light .admin-content span,
+.light .admin-content div {
+    color: var(--text-primary);
+}
+
+/* Cards */
+.light .admin-card {
+    background-color: var(--bg-primary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+.light .admin-card h1,
+.light .admin-card h2,
+.light .admin-card h3,
+.light .admin-card h4,
+.light .admin-card h5,
+.light .admin-card h6 {
+    color: var(--text-primary);
+}
+
+.light .admin-card p,
+.light .admin-card span {
+    color: var(--text-secondary);
+}
+
+/* Inputs */
+.light .admin-input {
+    background-color: var(--bg-primary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+.light .admin-input::placeholder {
+    color: var(--text-muted);
+}
+
+/* Buttons */
+.light .admin-btn {
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.light .admin-btn:hover {
+    background-color: var(--hover-bg);
+}
+
+/* Form elements */
+.light select {
+    background-color: var(--bg-primary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+/* Table styles */
+.light table {
+    color: var(--text-primary);
+}
+
+.light th {
+    color: var(--text-primary);
+}
+
+.light td {
+    color: var(--text-secondary);
+    border-color: var(--border-color);
+}
+
+/* Links */
+.light a {
+    color: var(--accent-color);
+}
+
+.light a:hover {
+    color: #b91c1c;
+}
+
+/* Icons */
+.light svg {
+    color: var(--text-secondary);
+}
+
+.light .text-construct-red {
+    color: var(--accent-color);
+}
+
+/* Scrollbar */
+.light ::-webkit-scrollbar {
+    background-color: var(--bg-secondary);
+}
+
+.light ::-webkit-scrollbar-thumb {
+    background-color: var(--border-color);
+}

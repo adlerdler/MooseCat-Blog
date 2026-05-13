@@ -31,4 +31,14 @@ class FrontendController extends Controller
     {
         return view('frontend.videos');
     }
+
+    public function adminLogin(): View
+    {
+        return view('frontend.index');
+    }
+
+    public function admin(): View
+    {
+        return view('frontend.index');
+    }
 }

@@ -1,97 +1,88 @@
 <script setup>
 /**
- * Admin.vue - 管理后台首页
+ * Index.vue - 管理后台首页（Dashboard）
  * 
  * 功能说明：
  * - 网站内容管理后台的首页/控制面板
- * - 展示关键统计数据（文章数、视频数、项目数、访客数）
- * - 管理菜单导航到各个内容管理模块
- * 
- * 功能模块：
- * - Dashboard - 系统概览和数据分析
- * - Posts - 文章管理（增删改查）
- * - Videos - 视频管理
- * - Projects - 项目管理
- * - Resources - 资源管理
- * - Users - 用户管理
- * - Analytics - 数据分析
- * - Settings - 系统设置
- * 
- * 技术特点：
- * - 深色主题管理界面
- * - 响应式布局
- * - 活动日志记录
+ * - 展示关键统计数据（文章数、视频数、项目数、资源数）
+ * - 显示最近活动日志
+ * - 展示流量分析图表
+ * - 展示内容统计和热门页面
  */
-import { ref, computed } from 'vue';
-import { 
-  LayoutDashboard, 
-  FileText, 
-  Play, 
-  FolderKanban, 
-  BookOpen, 
-  Users, 
-  Settings,
-  BarChart3,
-  Activity,
-  TrendingUp,
-  Clock,
+import { ref, computed, onMounted, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import {
+  FileText,
+  Play,
+  FolderKanban,
   Eye,
+  Plus,
   Edit3,
   Trash2,
-  Plus
+  TrendingUp,
+  Activity,
+  BarChart3,
+  Users,
+  Calendar
 } from 'lucide-vue-next';
-import { useI18n } from 'vue-i18n';
+import { use } from 'echarts/core';
+import { CanvasRenderer } from 'echarts/renderers';
+import { BarChart, LineChart } from 'echarts/charts';
+import {
+  TitleComponent,
+  TooltipComponent,
+  LegendComponent,
+  GridComponent
+} from 'echarts/components';
+import VChart from 'vue-echarts';
 import { POSTS } from '../../data/posts';
 import { VIDEOS } from '../../data/videos';
 import { PROJECTS } from '../../data/projects';
+import { useTheme } from '../../composables/useTheme';
+
+use([
+  CanvasRenderer,
+  BarChart,
+  LineChart,
+  TitleComponent,
+  TooltipComponent,
+  LegendComponent,
+  GridComponent
+]);
 
 const { t } = useI18n();
-const activeSection = ref('dashboard');
+const { isDarkMode } = useTheme();
 
-const stats = computed(() => [
+const timeRange = ref('7d');
+
+const stats = [
   { 
     label: t('admin_total_posts'), 
     value: POSTS.length, 
     change: '+12%',
-    icon: FileText,
-    color: 'text-construct-red'
+    icon: FileText
   },
   { 
     label: t('admin_total_videos'), 
     value: VIDEOS.length, 
     change: '+8%',
-    icon: Play,
-    color: 'text-blue-500'
+    icon: Play
   },
   { 
     label: t('admin_total_projects'), 
     value: PROJECTS.length, 
     change: '+15%',
-    icon: FolderKanban,
-    color: 'text-green-500'
+    icon: FolderKanban
   },
   { 
     label: t('admin_total_resources'), 
     value: '2.4K', 
     change: '+23%',
-    icon: Eye,
-    color: 'text-purple-500'
+    icon: Eye
   }
-]);
+];
 
 const recentPosts = computed(() => POSTS.slice(0, 5));
-const recentVideos = computed(() => VIDEOS.slice(0, 5));
-
-const menuItems = [
-  { id: 'dashboard', label: t('admin_dashboard'), icon: LayoutDashboard },
-  { id: 'posts', label: t('admin_posts'), icon: FileText },
-  { id: 'videos', label: t('admin_videos'), icon: Play },
-  { id: 'projects', label: t('admin_projects'), icon: FolderKanban },
-  { id: 'resources', label: t('admin_resources'), icon: BookOpen },
-  { id: 'users', label: 'USERS', icon: Users },
-  { id: 'analytics', label: 'ANALYTICS', icon: BarChart3 },
-  { id: 'settings', label: t('admin_settings'), icon: Settings },
-];
 
 const activityLog = [
   { action: 'New post published', target: 'THE GEOMETRY OF PERCEPTION', time: '2 hours ago', type: 'post' },
@@ -100,380 +91,311 @@ const activityLog = [
   { action: 'New comment approved', target: 'By Anonymous', time: '1 day ago', type: 'comment' },
   { action: 'User registered', target: 'New Member', time: '2 days ago', type: 'user' },
 ];
+
+const trafficData = [
+  { day: 'Mon', visits: 3200, unique: 2800 },
+  { day: 'Tue', visits: 3800, unique: 3400 },
+  { day: 'Wed', visits: 4500, unique: 3900 },
+  { day: 'Thu', visits: 5200, unique: 4600 },
+  { day: 'Fri', visits: 4800, unique: 4200 },
+  { day: 'Sat', visits: 6100, unique: 5400 },
+  { day: 'Sun', visits: 5600, unique: 4900 },
+];
+
+const contentStats = [
+  { label: 'Total Posts', value: 156, icon: FileText, color: 'bg-construct-red' },
+  { label: 'Total Videos', value: 48, icon: Play, color: 'bg-blue-500' },
+  { label: 'Total Projects', value: 32, icon: FolderKanban, color: 'bg-green-500' },
+  { label: 'Total Comments', value: 892, icon: Users, color: 'bg-purple-500' },
+];
+
+const topPages = [
+  { page: '/blog/the-geometry-of-perception', views: 1234, percentage: 35 },
+  { page: '/projects/digital-archive', views: 892, percentage: 25 },
+  { page: '/videos/constructivist-design', views: 654, percentage: 18 },
+  { page: '/blog/computational-thinking', views: 432, percentage: 12 },
+  { page: '/resources/code-snippets', views: 321, percentage: 10 },
+];
+
+const trafficSources = [
+  { source: 'Direct', percentage: 45, color: 'bg-construct-red' },
+  { source: 'Google', percentage: 30, color: 'bg-blue-500' },
+  { source: 'Social Media', percentage: 15, color: 'bg-green-500' },
+  { source: 'Referral', percentage: 10, color: 'bg-purple-500' },
+];
+
+const trafficChartOption = computed(() => ({
+  tooltip: {
+    trigger: 'axis',
+    backgroundColor: isDarkMode.value ? '#1f2937' : '#ffffff',
+    borderColor: isDarkMode.value ? '#374151' : '#e5e7eb',
+    textStyle: {
+      color: isDarkMode.value ? '#ffffff' : '#111827',
+    },
+  },
+  legend: {
+    data: ['Total Visits', 'Unique Visitors'],
+    textStyle: {
+      color: isDarkMode.value ? '#9ca3af' : '#6b7280',
+    },
+    bottom: 0,
+  },
+  grid: {
+    left: '3%',
+    right: '4%',
+    bottom: '15%',
+    top: '10%',
+    containLabel: true,
+  },
+  xAxis: {
+    type: 'category',
+    data: trafficData.map(d => d.day),
+    axisLine: {
+      lineStyle: {
+        color: isDarkMode.value ? '#374151' : '#e5e7eb',
+      },
+    },
+    axisLabel: {
+      color: isDarkMode.value ? '#9ca3af' : '#6b7280',
+    },
+  },
+  yAxis: {
+    type: 'value',
+    axisLine: {
+      lineStyle: {
+        color: isDarkMode.value ? '#374151' : '#e5e7eb',
+      },
+    },
+    axisLabel: {
+      color: isDarkMode.value ? '#9ca3af' : '#6b7280',
+    },
+    splitLine: {
+      lineStyle: {
+        color: isDarkMode.value ? '#374151' : '#f3f4f6',
+      },
+    },
+  },
+  series: [
+    {
+      name: 'Total Visits',
+      type: 'bar',
+      data: trafficData.map(d => d.visits),
+      itemStyle: {
+        color: '#dc2626',
+        borderRadius: [4, 4, 0, 0],
+      },
+      barWidth: '30%',
+    },
+    {
+      name: 'Unique Visitors',
+      type: 'bar',
+      data: trafficData.map(d => d.unique),
+      itemStyle: {
+        color: isDarkMode.value ? '#4b5563' : '#9ca3af',
+        borderRadius: [4, 4, 0, 0],
+      },
+      barWidth: '30%',
+    },
+  ],
+}));
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-900 text-white">
-    <!-- Header -->
-    <header class="bg-gray-800 border-b border-gray-700 px-6 py-4">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-4">
-          <div class="w-10 h-10 bg-construct-red flex items-center justify-center">
-            <LayoutDashboard size="24" />
-          </div>
-          <h1 class="font-display text-2xl tracking-tighter uppercase">ARCHYX // ADMIN</h1>
+  <div class="p-8">
+    <!-- Page Header -->
+    <div class="mb-8">
+      <h2 :class="['font-display text-4xl tracking-tighter mb-2', isDarkMode ? 'text-white' : 'text-gray-900']">CONTROL PANEL</h2>
+      <p :class="['text-sm font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">System Overview & Analytics</p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div 
+        v-for="stat in stats" 
+        :key="stat.label"
+        :class="[
+          'p-6 hover:border-construct-red transition-colors',
+          isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'
+        ]"
+      >
+        <div class="flex items-center justify-between mb-4">
+          <component 
+            :is="stat.icon" 
+            :class="[
+              stat.icon === FileText ? (isDarkMode ? 'text-construct-red' : 'text-red-600') :
+              stat.icon === Play ? (isDarkMode ? 'text-blue-400' : 'text-blue-600') :
+              stat.icon === FolderKanban ? (isDarkMode ? 'text-green-400' : 'text-green-600') :
+              (isDarkMode ? 'text-purple-400' : 'text-purple-600')
+            ]" 
+            size="24" 
+          />
+          <span :class="['text-xs font-bold', isDarkMode ? 'text-green-400' : 'text-green-600']">{{ stat.change }}</span>
         </div>
-        <div class="flex items-center gap-6">
-          <div class="relative">
-            <Activity size="20" class="text-gray-400" />
-            <span class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
-          </div>
-          <div class="w-9 h-9 rounded-full bg-gray-700 flex items-center justify-center">
-            <Users size="18" />
+        <div :class="['font-display text-4xl mb-1', isDarkMode ? 'text-white' : 'text-gray-900']">{{ stat.value }}</div>
+        <div :class="['text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ stat.label }}</div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Recent Posts -->
+      <div :class="['lg:col-span-2 p-6 border', isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200']">
+        <div class="flex items-center justify-between mb-6">
+          <h3 :class="['font-display text-xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">RECENT POSTS</h3>
+          <button class="flex items-center gap-2 px-4 py-2 bg-construct-red text-white font-bold tracking-widest uppercase text-xs hover:bg-red-700 transition-colors rounded">
+            <Plus size="16" class="!text-white" /> ADD NEW
+          </button>
+        </div>
+        <div class="space-y-4">
+          <div 
+            v-for="post in recentPosts" 
+            :key="post.id"
+            :class="[
+              'flex items-center justify-between p-4 transition-colors',
+              isDarkMode ? 'bg-gray-700/50 hover:bg-gray-700' : 'bg-gray-50 hover:bg-gray-100'
+            ]"
+          >
+            <div class="flex-1">
+              <h4 :class="['font-display text-lg tracking-tighter mb-1', isDarkMode ? 'text-white' : 'text-gray-900']">{{ post.title }}</h4>
+              <div :class="['flex items-center gap-4 text-xs', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
+                <span>{{ post.category }}</span>
+                <span>{{ post.date }}</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <button :class="['p-2 transition-colors', isDarkMode ? 'hover:bg-gray-600' : 'hover:bg-gray-200']">
+                <Edit3 :class="isDarkMode ? 'text-gray-300' : 'text-gray-600'" size="16" />
+              </button>
+              <button :class="['p-2 transition-colors', isDarkMode ? 'hover:bg-red-500/20' : 'hover:bg-red-50']">
+                <Trash2 :class="isDarkMode ? 'text-gray-300' : 'text-gray-600'" size="16" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </header>
 
-    <div class="flex">
-      <!-- Sidebar -->
-      <aside class="w-64 bg-gray-800 border-r border-gray-700 min-h-[calc(100vh-65px)]">
-        <nav class="p-4 space-y-1">
-          <button
-            v-for="item in menuItems"
-            :key="item.id"
-            @click="activeSection = item.id"
-            class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold tracking-widest uppercase transition-all"
-            :class="activeSection === item.id 
-              ? 'bg-construct-red text-white' 
-              : 'text-gray-400 hover:bg-gray-700 hover:text-white'"
+      <!-- Activity Log -->
+      <div :class="['p-6 border', isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200']">
+        <h3 :class="['font-display text-xl tracking-tighter mb-6', isDarkMode ? 'text-white' : 'text-gray-900']">ACTIVITY LOG</h3>
+        <div class="space-y-4">
+          <div 
+            v-for="(activity, index) in activityLog" 
+            :key="index"
+            class="flex items-start gap-3"
           >
-            <component :is="item.icon" size="18" />
-            {{ item.label }}
-          </button>
-        </nav>
-      </aside>
-
-      <!-- Main Content -->
-      <main class="flex-1 p-8">
-        <!-- Dashboard Section -->
-        <div v-if="activeSection === 'dashboard'">
-          <!-- Page Header -->
-          <div class="mb-8">
-            <h2 class="font-display text-4xl tracking-tighter mb-2">CONTROL PANEL</h2>
-            <p class="text-gray-400 text-sm font-bold tracking-widest uppercase">System Overview & Analytics</p>
+            <div class="w-2 h-2 rounded-full mt-2" :class="{
+              'bg-construct-red': activity.type === 'post',
+              'bg-blue-500': activity.type === 'video',
+              'bg-green-500': activity.type === 'project',
+              'bg-yellow-500': activity.type === 'comment',
+              'bg-purple-500': activity.type === 'user'
+            }"></div>
+            <div>
+              <p :class="['text-sm font-medium', isDarkMode ? 'text-white' : 'text-gray-900']">{{ activity.action }}</p>
+              <p :class="['text-xs', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ activity.target }} - {{ activity.time }}</p>
+            </div>
           </div>
+        </div>
+      </div>
+    </div>
 
-          <!-- Stats Cards -->
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div 
-              v-for="stat in stats" 
-              :key="stat.label"
-              class="bg-gray-800 border border-gray-700 p-6 hover:border-construct-red transition-colors"
+    <!-- Analytics Chart Placeholder -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <!-- Traffic Chart -->
+      <div :class="['lg:col-span-2 p-6 border', isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200']">
+        <div class="flex items-center justify-between mb-6">
+          <h3 :class="['font-display text-xl tracking-tighter flex items-center gap-3', isDarkMode ? 'text-white' : 'text-gray-900']">
+            <TrendingUp size="24" class="text-construct-red" />
+            TRAFFIC OVERVIEW
+          </h3>
+          <div class="flex items-center gap-2">
+            <Calendar :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'" size="16" />
+            <select
+              v-model="timeRange"
+              :class="[
+                'px-3 py-1 text-sm focus:border-construct-red focus:outline-none border',
+                isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'
+              ]"
             >
-              <div class="flex items-center justify-between mb-4">
-                <component :is="stat.icon" :class="stat.color" size="24" />
-                <span class="text-xs font-bold text-green-400">{{ stat.change }}</span>
-              </div>
-              <div class="font-display text-4xl mb-1">{{ stat.value }}</div>
-              <div class="text-xs font-bold tracking-widest uppercase text-gray-400">{{ stat.label }}</div>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Recent Posts -->
-            <div class="lg:col-span-2 bg-gray-800 border border-gray-700 p-6">
-              <div class="flex items-center justify-between mb-6">
-                <h3 class="font-display text-xl tracking-tighter">RECENT POSTS</h3>
-                <button class="flex items-center gap-2 text-xs font-bold tracking-widest uppercase text-construct-red hover:underline">
-                  <Plus size="14" /> ADD NEW
-                </button>
-              </div>
-              <div class="space-y-4">
-                <div 
-                  v-for="post in recentPosts" 
-                  :key="post.id"
-                  class="flex items-center justify-between p-4 bg-gray-700/50 hover:bg-gray-700 transition-colors"
-                >
-                  <div class="flex-1">
-                    <h4 class="font-display text-lg tracking-tighter mb-1">{{ post.title }}</h4>
-                    <div class="flex items-center gap-4 text-xs text-gray-400">
-                      <span>{{ post.category }}</span>
-                      <span>{{ post.date }}</span>
-                    </div>
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <button class="p-2 hover:bg-gray-600 transition-colors">
-                      <Edit3 size="16" />
-                    </button>
-                    <button class="p-2 hover:bg-red-500/20 transition-colors">
-                      <Trash2 size="16" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Activity Log -->
-            <div class="bg-gray-800 border border-gray-700 p-6">
-              <h3 class="font-display text-xl tracking-tighter mb-6">ACTIVITY LOG</h3>
-              <div class="space-y-4">
-                <div 
-                  v-for="(activity, index) in activityLog" 
-                  :key="index"
-                  class="flex items-start gap-3"
-                >
-                  <div class="w-2 h-2 rounded-full mt-2" :class="{
-                    'bg-construct-red': activity.type === 'post',
-                    'bg-blue-500': activity.type === 'video',
-                    'bg-green-500': activity.type === 'project',
-                    'bg-yellow-500': activity.type === 'comment',
-                    'bg-purple-500': activity.type === 'user'
-                  }"></div>
-                  <div>
-                    <p class="text-sm font-medium">{{ activity.action }}</p>
-                    <p class="text-xs text-gray-400">{{ activity.target }} - {{ activity.time }}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Analytics Chart Placeholder -->
-          <div class="mt-6 bg-gray-800 border border-gray-700 p-6">
-            <div class="flex items-center justify-between mb-6">
-              <h3 class="font-display text-xl tracking-tighter">TRAFFIC ANALYTICS</h3>
-              <div class="flex items-center gap-2 text-xs font-bold tracking-widest uppercase text-gray-400">
-                <TrendingUp size="16" class="text-green-400" /> +23%
-              </div>
-            </div>
-            <div class="h-48 flex items-end gap-2">
-              <div class="flex-1 bg-gray-700 hover:bg-construct-red transition-colors" style="height: 60%"></div>
-              <div class="flex-1 bg-gray-700 hover:bg-construct-red transition-colors" style="height: 80%"></div>
-              <div class="flex-1 bg-gray-700 hover:bg-construct-red transition-colors" style="height: 45%"></div>
-              <div class="flex-1 bg-gray-700 hover:bg-construct-red transition-colors" style="height: 90%"></div>
-              <div class="flex-1 bg-gray-700 hover:bg-construct-red transition-colors" style="height: 70%"></div>
-              <div class="flex-1 bg-gray-700 hover:bg-construct-red transition-colors" style="height: 85%"></div>
-              <div class="flex-1 bg-construct-red" style="height: 95%"></div>
-            </div>
-            <div class="flex justify-between mt-4 text-xs text-gray-400">
-              <span>MON</span>
-              <span>TUE</span>
-              <span>WED</span>
-              <span>THU</span>
-              <span>FRI</span>
-              <span>SAT</span>
-              <span>SUN</span>
-            </div>
+              <option value="7d">7 DAYS</option>
+              <option value="30d">30 DAYS</option>
+              <option value="90d">90 DAYS</option>
+            </select>
           </div>
         </div>
-
-        <!-- Posts Section -->
-        <div v-if="activeSection === 'posts'">
-          <div class="flex items-center justify-between mb-8">
-            <div>
-              <h2 class="font-display text-4xl tracking-tighter mb-2">MANAGE POSTS</h2>
-              <p class="text-gray-400 text-sm font-bold tracking-widest uppercase">Content Management</p>
-            </div>
-            <button class="flex items-center gap-2 bg-construct-red px-6 py-3 text-sm font-bold tracking-widest uppercase hover:bg-red-600 transition-colors">
-              <Plus size="16" /> ADD POST
-            </button>
-          </div>
-          
-          <div class="bg-gray-800 border border-gray-700 overflow-hidden">
-            <table class="w-full">
-              <thead>
-                <tr class="border-b border-gray-700">
-                  <th class="px-6 py-4 text-left text-xs font-bold tracking-widest uppercase text-gray-400">ID</th>
-                  <th class="px-6 py-4 text-left text-xs font-bold tracking-widest uppercase text-gray-400">TITLE</th>
-                  <th class="px-6 py-4 text-left text-xs font-bold tracking-widest uppercase text-gray-400">CATEGORY</th>
-                  <th class="px-6 py-4 text-left text-xs font-bold tracking-widest uppercase text-gray-400">DATE</th>
-                  <th class="px-6 py-4 text-left text-xs font-bold tracking-widest uppercase text-gray-400">AUTHOR</th>
-                  <th class="px-6 py-4 text-left text-xs font-bold tracking-widest uppercase text-gray-400">ACTIONS</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr 
-                  v-for="post in POSTS" 
-                  :key="post.id"
-                  class="border-b border-gray-700 hover:bg-gray-700/50 transition-colors"
-                >
-                  <td class="px-6 py-4 text-sm font-mono">{{ post.id.padStart(2, '0') }}</td>
-                  <td class="px-6 py-4">
-                    <h4 class="font-display text-lg tracking-tighter">{{ post.title }}</h4>
-                  </td>
-                  <td class="px-6 py-4">
-                    <span class="px-3 py-1 bg-gray-700 text-xs font-bold tracking-widest uppercase">{{ post.category }}</span>
-                  </td>
-                  <td class="px-6 py-4 text-sm text-gray-400">{{ post.date }}</td>
-                  <td class="px-6 py-4 text-sm">{{ post.author }}</td>
-                  <td class="px-6 py-4">
-                    <div class="flex items-center gap-2">
-                      <button class="p-2 hover:bg-gray-600 transition-colors">
-                        <Edit3 size="16" />
-                      </button>
-                      <button class="p-2 hover:bg-red-500/20 transition-colors">
-                        <Trash2 size="16" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+        <div class="h-64">
+          <v-chart :option="trafficChartOption" autoresize />
         </div>
+      </div>
 
-        <!-- Videos Section -->
-        <div v-if="activeSection === 'videos'">
-          <div class="flex items-center justify-between mb-8">
-            <div>
-              <h2 class="font-display text-4xl tracking-tighter mb-2">MANAGE VIDEOS</h2>
-              <p class="text-gray-400 text-sm font-bold tracking-widest uppercase">Video Library</p>
-            </div>
-            <button class="flex items-center gap-2 bg-construct-red px-6 py-3 text-sm font-bold tracking-widest uppercase hover:bg-red-600 transition-colors">
-              <Plus size="16" /> UPLOAD VIDEO
-            </button>
-          </div>
-          
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div 
-              v-for="video in VIDEOS" 
-              :key="video.id"
-              class="bg-gray-800 border border-gray-700 overflow-hidden hover:border-construct-red transition-colors"
-            >
-              <div class="aspect-video bg-gray-700 relative">
-                <div class="absolute inset-0 flex items-center justify-center">
-                  <Play size="48" class="text-construct-red" />
-                </div>
+      <!-- Content Stats -->
+      <div :class="['p-6 border', isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200']">
+        <h3 :class="['font-display text-xl tracking-tighter mb-6 flex items-center gap-3', isDarkMode ? 'text-white' : 'text-gray-900']">
+          <BarChart3 size="24" class="text-construct-red" />
+          CONTENT STATS
+        </h3>
+        <div class="space-y-4">
+          <div 
+            v-for="item in contentStats" 
+            :key="item.label"
+            :class="['flex items-center justify-between p-3 rounded-lg', isDarkMode ? 'bg-gray-700/50' : 'bg-gray-50']"
+          >
+            <div class="flex items-center gap-3">
+              <div :class="['w-10 h-10 rounded-lg flex items-center justify-center', item.color]">
+                <component :is="item.icon" size="18" class="text-white" />
               </div>
-              <div class="p-4">
-                <h4 class="font-display text-lg tracking-tighter mb-2">{{ video.title }}</h4>
-                <div class="flex items-center justify-between">
-                  <span class="text-xs text-gray-400">{{ video.duration }}</span>
-                  <div class="flex items-center gap-2">
-                    <button class="p-2 hover:bg-gray-600 transition-colors">
-                      <Edit3 size="16" />
-                    </button>
-                    <button class="p-2 hover:bg-red-500/20 transition-colors">
-                      <Trash2 size="16" />
-                    </button>
-                  </div>
-                </div>
+              <div>
+                <div :class="['font-display text-2xl', isDarkMode ? 'text-white' : 'text-gray-900']">{{ item.value }}</div>
+                <div :class="['text-xs', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ item.label }}</div>
               </div>
             </div>
           </div>
         </div>
+      </div>
+    </div>
 
-        <!-- Projects Section -->
-        <div v-if="activeSection === 'projects'">
-          <div class="flex items-center justify-between mb-8">
-            <div>
-              <h2 class="font-display text-4xl tracking-tighter mb-2">MANAGE PROJECTS</h2>
-              <p class="text-gray-400 text-sm font-bold tracking-widest uppercase">Project Portfolio</p>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Top Pages -->
+      <div :class="['p-6 border', isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200']">
+        <h3 :class="['font-display text-xl tracking-tighter mb-6', isDarkMode ? 'text-white' : 'text-gray-900']">TOP PAGES</h3>
+        <div class="space-y-4">
+          <div 
+            v-for="(page, index) in topPages" 
+            :key="page.page"
+            class="flex items-center gap-4"
+          >
+            <div :class="['w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold', isDarkMode ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-900']">
+              {{ index + 1 }}
             </div>
-            <button class="flex items-center gap-2 bg-construct-red px-6 py-3 text-sm font-bold tracking-widest uppercase hover:bg-red-600 transition-colors">
-              <Plus size="16" /> NEW PROJECT
-            </button>
+            <div class="flex-1">
+              <div :class="['text-sm font-medium truncate', isDarkMode ? 'text-white' : 'text-gray-900']">{{ page.page }}</div>
+              <div :class="['text-xs', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ page.views }} views</div>
+            </div>
+            <div class="text-sm font-bold text-construct-red">{{ page.percentage }}%</div>
           </div>
-          
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div 
-              v-for="project in PROJECTS" 
-              :key="project.id"
-              class="bg-gray-800 border border-gray-700 p-6 hover:border-construct-red transition-colors"
-            >
-              <div class="flex items-start justify-between mb-4">
-                <div>
-                  <span class="text-xs font-bold tracking-widest uppercase text-construct-red">{{ project.status }}</span>
-                  <h4 class="font-display text-2xl tracking-tighter mt-2">{{ project.title }}</h4>
-                </div>
-                <div class="flex items-center gap-2">
-                  <button class="p-2 hover:bg-gray-600 transition-colors">
-                    <Edit3 size="16" />
-                  </button>
-                  <button class="p-2 hover:bg-red-500/20 transition-colors">
-                    <Trash2 size="16" />
-                  </button>
-                </div>
-              </div>
-              <p class="text-gray-400 mb-4">{{ project.excerpt }}</p>
-              <div class="flex items-center gap-4 text-xs">
-                <span>{{ project.tech }}</span>
-                <span class="text-gray-500">|</span>
-                <span>{{ project.year }}</span>
-              </div>
+        </div>
+      </div>
+
+      <!-- Traffic Sources -->
+      <div :class="['p-6 border', isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200']">
+        <h3 :class="['font-display text-xl tracking-tighter mb-6', isDarkMode ? 'text-white' : 'text-gray-900']">TRAFFIC SOURCES</h3>
+        <div class="space-y-4">
+          <div 
+            v-for="source in trafficSources" 
+            :key="source.source"
+          >
+            <div class="flex items-center justify-between mb-2">
+              <span :class="['text-sm font-medium', isDarkMode ? 'text-white' : 'text-gray-900']">{{ source.source }}</span>
+              <span class="text-sm font-bold text-construct-red">{{ source.percentage }}%</span>
+            </div>
+            <div :class="['h-2 rounded-full overflow-hidden', isDarkMode ? 'bg-gray-700' : 'bg-gray-200']">
+              <div 
+                :class="['h-full rounded-full', source.color]"
+                :style="{ width: `${source.percentage}%` }"
+              ></div>
             </div>
           </div>
         </div>
-
-        <!-- Resources Section -->
-        <div v-if="activeSection === 'resources'">
-          <div class="flex items-center justify-between mb-8">
-            <div>
-              <h2 class="font-display text-4xl tracking-tighter mb-2">RESOURCE LIBRARY</h2>
-              <p class="text-gray-400 text-sm font-bold tracking-widest uppercase">Downloadable Assets</p>
-            </div>
-            <button class="flex items-center gap-2 bg-construct-red px-6 py-3 text-sm font-bold tracking-widest uppercase hover:bg-red-600 transition-colors">
-              <Plus size="16" /> ADD RESOURCE
-            </button>
-          </div>
-          
-          <div class="bg-gray-800 border border-gray-700 p-8 text-center">
-            <BookOpen size="64" class="mx-auto text-gray-600 mb-4" />
-            <p class="font-display text-xl tracking-tighter text-gray-400">RESOURCES SECTION</p>
-            <p class="text-sm text-gray-500 mt-2">Upload and manage downloadable resources</p>
-          </div>
-        </div>
-
-        <!-- Users Section -->
-        <div v-if="activeSection === 'users'">
-          <div class="flex items-center justify-between mb-8">
-            <div>
-              <h2 class="font-display text-4xl tracking-tighter mb-2">USER MANAGEMENT</h2>
-              <p class="text-gray-400 text-sm font-bold tracking-widest uppercase">Registered Members</p>
-            </div>
-            <button class="flex items-center gap-2 bg-construct-red px-6 py-3 text-sm font-bold tracking-widest uppercase hover:bg-red-600 transition-colors">
-              <Plus size="16" /> ADD USER
-            </button>
-          </div>
-          
-          <div class="bg-gray-800 border border-gray-700 p-8 text-center">
-            <Users size="64" class="mx-auto text-gray-600 mb-4" />
-            <p class="font-display text-xl tracking-tighter text-gray-400">USER MANAGEMENT</p>
-            <p class="text-sm text-gray-500 mt-2">Manage registered users and permissions</p>
-          </div>
-        </div>
-
-        <!-- Analytics Section -->
-        <div v-if="activeSection === 'analytics'">
-          <div class="flex items-center justify-between mb-8">
-            <div>
-              <h2 class="font-display text-4xl tracking-tighter mb-2">ANALYTICS</h2>
-              <p class="text-gray-400 text-sm font-bold tracking-widest uppercase">Performance Metrics</p>
-            </div>
-            <div class="flex items-center gap-2 text-xs font-bold tracking-widest uppercase">
-              <Clock size="16" class="text-gray-400" />
-              LAST 30 DAYS
-            </div>
-          </div>
-          
-          <div class="bg-gray-800 border border-gray-700 p-8 text-center">
-            <BarChart3 size="64" class="mx-auto text-gray-600 mb-4" />
-            <p class="font-display text-xl tracking-tighter text-gray-400">ANALYTICS DASHBOARD</p>
-            <p class="text-sm text-gray-500 mt-2">View detailed performance metrics and insights</p>
-          </div>
-        </div>
-
-        <!-- Settings Section -->
-        <div v-if="activeSection === 'settings'">
-          <div class="mb-8">
-            <h2 class="font-display text-4xl tracking-tighter mb-2">{{ t('admin_settings') }}</h2>
-            <p class="text-gray-400 text-sm font-bold tracking-widest uppercase">Configuration</p>
-          </div>
-          
-          <div class="bg-gray-800 border border-gray-700 p-8 text-center">
-            <Settings size="64" class="mx-auto text-gray-600 mb-4" />
-            <p class="font-display text-xl tracking-tighter text-gray-400">{{ t('admin_settings') }}</p>
-            <p class="text-sm text-gray-500 mt-2">Configure system preferences and options</p>
-          </div>
-        </div>
-      </main>
+      </div>
     </div>
   </div>
 </template>
-
-<style lang="scss" scoped>
-.font-display {
-  font-family: 'Space Grotesk', system-ui, sans-serif;
-}
-</style>

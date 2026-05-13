@@ -1,0 +1,188 @@
+<script setup>
+/**
+ * AdminCategories.vue - 分类管理页面
+ * 
+ * 功能说明：
+ * - 管理文章和视频的分类
+ * - 分类列表展示（名称、描述、文章数、状态）
+ * - 分类搜索和筛选
+ * - 添加、编辑、删除分类
+ * - 分类状态管理（启用/禁用）
+ */
+import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+import {
+  Folder,
+  Plus,
+  Search,
+  Edit3,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+  Filter,
+  FileText,
+  ToggleLeft,
+  ToggleRight
+} from 'lucide-vue-next';
+import { useTheme } from '../../composables/useTheme';
+
+const { t } = useI18n();
+const { isDarkMode } = useTheme();
+
+const searchQuery = ref('');
+const statusFilter = ref('all');
+const currentPage = ref(1);
+const itemsPerPage = 8;
+
+const categories = ref([
+  { id: 1, name: 'Architecture', description: 'Architectural theory and design', postCount: 24, status: 'active' },
+  { id: 2, name: 'Technology', description: 'Computational design and coding', postCount: 18, status: 'active' },
+  { id: 3, name: 'Philosophy', description: 'Design philosophy and methodology', postCount: 12, status: 'active' },
+  { id: 4, name: 'Projects', description: 'Project showcases and case studies', postCount: 15, status: 'active' },
+  { id: 5, name: 'Resources', description: 'Tools and resources', postCount: 8, status: 'inactive' },
+  { id: 6, name: 'Tutorials', description: 'Step-by-step guides', postCount: 20, status: 'active' },
+  { id: 7, name: 'Research', description: 'Academic research and papers', postCount: 6, status: 'active' },
+  { id: 8, name: 'News', description: 'Latest updates and announcements', postCount: 10, status: 'active' },
+]);
+
+const filteredCategories = computed(() => {
+  return categories.value.filter(category => {
+    const matchesSearch = category.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+                         category.description.toLowerCase().includes(searchQuery.value.toLowerCase());
+    const matchesStatus = statusFilter.value === 'all' || category.status === statusFilter.value;
+    return matchesSearch && matchesStatus;
+  });
+});
+
+const totalPages = computed(() => Math.ceil(filteredCategories.value.length / itemsPerPage));
+
+const paginatedCategories = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage;
+  return filteredCategories.value.slice(start, start + itemsPerPage);
+});
+
+const toggleStatus = (category) => {
+  category.status = category.status === 'active' ? 'inactive' : 'active';
+};
+</script>
+
+<template>
+  <div class="p-8">
+    <!-- Page Header -->
+    <div class="mb-8">
+      <div class="flex items-center gap-4 mb-2">
+        <Folder class="text-construct-red" size="32" />
+        <h2 :class="['font-display text-4xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">{{ t('admin_categories') }}</h2>
+      </div>
+      <p :class="['text-sm font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">Manage content categories</p>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="flex flex-col md:flex-row gap-4 mb-8">
+      <div class="flex-1 relative">
+        <Search :class="['absolute left-4 top-1/2 -translate-y-1/2', isDarkMode ? 'text-gray-400' : 'text-gray-500']" size="20" />
+        <input
+          v-model="searchQuery"
+          type="text"
+          :placeholder="t('admin_search_categories')"
+          :class="[
+            'w-full pl-12 pr-4 py-3 border focus:border-construct-red focus:outline-none transition-colors',
+            isDarkMode ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+          ]"
+        />
+      </div>
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2">
+          <Filter :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'" size="18" />
+          <select
+            v-model="statusFilter"
+            :class="[
+              'px-4 py-3 border focus:border-construct-red focus:outline-none transition-colors',
+              isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'
+            ]"
+          >
+            <option value="all">{{ t('admin_all_status') }}</option>
+            <option value="active">{{ t('admin_active') }}</option>
+            <option value="inactive">{{ t('admin_inactive') }}</option>
+          </select>
+        </div>
+        <button class="flex items-center gap-2 px-6 py-3 bg-construct-red hover:bg-red-600 text-white font-bold tracking-wider transition-colors rounded">
+          <Plus size="16" class="!text-white" /> {{ t('admin_add_category') }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Categories Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div 
+        v-for="category in paginatedCategories" 
+        :key="category.id"
+        :class="[
+          'border p-6 hover:border-construct-red transition-colors',
+          isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+        ]"
+      >
+        <div class="flex items-start justify-between mb-4">
+          <div :class="['w-12 h-12 rounded-lg flex items-center justify-center', isDarkMode ? 'bg-gray-700' : 'bg-gray-100']">
+            <Folder :class="['size-24', isDarkMode ? 'text-gray-400' : 'text-gray-600']" />
+          </div>
+          <button
+            @click="toggleStatus(category)"
+            class="flex items-center gap-1"
+          >
+            <ToggleRight v-if="category.status === 'active'" :class="isDarkMode ? 'text-green-400' : 'text-green-600'" size="20" />
+            <ToggleLeft v-else :class="isDarkMode ? 'text-gray-500' : 'text-gray-400'" size="20" />
+          </button>
+        </div>
+        
+        <h3 :class="['font-display text-xl tracking-tighter mb-2', isDarkMode ? 'text-white' : 'text-gray-900']">{{ category.name }}</h3>
+        <p :class="['text-sm mb-4 line-clamp-2', isDarkMode ? 'text-gray-400' : 'text-gray-600']">{{ category.description }}</p>
+        
+        <div :class="['flex items-center justify-between pt-4 border-t', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
+          <div :class="['flex items-center gap-2 text-sm', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
+            <FileText size="14" />
+            <span>{{ category.postCount }} {{ t('admin_posts') }}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-500 hover:bg-gray-100']">
+              <Edit3 size="16" />
+            </button>
+            <button :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:bg-red-500/20' : 'text-gray-500 hover:bg-red-50']">
+              <Trash2 size="16" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="flex items-center justify-between mt-8">
+      <div :class="['text-sm', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
+        {{ t('admin_showing') }} {{ ((currentPage - 1) * itemsPerPage) + 1 }} - {{ Math.min(currentPage * itemsPerPage, filteredCategories.length) }} {{ t('admin_of') }} {{ filteredCategories.length }} {{ t('admin_categories') }}
+      </div>
+      <div class="flex items-center gap-2">
+        <button
+          @click="currentPage = Math.max(1, currentPage - 1)"
+          :disabled="currentPage === 1"
+          :class="[
+            'p-2 border disabled:opacity-50 disabled:cursor-not-allowed transition-colors',
+            isDarkMode ? 'border-gray-700 hover:bg-gray-700' : 'border-gray-300 hover:bg-gray-100'
+          ]"
+        >
+          <ChevronLeft size="18" />
+        </button>
+        <span :class="['px-4 py-2 border', isDarkMode ? 'border-gray-700 text-white' : 'border-gray-300 text-gray-900']">{{ currentPage }} / {{ totalPages }}</span>
+        <button
+          @click="currentPage = Math.min(totalPages, currentPage + 1)"
+          :disabled="currentPage === totalPages"
+          :class="[
+            'p-2 border disabled:opacity-50 disabled:cursor-not-allowed transition-colors',
+            isDarkMode ? 'border-gray-700 hover:bg-gray-700' : 'border-gray-300 hover:bg-gray-100'
+          ]"
+        >
+          <ChevronRight size="18" />
+        </button>
+      </div>
+    </div>
+  </div>
+</template>
