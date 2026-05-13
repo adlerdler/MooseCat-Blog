@@ -23,11 +23,10 @@ import {
   Filter,
   User,
   Mail,
-  Shield,
-  ToggleLeft,
-  ToggleRight
+  Shield
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
+import { adminUsers } from '../../data/users';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
@@ -37,16 +36,7 @@ const roleFilter = ref('all');
 const currentPage = ref(1);
 const itemsPerPage = 6;
 
-const users = ref([
-  { id: 1, name: 'Admin User', email: 'admin@archyx.com', role: 'admin', status: 'active', joined: '2024-01-15' },
-  { id: 2, name: 'Content Editor', email: 'editor@archyx.com', role: 'editor', status: 'active', joined: '2024-03-20' },
-  { id: 3, name: 'Author Writer', email: 'author@archyx.com', role: 'author', status: 'active', joined: '2024-05-10' },
-  { id: 4, name: 'Guest User', email: 'guest@example.com', role: 'guest', status: 'inactive', joined: '2024-06-01' },
-  { id: 5, name: 'Contributor', email: 'contributor@archyx.com', role: 'author', status: 'active', joined: '2024-07-15' },
-  { id: 6, name: 'Moderator', email: 'moderator@archyx.com', role: 'moderator', status: 'active', joined: '2024-08-20' },
-  { id: 7, name: 'Subscriber', email: 'subscriber@example.com', role: 'subscriber', status: 'inactive', joined: '2024-09-01' },
-  { id: 8, name: 'API User', email: 'api@archyx.com', role: 'api', status: 'active', joined: '2024-10-15' },
-]);
+const users = ref([...adminUsers]);
 
 const filteredUsers = computed(() => {
   return users.value.filter(user => {
@@ -177,11 +167,12 @@ const toggleStatus = (user) => {
             <td class="px-6 py-4">
               <button
                 @click="toggleStatus(user)"
-                class="flex items-center gap-2"
+                class="flex items-center gap-3 cursor-pointer"
               >
-                <ToggleRight v-if="user.status === 'active'" :class="isDarkMode ? 'text-green-400' : 'text-green-600'" size="20" />
-                <ToggleLeft v-else :class="isDarkMode ? 'text-gray-500' : 'text-gray-400'" size="20" />
-                <span :class="['text-sm font-bold', user.status === 'active' ? (isDarkMode ? 'text-green-400' : 'text-green-600') : (isDarkMode ? 'text-gray-500' : 'text-gray-400')]">
+                <div :class="['w-12 h-6 rounded-full relative transition-colors', user.status === 'active' ? 'bg-green-500' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-400')]">
+                  <div :class="['absolute top-1 w-4 h-4 rounded-full bg-white transition-transform', user.status === 'active' ? 'left-7' : 'left-1']"></div>
+                </div>
+                <span :class="['text-sm font-bold tracking-wider', user.status === 'active' ? (isDarkMode ? 'text-green-400' : 'text-green-600') : (isDarkMode ? 'text-gray-500' : 'text-gray-400')]">
                   {{ user.status === 'active' ? t('admin_active') : t('admin_inactive') }}
                 </span>
               </button>

@@ -35,7 +35,7 @@ import Projects from './Pages/Front/Projects.vue';
 import ProjectDetail from './Pages/Front/ProjectDetail.vue';
 import Resources from './Pages/Front/Resources.vue';
 import ErrorPage from './components/ErrorPage.vue';
-import Index from './Pages/Admin/Index.vue';
+import Index from './Pages/admin/Index.vue';
 import Login from './Pages/Admin/Login.vue';
 import AdminPosts from './Pages/Admin/AdminPosts.vue';
 import AdminVideos from './Pages/Admin/AdminVideos.vue';

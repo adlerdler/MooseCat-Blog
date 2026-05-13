@@ -9,7 +9,7 @@
  * - 通知和邮件设置
  * - SEO和性能优化
  */
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import {
   Settings,
@@ -27,61 +27,30 @@ import {
   Zap
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
+import { defaultSettings, tabsConfig } from '../../data/admin';
 
 const { t } = useI18n();
 const { isDarkMode, toggleTheme } = useTheme();
 
-const settings = ref({
-  site: {
-    name: 'ARCHYX',
-    description: 'Constructivist Digital Archive',
-    logo: '',
-    favicon: '',
-    defaultLanguage: 'en',
-    timezone: 'UTC+8',
-    maintenanceMode: false
-  },
-  appearance: {
-    theme: 'dark',
-    accentColor: '#E53E3E',
-    font: 'system',
-    showAuthorBio: true,
-    showComments: true,
-    showRelatedPosts: true
-  },
-  notifications: {
-    emailNotifications: true,
-    commentApproval: true,
-    newUserAlert: true,
-    weeklyReport: false,
-    digestFrequency: 'weekly'
-  },
-  seo: {
-    metaTitle: 'ARCHYX - Constructivist Digital Archive',
-    metaDescription: 'Exploring digital constructivism through articles, videos, and projects',
-    googleAnalytics: '',
-    enableSitemap: true,
-    enableRobots: true,
-    canonicalUrl: 'https://archyx.com'
-  },
-  performance: {
-    enableCache: true,
-    cacheDuration: 3600,
-    enableMinification: true,
-    lazyLoadImages: true,
-    enableCDN: false
-  }
-});
+const settings = ref({ ...defaultSettings });
 
 const activeTab = ref('site');
 
-const tabs = [
-  { id: 'site', label: t('admin_settings_site'), icon: Globe },
-  { id: 'appearance', label: t('admin_settings_appearance'), icon: Palette },
-  { id: 'notifications', label: t('admin_settings_notifications'), icon: Bell },
-  { id: 'seo', label: t('admin_settings_seo'), icon: Search },
-  { id: 'performance', label: t('admin_settings_performance'), icon: Zap }
-];
+const iconMap = {
+  globe: Globe,
+  palette: Palette,
+  bell: Bell,
+  search: Search,
+  zap: Zap
+};
+
+const tabs = computed(() => {
+  return tabsConfig.map(tab => ({
+    ...tab,
+    label: t(tab.labelKey),
+    icon: iconMap[tab.iconKey]
+  }));
+});
 
 const saveSettings = () => {
   console.log('Settings saved:', settings.value);

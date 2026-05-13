@@ -19,7 +19,7 @@ import { useTheme } from '../../composables/useTheme';
 import { PROJECTS } from '../../data/projects';
 import { ExternalLink, Github, ArrowLeft, ArrowUp, Terminal, Cpu, Layers, Globe, Code } from 'lucide-vue-next';
 
-const { initTheme } = useTheme();
+const { initAccentTheme } = useTheme();
 const route = useRoute();
 const router = useRouter();
 
@@ -46,7 +46,9 @@ const handleScroll = () => {
 };
 
 onMounted(() => {
-  initTheme();
+  initAccentTheme();
+  // 前台页面不受后台主题设置影响，移除 light class
+  document.documentElement.classList.remove('light');
   updatePageTitle();
   window.addEventListener('scroll', handleScroll);
 });

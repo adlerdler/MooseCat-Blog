@@ -9,7 +9,7 @@
  * - 用户增长趋势
  * - 访问来源分析
  */
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import {
   BarChart3,
@@ -23,56 +23,43 @@ import {
   Clock
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
+import {
+  timeRanges,
+  analyticsStats,
+  contentStats,
+  trafficData,
+  topPages,
+  trafficSources
+} from '../../data/admin';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
 
 const timeRange = ref('7d');
-const timeRanges = [
-  { value: '7d', label: '7 DAYS' },
-  { value: '30d', label: '30 DAYS' },
-  { value: '90d', label: '90 DAYS' },
-  { value: '1y', label: '1 YEAR' },
-];
 
-const stats = [
-  { label: 'Total Visits', value: '24,567', change: '+12%', icon: Eye },
-  { label: 'Unique Visitors', value: '18,234', change: '+8%', icon: Users },
-  { label: 'Page Views', value: '89,432', change: '+15%', icon: BarChart3 },
-  { label: 'Avg. Duration', value: '4m 32s', change: '+5%', icon: Clock },
-];
+const iconMap = {
+  eye: Eye,
+  users: Users,
+  barChart3: BarChart3,
+  clock: Clock,
+  fileText: FileText,
+  play: Play,
+  folderKanban: FolderKanban
+};
 
-const contentStats = [
-  { label: 'Total Posts', value: 156, icon: FileText, color: 'bg-construct-red' },
-  { label: 'Total Videos', value: 48, icon: Play, color: 'bg-blue-500' },
-  { label: 'Total Projects', value: 32, icon: FolderKanban, color: 'bg-green-500' },
-  { label: 'Total Comments', value: 892, icon: Users, color: 'bg-purple-500' },
-];
+const stats = computed(() => {
+  return analyticsStats.map(stat => ({
+    ...stat,
+    icon: iconMap[stat.iconKey]
+  }));
+});
 
-const trafficData = [
-  { day: 'Mon', visits: 3200, unique: 2800 },
-  { day: 'Tue', visits: 3800, unique: 3400 },
-  { day: 'Wed', visits: 4500, unique: 3900 },
-  { day: 'Thu', visits: 5200, unique: 4600 },
-  { day: 'Fri', visits: 4800, unique: 4200 },
-  { day: 'Sat', visits: 6100, unique: 5400 },
-  { day: 'Sun', visits: 5600, unique: 4900 },
-];
-
-const topPages = [
-  { page: '/blog/the-geometry-of-perception', views: 1234, percentage: 35 },
-  { page: '/projects/digital-archive', views: 892, percentage: 25 },
-  { page: '/videos/constructivist-design', views: 654, percentage: 18 },
-  { page: '/blog/computational-thinking', views: 432, percentage: 12 },
-  { page: '/resources/code-snippets', views: 321, percentage: 10 },
-];
-
-const trafficSources = [
-  { source: 'Direct', percentage: 45, color: 'bg-construct-red' },
-  { source: 'Google', percentage: 30, color: 'bg-blue-500' },
-  { source: 'Social Media', percentage: 15, color: 'bg-green-500' },
-  { source: 'Referral', percentage: 10, color: 'bg-purple-500' },
-];
+const contentStatsWithIcons = computed(() => {
+  return contentStats.map(item => ({
+    ...item,
+    icon: iconMap[item.iconKey]
+  }));
+});
 </script>
 
 <template>
@@ -175,7 +162,7 @@ const trafficSources = [
         <h3 :class="['font-display text-xl tracking-tighter mb-6', isDarkMode ? 'text-white' : 'text-gray-900']">CONTENT STATS</h3>
         <div class="space-y-4">
           <div 
-            v-for="item in contentStats" 
+            v-for="item in contentStatsWithIcons" 
             :key="item.label"
             :class="['flex items-center justify-between p-4 rounded-lg', isDarkMode ? 'bg-gray-700/50' : 'bg-gray-50']"
           >

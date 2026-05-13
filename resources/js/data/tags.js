@@ -1,0 +1,17 @@
+export const adminTags = [
+  { id: 1, name: 'Architecture', usageCount: 45, status: 'active' },
+  { id: 2, name: 'Design', usageCount: 38, status: 'active' },
+  { id: 3, name: 'Technology', usageCount: 32, status: 'active' },
+  { id: 4, name: 'Philosophy', usageCount: 28, status: 'active' },
+  { id: 5, name: 'Research', usageCount: 24, status: 'active' },
+  { id: 6, name: 'Tutorial', usageCount: 19, status: 'active' },
+  { id: 7, name: 'Case Study', usageCount: 15, status: 'active' },
+  { id: 8, name: 'Algorithm', usageCount: 12, status: 'active' },
+  { id: 9, name: 'Parametric', usageCount: 10, status: 'inactive' },
+  { id: 10, name: 'Computational', usageCount: 18, status: 'active' },
+  { id: 11, name: 'Digital Fabrication', usageCount: 8, status: 'active' },
+  { id: 12, name: 'BIM', usageCount: 6, status: 'active' },
+  { id: 13, name: 'Sustainability', usageCount: 14, status: 'active' },
+  { id: 14, name: 'Urban Design', usageCount: 11, status: 'active' },
+  { id: 15, name: 'Generative', usageCount: 9, status: 'inactive' },
+];

@@ -18,7 +18,7 @@ import { useTheme } from '../../composables/useTheme';
 import { VIDEOS } from '../../data/videos';
 import { ArrowLeft, ArrowUp } from 'lucide-vue-next';
 
-const { initTheme } = useTheme();
+const { initAccentTheme } = useTheme();
 const route = useRoute();
 const router = useRouter();
 const showBackToTop = ref(false);
@@ -47,7 +47,9 @@ const embedUrl = computed(() => {
 });
 
 onMounted(() => {
-  initTheme();
+  initAccentTheme();
+  // 前台页面不受后台主题设置影响，移除 light class
+  document.documentElement.classList.remove('light');
   updatePageTitle();
 
   window.addEventListener('scroll', handleScroll);

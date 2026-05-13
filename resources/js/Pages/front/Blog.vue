@@ -20,7 +20,7 @@ import { useI18n } from 'vue-i18n';
 import { useTheme } from '../../composables/useTheme';
 
 const { t } = useI18n();
-const { initTheme } = useTheme();
+const { initAccentTheme } = useTheme();
 const activeFilter = ref('all');
 const currentPage = ref(1);
 const itemsPerPage = 14;

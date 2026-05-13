@@ -1,4 +1,4 @@
-{
+﻿{
   "nav_home": "首頁",
   "nav_blog": "部落格",
   "nav_videos": "影片",
@@ -211,5 +211,25 @@
   "admin_collapse": "收起",
   "admin_expand": "展開",
   "admin_collapse_sidebar": "收起側邊欄",
-  "admin_expand_sidebar": "展開側邊欄"
+  "admin_expand_sidebar": "展開側邊欄",
+  "login_logout": "登出",
+  "chart_posts": "文章",
+  "chart_views": "瀏覽",
+  "chart_total_users": "總使用者",
+  "chart_new_users": "新使用者",
+  "chart_post_trends": "文章趨勢",
+  "chart_user_growth": "使用者增長",
+  "chart_traffic_overview": "流量概覽",
+  "chart_7_days": "7天",
+  "chart_30_days": "30天",
+  "chart_90_days": "90天",
+  "chart_content_distribution": "內容分佈",
+  "chart_top_pages": "熱門頁面",
+  "chart_recommendations": "建議",
+  "rec_theory_title": "增加理論內容",
+  "rec_theory_desc": "理論文章獲得40%的更多參與度。考慮撰寫關於建構主義設計原則的內容。",
+  "rec_video_title": "影片內容機會",
+  "rec_video_desc": "影片內容的留存率高出3倍。考慮將熱門文章轉換為影片格式。",
+  "rec_images_title": "更新精選圖片",
+  "rec_images_desc": "帶有建築圖像的文章點擊率高出60%。檢查最近的縮圖選擇。"
 }

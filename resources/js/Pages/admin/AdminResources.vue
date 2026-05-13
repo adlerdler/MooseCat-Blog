@@ -28,6 +28,7 @@ import {
   Archive
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
+import { resourcesData, resourceTypes } from '../../data/resources';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
@@ -37,21 +38,10 @@ const currentPage = ref(1);
 const itemsPerPage = 12;
 const selectedType = ref('all');
 
-const resourceTypes = ['all', 'PDF', 'Image', 'Video', 'Archive', 'Other'];
+const resources = ref([...resourcesData]);
 
-const resources = ref([
-  { id: 1, title: 'Architecture Design Handbook', type: 'PDF', size: '15.2 MB', downloadCount: 234, date: '2024-01-15' },
-  { id: 2, title: 'Project Assets Bundle', type: 'Archive', size: '245.8 MB', downloadCount: 89, date: '2024-01-12' },
-  { id: 3, title: 'Brand Guidelines 2024', type: 'PDF', size: '8.4 MB', downloadCount: 456, date: '2024-01-10' },
-  { id: 4, title: 'UI Component Library', type: 'Archive', size: '1.2 GB', downloadCount: 67, date: '2024-01-08' },
-  { id: 5, title: 'Site Mockups', type: 'Image', size: '45.6 MB', downloadCount: 123, date: '2024-01-05' },
-  { id: 6, title: 'Tutorial Video Series', type: 'Video', size: '2.1 GB', downloadCount: 234, date: '2024-01-03' },
-  { id: 7, title: 'Color Palette Reference', type: 'Image', size: '2.3 MB', downloadCount: 567, date: '2024-01-01' },
-  { id: 8, title: 'Font Collection', type: 'Archive', size: '156.7 MB', downloadCount: 178, date: '2023-12-28' },
-]);
-
-const getTypeIcon = (type) => {
-  switch (type) {
+const getTypeIcon = (format) => {
+  switch (format) {
     case 'PDF': return FileText;
     case 'Image': return Image;
     case 'Video': return Video;
@@ -60,9 +50,9 @@ const getTypeIcon = (type) => {
   }
 };
 
-const getTypeColor = (type) => {
+const getTypeColor = (format) => {
   if (isDarkMode.value) {
-    switch (type) {
+    switch (format) {
       case 'PDF': return 'bg-red-900 text-red-300';
       case 'Image': return 'bg-purple-900 text-purple-300';
       case 'Video': return 'bg-blue-900 text-blue-300';
@@ -70,7 +60,7 @@ const getTypeColor = (type) => {
       default: return 'bg-gray-700 text-gray-300';
     }
   } else {
-    switch (type) {
+    switch (format) {
       case 'PDF': return 'bg-red-100 text-red-700';
       case 'Image': return 'bg-purple-100 text-purple-700';
       case 'Video': return 'bg-blue-100 text-blue-700';
@@ -84,7 +74,7 @@ const filteredResources = computed(() => {
   let result = [...resources.value];
   
   if (selectedType.value !== 'all') {
-    result = result.filter(resource => resource.type === selectedType.value);
+    result = result.filter(resource => resource.format === selectedType.value);
   }
   
   if (searchQuery.value) {
@@ -186,19 +176,19 @@ const goToPage = (page) => {
         <!-- Resource Icon -->
         <div :class="['relative h-32 flex items-center justify-center', isDarkMode ? 'bg-gray-900' : 'bg-gray-100']">
           <component
-            :is="getTypeIcon(resource.type)"
+            :is="getTypeIcon(resource.format)"
             :class="['w-16 h-16', 
-              resource.type === 'PDF' ? (isDarkMode ? 'text-red-400' : 'text-red-500') :
-              resource.type === 'Image' ? (isDarkMode ? 'text-purple-400' : 'text-purple-500') :
-              resource.type === 'Video' ? (isDarkMode ? 'text-blue-400' : 'text-blue-500') :
-              resource.type === 'Archive' ? (isDarkMode ? 'text-yellow-400' : 'text-yellow-500') : 
+              resource.format === 'PDF' ? (isDarkMode ? 'text-red-400' : 'text-red-500') :
+              resource.format === 'Image' ? (isDarkMode ? 'text-purple-400' : 'text-purple-500') :
+              resource.format === 'Video' ? (isDarkMode ? 'text-blue-400' : 'text-blue-500') :
+              resource.format === 'Archive' ? (isDarkMode ? 'text-yellow-400' : 'text-yellow-500') : 
               (isDarkMode ? 'text-gray-400' : 'text-gray-500')]"
           />
           <div class="absolute top-2 right-2">
             <span
-              :class="['text-[10px] px-2 py-1 uppercase font-bold', getTypeColor(resource.type)]"
+              :class="['text-[10px] px-2 py-1 uppercase font-bold', getTypeColor(resource.format)]"
             >
-              {{ resource.type }}
+              {{ resource.format }}
             </span>
           </div>
         </div>
@@ -208,7 +198,7 @@ const goToPage = (page) => {
           <h3 :class="['font-bold mb-2 line-clamp-2 text-sm', isDarkMode ? 'text-white' : 'text-gray-900']">{{ resource.title }}</h3>
           
           <div :class="['flex items-center justify-between text-xs mb-3', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
-            <span>{{ resource.size }}</span>
+            <span>{{ resource.fileSize }}</span>
             <span class="flex items-center gap-1">
               <Download size="14" />
               {{ resource.downloadCount }}

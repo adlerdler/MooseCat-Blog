@@ -39,11 +39,11 @@ const handleCopy = (text) => {
 
 const getDriveIcon = (type) => {
   switch (type) {
-    case 'google':
+    case 'Google Drive':
       return 'google';
-    case 'baidu':
+    case 'Baidu':
       return 'baidu';
-    case 'ali':
+    case 'AliCloud':
       return 'ali';
     default:
       return 'default';
@@ -52,14 +52,22 @@ const getDriveIcon = (type) => {
 
 const getDriveName = (type) => {
   switch (type) {
-    case 'google':
+    case 'Google Drive':
       return 'Google Drive';
-    case 'baidu':
+    case 'Baidu':
       return 'Baidu Netdisk';
-    case 'ali':
+    case 'AliCloud':
       return 'Aliyun Drive';
+    case 'Dropbox':
+      return 'Dropbox';
+    case 'OneDrive':
+      return 'OneDrive';
+    case 'Vimeo':
+      return 'Vimeo';
+    case 'Local':
+      return 'Local';
     default:
-      return 'Link';
+      return type;
   }
 };
 
@@ -140,13 +148,24 @@ onUnmounted(() => {
 
               <div class="space-y-4 mt-12 md:mt-auto pt-8">
                 <a
+                  v-if="resource.localUrl"
+                  :href="resource.localUrl"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="flex justify-between items-center w-full bg-construct-red text-white p-4 font-bold text-xs tracking-widest uppercase hover:bg-construct-black transition-colors"
+                >
+                  <span>Local Download</span>
+                  <Download class="w-4 h-4" />
+                </a>
+                
+                <a
                   v-if="resource.directLink"
                   :href="resource.directLink"
                   target="_blank"
                   rel="noopener noreferrer"
                   class="flex justify-between items-center w-full bg-construct-black text-white p-4 font-bold text-xs tracking-widest uppercase hover:bg-construct-red transition-colors"
                 >
-                  <span>Download Resource</span>
+                  <span>Direct Download</span>
                   <Download class="w-4 h-4" />
                 </a>
                 
@@ -171,10 +190,10 @@ onUnmounted(() => {
                     <span class="uppercase">{{ getDriveName(drive.type) }}</span>
                   </div>
                   <button
-                    @click="handleCopy(drive.password ? `${drive.link} | PASS: ${drive.password}` : drive.link)"
+                    @click="handleCopy(drive.password ? `${drive.url} | PASS: ${drive.password}` : drive.url)"
                     class="flex items-center gap-2 hover:text-construct-red transition-colors uppercase"
                   >
-                    <template v-if="copiedLink === (drive.password ? `${drive.link} | PASS: ${drive.password}` : drive.link)">
+                    <template v-if="copiedLink === (drive.password ? `${drive.url} | PASS: ${drive.password}` : drive.url)">
                       <span>Copied</span>
                       <Check class="w-4 h-4" />
                     </template>

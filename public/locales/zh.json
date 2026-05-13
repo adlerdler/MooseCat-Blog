@@ -1,4 +1,4 @@
-{
+﻿{
   "nav_home": "首页",
   "nav_blog": "博客",
   "nav_videos": "视频",
@@ -212,5 +212,24 @@
   "admin_expand": "展开",
   "admin_collapse_sidebar": "收起侧边栏",
   "admin_expand_sidebar": "展开侧边栏",
-  "login_logout": "退出登录"
+  "login_logout": "退出登录",
+  "chart_posts": "文章",
+  "chart_views": "浏览",
+  "chart_total_users": "总用户",
+  "chart_new_users": "新用户",
+  "chart_post_trends": "文章趋势",
+  "chart_user_growth": "用户增长",
+  "chart_traffic_overview": "流量概览",
+  "chart_7_days": "7天",
+  "chart_30_days": "30天",
+  "chart_90_days": "90天",
+  "chart_content_distribution": "内容分布",
+  "chart_top_pages": "热门页面",
+  "chart_recommendations": "建议",
+  "rec_theory_title": "增加理论内容",
+  "rec_theory_desc": "理论文章获得40%的更多参与度。考虑撰写关于建构主义设计原则的内容。",
+  "rec_video_title": "视频内容机会",
+  "rec_video_desc": "视频内容的留存率高出3倍。考虑将热门文章转换为视频格式。",
+  "rec_images_title": "更新精选图片",
+  "rec_images_desc": "带有建筑图像的文章点击率高出60%。检查最近的缩略图选择。"
 }

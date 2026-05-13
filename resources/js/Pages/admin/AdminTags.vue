@@ -20,11 +20,10 @@ import {
   ChevronLeft,
   ChevronRight,
   Filter,
-  FileText,
-  ToggleLeft,
-  ToggleRight
+  FileText
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
+import { adminTags } from '../../data/tags';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
@@ -34,23 +33,7 @@ const statusFilter = ref('all');
 const currentPage = ref(1);
 const itemsPerPage = 12;
 
-const tags = ref([
-  { id: 1, name: 'Architecture', usageCount: 45, status: 'active' },
-  { id: 2, name: 'Design', usageCount: 38, status: 'active' },
-  { id: 3, name: 'Technology', usageCount: 32, status: 'active' },
-  { id: 4, name: 'Philosophy', usageCount: 28, status: 'active' },
-  { id: 5, name: 'Research', usageCount: 24, status: 'active' },
-  { id: 6, name: 'Tutorial', usageCount: 19, status: 'active' },
-  { id: 7, name: 'Case Study', usageCount: 15, status: 'active' },
-  { id: 8, name: 'Algorithm', usageCount: 12, status: 'active' },
-  { id: 9, name: 'Parametric', usageCount: 10, status: 'inactive' },
-  { id: 10, name: 'Computational', usageCount: 18, status: 'active' },
-  { id: 11, name: 'Digital Fabrication', usageCount: 8, status: 'active' },
-  { id: 12, name: 'BIM', usageCount: 6, status: 'active' },
-  { id: 13, name: 'Sustainability', usageCount: 14, status: 'active' },
-  { id: 14, name: 'Urban Design', usageCount: 11, status: 'active' },
-  { id: 15, name: 'Generative', usageCount: 9, status: 'inactive' },
-]);
+const tags = ref([...adminTags]);
 
 const filteredTags = computed(() => {
   return tags.value.filter(tag => {
@@ -135,10 +118,11 @@ const toggleStatus = (tag) => {
           </div>
           <button
             @click="toggleStatus(tag)"
-            class="flex items-center"
+            class="flex items-center cursor-pointer"
           >
-            <ToggleRight v-if="tag.status === 'active'" :class="isDarkMode ? 'text-green-400' : 'text-green-600'" size="20" />
-            <ToggleLeft v-else :class="isDarkMode ? 'text-gray-500' : 'text-gray-400'" size="20" />
+            <div :class="['w-10 h-5 rounded-full relative transition-colors', tag.status === 'active' ? 'bg-green-500' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-400')]">
+              <div :class="['absolute top-0.5 w-3.5 h-3.5 rounded-full bg-white transition-transform', tag.status === 'active' ? 'left-6' : 'left-0.5']"></div>
+            </div>
           </button>
         </div>
         

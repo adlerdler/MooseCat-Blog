@@ -18,6 +18,7 @@
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTheme } from '../composables/useTheme'
+import { setLocale } from '../i18n'
 
 defineProps({
   isMobile: {
@@ -43,9 +44,10 @@ watch(locale, (newVal) => {
 
 const setLanguage = (code) => {
   console.log('Setting language to:', code)
+  setLocale(code)
   locale.value = code
   currentLang.value = code
-  localStorage.setItem('lang', code)
+  localStorage.setItem('locale', code)
   console.log('Current locale after:', locale.value)
 }
 

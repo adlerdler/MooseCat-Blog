@@ -29,6 +29,7 @@ import {
   HardDrive
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
+import { adminMedia } from '../../data/media';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
@@ -38,23 +39,7 @@ const typeFilter = ref('all');
 const currentPage = ref(1);
 const itemsPerPage = 12;
 
-const mediaFiles = ref([
-  { id: 1, name: 'architecture-cover.jpg', type: 'image', size: '2.4 MB', url: '', date: '2024-01-15' },
-  { id: 2, name: 'design-system.pdf', type: 'document', size: '1.8 MB', url: '', date: '2024-01-16' },
-  { id: 3, name: 'project-showcase.mp4', type: 'video', size: '45.2 MB', url: '', date: '2024-01-17' },
-  { id: 4, name: 'blueprint-01.png', type: 'image', size: '3.1 MB', url: '', date: '2024-01-18' },
-  { id: 5, name: 'tutorial-video.webm', type: 'video', size: '28.7 MB', url: '', date: '2024-01-19' },
-  { id: 6, name: 'code-snippet.js', type: 'document', size: '12 KB', url: '', date: '2024-01-20' },
-  { id: 7, name: 'render-01.jpg', type: 'image', size: '5.6 MB', url: '', date: '2024-01-21' },
-  { id: 8, name: 'model-file.obj', type: 'document', size: '8.9 MB', url: '', date: '2024-01-22' },
-  { id: 9, name: 'screenshot-02.png', type: 'image', size: '1.2 MB', url: '', date: '2024-01-23' },
-  { id: 10, name: 'presentation.pdf', type: 'document', size: '4.5 MB', url: '', date: '2024-01-24' },
-  { id: 11, name: 'demo-video.mp4', type: 'video', size: '67.3 MB', url: '', date: '2024-01-25' },
-  { id: 12, name: 'icon-set.svg', type: 'document', size: '156 KB', url: '', date: '2024-01-26' },
-  { id: 13, name: 'banner-01.jpg', type: 'image', size: '2.8 MB', url: '', date: '2024-01-27' },
-  { id: 14, name: 'documentation.pdf', type: 'document', size: '3.2 MB', url: '', date: '2024-01-28' },
-  { id: 15, name: 'animation-01.gif', type: 'image', size: '4.1 MB', url: '', date: '2024-01-29' },
-]);
+const mediaFiles = ref([...adminMedia]);
 
 const filteredMedia = computed(() => {
   return mediaFiles.value.filter(file => {

@@ -337,3 +337,50 @@
   - 修复所有开关关闭状态背景色：使用动态类 `(isDarkMode ? 'bg-gray-600' : 'bg-gray-400')`。
   - 修复开关标签文字颜色：使用动态类 `(isDarkMode ? 'text-gray-300' : 'text-gray-700')`。
 
+### 2026-05-14: 管理后台首页国际化完善 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 修复管理后台首页的中英文切换问题，确保所有界面元素支持多语言显示。
+- **Rationale:**
+  - 首页统计卡片的翻译在组件初始化时计算，不会随语言切换而更新。
+  - 建议模块的数据包含硬编码英文文本，需要改为翻译键方式。
+- **Status:**
+  - 将 `Index.vue` 中的 `stats` 数组改为 `computed` 属性，确保语言切换时自动更新。
+  - 修改 `admin.js` 数据文件，将 `designRecommendations` 的 `title` 和 `description` 改为 `titleKey` 和 `descKey` 翻译键。
+  - 补充三种语言文件（en.json, zh.json, zh-TW.json）的翻译键：
+    - chart_ 系列：图表相关翻译（chart_posts, chart_views, chart_total_users 等）
+    - rec_ 系列：建议相关翻译（rec_theory_title, rec_theory_desc 等）
+  - 修改 Index.vue 模板使用 `t(rec.titleKey)` 和 `t(rec.descKey)` 调用翻译。
+
+### 2026-05-14: 管理后台用户下拉菜单与退出确认 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 将右上角用户信息改为可点击的下拉菜单，并添加退出登录确认弹窗。
+- **Rationale:**
+  - 提供更清晰的用户操作入口，整合主题切换和退出登录功能。
+  - 退出登录需要二次确认，防止误操作。
+- **Status:**
+  - 移除 AdminLayout 头部左侧的主题切换按钮，仅保留在用户下拉菜单中。
+  - 实现用户下拉菜单：
+    - 点击头像区域弹出菜单，包含用户信息、主题切换、退出登录。
+    - 添加点击外部关闭菜单功能。
+    - 添加下拉动画效果（淡入淡出 + 向上滑入）。
+  - 实现退出登录确认弹窗：
+    - 弹窗包含标题、提示文本、取消按钮和确认退出按钮。
+    - 确认退出按钮默认黑色背景，悬停时变为主题红色。
+    - 添加弹窗动画（淡入淡出 + 缩放）。
+    - 修复路由名称错误（`admin.login` → `admin-login`）。
+    - 修复 localStorage 键名不匹配问题（`admin_token` → `admin_logged_in`）。
+
+### 2026-05-14: 管理后台侧边栏优化 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 优化侧边栏布局和交互体验。
+- **Rationale:**
+  - 收起/展开按钮位置需要更符合用户习惯，放在底部更合理。
+  - 移动端不需要收起/展开功能，应隐藏以节省空间。
+  - 菜单项悬停样式需要更突出，使用主题色增强视觉反馈。
+- **Status:**
+  - 将收起/展开按钮移到侧边栏底部，添加弹性空间将其推到底部。
+  - 移动端隐藏收起/展开功能（使用 `hidden lg:block` 类）。
+  - 修改菜单项悬停样式：
+    - 默认状态：深色模式灰色文字，浅色模式深灰色文字。
+    - 悬停状态：主题红色背景，白色文字。
+

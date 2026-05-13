@@ -193,8 +193,8 @@ body {
     color: #b91c1c;
 }
 
-/* Icons */
-.light svg {
+/* Icons - Only apply to admin layout */
+.light .admin-layout svg {
     color: var(--text-secondary);
 }
 

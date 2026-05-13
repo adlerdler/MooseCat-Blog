@@ -24,6 +24,7 @@ import {
   X
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
+import { adminRoles } from '../../data/roles';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
@@ -32,14 +33,7 @@ const searchQuery = ref('');
 const currentPage = ref(1);
 const itemsPerPage = 6;
 
-const roles = ref([
-  { id: 1, name: 'Administrator', description: 'Full system access', userCount: 1, permissions: ['All Permissions'] },
-  { id: 2, name: 'Editor', description: 'Content management access', userCount: 3, permissions: ['Posts', 'Videos', 'Projects', 'Resources'] },
-  { id: 3, name: 'Author', description: 'Create and edit own content', userCount: 5, permissions: ['Create Posts', 'Edit Own Posts'] },
-  { id: 4, name: 'Moderator', description: 'Comment moderation access', userCount: 2, permissions: ['Comments', 'Users'] },
-  { id: 5, name: 'Subscriber', description: 'Read-only access', userCount: 12, permissions: ['View Content'] },
-  { id: 6, name: 'API User', description: 'API access only', userCount: 1, permissions: ['API Access'] },
-]);
+const roles = ref([...adminRoles]);
 
 const filteredRoles = computed(() => {
   return roles.value.filter(role => {

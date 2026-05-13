@@ -12,13 +12,14 @@
  * - GitHub API 获取用户信息和贡献数据
  */
 import { ref, onMounted, computed } from 'vue';
-import { Github, Twitter, Linkedin, Mail, ArrowRight } from 'lucide-vue-next';
+import { ArrowRight } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
 import { CalendarHeatmap } from 'vue3-calendar-heatmap';
 import 'vue3-calendar-heatmap/dist/style.css';
 import { useTheme } from '@/composables/useTheme';
 import SidebarMenu from '@/components/SidebarMenu.vue';
 import Footer from '@/components/Footer.vue';
+import { skills, activeProjects as projects, socialLinks, githubUsername } from '../../data/author';
 const { t } = useI18n();
 const { currentTheme } = useTheme();
 const isFooterVisible = ref(true);
@@ -26,7 +27,7 @@ const isVisible = ref(false);
 const calendarValues = ref([]);
 const githubStats = ref({ commits: 0, prs: 0, repos: 7 });
 const isLoading = ref(true);
-const username = 'adlerdler';
+const username = githubUsername;
 const endDate = computed(() => {
  const date = new Date();
  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -47,10 +48,13 @@ const rangeColor = computed(() => {
  ];
 });
 onMounted(() => {
- setTimeout(() => {
- isVisible.value = true;
- }, 100);
- fetchGitHubData();
+  // 前台页面不受后台主题设置影响，移除 light class
+  document.documentElement.classList.remove('light');
+  
+  setTimeout(() => {
+    isVisible.value = true;
+  }, 100);
+  fetchGitHubData();
 });
 const fetchGitHubData = async () => {
  try {
@@ -119,43 +123,7 @@ const generateMockCalendarData = () => {
  }
  calendarValues.value = result;
 };
-const skills = [
- { label: t('skill_1'), val: '95', desc: t('skill_1_desc') },
- { label: t('skill_2'), val: '92', desc: t('skill_2_desc') },
- { label: t('skill_3'), val: '84', desc: t('skill_3_desc') },
-];
-const projects = [
- {
- name: 'WIKI-Z_EVOLUTION',
- progress: 85,
- status: 'BETA_STABLE',
- desc: 'Migrating legacy nodes to the new structural engine.',
- },
- {
- name: 'CONSTRUCT_SDK',
- progress: 42,
- status: 'ALPHA_REFRACTOR',
- desc: 'Developing a rigid primitive library for web architecture.',
- },
- {
- name: 'NEURAL_INDEX',
- progress: 12,
- status: 'PROTO_IDEATION',
- desc: 'Semantic search mapping for decentralized clusters.',
- },
- {
- name: 'SYSTEM_01',
- progress: 99,
- status: 'FINAL_AUDIT',
- desc: 'Optimizing terminal protocols for high-latency environments.',
- },
-];
-const socialLinks = [
- { icon: Github, label: 'GITHUB', bg: 'bg-white', text: 'text-construct-black', hover: 'hover:bg-construct-black hover:text-white', border: 'border-2 border-construct-black' },
- { icon: Twitter, label: 'TWITTER', bg: 'bg-white', text: 'text-construct-black', hover: 'hover:bg-construct-black hover:text-white', border: 'border-2 border-construct-black' },
- { icon: Linkedin, label: 'LINKEDIN', bg: 'bg-construct-red', text: 'text-white', hover: 'hover:bg-construct-black hover:text-white', border: 'border-2 border-construct-red hover:border-construct-black' },
- { icon: Mail, label: 'CONTACT', bg: 'bg-construct-black', text: 'text-white', hover: 'hover:bg-construct-red hover:text-white', border: 'border-2 border-construct-black hover:border-construct-red' },
-];
+
 </script>
 
 <template>
@@ -288,10 +256,10 @@ const socialLinks = [
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-2 gap-2">
                   <div>
                     <span class="font-bold text-sm tracking-widest uppercase block">
-                      {{ skill.label }}
+                      {{ t(skill.label) }}
                     </span>
                     <span class="text-[11px] font-bold tracking-widest opacity-50 uppercase mt-1 block">
-                      {{ skill.desc }}
+                      {{ t(skill.desc) }}
                     </span>
                   </div>
                   <span class="font-display text-2xl md:text-3xl text-construct-black leading-none">

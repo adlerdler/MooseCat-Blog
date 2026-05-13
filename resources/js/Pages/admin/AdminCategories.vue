@@ -20,11 +20,10 @@ import {
   ChevronLeft,
   ChevronRight,
   Filter,
-  FileText,
-  ToggleLeft,
-  ToggleRight
+  FileText
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
+import { adminCategories } from '../../data/categories';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
@@ -34,16 +33,7 @@ const statusFilter = ref('all');
 const currentPage = ref(1);
 const itemsPerPage = 8;
 
-const categories = ref([
-  { id: 1, name: 'Architecture', description: 'Architectural theory and design', postCount: 24, status: 'active' },
-  { id: 2, name: 'Technology', description: 'Computational design and coding', postCount: 18, status: 'active' },
-  { id: 3, name: 'Philosophy', description: 'Design philosophy and methodology', postCount: 12, status: 'active' },
-  { id: 4, name: 'Projects', description: 'Project showcases and case studies', postCount: 15, status: 'active' },
-  { id: 5, name: 'Resources', description: 'Tools and resources', postCount: 8, status: 'inactive' },
-  { id: 6, name: 'Tutorials', description: 'Step-by-step guides', postCount: 20, status: 'active' },
-  { id: 7, name: 'Research', description: 'Academic research and papers', postCount: 6, status: 'active' },
-  { id: 8, name: 'News', description: 'Latest updates and announcements', postCount: 10, status: 'active' },
-]);
+const categories = ref([...adminCategories]);
 
 const filteredCategories = computed(() => {
   return categories.value.filter(category => {
@@ -128,10 +118,11 @@ const toggleStatus = (category) => {
           </div>
           <button
             @click="toggleStatus(category)"
-            class="flex items-center gap-1"
+            class="flex items-center gap-1 cursor-pointer"
           >
-            <ToggleRight v-if="category.status === 'active'" :class="isDarkMode ? 'text-green-400' : 'text-green-600'" size="20" />
-            <ToggleLeft v-else :class="isDarkMode ? 'text-gray-500' : 'text-gray-400'" size="20" />
+            <div :class="['w-10 h-5 rounded-full relative transition-colors', category.status === 'active' ? 'bg-green-500' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-400')]">
+              <div :class="['absolute top-0.5 w-3.5 h-3.5 rounded-full bg-white transition-transform', category.status === 'active' ? 'left-6' : 'left-0.5']"></div>
+            </div>
           </button>
         </div>
         

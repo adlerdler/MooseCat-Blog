@@ -20,11 +20,14 @@ import { VIDEOS } from '../../data/videos';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
-const { initTheme } = useTheme();
+const { initAccentTheme } = useTheme();
 const isFooterVisible = ref(true);
 
 onMounted(() => {
-  initTheme();
+  initAccentTheme();
+  
+  // 前台页面不受后台主题设置影响，移除 light class
+  document.documentElement.classList.remove('light');
   
   const saved = sessionStorage.getItem('footer_visible');
   if (saved !== null) {

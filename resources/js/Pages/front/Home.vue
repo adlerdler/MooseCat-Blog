@@ -13,15 +13,16 @@
  * - 键盘快捷键打开搜索（需安装 SearchOverlay）
  * - 底部 Footer 显示控制
  */
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { RouterLink } from 'vue-router'
-import { Search, ArrowRight, Send, Mail, Twitter, Linkedin, Github } from 'lucide-vue-next'
+import { Search, ArrowRight, Send, Mail } from 'lucide-vue-next'
 import { Motion, AnimatePresence } from 'motion-v'
 import { useTheme } from '../../composables/useTheme'
 import { useI18n } from 'vue-i18n'
+import { categories, marqueeText, techStack, featuredPosts } from '../../data/home'
 
 const { t } = useI18n()
-const { initTheme } = useTheme()
+const { initAccentTheme } = useTheme()
 
 const isFooterVisible = ref(true)
 const isSearchOpen = ref(false)
@@ -29,7 +30,10 @@ const showSplash = ref(false)
 const showContent = ref(false)
 
 onMounted(() => {
-  initTheme()
+  initAccentTheme()
+  
+  // 前台页面不受后台主题设置影响，移除 light class
+  document.documentElement.classList.remove('light')
 
   const saved = sessionStorage.getItem('footer_visible')
   if (saved !== null) {
@@ -66,41 +70,6 @@ const closeSearch = () => {
 
 const searchQuery = ref('')
 const activeCategory = ref('ALL')
-
-const categories = ['ALL', 'THEORY', 'DESIGN', 'HISTORY', 'CULTURE']
-
-const marqueeText = 'ARCHYX VOL. 2026 // BUILDING SYSTEM // MINIMALISM //'
-
-const techStack = ['TYPESCRIPT', 'VUE', 'LARAVEL', 'TAILWIND', 'NODE.JS', 'POSTGRES']
-
-const featuredPosts = computed(() => {
-  return [
-    {
-      id: 1,
-      title: 'ARCHITECTURAL PRINCIPLES',
-      excerpt: 'Exploring the fundamental concepts that define modern structural design and digital innovation.',
-      category: 'THEORY',
-      categoryLabel: '理论',
-      views_count: 1234
-    },
-    {
-      id: 2,
-      title: 'DIGITAL FABRICATION',
-      excerpt: 'How computational design is revolutionizing the way we approach construction and manufacturing.',
-      category: 'DESIGN',
-      categoryLabel: '设计',
-      views_count: 987
-    },
-    {
-      id: 3,
-      title: 'SUSTAINABLE MATERIALS',
-      excerpt: 'An investigation into eco-friendly building materials and their impact on environmental architecture.',
-      category: 'HISTORY',
-      categoryLabel: '历史',
-      views_count: 756
-    }
-  ]
-})
 </script>
 
 <template>

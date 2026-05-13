@@ -15,27 +15,48 @@
 import { ref, computed, onMounted, TransitionGroup } from 'vue';
 import { Motion, AnimatePresence } from 'motion-v';
 import { useTheme } from '../../composables/useTheme';
-import { RESOURCES } from '../../data/resources';
-import { Download } from 'lucide-vue-next';
+import { resourcesData } from '../../data/resources';
+import { Download, HardDrive } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
-const { initTheme } = useTheme();
+const { initAccentTheme } = useTheme();
 const isFooterVisible = ref(true);
 const selectedResource = ref(null);
 const selectedCategory = ref('ALL');
+
+const driveLogos = {
+  'Local': { bg: 'bg-gray-600', text: 'LOCAL', color: 'text-white' },
+  'Google Drive': { bg: 'bg-[#4285F4]', text: 'GDRIVE', color: 'text-white' },
+  'Dropbox': { bg: 'bg-[#0061FF]', text: 'DROPBOX', color: 'text-white' },
+  'OneDrive': { bg: 'bg-[#0078D4]', text: 'ONEDRIVE', color: 'text-white' },
+  '115': { bg: 'bg-[#00B787]', text: '115', color: 'text-white' },
+  'Baidu': { bg: 'bg-[#2932E1]', text: 'BAIDU', color: 'text-white' },
+  'AliCloud': { bg: 'bg-[#FF6A00]', text: 'ALI', color: 'text-white' },
+  'Quark': { bg: 'bg-[#00B9F1]', text: 'QUARK', color: 'text-white' },
+  'Thunder': { bg: 'bg-[#C85223]', text: 'XUNLEI', color: 'text-white' },
+  'Vimeo': { bg: 'bg-[#1AB7EA]', text: 'VIMEO', color: 'text-white' },
+  'YouTube': { bg: 'bg-[#FF0000]', text: 'YT', color: 'text-white' }
+};
+
+const getDriveLogo = (type) => {
+  return driveLogos[type] || { bg: 'bg-gray-500', text: type.slice(0, 6).toUpperCase(), color: 'text-white' };
+};
+
 const categories = computed(() => {
- return ['ALL', ...new Set(RESOURCES.map(r => r.category))];
+ return ['ALL', ...new Set(resourcesData.map(r => r.category))];
 });
 const filteredResources = computed(() => {
- return RESOURCES.filter(r => selectedCategory.value === 'ALL' || r.category === selectedCategory.value);
+ return resourcesData.filter(r => selectedCategory.value === 'ALL' || r.category === selectedCategory.value);
 });
 onMounted(() => {
- initTheme();
- const saved = sessionStorage.getItem('footer_visible');
- if (saved !== null) {
- isFooterVisible.value = saved === 'true';
- }
+  initAccentTheme();
+  // 前台页面不受后台主题设置影响，移除 light class
+  document.documentElement.classList.remove('light');
+  const saved = sessionStorage.getItem('footer_visible');
+  if (saved !== null) {
+    isFooterVisible.value = saved === 'true';
+  }
 });
 const selectResource = (resource) => {
  selectedResource.value = resource;
@@ -55,10 +76,10 @@ const closeModal = () => {
       <div class="container flex-1 mx-auto px-4 md:px-8 py-16">
         <header class="mb-16">
           <h1 class="font-display text-6xl md:text-6xl lg:text-8xl tracking-tighter leading-none mb-6">
-            {{ t('resources_title') }}
+            {{ t('resources_title') }} //
           </h1>
           <p class="text-sm font-medium opacity-60 uppercase tracking-widest mb-12 max-w-xl">
-            {{ t('resources_subtitle') }}
+            {{ t('resources_desc') }}
           </p>
 
           <!-- Categories -->

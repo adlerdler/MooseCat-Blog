@@ -23,11 +23,15 @@ import {
   Activity,
   BarChart3,
   Users,
-  Calendar
+  Calendar,
+  UserPlus,
+  Bell,
+  Lightbulb,
+  TrendingDown
 } from 'lucide-vue-next';
 import { use } from 'echarts/core';
 import { CanvasRenderer } from 'echarts/renderers';
-import { BarChart, LineChart } from 'echarts/charts';
+import { BarChart, LineChart, PieChart } from 'echarts/charts';
 import {
   TitleComponent,
   TooltipComponent,
@@ -39,11 +43,24 @@ import { POSTS } from '../../data/posts';
 import { VIDEOS } from '../../data/videos';
 import { PROJECTS } from '../../data/projects';
 import { useTheme } from '../../composables/useTheme';
+import {
+  activityLog,
+  trafficData,
+  contentStats,
+  topPages,
+  trafficSources,
+  userStats,
+  postTrendData,
+  categoryDistribution,
+  userGrowthData,
+  designRecommendations
+} from '../../data/admin';
 
 use([
   CanvasRenderer,
   BarChart,
   LineChart,
+  PieChart,
   TitleComponent,
   TooltipComponent,
   LegendComponent,
@@ -55,7 +72,7 @@ const { isDarkMode } = useTheme();
 
 const timeRange = ref('7d');
 
-const stats = [
+const stats = computed(() => [
   { 
     label: t('admin_total_posts'), 
     value: POSTS.length, 
@@ -80,49 +97,33 @@ const stats = [
     change: '+23%',
     icon: Eye
   }
-];
+]);
 
 const recentPosts = computed(() => POSTS.slice(0, 5));
 
-const activityLog = [
-  { action: 'New post published', target: 'THE GEOMETRY OF PERCEPTION', time: '2 hours ago', type: 'post' },
-  { action: 'Video uploaded', target: 'Constructivist Design Principles', time: '5 hours ago', type: 'video' },
-  { action: 'Project updated', target: 'Digital Archive System', time: '1 day ago', type: 'project' },
-  { action: 'New comment approved', target: 'By Anonymous', time: '1 day ago', type: 'comment' },
-  { action: 'User registered', target: 'New Member', time: '2 days ago', type: 'user' },
-];
+const iconMap = {
+  fileText: FileText,
+  play: Play,
+  folderKanban: FolderKanban,
+  users: Users,
+  activity: Activity,
+  userPlus: UserPlus,
+  bell: Bell
+};
 
-const trafficData = [
-  { day: 'Mon', visits: 3200, unique: 2800 },
-  { day: 'Tue', visits: 3800, unique: 3400 },
-  { day: 'Wed', visits: 4500, unique: 3900 },
-  { day: 'Thu', visits: 5200, unique: 4600 },
-  { day: 'Fri', visits: 4800, unique: 4200 },
-  { day: 'Sat', visits: 6100, unique: 5400 },
-  { day: 'Sun', visits: 5600, unique: 4900 },
-];
+const contentStatsWithIcons = computed(() => {
+  return contentStats.map(item => ({
+    ...item,
+    icon: iconMap[item.iconKey]
+  }));
+});
 
-const contentStats = [
-  { label: 'Total Posts', value: 156, icon: FileText, color: 'bg-construct-red' },
-  { label: 'Total Videos', value: 48, icon: Play, color: 'bg-blue-500' },
-  { label: 'Total Projects', value: 32, icon: FolderKanban, color: 'bg-green-500' },
-  { label: 'Total Comments', value: 892, icon: Users, color: 'bg-purple-500' },
-];
-
-const topPages = [
-  { page: '/blog/the-geometry-of-perception', views: 1234, percentage: 35 },
-  { page: '/projects/digital-archive', views: 892, percentage: 25 },
-  { page: '/videos/constructivist-design', views: 654, percentage: 18 },
-  { page: '/blog/computational-thinking', views: 432, percentage: 12 },
-  { page: '/resources/code-snippets', views: 321, percentage: 10 },
-];
-
-const trafficSources = [
-  { source: 'Direct', percentage: 45, color: 'bg-construct-red' },
-  { source: 'Google', percentage: 30, color: 'bg-blue-500' },
-  { source: 'Social Media', percentage: 15, color: 'bg-green-500' },
-  { source: 'Referral', percentage: 10, color: 'bg-purple-500' },
-];
+const userStatsWithIcons = computed(() => {
+  return userStats.map(item => ({
+    ...item,
+    icon: iconMap[item.iconKey] || Users
+  }));
+});
 
 const trafficChartOption = computed(() => ({
   tooltip: {
@@ -145,7 +146,7 @@ const trafficChartOption = computed(() => ({
     right: '4%',
     bottom: '15%',
     top: '10%',
-    containLabel: true,
+    outerBounds: { containLabel: true },
   },
   xAxis: {
     type: 'category',
@@ -198,16 +199,223 @@ const trafficChartOption = computed(() => ({
     },
   ],
 }));
+
+const postTrendChartOption = computed(() => ({
+  tooltip: {
+    trigger: 'axis',
+    backgroundColor: isDarkMode.value ? '#1f2937' : '#ffffff',
+    borderColor: isDarkMode.value ? '#374151' : '#e5e7eb',
+    textStyle: {
+      color: isDarkMode.value ? '#ffffff' : '#111827',
+    },
+  },
+  legend: {
+    data: [t('chart_posts'), t('chart_views')],
+    textStyle: {
+      color: isDarkMode.value ? '#9ca3af' : '#6b7280',
+    },
+    bottom: 0,
+  },
+  grid: {
+    left: '3%',
+    right: '4%',
+    bottom: '15%',
+    top: '10%',
+    outerBounds: { containLabel: true },
+  },
+  xAxis: {
+    type: 'category',
+    data: postTrendData.map(d => d.month),
+    axisLine: {
+      lineStyle: {
+        color: isDarkMode.value ? '#374151' : '#e5e7eb',
+      },
+    },
+    axisLabel: {
+      color: isDarkMode.value ? '#9ca3af' : '#6b7280',
+    },
+  },
+  yAxis: {
+    type: 'value',
+    axisLine: {
+      lineStyle: {
+        color: isDarkMode.value ? '#374151' : '#e5e7eb',
+      },
+    },
+    axisLabel: {
+      color: isDarkMode.value ? '#9ca3af' : '#6b7280',
+    },
+    splitLine: {
+      lineStyle: {
+        color: isDarkMode.value ? '#374151' : '#f3f4f6',
+      },
+    },
+  },
+  series: [
+    {
+      name: t('chart_posts'),
+      type: 'bar',
+      data: postTrendData.map(d => d.posts),
+      itemStyle: {
+        color: '#dc2626',
+        borderRadius: [4, 4, 0, 0],
+      },
+      barWidth: '30%',
+    },
+    {
+      name: t('chart_views'),
+      type: 'line',
+      data: postTrendData.map(d => d.views),
+      smooth: true,
+      itemStyle: {
+        color: '#f59e0b',
+      },
+      lineStyle: {
+        width: 3,
+      },
+      areaStyle: {
+        color: isDarkMode.value ? 'rgba(245, 158, 11, 0.2)' : 'rgba(245, 158, 11, 0.1)',
+      },
+    },
+  ],
+}));
+
+const userGrowthChartOption = computed(() => ({
+  tooltip: {
+    trigger: 'axis',
+    backgroundColor: isDarkMode.value ? '#1f2937' : '#ffffff',
+    borderColor: isDarkMode.value ? '#374151' : '#e5e7eb',
+    textStyle: {
+      color: isDarkMode.value ? '#ffffff' : '#111827',
+    },
+  },
+  legend: {
+    data: [t('chart_total_users'), t('chart_new_users')],
+    textStyle: {
+      color: isDarkMode.value ? '#9ca3af' : '#6b7280',
+    },
+    bottom: 0,
+  },
+  grid: {
+    left: '3%',
+    right: '4%',
+    bottom: '15%',
+    top: '10%',
+    outerBounds: { containLabel: true },
+  },
+  xAxis: {
+    type: 'category',
+    data: userGrowthData.map(d => d.month),
+    axisLine: {
+      lineStyle: {
+        color: isDarkMode.value ? '#374151' : '#e5e7eb',
+      },
+    },
+    axisLabel: {
+      color: isDarkMode.value ? '#9ca3af' : '#6b7280',
+    },
+  },
+  yAxis: {
+    type: 'value',
+    axisLine: {
+      lineStyle: {
+        color: isDarkMode.value ? '#374151' : '#e5e7eb',
+      },
+    },
+    axisLabel: {
+      color: isDarkMode.value ? '#9ca3af' : '#6b7280',
+    },
+    splitLine: {
+      lineStyle: {
+        color: isDarkMode.value ? '#374151' : '#f3f4f6',
+      },
+    },
+  },
+  series: [
+    {
+      name: t('chart_total_users'),
+      type: 'line',
+      data: userGrowthData.map(d => d.users),
+      smooth: true,
+      itemStyle: {
+        color: '#dc2626',
+      },
+      lineStyle: {
+        width: 3,
+      },
+      areaStyle: {
+        color: isDarkMode.value ? 'rgba(220, 38, 38, 0.2)' : 'rgba(220, 38, 38, 0.1)',
+      },
+    },
+    {
+      name: t('chart_new_users'),
+      type: 'bar',
+      data: userGrowthData.map(d => d.newUsers),
+      itemStyle: {
+        color: '#16a34a',
+        borderRadius: [4, 4, 0, 0],
+      },
+      barWidth: '40%',
+    },
+  ],
+}));
+
+const categoryPieChartOption = computed(() => ({
+  tooltip: {
+    trigger: 'item',
+    backgroundColor: isDarkMode.value ? '#1f2937' : '#ffffff',
+    borderColor: isDarkMode.value ? '#374151' : '#e5e7eb',
+    textStyle: {
+      color: isDarkMode.value ? '#ffffff' : '#111827',
+    },
+    formatter: '{b}: {c}%',
+  },
+  legend: {
+    orient: 'vertical',
+    right: '5%',
+    top: 'center',
+    textStyle: {
+      color: isDarkMode.value ? '#9ca3af' : '#6b7280',
+    },
+  },
+  series: [
+    {
+      type: 'pie',
+      radius: ['45%', '70%'],
+      center: ['35%', '50%'],
+      avoidLabelOverlap: false,
+      itemStyle: {
+        borderRadius: 4,
+        borderColor: isDarkMode.value ? '#1f2937' : '#ffffff',
+        borderWidth: 2,
+      },
+      label: {
+        show: false,
+        position: 'center',
+      },
+      emphasis: {
+        label: {
+          show: true,
+          fontSize: 16,
+          fontWeight: 'bold',
+          color: isDarkMode.value ? '#ffffff' : '#111827',
+        },
+      },
+      labelLine: {
+        show: false,
+      },
+      data: categoryDistribution.map(d => ({
+        name: d.name,
+        value: d.value,
+        itemStyle: { color: d.color },
+      })),
+    },
+  ],
+}));
 </script>
 
 <template>
   <div class="p-8">
-    <!-- Page Header -->
-    <div class="mb-8">
-      <h2 :class="['font-display text-4xl tracking-tighter mb-2', isDarkMode ? 'text-white' : 'text-gray-900']">CONTROL PANEL</h2>
-      <p :class="['text-sm font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">System Overview & Analytics</p>
-    </div>
-
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       <div 
@@ -236,76 +444,43 @@ const trafficChartOption = computed(() => ({
       </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <!-- Recent Posts -->
-      <div :class="['lg:col-span-2 p-6 border', isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200']">
+    <!-- Charts Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      <!-- Post Trend Chart -->
+      <div :class="['p-6 border', isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200']">
         <div class="flex items-center justify-between mb-6">
-          <h3 :class="['font-display text-xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">RECENT POSTS</h3>
-          <button class="flex items-center gap-2 px-4 py-2 bg-construct-red text-white font-bold tracking-widest uppercase text-xs hover:bg-red-700 transition-colors rounded">
-            <Plus size="16" class="!text-white" /> ADD NEW
-          </button>
+          <h3 :class="['font-display text-xl tracking-tighter flex items-center gap-3', isDarkMode ? 'text-white' : 'text-gray-900']">
+            <TrendingUp size="24" class="text-construct-red" />
+            {{ t('chart_post_trends') }}
+          </h3>
         </div>
-        <div class="space-y-4">
-          <div 
-            v-for="post in recentPosts" 
-            :key="post.id"
-            :class="[
-              'flex items-center justify-between p-4 transition-colors',
-              isDarkMode ? 'bg-gray-700/50 hover:bg-gray-700' : 'bg-gray-50 hover:bg-gray-100'
-            ]"
-          >
-            <div class="flex-1">
-              <h4 :class="['font-display text-lg tracking-tighter mb-1', isDarkMode ? 'text-white' : 'text-gray-900']">{{ post.title }}</h4>
-              <div :class="['flex items-center gap-4 text-xs', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
-                <span>{{ post.category }}</span>
-                <span>{{ post.date }}</span>
-              </div>
-            </div>
-            <div class="flex items-center gap-2">
-              <button :class="['p-2 transition-colors', isDarkMode ? 'hover:bg-gray-600' : 'hover:bg-gray-200']">
-                <Edit3 :class="isDarkMode ? 'text-gray-300' : 'text-gray-600'" size="16" />
-              </button>
-              <button :class="['p-2 transition-colors', isDarkMode ? 'hover:bg-red-500/20' : 'hover:bg-red-50']">
-                <Trash2 :class="isDarkMode ? 'text-gray-300' : 'text-gray-600'" size="16" />
-              </button>
-            </div>
-          </div>
+        <div class="h-64">
+          <v-chart :option="postTrendChartOption" autoresize />
         </div>
       </div>
 
-      <!-- Activity Log -->
+      <!-- User Growth Chart -->
       <div :class="['p-6 border', isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200']">
-        <h3 :class="['font-display text-xl tracking-tighter mb-6', isDarkMode ? 'text-white' : 'text-gray-900']">ACTIVITY LOG</h3>
-        <div class="space-y-4">
-          <div 
-            v-for="(activity, index) in activityLog" 
-            :key="index"
-            class="flex items-start gap-3"
-          >
-            <div class="w-2 h-2 rounded-full mt-2" :class="{
-              'bg-construct-red': activity.type === 'post',
-              'bg-blue-500': activity.type === 'video',
-              'bg-green-500': activity.type === 'project',
-              'bg-yellow-500': activity.type === 'comment',
-              'bg-purple-500': activity.type === 'user'
-            }"></div>
-            <div>
-              <p :class="['text-sm font-medium', isDarkMode ? 'text-white' : 'text-gray-900']">{{ activity.action }}</p>
-              <p :class="['text-xs', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ activity.target }} - {{ activity.time }}</p>
-            </div>
-          </div>
+        <div class="flex items-center justify-between mb-6">
+          <h3 :class="['font-display text-xl tracking-tighter flex items-center gap-3', isDarkMode ? 'text-white' : 'text-gray-900']">
+            <Users size="24" class="text-construct-red" />
+            {{ t('chart_user_growth') }}
+          </h3>
+        </div>
+        <div class="h-64">
+          <v-chart :option="userGrowthChartOption" autoresize />
         </div>
       </div>
     </div>
 
-    <!-- Analytics Chart Placeholder -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+    <!-- Analytics Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
       <!-- Traffic Chart -->
       <div :class="['lg:col-span-2 p-6 border', isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200']">
         <div class="flex items-center justify-between mb-6">
           <h3 :class="['font-display text-xl tracking-tighter flex items-center gap-3', isDarkMode ? 'text-white' : 'text-gray-900']">
             <TrendingUp size="24" class="text-construct-red" />
-            TRAFFIC OVERVIEW
+            {{ t('chart_traffic_overview') }}
           </h3>
           <div class="flex items-center gap-2">
             <Calendar :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'" size="16" />
@@ -316,9 +491,9 @@ const trafficChartOption = computed(() => ({
                 isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'
               ]"
             >
-              <option value="7d">7 DAYS</option>
-              <option value="30d">30 DAYS</option>
-              <option value="90d">90 DAYS</option>
+              <option value="7d">{{ t('chart_7_days') }}</option>
+              <option value="30d">{{ t('chart_30_days') }}</option>
+              <option value="90d">{{ t('chart_90_days') }}</option>
             </select>
           </div>
         </div>
@@ -327,28 +502,14 @@ const trafficChartOption = computed(() => ({
         </div>
       </div>
 
-      <!-- Content Stats -->
+      <!-- Category Distribution -->
       <div :class="['p-6 border', isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200']">
         <h3 :class="['font-display text-xl tracking-tighter mb-6 flex items-center gap-3', isDarkMode ? 'text-white' : 'text-gray-900']">
           <BarChart3 size="24" class="text-construct-red" />
-          CONTENT STATS
+          {{ t('chart_content_distribution') }}
         </h3>
-        <div class="space-y-4">
-          <div 
-            v-for="item in contentStats" 
-            :key="item.label"
-            :class="['flex items-center justify-between p-3 rounded-lg', isDarkMode ? 'bg-gray-700/50' : 'bg-gray-50']"
-          >
-            <div class="flex items-center gap-3">
-              <div :class="['w-10 h-10 rounded-lg flex items-center justify-center', item.color]">
-                <component :is="item.icon" size="18" class="text-white" />
-              </div>
-              <div>
-                <div :class="['font-display text-2xl', isDarkMode ? 'text-white' : 'text-gray-900']">{{ item.value }}</div>
-                <div :class="['text-xs', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ item.label }}</div>
-              </div>
-            </div>
-          </div>
+        <div class="h-64">
+          <v-chart :option="categoryPieChartOption" autoresize />
         </div>
       </div>
     </div>
@@ -356,7 +517,7 @@ const trafficChartOption = computed(() => ({
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <!-- Top Pages -->
       <div :class="['p-6 border', isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200']">
-        <h3 :class="['font-display text-xl tracking-tighter mb-6', isDarkMode ? 'text-white' : 'text-gray-900']">TOP PAGES</h3>
+        <h3 :class="['font-display text-xl tracking-tighter mb-6', isDarkMode ? 'text-white' : 'text-gray-900']">{{ t('chart_top_pages') }}</h3>
         <div class="space-y-4">
           <div 
             v-for="(page, index) in topPages" 
@@ -368,30 +529,41 @@ const trafficChartOption = computed(() => ({
             </div>
             <div class="flex-1">
               <div :class="['text-sm font-medium truncate', isDarkMode ? 'text-white' : 'text-gray-900']">{{ page.page }}</div>
-              <div :class="['text-xs', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ page.views }} views</div>
+              <div :class="['text-xs', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ page.views }} {{ t('chart_views') }}</div>
             </div>
             <div class="text-sm font-bold text-construct-red">{{ page.percentage }}%</div>
           </div>
         </div>
       </div>
 
-      <!-- Traffic Sources -->
+      <!-- Design Recommendations -->
       <div :class="['p-6 border', isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200']">
-        <h3 :class="['font-display text-xl tracking-tighter mb-6', isDarkMode ? 'text-white' : 'text-gray-900']">TRAFFIC SOURCES</h3>
+        <h3 :class="['font-display text-xl tracking-tighter mb-6 flex items-center gap-3', isDarkMode ? 'text-white' : 'text-gray-900']">
+          <Lightbulb size="24" class="text-yellow-500" />
+          {{ t('chart_recommendations') }}
+        </h3>
         <div class="space-y-4">
           <div 
-            v-for="source in trafficSources" 
-            :key="source.source"
+            v-for="rec in designRecommendations" 
+            :key="rec.title"
+            :class="[
+              'p-4 rounded-lg border-l-4',
+              rec.priority === 'high' ? 'border-l-red-500' :
+              rec.priority === 'medium' ? 'border-l-yellow-500' :
+              'border-l-green-500'
+            ]"
           >
-            <div class="flex items-center justify-between mb-2">
-              <span :class="['text-sm font-medium', isDarkMode ? 'text-white' : 'text-gray-900']">{{ source.source }}</span>
-              <span class="text-sm font-bold text-construct-red">{{ source.percentage }}%</span>
-            </div>
-            <div :class="['h-2 rounded-full overflow-hidden', isDarkMode ? 'bg-gray-700' : 'bg-gray-200']">
-              <div 
-                :class="['h-full rounded-full', source.color]"
-                :style="{ width: `${source.percentage}%` }"
-              ></div>
+            <div class="flex items-start gap-3">
+              <div :class="[
+                'w-2 h-2 rounded-full mt-2',
+                rec.priority === 'high' ? 'bg-red-500' :
+                rec.priority === 'medium' ? 'bg-yellow-500' :
+                'bg-green-500'
+              ]"></div>
+              <div>
+                <h4 :class="['font-bold text-sm mb-1', isDarkMode ? 'text-white' : 'text-gray-900']">{{ t(rec.titleKey) }}</h4>
+                <p :class="['text-xs', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t(rec.descKey) }}</p>
+              </div>
             </div>
           </div>
         </div>
