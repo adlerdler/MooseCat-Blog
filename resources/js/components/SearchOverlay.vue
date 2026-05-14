@@ -19,6 +19,7 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { RouterLink } from 'vue-router';
 import { Search, X, ArrowUpRight } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
+import { searchSamplePosts } from '../data/searchPosts';
 
 const props = defineProps({
   isOpen: {
@@ -32,18 +33,10 @@ const emit = defineEmits(['close']);
 const { t } = useI18n();
 const searchQuery = ref('');
 
-const samplePosts = [
-  { id: 1, title: 'ARCHITECTURAL PRINCIPLES', excerpt: 'Exploring the fundamental concepts that define modern structural design', category: 'THEORY' },
-  { id: 2, title: 'DIGITAL FABRICATION', excerpt: 'How computational design is revolutionizing construction and manufacturing', category: 'DESIGN' },
-  { id: 3, title: 'SUSTAINABLE MATERIALS', excerpt: 'An investigation into eco-friendly building materials', category: 'HISTORY' },
-  { id: 4, title: 'STRUCTURAL INNOVATION', excerpt: 'New approaches to building design and engineering', category: 'CULTURE' },
-  { id: 5, title: 'URBAN PLANNING', excerpt: 'Modern city design and infrastructure development', category: 'THEORY' },
-];
-
 const filteredPosts = computed(() => {
   if (!searchQuery.value.trim()) return [];
   const query = searchQuery.value.toLowerCase();
-  return samplePosts.filter(post =>
+  return searchSamplePosts.filter(post =>
     post.title.toLowerCase().includes(query) ||
     post.excerpt.toLowerCase().includes(query)
   ).slice(0, 5);

@@ -1,0 +1,39 @@
+/* Frontend Global Styles */
+
+/* Custom scrollbar for frontend */
+.frontend-layout ::-webkit-scrollbar {
+    width: 6px;
+    background-color: transparent;
+}
+
+.frontend-layout ::-webkit-scrollbar-track {
+    background-color: transparent;
+}
+
+.frontend-layout ::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+}
+
+.frontend-layout ::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 0, 0.3);
+}
+
+.frontend-layout {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+/* Frontend light mode adjustments */
+.light .frontend-layout {
+    --bg-primary: #ffffff;
+    --text-primary: #1a1a1a;
+    --text-secondary: #666666;
+}
+
+/* Frontend dark mode adjustments */
+.dark .frontend-layout {
+    --bg-primary: #0f0f0f;
+    --text-primary: #ffffff;
+    --text-secondary: #aaaaaa;
+}

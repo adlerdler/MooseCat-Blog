@@ -25,6 +25,9 @@ import {
 } from 'lucide-vue-next';
 import { PROJECTS } from '../../data/projects';
 import { useTheme } from '../../composables/useTheme';
+import { formatToShort } from '../../utils/dateUtils';
+import ContentForm from '../../components/admin/ContentForm.vue';
+import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
@@ -33,6 +36,10 @@ const searchQuery = ref('');
 const currentPage = ref(1);
 const itemsPerPage = 10;
 const selectedStatus = ref('all');
+const isFormVisible = ref(false);
+const editingProject = ref(null);
+const showDeleteConfirm = ref(false);
+const deletingProjectId = ref(null);
 
 const statuses = ['all', 'Completed', 'In Progress', 'Planning'];
 
@@ -75,13 +82,53 @@ const getStatusColor = (status) => {
 };
 
 const handleDelete = (id) => {
-  if (confirm('Are you sure you want to delete this project?')) {
-    console.log('Delete project:', id);
-  }
+  deletingProjectId.value = id;
+  showDeleteConfirm.value = true;
 };
 
-const handleEdit = (id) => {
-  console.log('Edit project:', id);
+const confirmDelete = () => {
+  if (deletingProjectId.value !== null) {
+    console.log('Delete project:', deletingProjectId.value);
+    deletingProjectId.value = null;
+  }
+  showDeleteConfirm.value = false;
+};
+
+const handleEdit = (project) => {
+  editingProject.value = {
+    id: project.id,
+    title: project.title,
+    description: project.description,
+    longDescription: project.longDescription || '',
+    image: project.image,
+    url: project.url || '',
+    githubUrl: project.githubUrl || '',
+    tags: project.tags ? project.tags.join(', ') : '',
+    role: project.role || '',
+    year: project.year || '',
+    technologies: project.technologies ? project.technologies.join(', ') : ''
+  };
+  isFormVisible.value = true;
+};
+
+const handleAdd = () => {
+  editingProject.value = null;
+  isFormVisible.value = true;
+};
+
+const handleSave = (data) => {
+  if (editingProject.value) {
+    console.log('Update project:', data);
+  } else {
+    console.log('Create project:', data);
+  }
+  isFormVisible.value = false;
+  editingProject.value = null;
+};
+
+const handleCancel = () => {
+  isFormVisible.value = false;
+  editingProject.value = null;
 };
 
 const goToPage = (page) => {
@@ -133,6 +180,7 @@ const goToPage = (page) => {
       
       <!-- Add Button -->
       <button
+        @click="handleAdd"
         class="flex items-center gap-2 px-6 py-3 bg-construct-red text-white font-bold tracking-widest uppercase text-sm hover:bg-red-700 transition-colors rounded"
       >
         <Plus size="16" class="!text-white" />
@@ -188,7 +236,7 @@ const goToPage = (page) => {
           <div :class="['flex items-center justify-between pt-3 border-t', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
             <div :class="['flex items-center gap-2 text-xs', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
               <Clock size="14" />
-              {{ project.date }}
+              {{ formatToShort(project.date) }}
             </div>
             
             <div class="flex gap-2">
@@ -207,7 +255,7 @@ const goToPage = (page) => {
                 <ExternalLink size="16" />
               </button>
               <button
-                @click="handleEdit(project.id)"
+                @click="handleEdit(project)"
                 :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:text-blue-400 hover:bg-gray-700' : 'text-gray-500 hover:text-blue-500 hover:bg-gray-100']"
                 :title="t('admin_edit')"
               >
@@ -261,5 +309,25 @@ const goToPage = (page) => {
         </button>
       </div>
     </div>
+
+    <!-- Content Form Modal -->
+    <ContentForm
+      content-type="project"
+      :edit-data="editingProject"
+      :visible="isFormVisible"
+      @save="handleSave"
+      @cancel="handleCancel"
+    />
+
+    <!-- Delete Confirm Dialog -->
+    <ConfirmDialog
+      :visible="showDeleteConfirm"
+      title="确认删除"
+      content="确定要删除这个项目吗？此操作不可撤销。"
+      confirm-text="删除"
+      confirm-variant="danger"
+      @confirm="confirmDelete"
+      @cancel="showDeleteConfirm = false"
+    />
   </div>
 </template>

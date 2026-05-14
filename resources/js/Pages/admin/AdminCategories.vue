@@ -24,6 +24,8 @@ import {
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
 import { adminCategories } from '../../data/categories';
+import MetaForm from '../../components/admin/MetaForm.vue';
+import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
@@ -32,6 +34,10 @@ const searchQuery = ref('');
 const statusFilter = ref('all');
 const currentPage = ref(1);
 const itemsPerPage = 8;
+const isFormVisible = ref(false);
+const editingCategory = ref(null);
+const showDeleteConfirm = ref(false);
+const deletingCategoryId = ref(null);
 
 const categories = ref([...adminCategories]);
 
@@ -53,6 +59,52 @@ const paginatedCategories = computed(() => {
 
 const toggleStatus = (category) => {
   category.status = category.status === 'active' ? 'inactive' : 'active';
+};
+
+const handleEdit = (category) => {
+  editingCategory.value = { ...category };
+  isFormVisible.value = true;
+};
+
+const handleAdd = () => {
+  editingCategory.value = null;
+  isFormVisible.value = true;
+};
+
+const handleSave = (data) => {
+  if (editingCategory.value) {
+    const index = categories.value.findIndex(c => c.id === editingCategory.value.id);
+    if (index !== -1) {
+      categories.value[index] = { ...categories.value[index], ...data };
+    }
+  } else {
+    const newId = Math.max(...categories.value.map(c => c.id), 0) + 1;
+    categories.value.push({
+      id: newId,
+      ...data,
+      postCount: 0
+    });
+  }
+  isFormVisible.value = false;
+  editingCategory.value = null;
+};
+
+const handleCancel = () => {
+  isFormVisible.value = false;
+  editingCategory.value = null;
+};
+
+const handleDelete = (id) => {
+  deletingCategoryId.value = id;
+  showDeleteConfirm.value = true;
+};
+
+const confirmDelete = () => {
+  if (deletingCategoryId.value !== null) {
+    categories.value = categories.value.filter(c => c.id !== deletingCategoryId.value);
+    deletingCategoryId.value = null;
+  }
+  showDeleteConfirm.value = false;
 };
 </script>
 
@@ -96,7 +148,7 @@ const toggleStatus = (category) => {
             <option value="inactive">{{ t('admin_inactive') }}</option>
           </select>
         </div>
-        <button class="flex items-center gap-2 px-6 py-3 bg-construct-red hover:bg-red-600 text-white font-bold tracking-wider transition-colors rounded">
+        <button @click="handleAdd" class="flex items-center gap-2 px-6 py-3 bg-construct-red hover:bg-red-600 text-white font-bold tracking-wider transition-colors rounded">
           <Plus size="16" class="!text-white" /> {{ t('admin_add_category') }}
         </button>
       </div>
@@ -135,10 +187,10 @@ const toggleStatus = (category) => {
             <span>{{ category.postCount }} {{ t('admin_posts') }}</span>
           </div>
           <div class="flex items-center gap-2">
-            <button :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-500 hover:bg-gray-100']">
+            <button @click="handleEdit(category)" :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-500 hover:bg-gray-100']">
               <Edit3 size="16" />
             </button>
-            <button :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:bg-red-500/20' : 'text-gray-500 hover:bg-red-50']">
+            <button @click="handleDelete(category.id)" :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:bg-red-500/20' : 'text-gray-500 hover:bg-red-50']">
               <Trash2 size="16" />
             </button>
           </div>
@@ -175,5 +227,25 @@ const toggleStatus = (category) => {
         </button>
       </div>
     </div>
+
+    <!-- Meta Form Modal -->
+    <MetaForm
+      type="category"
+      :edit-data="editingCategory"
+      :visible="isFormVisible"
+      @save="handleSave"
+      @cancel="handleCancel"
+    />
+
+    <!-- Delete Confirm Dialog -->
+    <ConfirmDialog
+      :visible="showDeleteConfirm"
+      title="确认删除"
+      content="确定要删除这个分类吗？此操作不可撤销。"
+      confirm-text="删除"
+      confirm-variant="danger"
+      @confirm="confirmDelete"
+      @cancel="showDeleteConfirm = false"
+    />
   </div>
 </template>

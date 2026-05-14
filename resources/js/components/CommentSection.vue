@@ -21,6 +21,7 @@
 import { ref } from 'vue';
 import { ChevronRight, Send } from 'lucide-vue-next';
 import AbstractAvatar from './AbstractAvatar.vue';
+import { getApprovedComments } from '../data/comments';
 
 const props = defineProps({
   initialComments: {
@@ -37,30 +38,7 @@ const submitSuccess = ref(false);
 const errorMessage = ref('');
 
 const comments = ref([
-  {
-    id: '1',
-    name: 'Visitor',
-    email: 'visitor@example.com',
-    body: 'Interesting perspective on cognitive architecture! The grid analogy really resonates.',
-    date: 'May 10, 2026, 14:30',
-    likes: 3
-  },
-  {
-    id: '2',
-    name: 'Architect_X',
-    email: 'arch@example.com',
-    body: 'Great insights! Would love to see more about the intersection of traditional architecture principles with modern computational methods.',
-    date: 'May 11, 2026, 09:15',
-    likes: 7
-  },
-  {
-    id: '3',
-    name: 'Digital_Builder',
-    email: 'builder@example.com',
-    body: 'The concept of "structural honesty" in digital spaces is fascinating. Looking forward to future experiments!',
-    date: 'May 12, 2026, 16:45',
-    likes: 5
-  },
+  ...getApprovedComments(),
   ...props.initialComments
 ]);
 
@@ -123,7 +101,7 @@ const handleSubmit = async (e) => {
     id: Date.now().toString(),
     name: formData.value.name.trim(),
     email: formData.value.email.trim(),
-    body: formData.value.body.trim(),
+    content: formData.value.body.trim(),
     date: new Date().toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -285,7 +263,7 @@ const handleSubmit = async (e) => {
         <!-- Comment Body -->
         <div class="pl-16">
           <p class="text-lg leading-relaxed text-construct-black/80 max-w-2xl">
-            {{ comment.body }}
+            {{ comment.content }}
           </p>
         </div>
 

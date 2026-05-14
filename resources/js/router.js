@@ -26,8 +26,8 @@
  */
 import { createRouter, createWebHistory } from 'vue-router';
 import Home from './Pages/Front/Home.vue';
-import Blog from './Pages/Front/Blog.vue';
-import PostDetail from './Pages/Front/PostDetail.vue';
+import Blog from './Pages/front/Blog.vue';
+import PostDetail from './Pages/front/PostDetail.vue';
 import Author from './Pages/Front/Author.vue';
 import Videos from './Pages/Front/Videos.vue';
 import VideoDetail from './Pages/Front/VideoDetail.vue';
@@ -43,6 +43,7 @@ import AdminProjects from './Pages/Admin/AdminProjects.vue';
 import AdminResources from './Pages/Admin/AdminResources.vue';
 import AdminUsers from './Pages/Admin/AdminUsers.vue';
 import AdminSettings from './Pages/Admin/AdminSettings.vue';
+import AdminAbout from './Pages/admin/AdminAbout.vue';
 import AdminCategories from './Pages/Admin/AdminCategories.vue';
 import AdminTags from './Pages/Admin/AdminTags.vue';
 import AdminComments from './Pages/Admin/AdminComments.vue';
@@ -145,6 +146,12 @@ const routes = [
     name: 'admin-settings',
     component: AdminSettings,
     meta: { title: 'ADMIN // Settings', requiresAuth: true, layout: 'admin' },
+  },
+  {
+    path: '/admin/about',
+    name: 'admin-about',
+    component: AdminAbout,
+    meta: { title: 'ADMIN // About', requiresAuth: true, layout: 'admin' },
   },
   {
     path: '/admin/categories',

@@ -29,6 +29,7 @@ import {
   HardDrive
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
+import { formatToShort } from '../../utils/dateUtils';
 import { adminMedia } from '../../data/media';
 
 const { t } = useI18n();
@@ -165,7 +166,7 @@ const toggleSelect = (file) => {
         <div :class="['text-sm font-medium truncate mb-1', isDarkMode ? 'text-white' : 'text-gray-900']">{{ file.name }}</div>
         <div :class="['flex items-center justify-between text-xs', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
           <span>{{ file.size }}</span>
-          <span>{{ file.date }}</span>
+          <span>{{ formatToShort(file.date) }}</span>
         </div>
         
         <div :class="['flex items-center gap-2 pt-3 border-t opacity-0 group-hover:opacity-100 transition-opacity', isDarkMode ? 'border-gray-700' : 'border-gray-200']">

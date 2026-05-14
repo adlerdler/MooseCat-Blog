@@ -24,6 +24,9 @@ import {
 } from 'lucide-vue-next';
 import { POSTS } from '../../data/posts';
 import { useTheme } from '../../composables/useTheme';
+import { formatToShort } from '../../utils/dateUtils';
+import ContentForm from '../../components/admin/ContentForm.vue';
+import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
@@ -32,6 +35,10 @@ const searchQuery = ref('');
 const currentPage = ref(1);
 const itemsPerPage = 10;
 const selectedCategory = ref('all');
+const isFormVisible = ref(false);
+const editingPost = ref(null);
+const showDeleteConfirm = ref(false);
+const deletingPostId = ref(null);
 
 const categories = ['all', 'Theory', 'Design', 'Technology', 'Culture'];
 
@@ -65,13 +72,51 @@ const totalPages = computed(() => {
 });
 
 const handleDelete = (id) => {
-  if (confirm('Are you sure you want to delete this post?')) {
-    console.log('Delete post:', id);
-  }
+  deletingPostId.value = id;
+  showDeleteConfirm.value = true;
 };
 
-const handleEdit = (id) => {
-  console.log('Edit post:', id);
+const confirmDelete = () => {
+  if (deletingPostId.value !== null) {
+    console.log('Delete post:', deletingPostId.value);
+    deletingPostId.value = null;
+  }
+  showDeleteConfirm.value = false;
+};
+
+const handleEdit = (post) => {
+  editingPost.value = {
+    id: post.id,
+    title: post.title,
+    author: post.author,
+    category: post.category,
+    tags: post.tags.join(', '),
+    excerpt: post.excerpt,
+    content: post.content,
+    date: post.date,
+    status: 'published'
+  };
+  isFormVisible.value = true;
+};
+
+const handleAdd = () => {
+  editingPost.value = null;
+  isFormVisible.value = true;
+};
+
+const handleSave = (data) => {
+  if (editingPost.value) {
+    console.log('Update post:', data);
+  } else {
+    console.log('Create post:', data);
+  }
+  isFormVisible.value = false;
+  editingPost.value = null;
+};
+
+const handleCancel = () => {
+  isFormVisible.value = false;
+  editingPost.value = null;
 };
 
 const goToPage = (page) => {
@@ -123,6 +168,7 @@ const goToPage = (page) => {
       
       <!-- Add Button -->
       <button
+        @click="handleAdd"
         class="flex items-center gap-2 px-6 py-3 bg-construct-red text-white font-bold tracking-widest uppercase text-sm hover:bg-red-700 transition-colors rounded"
       >
         <Plus size="16" class="!text-white" />
@@ -183,12 +229,12 @@ const goToPage = (page) => {
             <td :class="['px-6 py-4 text-sm', isDarkMode ? 'text-gray-300' : 'text-gray-600']">{{ post.author }}</td>
             <td :class="['px-6 py-4 text-sm flex items-center gap-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
               <Clock size="14" />
-              {{ post.date }}
+              {{ formatToShort(post.date) }}
             </td>
             <td class="px-6 py-4">
               <div class="flex gap-2">
                 <button
-                  @click="handleEdit(post.id)"
+                  @click="handleEdit(post)"
                   :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:text-blue-400 hover:bg-gray-600' : 'text-gray-500 hover:text-blue-500 hover:bg-gray-100']"
                   :title="t('admin_edit')"
                 >
@@ -249,5 +295,25 @@ const goToPage = (page) => {
         </button>
       </div>
     </div>
+
+    <!-- Content Form Modal -->
+    <ContentForm
+      content-type="post"
+      :edit-data="editingPost"
+      :visible="isFormVisible"
+      @save="handleSave"
+      @cancel="handleCancel"
+    />
+
+    <!-- Delete Confirm Dialog -->
+    <ConfirmDialog
+      :visible="showDeleteConfirm"
+      :title="t('admin_confirm_delete')"
+      :content="t('admin_delete_warning')"
+      :confirm-text="t('admin_delete')"
+      confirm-variant="danger"
+      @confirm="confirmDelete"
+      @cancel="showDeleteConfirm = false"
+    />
   </div>
 </template>

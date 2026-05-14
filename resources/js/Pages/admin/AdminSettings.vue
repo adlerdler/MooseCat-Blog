@@ -70,7 +70,7 @@ const resetSettings = () => {
           <Settings class="text-construct-red" size="32" />
           <div>
             <h2 :class="['font-display text-4xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">{{ t('admin_settings') }}</h2>
-            <p :class="['text-sm font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">Configure system settings</p>
+            <p :class="['text-sm font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_settings_subtitle') }}</p>
           </div>
         </div>
         <div class="flex items-center gap-4">
@@ -202,14 +202,14 @@ const resetSettings = () => {
                 class="flex items-center gap-2 px-4 py-2 border transition-colors"
                 :class="isDarkMode ? 'border-construct-red bg-gray-700 text-white' : 'border-gray-300 bg-white text-gray-700'"
               >
-                <Moon size="18" /> Dark
+                <Moon size="18" /> {{ t('admin_dark_mode') }}
               </button>
               <button
                 @click="toggleTheme()"
                 class="flex items-center gap-2 px-4 py-2 border transition-colors"
                 :class="!isDarkMode ? 'border-construct-red bg-white text-gray-900' : 'border-gray-600 bg-gray-800 text-gray-400'"
               >
-                <Sun size="18" /> Light
+                <Sun size="18" /> {{ t('admin_light_mode') }}
               </button>
             </div>
           </div>

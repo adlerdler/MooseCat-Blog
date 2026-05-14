@@ -24,6 +24,8 @@ import {
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
 import { adminTags } from '../../data/tags';
+import MetaForm from '../../components/admin/MetaForm.vue';
+import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
@@ -32,6 +34,10 @@ const searchQuery = ref('');
 const statusFilter = ref('all');
 const currentPage = ref(1);
 const itemsPerPage = 12;
+const isFormVisible = ref(false);
+const editingTag = ref(null);
+const showDeleteConfirm = ref(false);
+const deletingTagId = ref(null);
 
 const tags = ref([...adminTags]);
 
@@ -52,6 +58,52 @@ const paginatedTags = computed(() => {
 
 const toggleStatus = (tag) => {
   tag.status = tag.status === 'active' ? 'inactive' : 'active';
+};
+
+const handleEdit = (tag) => {
+  editingTag.value = { ...tag };
+  isFormVisible.value = true;
+};
+
+const handleAdd = () => {
+  editingTag.value = null;
+  isFormVisible.value = true;
+};
+
+const handleSave = (data) => {
+  if (editingTag.value) {
+    const index = tags.value.findIndex(t => t.id === editingTag.value.id);
+    if (index !== -1) {
+      tags.value[index] = { ...tags.value[index], ...data };
+    }
+  } else {
+    const newId = Math.max(...tags.value.map(t => t.id), 0) + 1;
+    tags.value.push({
+      id: newId,
+      ...data,
+      usageCount: 0
+    });
+  }
+  isFormVisible.value = false;
+  editingTag.value = null;
+};
+
+const handleCancel = () => {
+  isFormVisible.value = false;
+  editingTag.value = null;
+};
+
+const handleDelete = (id) => {
+  deletingTagId.value = id;
+  showDeleteConfirm.value = true;
+};
+
+const confirmDelete = () => {
+  if (deletingTagId.value !== null) {
+    tags.value = tags.value.filter(t => t.id !== deletingTagId.value);
+    deletingTagId.value = null;
+  }
+  showDeleteConfirm.value = false;
 };
 </script>
 
@@ -95,7 +147,7 @@ const toggleStatus = (tag) => {
             <option value="inactive">{{ t('admin_inactive') }}</option>
           </select>
         </div>
-        <button class="flex items-center gap-2 px-6 py-3 bg-construct-red hover:bg-red-600 text-white font-bold tracking-wider transition-colors rounded">
+        <button @click="handleAdd" class="flex items-center gap-2 px-6 py-3 bg-construct-red hover:bg-red-600 text-white font-bold tracking-wider transition-colors rounded">
           <Plus size="16" class="!text-white" /> {{ t('admin_add_tag') }}
         </button>
       </div>
@@ -132,10 +184,10 @@ const toggleStatus = (tag) => {
             <span>{{ tag.usageCount }} {{ t('admin_posts') }}</span>
           </div>
           <div class="flex items-center gap-1">
-            <button :class="['p-1.5 transition-colors', isDarkMode ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-500 hover:bg-gray-100']">
+            <button @click="handleEdit(tag)" :class="['p-1.5 transition-colors', isDarkMode ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-500 hover:bg-gray-100']">
               <Edit3 size="16" />
             </button>
-            <button :class="['p-1.5 transition-colors', isDarkMode ? 'text-gray-400 hover:bg-red-500/20' : 'text-gray-500 hover:bg-red-50']">
+            <button @click="handleDelete(tag.id)" :class="['p-1.5 transition-colors', isDarkMode ? 'text-gray-400 hover:bg-red-500/20' : 'text-gray-500 hover:bg-red-50']">
               <Trash2 size="16" />
             </button>
           </div>
@@ -172,5 +224,25 @@ const toggleStatus = (tag) => {
         </button>
       </div>
     </div>
+
+    <!-- Meta Form Modal -->
+    <MetaForm
+      type="tag"
+      :edit-data="editingTag"
+      :visible="isFormVisible"
+      @save="handleSave"
+      @cancel="handleCancel"
+    />
+
+    <!-- Delete Confirm Dialog -->
+    <ConfirmDialog
+      :visible="showDeleteConfirm"
+      title="确认删除"
+      content="确定要删除这个标签吗？此操作不可撤销。"
+      confirm-text="删除"
+      confirm-variant="danger"
+      @confirm="confirmDelete"
+      @cancel="showDeleteConfirm = false"
+    />
   </div>
 </template>

@@ -18,6 +18,7 @@ import { RouterLink } from 'vue-router';
 import { POSTS } from '../../data/posts';
 import { useI18n } from 'vue-i18n';
 import { useTheme } from '../../composables/useTheme';
+import { formatToEnglish } from '../../utils/dateUtils';
 
 const { t } = useI18n();
 const { initAccentTheme } = useTheme();
@@ -163,8 +164,8 @@ const isFooterVisible = ref(true);
                 </span>
               </div>
               <span class="text-[10px] font-bold tracking-widest opacity-60 group-hover:text-white">
-                {{ post.date }}
-              </span>
+                  {{ formatToEnglish(post.date) }}
+                </span>
             </div>
 
             <!-- Middle: Title & Excerpt -->

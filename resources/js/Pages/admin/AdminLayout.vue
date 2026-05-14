@@ -13,6 +13,7 @@
  * - Sidebar: 侧边栏菜单（导航链接）
  * - Main: 主内容区域（路由视图）
  */
+import '../../../css/admin.css';
 import { ref, onMounted, computed, onUnmounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
@@ -35,10 +36,13 @@ import {
   Shield,
   HardDrive,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  ChevronDown,
+  Info
 } from 'lucide-vue-next';
 import ThemeToggle from '../../components/ThemeToggle.vue';
 import ToastContainer from '../../components/ToastContainer.vue';
+import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import { useTheme } from '../../composables/useTheme';
 import { adminMenuItems } from '../../data/menu';
 
@@ -50,7 +54,20 @@ const isSidebarOpen = ref(true);
 const isSidebarCollapsed = ref(false);
 const isUserMenuOpen = ref(false);
 const showLogoutConfirm = ref(false);
+const expandedMenus = ref(new Set());
 const { isDarkMode } = useTheme();
+
+const toggleMenu = (menuId) => {
+  if (expandedMenus.value.has(menuId)) {
+    expandedMenus.value.delete(menuId);
+  } else {
+    expandedMenus.value.add(menuId);
+  }
+};
+
+const isMenuExpanded = (menuId) => {
+  return expandedMenus.value.has(menuId);
+};
 
 const toggleUserMenu = () => {
   isUserMenuOpen.value = !isUserMenuOpen.value;
@@ -71,10 +88,6 @@ const confirmLogout = () => {
   localStorage.removeItem('admin_login_time');
   showLogoutConfirm.value = false;
   router.push({ name: 'admin-login' });
-};
-
-const cancelLogout = () => {
-  showLogoutConfirm.value = false;
 };
 
 const handleResize = () => {
@@ -123,15 +136,26 @@ const iconMap = {
   users: Users,
   shield: Shield,
   hardDrive: HardDrive,
-  settings: Settings
+  settings: Settings,
+  info: Info
 };
 
 const menuItems = computed(() => {
-  return adminMenuItems.map(item => ({
-    ...item,
-    label: t(item.labelKey),
-    icon: iconMap[item.iconKey]
-  }));
+  return adminMenuItems.map(item => {
+    const mappedItem = {
+      ...item,
+      label: t(item.labelKey),
+      icon: iconMap[item.iconKey]
+    };
+    if (item.children && item.children.length > 0) {
+      mappedItem.children = item.children.map(child => ({
+        ...child,
+        label: t(child.labelKey),
+        icon: iconMap[child.iconKey]
+      }));
+    }
+    return mappedItem;
+  });
 });
 
 const currentRouteName = computed(() => route.name);
@@ -235,7 +259,8 @@ const toggleSidebar = () => {
     <aside
       :class="[
         'fixed left-0 top-16 bottom-0 transition-all duration-300 z-40 overflow-hidden admin-sidebar',
-        isDarkMode ? 'bg-gray-800 border-r border-gray-700' : 'bg-white border-r border-gray-200',
+        isDarkMode ? 'bg-gray-800' : 'bg-white',
+        isSidebarOpen ? (isDarkMode ? 'border-r border-gray-700' : 'border-r border-gray-200') : '',
         isSidebarOpen && !isSidebarCollapsed ? 'w-64 lg:w-64' : '',
         isSidebarOpen && isSidebarCollapsed ? 'w-16 lg:w-16' : '',
         !isSidebarOpen ? 'w-0 lg:w-16' : '',
@@ -243,52 +268,137 @@ const toggleSidebar = () => {
       ]"
     >
       <nav class="p-2 space-y-1 h-full flex flex-col">
-        <button
-          v-for="item in menuItems"
-          :key="item.id"
-          @click="navigateTo(item)"
-          :disabled="!item.route"
-          :class="[
-            'w-full flex items-center gap-3 px-3 py-3 text-sm font-bold tracking-widest uppercase transition-all rounded-lg',
-            isActiveRoute(item)
-              ? isSidebarCollapsed
-                ? isDarkMode
-                  ? 'bg-red-500/20 text-construct-red'
-                  : 'bg-red-50 text-construct-red'
+        <template v-for="item in menuItems" :key="item.id">
+          <!-- Parent menu item with children -->
+          <div v-if="item.children && item.children.length > 0">
+            <button
+              @click="toggleMenu(item.id)"
+              :class="[
+                'w-full flex items-center gap-3 px-3 py-3 text-sm font-bold tracking-widest uppercase transition-all rounded-lg',
+                item.route && isActiveRoute(item)
+                  ? isSidebarCollapsed
+                    ? isDarkMode
+                      ? 'bg-red-500/20 text-construct-red'
+                      : 'bg-red-50 text-construct-red'
+                    : isDarkMode
+                      ? 'bg-red-500/10 border-l-4 border-construct-red text-construct-red'
+                      : 'bg-red-50 border-l-4 border-construct-red text-construct-red'
+                  : isDarkMode
+                    ? 'text-gray-400 hover:bg-construct-red hover:text-white'
+                    : 'text-gray-600 hover:bg-construct-red hover:text-white',
+                isSidebarCollapsed ? 'justify-center' : ''
+              ]"
+            >
+              <component 
+                :is="item.icon" 
+                :size="isSidebarCollapsed ? 20 : 18"
+                :class="[
+                  item.route && isActiveRoute(item) ? '!text-construct-red' : (isDarkMode ? 'text-gray-400' : 'text-gray-600')
+                ]"
+              />
+              <span v-if="!isSidebarCollapsed">{{ item.label }}</span>
+              <ChevronDown 
+                v-if="!isSidebarCollapsed" 
+                :size="16" 
+                :class="[
+                  'ml-auto transition-transform',
+                  isMenuExpanded(item.id) ? 'rotate-180' : ''
+                ]"
+              />
+              <span 
+                v-if="isSidebarCollapsed" 
+                :class="[
+                  'absolute left-16 px-2 py-1 text-xs rounded whitespace-nowrap opacity-0 hover:opacity-100 transition-opacity pointer-events-none z-50',
+                  isDarkMode ? 'bg-gray-700 text-white' : 'bg-gray-900 text-white'
+                ]"
+              >
+                {{ item.label }}
+              </span>
+            </button>
+            
+            <!-- Children menu items -->
+            <div 
+              v-show="isMenuExpanded(item.id) && !isSidebarCollapsed"
+              class="ml-4 space-y-1"
+            >
+              <button
+                v-for="child in item.children"
+                :key="child.id"
+                @click="navigateTo(child)"
+                :class="[
+                  'w-full flex items-center gap-3 px-3 py-3 text-sm font-bold tracking-widest uppercase transition-all rounded-lg',
+                  isActiveRoute(child)
+                    ? isSidebarCollapsed
+                      ? isDarkMode
+                        ? 'bg-red-500/20 text-construct-red'
+                        : 'bg-red-50 text-construct-red'
+                      : isDarkMode
+                        ? 'bg-red-500/10 border-l-4 border-construct-red text-construct-red'
+                        : 'bg-red-50 border-l-4 border-construct-red text-construct-red'
+                    : isDarkMode
+                      ? 'text-gray-400 hover:bg-construct-red hover:text-white'
+                      : 'text-gray-600 hover:bg-construct-red hover:text-white'
+                ]"
+              >
+                <component 
+                  :is="child.icon" 
+                  :size="isSidebarCollapsed ? 20 : 18"
+                  :class="[
+                    isActiveRoute(child) ? '!text-construct-red' : (isDarkMode ? 'text-gray-400' : 'text-gray-600')
+                  ]"
+                />
+                <span>{{ child.label }}</span>
+              </button>
+            </div>
+          </div>
+          
+          <!-- Regular menu item -->
+          <button
+            v-else
+            @click="navigateTo(item)"
+            :disabled="!item.route"
+            :class="[
+              'w-full flex items-center gap-3 px-3 py-3 text-sm font-bold tracking-widest uppercase transition-all rounded-lg',
+              isActiveRoute(item)
+                ? isSidebarCollapsed
+                  ? isDarkMode
+                    ? 'bg-red-500/20 text-construct-red'
+                    : 'bg-red-50 text-construct-red'
+                  : isDarkMode
+                    ? 'bg-red-500/10 border-l-4 border-construct-red text-construct-red'
+                    : 'bg-red-50 border-l-4 border-construct-red text-construct-red'
                 : isDarkMode
-                  ? 'bg-red-500/10 border-l-4 border-construct-red text-construct-red'
-                  : 'bg-red-50 border-l-4 border-construct-red text-construct-red'
-              : isDarkMode
-                ? 'text-gray-400 hover:bg-construct-red hover:text-white'
-                : 'text-gray-600 hover:bg-construct-red hover:text-white',
-            !item.route && 'opacity-50 cursor-not-allowed',
-            isSidebarCollapsed ? 'justify-center' : ''
-          ]"
-        >
-          <component 
-            :is="item.icon" 
-            :size="isSidebarCollapsed ? 20 : 18"
-            :class="[
-              isActiveRoute(item) ? '!text-construct-red' : (isDarkMode ? 'text-gray-400' : 'text-gray-600')
-            ]"
-          />
-          <span v-if="!isSidebarCollapsed">{{ item.label }}</span>
-          <span 
-            v-if="isSidebarCollapsed" 
-            :class="[
-              'absolute left-16 px-2 py-1 text-xs rounded whitespace-nowrap opacity-0 hover:opacity-100 transition-opacity pointer-events-none z-50',
-              isDarkMode ? 'bg-gray-700 text-white' : 'bg-gray-900 text-white'
+                  ? 'text-gray-400 hover:bg-construct-red hover:text-white'
+                  : 'text-gray-600 hover:bg-construct-red hover:text-white',
+              !item.route && 'opacity-50 cursor-not-allowed',
+              isSidebarCollapsed ? 'justify-center' : ''
             ]"
           >
-            {{ item.label }}
-          </span>
-        </button>
+            <component 
+              :is="item.icon" 
+              :size="isSidebarCollapsed ? 20 : 18"
+              :class="[
+                isActiveRoute(item) ? '!text-construct-red' : (isDarkMode ? 'text-gray-400' : 'text-gray-600')
+              ]"
+            />
+            <span v-if="!isSidebarCollapsed">{{ item.label }}</span>
+            <span 
+              v-if="isSidebarCollapsed" 
+              :class="[
+                'absolute left-16 px-2 py-1 text-xs rounded whitespace-nowrap opacity-0 hover:opacity-100 transition-opacity pointer-events-none z-50',
+                isDarkMode ? 'bg-gray-700 text-white' : 'bg-gray-900 text-white'
+              ]"
+            >
+              {{ item.label }}
+            </span>
+          </button>
+        </template>
         
         <!-- Spacer to push collapse button to bottom -->
         <div class="flex-1"></div>
         
         <!-- Collapse Toggle Button (hidden on mobile) -->
-        <div class="hidden lg:block mt-auto pt-4 border-t" :class="isDarkMode ? 'border-gray-700' : 'border-gray-200'">
+        <div class="hidden lg:block mt-auto pt-4">
           <button
             @click="toggleSidebarCollapse"
             :class="[
@@ -326,53 +436,17 @@ const toggleSidebar = () => {
     <!-- Toast Container -->
     <ToastContainer />
     
-    <!-- Logout Confirmation Modal -->
-    <Transition name="modal">
-      <div
-        v-if="showLogoutConfirm"
-        class="fixed inset-0 z-[100] flex items-center justify-center"
-      >
-        <!-- Backdrop -->
-        <div
-          class="absolute inset-0 bg-black/60"
-          @click="cancelLogout"
-        ></div>
-        
-        <!-- Modal Content -->
-        <div
-          :class="[
-            'relative w-full max-w-sm mx-4 rounded-xl shadow-2xl p-6',
-            isDarkMode ? 'bg-gray-800' : 'bg-white'
-          ]"
-        >
-          <h3 :class="['text-lg font-bold mb-3', isDarkMode ? 'text-white' : 'text-gray-900']">
-            {{ t('login_logout') }}
-          </h3>
-          <p :class="['text-sm mb-6', isDarkMode ? 'text-gray-300' : 'text-gray-600']">
-            确定要退出登录吗？
-          </p>
-          <div class="flex gap-3">
-            <button
-              @click="cancelLogout"
-              :class="[
-                'flex-1 px-4 py-2 text-sm font-bold rounded-lg transition-colors',
-                isDarkMode 
-                  ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              ]"
-            >
-              取消
-            </button>
-            <button
-              @click="confirmLogout"
-              class="flex-1 px-4 py-2 text-sm font-bold text-white bg-gray-900 rounded-lg hover:bg-construct-red transition-colors"
-            >
-              确认退出
-            </button>
-          </div>
-        </div>
-      </div>
-    </Transition>
+    <!-- Logout Confirmation Dialog -->
+    <ConfirmDialog
+      :visible="showLogoutConfirm"
+      :title="t('login_logout')"
+      :content="t('admin_delete_warning')"
+      :confirm-text="t('confirm')"
+      :cancel-text="t('cancel')"
+      confirm-variant="primary"
+      @confirm="confirmLogout"
+      @cancel="showLogoutConfirm = false"
+    />
   </div>
 </template>
 

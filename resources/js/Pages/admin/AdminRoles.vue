@@ -25,6 +25,8 @@ import {
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
 import { adminRoles } from '../../data/roles';
+import RoleForm from '../../components/admin/RoleForm.vue';
+import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
@@ -32,6 +34,10 @@ const { isDarkMode } = useTheme();
 const searchQuery = ref('');
 const currentPage = ref(1);
 const itemsPerPage = 6;
+const isFormVisible = ref(false);
+const editingRole = ref(null);
+const showDeleteConfirm = ref(false);
+const deletingRoleId = ref(null);
 
 const roles = ref([...adminRoles]);
 
@@ -48,6 +54,52 @@ const paginatedRoles = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage;
   return filteredRoles.value.slice(start, start + itemsPerPage);
 });
+
+const handleEdit = (role) => {
+  editingRole.value = { ...role };
+  isFormVisible.value = true;
+};
+
+const handleAdd = () => {
+  editingRole.value = null;
+  isFormVisible.value = true;
+};
+
+const handleSave = (data) => {
+  if (editingRole.value) {
+    const index = roles.value.findIndex(r => r.id === editingRole.value.id);
+    if (index !== -1) {
+      roles.value[index] = { ...roles.value[index], ...data };
+    }
+  } else {
+    const newId = Math.max(...roles.value.map(r => r.id), 0) + 1;
+    roles.value.push({
+      id: newId,
+      ...data,
+      userCount: 0
+    });
+  }
+  isFormVisible.value = false;
+  editingRole.value = null;
+};
+
+const handleCancel = () => {
+  isFormVisible.value = false;
+  editingRole.value = null;
+};
+
+const handleDelete = (id) => {
+  deletingRoleId.value = id;
+  showDeleteConfirm.value = true;
+};
+
+const confirmDelete = () => {
+  if (deletingRoleId.value !== null) {
+    roles.value = roles.value.filter(r => r.id !== deletingRoleId.value);
+    deletingRoleId.value = null;
+  }
+  showDeleteConfirm.value = false;
+};
 </script>
 
 <template>
@@ -75,7 +127,7 @@ const paginatedRoles = computed(() => {
           ]"
         />
       </div>
-      <button class="flex items-center gap-2 px-6 py-3 bg-construct-red hover:bg-red-600 text-white font-bold tracking-wider transition-colors">
+      <button @click="handleAdd" class="flex items-center gap-2 px-6 py-3 bg-construct-red hover:bg-red-600 text-white font-bold tracking-wider transition-colors rounded">
         <Plus size="18" /> {{ t('admin_add_role') }}
       </button>
     </div>
@@ -95,10 +147,10 @@ const paginatedRoles = computed(() => {
             <Shield :class="['size-24', isDarkMode ? 'text-gray-400' : 'text-gray-600']" />
           </div>
           <div class="flex items-center gap-2">
-            <button :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-500 hover:bg-gray-100']">
+            <button @click="handleEdit(role)" :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-500 hover:bg-gray-100']">
               <Edit3 size="16" />
             </button>
-            <button :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:bg-red-500/20' : 'text-gray-500 hover:bg-red-50']">
+            <button @click="handleDelete(role.id)" :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:bg-red-500/20' : 'text-gray-500 hover:bg-red-50']">
               <Trash2 size="16" />
             </button>
           </div>
@@ -156,5 +208,24 @@ const paginatedRoles = computed(() => {
         </button>
       </div>
     </div>
+
+    <!-- Role Form Modal -->
+    <RoleForm
+      :edit-data="editingRole"
+      :visible="isFormVisible"
+      @save="handleSave"
+      @cancel="handleCancel"
+    />
+
+    <!-- Delete Confirm Dialog -->
+    <ConfirmDialog
+      :visible="showDeleteConfirm"
+      title="确认删除"
+      content="确定要删除这个角色吗？此操作不可撤销。"
+      confirm-text="删除"
+      confirm-variant="danger"
+      @confirm="confirmDelete"
+      @cancel="showDeleteConfirm = false"
+    />
   </div>
 </template>

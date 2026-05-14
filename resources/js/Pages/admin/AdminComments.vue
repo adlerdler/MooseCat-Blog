@@ -28,7 +28,9 @@ import {
   FileText
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
-import { adminComments } from '../../data/comments';
+import { commentsData } from '../../data/comments';
+import { POSTS } from '../../data/posts';
+import { formatToShort } from '../../utils/dateUtils';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
@@ -38,13 +40,19 @@ const statusFilter = ref('all');
 const currentPage = ref(1);
 const itemsPerPage = 8;
 
-const comments = ref([...adminComments]);
+const comments = ref([...commentsData]);
+
+const getPostTitle = (postId) => {
+  const post = POSTS.find(p => p.id === postId);
+  return post ? post.title : 'Unknown Post';
+};
 
 const filteredComments = computed(() => {
   return comments.value.filter(comment => {
-    const matchesSearch = comment.author.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+    const postTitle = getPostTitle(comment.postId);
+    const matchesSearch = comment.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
                          comment.content.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-                         comment.post.toLowerCase().includes(searchQuery.value.toLowerCase());
+                         postTitle.toLowerCase().includes(searchQuery.value.toLowerCase());
     const matchesStatus = statusFilter.value === 'all' || comment.status === statusFilter.value;
     return matchesSearch && matchesStatus;
   });
@@ -153,7 +161,7 @@ const rejectComment = (comment) => {
               <User :class="isDarkMode ? 'text-gray-400' : 'text-gray-600'" size="18" />
             </div>
             <div>
-              <div :class="['font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">{{ comment.author }}</div>
+              <div :class="['font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">{{ comment.name }}</div>
               <div :class="['text-xs', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ comment.email }}</div>
             </div>
           </div>
@@ -172,11 +180,11 @@ const rejectComment = (comment) => {
           <div :class="['flex items-center gap-4 text-sm', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
             <div class="flex items-center gap-1">
               <FileText size="14" />
-              <span>{{ comment.post }}</span>
+              <span>{{ getPostTitle(comment.postId) }}</span>
             </div>
             <div class="flex items-center gap-1">
               <Clock size="14" />
-              <span>{{ comment.date }}</span>
+              <span>{{ formatToShort(comment.date) }}</span>
             </div>
           </div>
           <div class="flex items-center gap-2">

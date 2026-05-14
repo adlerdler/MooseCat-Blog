@@ -25,6 +25,9 @@ import {
 } from 'lucide-vue-next';
 import { VIDEOS } from '../../data/videos';
 import { useTheme } from '../../composables/useTheme';
+import { formatToShort } from '../../utils/dateUtils';
+import ContentForm from '../../components/admin/ContentForm.vue';
+import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
@@ -33,6 +36,10 @@ const searchQuery = ref('');
 const currentPage = ref(1);
 const itemsPerPage = 10;
 const selectedPlatform = ref('all');
+const isFormVisible = ref(false);
+const editingVideo = ref(null);
+const showDeleteConfirm = ref(false);
+const deletingVideoId = ref(null);
 
 const platforms = ['all', 'YouTube', 'Vimeo', 'Bilibili'];
 
@@ -74,13 +81,50 @@ const totalPages = computed(() => {
 });
 
 const handleDelete = (id) => {
-  if (confirm('Are you sure you want to delete this video?')) {
-    console.log('Delete video:', id);
-  }
+  deletingVideoId.value = id;
+  showDeleteConfirm.value = true;
 };
 
-const handleEdit = (id) => {
-  console.log('Edit video:', id);
+const confirmDelete = () => {
+  if (deletingVideoId.value !== null) {
+    console.log('Delete video:', deletingVideoId.value);
+    deletingVideoId.value = null;
+  }
+  showDeleteConfirm.value = false;
+};
+
+const handleEdit = (video) => {
+  editingVideo.value = {
+    id: video.id,
+    title: video.title,
+    description: video.description,
+    thumbnail: video.thumbnail,
+    url: video.videoId,
+    platform: video.platform.toLowerCase(),
+    date: video.date,
+    status: 'published'
+  };
+  isFormVisible.value = true;
+};
+
+const handleAdd = () => {
+  editingVideo.value = null;
+  isFormVisible.value = true;
+};
+
+const handleSave = (data) => {
+  if (editingVideo.value) {
+    console.log('Update video:', data);
+  } else {
+    console.log('Create video:', data);
+  }
+  isFormVisible.value = false;
+  editingVideo.value = null;
+};
+
+const handleCancel = () => {
+  isFormVisible.value = false;
+  editingVideo.value = null;
 };
 
 const goToPage = (page) => {
@@ -132,6 +176,7 @@ const goToPage = (page) => {
       
       <!-- Add Button -->
       <button
+        @click="handleAdd"
         class="flex items-center gap-2 px-6 py-3 bg-construct-red text-white font-bold tracking-widest uppercase text-sm hover:bg-red-700 transition-colors rounded"
       >
         <Plus size="16" class="!text-white" />
@@ -173,12 +218,12 @@ const goToPage = (page) => {
           <div class="flex items-center justify-between">
             <div :class="['flex items-center gap-2 text-xs', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
               <Clock size="12" />
-              {{ video.date }}
+              {{ formatToShort(video.date) }}
             </div>
             
             <div class="flex gap-2">
               <button
-                @click="handleEdit(video.id)"
+                @click="handleEdit(video)"
                 :class="[
                   'p-2 transition-colors',
                   isDarkMode ? 'text-gray-400 hover:text-blue-400 hover:bg-gray-700' : 'text-gray-500 hover:text-blue-500 hover:bg-gray-100'
@@ -247,5 +292,25 @@ const goToPage = (page) => {
         </button>
       </div>
     </div>
+
+    <!-- Content Form Modal -->
+    <ContentForm
+      content-type="video"
+      :edit-data="editingVideo"
+      :visible="isFormVisible"
+      @save="handleSave"
+      @cancel="handleCancel"
+    />
+
+    <!-- Delete Confirm Dialog -->
+    <ConfirmDialog
+      :visible="showDeleteConfirm"
+      title="确认删除"
+      content="确定要删除这个视频吗？此操作不可撤销。"
+      confirm-text="删除"
+      confirm-variant="danger"
+      @confirm="confirmDelete"
+      @cancel="showDeleteConfirm = false"
+    />
   </div>
 </template>

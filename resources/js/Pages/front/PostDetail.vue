@@ -19,6 +19,7 @@ import { useRoute, useRouter, RouterLink } from 'vue-router';
 import { ArrowLeft, Share2, Bookmark, Clock, User, BookOpen, ChevronRight } from 'lucide-vue-next';
 import { POSTS } from '../../data/posts';
 import { useI18n } from 'vue-i18n';
+import { formatToEnglish } from '../../utils/dateUtils';
 
 const { t } = useI18n();
 const route = useRoute();
@@ -183,7 +184,7 @@ onUnmounted(() => {
             </div>
             <div class="flex items-center gap-2">
               <Clock size="14" class="text-white/40" />
-              {{ post.date }}
+              {{ formatToEnglish(post.date) }}
             </div>
             <div class="flex items-center gap-2">
               <BookOpen size="14" class="text-white/40" />

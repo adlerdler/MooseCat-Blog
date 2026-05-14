@@ -23,10 +23,15 @@ import {
   Filter,
   User,
   Mail,
-  Shield
+  Shield,
+  X
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
 import { adminUsers } from '../../data/users';
+import { getRoleLabel, getRoleStyle } from '../../data/roles';
+import { formatToShort } from '../../utils/dateUtils';
+import UserForm from '../../components/admin/UserForm.vue';
+import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
@@ -35,6 +40,12 @@ const searchQuery = ref('');
 const roleFilter = ref('all');
 const currentPage = ref(1);
 const itemsPerPage = 6;
+const isFormVisible = ref(false);
+const editingUser = ref(null);
+const showDeleteConfirm = ref(false);
+const deletingUserId = ref(null);
+const isDetailVisible = ref(false);
+const viewingUser = ref(null);
 
 const users = ref([...adminUsers]);
 
@@ -54,32 +65,65 @@ const paginatedUsers = computed(() => {
   return filteredUsers.value.slice(start, start + itemsPerPage);
 });
 
-const getRoleLabel = (role) => {
-  const roles = {
-    admin: 'ADMIN',
-    editor: 'EDITOR',
-    author: 'AUTHOR',
-    moderator: 'MODERATOR',
-    subscriber: 'SUBSCRIBER',
-    api: 'API'
-  };
-  return roles[role] || role.toUpperCase();
-};
-
-const getRoleColor = (role) => {
-  const colors = {
-    admin: 'bg-red-500',
-    editor: 'bg-blue-500',
-    author: 'bg-green-500',
-    moderator: 'bg-purple-500',
-    subscriber: 'bg-gray-500',
-    api: 'bg-yellow-500'
-  };
-  return colors[role] || 'bg-gray-500';
-};
-
 const toggleStatus = (user) => {
   user.status = user.status === 'active' ? 'inactive' : 'active';
+};
+
+const handleEdit = (user) => {
+  editingUser.value = { ...user };
+  isFormVisible.value = true;
+};
+
+const handleAdd = () => {
+  editingUser.value = null;
+  isFormVisible.value = true;
+};
+
+const handleSave = (data) => {
+  if (editingUser.value) {
+    const index = users.value.findIndex(u => u.id === editingUser.value.id);
+    if (index !== -1) {
+      users.value[index] = { ...users.value[index], ...data };
+    }
+  } else {
+    const newId = Math.max(...users.value.map(u => u.id), 0) + 1;
+    const today = new Date().toISOString().split('T')[0];
+    users.value.push({
+      id: newId,
+      ...data,
+      joined: today
+    });
+  }
+  isFormVisible.value = false;
+  editingUser.value = null;
+};
+
+const handleCancel = () => {
+  isFormVisible.value = false;
+  editingUser.value = null;
+};
+
+const handleView = (user) => {
+  viewingUser.value = { ...user };
+  isDetailVisible.value = true;
+};
+
+const closeDetail = () => {
+  isDetailVisible.value = false;
+  viewingUser.value = null;
+};
+
+const handleDelete = (id) => {
+  deletingUserId.value = id;
+  showDeleteConfirm.value = true;
+};
+
+const confirmDelete = () => {
+  if (deletingUserId.value !== null) {
+    users.value = users.value.filter(u => u.id !== deletingUserId.value);
+    deletingUserId.value = null;
+  }
+  showDeleteConfirm.value = false;
 };
 </script>
 
@@ -91,7 +135,7 @@ const toggleStatus = (user) => {
         <Users class="text-construct-red" size="32" />
         <h2 :class="['font-display text-4xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">{{ t('admin_users') }}</h2>
       </div>
-      <p :class="['text-sm font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">Manage system users and permissions</p>
+      <p :class="['text-sm font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_users_subtitle') }}</p>
     </div>
 
     <!-- Search and Filter -->
@@ -126,7 +170,7 @@ const toggleStatus = (user) => {
             <option value="subscriber">SUBSCRIBER</option>
           </select>
         </div>
-        <button class="flex items-center gap-2 px-6 py-3 bg-construct-red hover:bg-red-600 text-white font-bold tracking-wider transition-colors rounded">
+        <button @click="handleAdd" class="flex items-center gap-2 px-6 py-3 bg-construct-red hover:bg-red-600 text-white font-bold tracking-wider transition-colors rounded">
           <Plus size="16" class="!text-white" /> {{ t('admin_add_user') }}
         </button>
       </div>
@@ -137,12 +181,12 @@ const toggleStatus = (user) => {
       <table class="w-full">
         <thead :class="isDarkMode ? 'bg-gray-700' : 'bg-gray-100'">
           <tr>
-            <th :class="['px-6 py-4 text-left text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">USER</th>
-            <th :class="['px-6 py-4 text-left text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">EMAIL</th>
-            <th :class="['px-6 py-4 text-left text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">ROLE</th>
-            <th :class="['px-6 py-4 text-left text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">STATUS</th>
-            <th :class="['px-6 py-4 text-left text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">JOINED</th>
-            <th :class="['px-6 py-4 text-center text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">ACTIONS</th>
+            <th :class="['px-6 py-4 text-left text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_table_user') }}</th>
+            <th :class="['px-6 py-4 text-left text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_table_email') }}</th>
+            <th :class="['px-6 py-4 text-left text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_table_role') }}</th>
+            <th :class="['px-6 py-4 text-left text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_table_status') }}</th>
+            <th :class="['px-6 py-4 text-left text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_table_joined') }}</th>
+            <th :class="['px-6 py-4 text-center text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_table_actions') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -162,7 +206,7 @@ const toggleStatus = (user) => {
               </div>
             </td>
             <td class="px-6 py-4">
-              <span :class="['px-3 py-1 rounded-full text-xs font-bold', getRoleColor(user.role)]">{{ getRoleLabel(user.role) }}</span>
+              <span :class="['role-tag px-3 py-1 rounded-full text-xs font-bold border', getRoleStyle(user.role)]">{{ getRoleLabel(user.role) }}</span>
             </td>
             <td class="px-6 py-4">
               <button
@@ -177,16 +221,16 @@ const toggleStatus = (user) => {
                 </span>
               </button>
             </td>
-            <td :class="['px-6 py-4', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ user.joined }}</td>
+            <td :class="['px-6 py-4', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ formatToShort(user.joined) }}</td>
             <td class="px-6 py-4">
               <div class="flex items-center justify-center gap-2">
-                <button :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:bg-gray-600' : 'text-gray-500 hover:bg-gray-100']">
+                <button @click="handleView(user)" :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:bg-gray-600' : 'text-gray-500 hover:bg-gray-100']">
                   <Eye size="16" />
                 </button>
-                <button :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:bg-gray-600' : 'text-gray-500 hover:bg-gray-100']">
+                <button @click="handleEdit(user)" :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:bg-gray-600' : 'text-gray-500 hover:bg-gray-100']">
                   <Edit3 size="16" />
                 </button>
-                <button :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:bg-red-500/20' : 'text-gray-500 hover:bg-red-50']">
+                <button @click="handleDelete(user.id)" :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:bg-red-500/20' : 'text-gray-500 hover:bg-red-50']">
                   <Trash2 size="16" />
                 </button>
               </div>
@@ -217,6 +261,80 @@ const toggleStatus = (user) => {
         >
           <ChevronRight size="18" />
         </button>
+      </div>
+    </div>
+
+    <!-- User Form Modal -->
+    <UserForm
+      :edit-data="editingUser"
+      :visible="isFormVisible"
+      @save="handleSave"
+      @cancel="handleCancel"
+    />
+
+    <!-- Delete Confirm Dialog -->
+    <ConfirmDialog
+      :visible="showDeleteConfirm"
+      :title="t('admin_confirm_delete')"
+      :content="t('admin_delete_warning')"
+      :confirm-text="t('admin_delete')"
+      confirm-variant="danger"
+      @confirm="confirmDelete"
+      @cancel="showDeleteConfirm = false"
+    />
+
+    <!-- User Detail Modal -->
+    <div v-if="isDetailVisible && viewingUser" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div class="absolute inset-0 bg-black/50" @click="closeDetail"></div>
+      <div :class="['relative w-full max-w-lg p-8 rounded-lg shadow-xl', isDarkMode ? 'bg-gray-800' : 'bg-white']">
+        <button 
+          @click="closeDetail" 
+          :class="['absolute top-4 right-4 p-2 rounded-full transition-colors', isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100']"
+        >
+          <X :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'" size="20" />
+        </button>
+        
+        <div class="text-center mb-8">
+          <div :class="['w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-4', isDarkMode ? 'bg-gray-700' : 'bg-gray-100']">
+            <User :class="isDarkMode ? 'text-gray-400' : 'text-gray-600'" size="36" />
+          </div>
+          <h3 :class="['text-2xl font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">{{ viewingUser.name }}</h3>
+          <p :class="['text-sm', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ viewingUser.email }}</p>
+        </div>
+
+        <div :class="['space-y-4', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
+          <div class="flex items-center justify-between p-4 rounded-lg" :class="isDarkMode ? 'bg-gray-700' : 'bg-gray-50'">
+            <span class="text-sm font-bold tracking-wider uppercase">{{ t('admin_table_role') }}</span>
+            <span :class="['px-3 py-1 rounded-full text-xs font-bold border', getRoleStyle(viewingUser.role)]">{{ getRoleLabel(viewingUser.role) }}</span>
+          </div>
+          
+          <div class="flex items-center justify-between p-4 rounded-lg" :class="isDarkMode ? 'bg-gray-700' : 'bg-gray-50'">
+            <span class="text-sm font-bold tracking-wider uppercase">{{ t('admin_table_status') }}</span>
+            <span :class="['px-3 py-1 rounded-full text-xs font-bold', viewingUser.status === 'active' ? (isDarkMode ? 'bg-green-500/20 text-green-400' : 'bg-green-100 text-green-600') : (isDarkMode ? 'bg-gray-600/50 text-gray-400' : 'bg-gray-100 text-gray-500')]">
+              {{ viewingUser.status === 'active' ? t('admin_active') : t('admin_inactive') }}
+            </span>
+          </div>
+          
+          <div class="flex items-center justify-between p-4 rounded-lg" :class="isDarkMode ? 'bg-gray-700' : 'bg-gray-50'">
+            <span class="text-sm font-bold tracking-wider uppercase">{{ t('admin_table_joined') }}</span>
+            <span>{{ formatToShort(viewingUser.joined) }}</span>
+          </div>
+        </div>
+
+        <div class="mt-8 flex gap-4">
+          <button 
+            @click="closeDetail" 
+            :class="['flex-1 py-3 font-bold tracking-wider rounded-lg transition-colors', isDarkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-900']"
+          >
+            {{ t('admin_close') }}
+          </button>
+          <button 
+            @click="handleEdit(viewingUser); closeDetail()" 
+            class="flex-1 py-3 bg-construct-red hover:bg-red-600 text-white font-bold tracking-wider rounded-lg transition-colors"
+          >
+            {{ t('admin_edit') }}
+          </button>
+        </div>
       </div>
     </div>
   </div>

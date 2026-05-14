@@ -7,6 +7,7 @@
  * - 管理后台页面使用 AdminLayout
  * - 前台页面直接显示内容
  */
+import '../css/frontend.css';
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 import AdminLayout from './Pages/Admin/AdminLayout.vue';

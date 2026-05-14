@@ -25,7 +25,7 @@ import App from './App.vue';
 
 // 页面组件
 import Home from './Pages/Front/Home.vue';
-import Blog from './Pages/Front/Blog.vue';
+import Blog from './Pages/front/Blog.vue';  
 import Projects from './Pages/Front/Projects.vue';
 import Resources from './Pages/Front/Resources.vue';
 import Videos from './Pages/Front/Videos.vue';

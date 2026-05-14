@@ -28,7 +28,10 @@ import {
   Archive
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
+import { formatToShort } from '../../utils/dateUtils';
 import { resourcesData, resourceTypes } from '../../data/resources';
+import ContentForm from '../../components/admin/ContentForm.vue';
+import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
@@ -37,6 +40,10 @@ const searchQuery = ref('');
 const currentPage = ref(1);
 const itemsPerPage = 12;
 const selectedType = ref('all');
+const isFormVisible = ref(false);
+const editingResource = ref(null);
+const showDeleteConfirm = ref(false);
+const deletingResourceId = ref(null);
 
 const resources = ref([...resourcesData]);
 
@@ -98,13 +105,49 @@ const totalPages = computed(() => {
 });
 
 const handleDelete = (id) => {
-  if (confirm('Are you sure you want to delete this resource?')) {
-    console.log('Delete resource:', id);
-  }
+  deletingResourceId.value = id;
+  showDeleteConfirm.value = true;
 };
 
-const handleEdit = (id) => {
-  console.log('Edit resource:', id);
+const confirmDelete = () => {
+  if (deletingResourceId.value !== null) {
+    console.log('Delete resource:', deletingResourceId.value);
+    deletingResourceId.value = null;
+  }
+  showDeleteConfirm.value = false;
+};
+
+const handleEdit = (resource) => {
+  editingResource.value = {
+    id: resource.id,
+    title: resource.title,
+    description: resource.description || '',
+    thumbnail: resource.thumbnail || '',
+    url: resource.url || '',
+    date: resource.date,
+    status: 'published'
+  };
+  isFormVisible.value = true;
+};
+
+const handleAdd = () => {
+  editingResource.value = null;
+  isFormVisible.value = true;
+};
+
+const handleSave = (data) => {
+  if (editingResource.value) {
+    console.log('Update resource:', data);
+  } else {
+    console.log('Create resource:', data);
+  }
+  isFormVisible.value = false;
+  editingResource.value = null;
+};
+
+const handleCancel = () => {
+  isFormVisible.value = false;
+  editingResource.value = null;
 };
 
 const goToPage = (page) => {
@@ -156,6 +199,7 @@ const goToPage = (page) => {
       
       <!-- Add Button -->
       <button
+        @click="handleAdd"
         class="flex items-center gap-2 px-6 py-3 bg-construct-red text-white font-bold tracking-widest uppercase text-sm hover:bg-red-700 transition-colors rounded"
       >
         <Plus size="16" class="!text-white" />
@@ -208,7 +252,7 @@ const goToPage = (page) => {
           <div :class="['flex items-center justify-between pt-3 border-t', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
             <div :class="['flex items-center gap-2 text-xs', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
               <Clock size="14" />
-              {{ resource.date }}
+              {{ formatToShort(resource.date) }}
             </div>
             
             <div class="flex gap-1">
@@ -219,7 +263,7 @@ const goToPage = (page) => {
                 <Download size="16" />
               </button>
               <button
-                @click="handleEdit(resource.id)"
+                @click="handleEdit(resource)"
                 :class="['p-1.5 transition-colors', isDarkMode ? 'text-gray-400 hover:text-blue-400 hover:bg-gray-700' : 'text-gray-500 hover:text-blue-500 hover:bg-gray-100']"
                 :title="t('admin_edit')"
               >
@@ -273,5 +317,25 @@ const goToPage = (page) => {
         </button>
       </div>
     </div>
+
+    <!-- Content Form Modal -->
+    <ContentForm
+      content-type="resource"
+      :edit-data="editingResource"
+      :visible="isFormVisible"
+      @save="handleSave"
+      @cancel="handleCancel"
+    />
+
+    <!-- Delete Confirm Dialog -->
+    <ConfirmDialog
+      :visible="showDeleteConfirm"
+      title="确认删除"
+      content="确定要删除这个资源吗？此操作不可撤销。"
+      confirm-text="删除"
+      confirm-variant="danger"
+      @confirm="confirmDelete"
+      @cancel="showDeleteConfirm = false"
+    />
   </div>
 </template>
