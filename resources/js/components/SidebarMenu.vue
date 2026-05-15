@@ -23,6 +23,8 @@ import SettingsPanel from './SettingsPanel.vue';
 import SearchOverlay from './SearchOverlay.vue';
 import { useI18n } from 'vue-i18n';
 
+import { frontMenuItems } from '../data/front_menu';
+
 const props = defineProps({
   isFooterVisible: {
     type: Boolean,
@@ -84,14 +86,12 @@ const closeSearch = () => {
   isSearchOpen.value = false;
 };
 
-const menuLinks = computed(() => [
-  { name: t('nav_home'), path: '/' },
-  { name: t('nav_blog'), path: '/blog' },
-  { name: t('nav_videos'), path: '/videos' },
-  { name: t('nav_projects'), path: '/projects' },
-  { name: t('nav_resources'), path: '/resources' },
-  { name: t('nav_author'), path: '/author' },
-]);
+const menuLinks = computed(() => {
+  return frontMenuItems.map(item => ({
+    name: t(item.labelKey),
+    path: item.path
+  }));
+});
 
 const showSidebar = computed(() => true);
 </script>

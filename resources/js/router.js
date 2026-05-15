@@ -52,6 +52,9 @@ import AdminRoles from './Pages/Admin/AdminRoles.vue';
 import AdminMedia from './Pages/Admin/AdminMedia.vue';
 import AdminLogs from './Pages/Admin/AdminLogs.vue';
 import AdminBackup from './Pages/Admin/AdminBackup.vue';
+import AdminRestore from './Pages/Admin/AdminRestore.vue';
+import AdminAdvertisements from './Pages/Admin/AdminAdvertisements.vue';
+import AdminFrontMenu from './Pages/Admin/AdminFrontMenu.vue';
 
 const routes = [
   {
@@ -203,6 +206,24 @@ const routes = [
     name: 'admin-backup',
     component: AdminBackup,
     meta: { title: 'ADMIN // Backup', requiresAuth: true, layout: 'admin' },
+  },
+  {
+    path: '/admin/restore',
+    name: 'admin-restore',
+    component: AdminRestore,
+    meta: { title: 'ADMIN // Restore', requiresAuth: true, layout: 'admin' },
+  },
+  {
+    path: '/admin/front-menu',
+    name: 'admin-front-menu',
+    component: AdminFrontMenu,
+    meta: { title: 'ADMIN // Front Menu', requiresAuth: true, layout: 'admin' },
+  },
+  {
+    path: '/admin/advertisements',
+    name: 'admin-advertisements',
+    component: AdminAdvertisements,
+    meta: { title: 'ADMIN // Advertisements', requiresAuth: true, layout: 'admin' },
   },
   {
     path: '/admin',

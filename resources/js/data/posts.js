@@ -29,6 +29,7 @@ export const POSTS = [
     date: '2026-04-28T10:30:00',
     userId: 1,
     excerpt: 'Exploring how structural design influences cognitive processes in modern interfaces.',
+    thumbnail: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop',
     content: `# The Geometry of Perception
 
 The human brain is wired to find patterns in chaos. In this long-form exploration, we dive into the structural foundations of user interface design through the lens of Constructivist theory.
@@ -149,6 +150,7 @@ The constructivist approach emphasizes intentional design decisions that guide t
     date: '2026-04-20T14:00:00',
     userId: 2,
     excerpt: 'Why fonts are the literal beams and columns of a digital experience.',
+    thumbnail: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800&h=600&fit=crop',
     content: `# Typography as Architecture
 
 Typography is the physical material of digital communication. If a layout is the blueprint, the typeface is the concrete and steel.
@@ -257,6 +259,7 @@ The technical breakdown reveals why monospaced fonts and sans-serif grotesques f
     date: '2026-04-15T00:00:00',
     userId: 3,
     excerpt: 'Redefining the relationship between human intuition and algorithmic precision.',
+    thumbnail: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&h=600&fit=crop',
     content: `# Manifesto of the Machine
 
 We live in an age of the hybrid. The machine provides the precision, the human provide the purpose.
@@ -360,6 +363,7 @@ We should not aim to make technology "natural"—we should aim to make it readab
     date: '2026-04-12T00:00:00',
     userId: 5,
     excerpt: 'Analyzing the trajectory of lines in three-dimensional digital space.',
+    thumbnail: 'https://images.unsplash.com/photo-1633356122102-3fe601e05bd2?w=800&h=600&fit=crop',
     content: `# Architectural Vectors
 
 Vectors are the invisible strings that hold our digital world together. In this study, we bridge the gap between physical gravity and digital directional force.
@@ -472,6 +476,7 @@ Vectors bridge the gap between physical gravity and digital directional force, c
     date: '2026-04-10T00:00:00',
     userId: 1,
     excerpt: 'Is the grid a tool of liberation or a cage for creativity?',
+    thumbnail: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=600&fit=crop',
     content: `# The Ethics of the Grid
 
 The grid provides structure, but at what cost? We explore the philosophical implications of strict alignment in UX design.

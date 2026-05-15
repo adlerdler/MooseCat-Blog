@@ -17,8 +17,6 @@ import {
   Search,
   Edit3,
   Trash2,
-  ChevronLeft,
-  ChevronRight,
   Filter,
   Check,
   X,
@@ -31,6 +29,7 @@ import { useTheme } from '../../composables/useTheme';
 import { commentsData } from '../../data/comments';
 import { POSTS } from '../../data/posts';
 import { formatToShort } from '../../utils/dateUtils';
+import AdminPagination from '../../components/admin/AdminPagination.vue';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
@@ -38,7 +37,7 @@ const { isDarkMode } = useTheme();
 const searchQuery = ref('');
 const statusFilter = ref('all');
 const currentPage = ref(1);
-const itemsPerPage = 8;
+const itemsPerPage = ref(6);
 
 const comments = ref([...commentsData]);
 
@@ -58,11 +57,11 @@ const filteredComments = computed(() => {
   });
 });
 
-const totalPages = computed(() => Math.ceil(filteredComments.value.length / itemsPerPage));
+const totalPages = computed(() => Math.ceil(filteredComments.value.length / itemsPerPage.value));
 
 const paginatedComments = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage;
-  return filteredComments.value.slice(start, start + itemsPerPage);
+  const start = (currentPage.value - 1) * itemsPerPage.value;
+  return filteredComments.value.slice(start, start + itemsPerPage.value);
 });
 
 const getStatusColor = (status) => {
@@ -217,27 +216,12 @@ const rejectComment = (comment) => {
     </div>
 
     <!-- Pagination -->
-    <div class="flex items-center justify-between mt-8">
-      <div class="text-sm text-gray-400">
-        {{ t('admin_showing') }} {{ ((currentPage - 1) * itemsPerPage) + 1 }} - {{ Math.min(currentPage * itemsPerPage, filteredComments.length) }} {{ t('admin_of') }} {{ filteredComments.length }} {{ t('admin_comments') }}
-      </div>
-      <div class="flex items-center gap-2">
-        <button
-          @click="currentPage = Math.max(1, currentPage - 1)"
-          :disabled="currentPage === 1"
-          class="p-2 border border-gray-700 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          <ChevronLeft size="18" />
-        </button>
-        <span class="px-4 py-2 border border-gray-700">{{ currentPage }} / {{ totalPages }}</span>
-        <button
-          @click="currentPage = Math.min(totalPages, currentPage + 1)"
-          :disabled="currentPage === totalPages"
-          class="p-2 border border-gray-700 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          <ChevronRight size="18" />
-        </button>
-      </div>
-    </div>
+    <AdminPagination
+      :current-page="currentPage"
+      :total-pages="totalPages"
+      :total-items="filteredComments.length"
+      v-model:items-per-page="itemsPerPage"
+      @update:current-page="currentPage = $event"
+    />
   </div>
 </template>

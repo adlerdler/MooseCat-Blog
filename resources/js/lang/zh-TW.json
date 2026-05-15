@@ -142,6 +142,8 @@
   "login_authenticating": "驗證中...",
   "login_button": "登入",
   "login_return_site": "返回網站",
+  "admin_advertisements": "廣告管理",
+  "admin_advertisements_subtitle": "管理側邊欄和頁面廣告",
   "admin_users": "使用者管理",
   "admin_search_users": "搜尋使用者...",
   "admin_all_roles": "所有角色",

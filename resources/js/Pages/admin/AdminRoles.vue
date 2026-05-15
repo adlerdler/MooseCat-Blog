@@ -19,8 +19,6 @@ import {
   Search,
   Edit3,
   Trash2,
-  ChevronLeft,
-  ChevronRight,
   Users,
   Check,
   X,
@@ -28,7 +26,8 @@ import {
   permissions,
   getPermissionIdsByRoleId,
   RoleForm,
-  ConfirmDialog
+  ConfirmDialog,
+  AdminPagination
 } from '../../composables/useAdminImports';
 
 /**
@@ -196,34 +195,13 @@ const confirmDelete = () => {
     </div>
 
     <!-- Pagination -->
-    <div class="flex items-center justify-between mt-8">
-      <div :class="['text-sm', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
-        {{ t('admin_showing') }} {{ ((currentPage - 1) * itemsPerPage) + 1 }} - {{ Math.min(currentPage * itemsPerPage, filteredRoles.length) }} {{ t('admin_of') }} {{ filteredRoles.length }} {{ t('admin_roles') }}
-      </div>
-      <div class="flex items-center gap-2">
-        <button
-          @click="currentPage = Math.max(1, currentPage - 1)"
-          :disabled="currentPage === 1"
-          :class="[
-            'p-2 border disabled:opacity-50 disabled:cursor-not-allowed transition-colors',
-            isDarkMode ? 'border-gray-700 hover:bg-gray-700' : 'border-gray-300 hover:bg-gray-100'
-          ]"
-        >
-          <ChevronLeft :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'" size="18" />
-        </button>
-        <span :class="['px-4 py-2 border', isDarkMode ? 'border-gray-700 text-gray-400' : 'border-gray-300 text-gray-500']">{{ currentPage }} / {{ totalPages }}</span>
-        <button
-          @click="currentPage = Math.min(totalPages, currentPage + 1)"
-          :disabled="currentPage === totalPages"
-          :class="[
-            'p-2 border disabled:opacity-50 disabled:cursor-not-allowed transition-colors',
-            isDarkMode ? 'border-gray-700 hover:bg-gray-700' : 'border-gray-300 hover:bg-gray-100'
-          ]"
-        >
-          <ChevronRight :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'" size="18" />
-        </button>
-      </div>
-    </div>
+    <AdminPagination
+      :current-page="currentPage"
+      :total-pages="totalPages"
+      :total-items="filteredRoles.length"
+      :items-per-page="itemsPerPage"
+      @update:current-page="(page) => currentPage = page"
+    />
 
     <!-- Role Form Modal -->
     <RoleForm

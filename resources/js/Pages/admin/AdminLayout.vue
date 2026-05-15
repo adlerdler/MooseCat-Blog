@@ -41,7 +41,11 @@ import {
   Info,
   Archive,
   SlidersHorizontal,
-  Book
+  Book,
+  RotateCcw,
+  Image,
+  Zap,
+  ExternalLink
 } from 'lucide-vue-next';
 import ThemeToggle from '../../components/ThemeToggle.vue';
 import ToastContainer from '../../components/ToastContainer.vue';
@@ -150,7 +154,11 @@ const iconMap = {
   info: Info,
   archive: Archive,
   sliders: SlidersHorizontal,
-  books: Book
+  books: Book,
+  rotateCcw: RotateCcw,
+  image: Image,
+  zap: Zap,
+  menu: Menu
 };
 
 const menuItems = computed(() => {
@@ -240,8 +248,18 @@ const handleMouseLeave = (menuId) => {
         </div>
       </div>
       
-      <!-- User Info -->
-      <div class="relative flex items-center gap-4">
+      <!-- Actions -->
+      <div class="relative flex items-center gap-1 sm:gap-2">
+        <!-- Visit Website -->
+        <a 
+          href="/" 
+          target="_blank"
+          :class="['p-2 rounded-lg transition-colors group', isDarkMode ? 'text-gray-400 hover:text-white hover:bg-gray-700' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100']"
+          :title="t('login_return_site')"
+        >
+          <ExternalLink size="20" class="group-hover:scale-110 transition-transform" />
+        </a>
+
         <button
           @click="toggleUserMenu"
           class="flex items-center gap-3 transition-colors rounded-lg px-2 py-1"
@@ -430,7 +448,7 @@ const handleMouseLeave = (menuId) => {
                 isActiveRoute(item) ? '!text-construct-red' : (isDarkMode ? 'text-gray-400' : 'text-gray-600')
               ]"
             />
-            <span v-if="!isSidebarCollapsed">{{ item.label }}</span>
+            <span v-if="!isSidebarCollapsed" class="truncate flex-1 text-left">{{ item.label }}</span>
             <span 
               v-if="isSidebarCollapsed" 
               :class="[
@@ -537,7 +555,7 @@ const handleMouseLeave = (menuId) => {
       :title="t('login_logout')"
       :content="t('admin_delete_warning')"
       :confirm-text="t('confirm')"
-      :cancel-text="t('cancel')"
+      :cancel-text="t('admin_cancel')"
       confirm-variant="primary"
       @confirm="confirmLogout"
       @cancel="showLogoutConfirm = false"

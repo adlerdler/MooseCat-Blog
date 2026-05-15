@@ -15,14 +15,13 @@ import {
   formatToShort,
   FileText,
   Search,
-  ChevronLeft,
-  ChevronRight,
   Filter,
   User,
   Clock,
   Monitor,
   Info,
-  adminLogs
+  adminLogs,
+  AdminPagination
 } from '../../composables/useAdminImports';
 
 const { t, locale } = useI18n();
@@ -31,7 +30,7 @@ const { isDarkMode } = useTheme();
 const searchQuery = ref('');
 const actionFilter = ref('all');
 const currentPage = ref(1);
-const itemsPerPage = 10;
+const itemsPerPage = ref(6);
 
 const logs = ref([...adminLogs]);
 
@@ -50,11 +49,11 @@ const filteredLogs = computed(() => {
   });
 });
 
-const totalPages = computed(() => Math.ceil(filteredLogs.value.length / itemsPerPage));
+const totalPages = computed(() => Math.ceil(filteredLogs.value.length / itemsPerPage.value));
 
 const paginatedLogs = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage;
-  return filteredLogs.value.slice(start, start + itemsPerPage);
+  const start = (currentPage.value - 1) * itemsPerPage.value;
+  return filteredLogs.value.slice(start, start + itemsPerPage.value);
 });
 
 const getActionColor = (action) => {
@@ -193,36 +192,12 @@ const getActionIcon = (action) => {
     </div>
 
     <!-- Pagination -->
-    <div class="flex items-center justify-between mt-8">
-      <p :class="['text-sm', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
-        {{ t('admin_showing') }} {{ (currentPage - 1) * itemsPerPage + 1 }} - {{ Math.min(currentPage * itemsPerPage, filteredLogs.length) }} {{ t('admin_of') }} {{ filteredLogs.length }}
-      </p>
-      <div class="flex items-center gap-2">
-        <button
-          @click="currentPage = Math.max(1, currentPage - 1)"
-          :disabled="currentPage === 1"
-          :class="[
-            'p-3 border transition-colors',
-            currentPage === 1
-              ? (isDarkMode ? 'border-gray-700 text-gray-600 cursor-not-allowed' : 'border-gray-200 text-gray-400 cursor-not-allowed')
-              : (isDarkMode ? 'border-gray-600 text-white hover:border-construct-red hover:text-construct-red' : 'border-gray-300 text-gray-900 hover:border-construct-red hover:text-construct-red')
-          ]"
-        >
-          <ChevronLeft size="20" />
-        </button>
-        <button
-          @click="currentPage = Math.min(totalPages, currentPage + 1)"
-          :disabled="currentPage === totalPages || totalPages === 0"
-          :class="[
-            'p-3 border transition-colors',
-            currentPage === totalPages || totalPages === 0
-              ? (isDarkMode ? 'border-gray-700 text-gray-600 cursor-not-allowed' : 'border-gray-200 text-gray-400 cursor-not-allowed')
-              : (isDarkMode ? 'border-gray-600 text-white hover:border-construct-red hover:text-construct-red' : 'border-gray-300 text-gray-900 hover:border-construct-red hover:text-construct-red')
-          ]"
-        >
-          <ChevronRight size="20" />
-        </button>
-      </div>
-    </div>
+    <AdminPagination
+      :current-page="currentPage"
+      :total-pages="totalPages"
+      :total-items="filteredLogs.length"
+      v-model:items-per-page="itemsPerPage"
+      @update:current-page="currentPage = $event"
+    />
   </div>
 </template>

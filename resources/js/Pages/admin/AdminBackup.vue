@@ -15,8 +15,6 @@ import {
   FileText,
   Download,
   Trash2,
-  ChevronLeft,
-  ChevronRight,
   Plus,
   Search,
   Filter,
@@ -31,6 +29,7 @@ import { useTheme } from '../../composables/useTheme';
 import { backupRecords, getBackupTypeLabel, getBackupStatusLabel } from '../../data/backup';
 import { formatToShort } from '../../utils/dateUtils';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
+import AdminPagination from '../../components/admin/AdminPagination.vue';
 
 const { t, locale } = useI18n();
 const { isDarkMode } = useTheme();
@@ -38,7 +37,7 @@ const { isDarkMode } = useTheme();
 const searchQuery = ref('');
 const typeFilter = ref('all');
 const currentPage = ref(1);
-const itemsPerPage = 8;
+const itemsPerPage = ref(6);
 const showCreateModal = ref(false);
 const newBackupType = ref('full');
 const newBackupNote = ref('');
@@ -56,11 +55,11 @@ const filteredBackups = computed(() => {
   });
 });
 
-const totalPages = computed(() => Math.ceil(filteredBackups.value.length / itemsPerPage));
+const totalPages = computed(() => Math.ceil(filteredBackups.value.length / itemsPerPage.value));
 
 const paginatedBackups = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage;
-  return filteredBackups.value.slice(start, start + itemsPerPage);
+  const start = (currentPage.value - 1) * itemsPerPage.value;
+  return filteredBackups.value.slice(start, start + itemsPerPage.value);
 });
 
 const getTypeIcon = (type) => {
@@ -296,37 +295,13 @@ const confirmDelete = () => {
     </div>
 
     <!-- Pagination -->
-    <div class="flex items-center justify-between mt-8">
-      <p :class="['text-sm', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
-        {{ t('admin_showing') }} {{ (currentPage - 1) * itemsPerPage + 1 }} - {{ Math.min(currentPage * itemsPerPage, filteredBackups.length) }} {{ t('admin_of') }} {{ filteredBackups.length }}
-      </p>
-      <div class="flex items-center gap-2">
-        <button
-          @click="currentPage = Math.max(1, currentPage - 1)"
-          :disabled="currentPage === 1"
-          :class="[
-            'p-3 border transition-colors',
-            currentPage === 1
-              ? (isDarkMode ? 'border-gray-700 text-gray-600 cursor-not-allowed' : 'border-gray-200 text-gray-400 cursor-not-allowed')
-              : (isDarkMode ? 'border-gray-600 text-white hover:border-construct-red hover:text-construct-red' : 'border-gray-300 text-gray-900 hover:border-construct-red hover:text-construct-red')
-          ]"
-        >
-          <ChevronLeft size="20" />
-        </button>
-        <button
-          @click="currentPage = Math.min(totalPages, currentPage + 1)"
-          :disabled="currentPage === totalPages || totalPages === 0"
-          :class="[
-            'p-3 border transition-colors',
-            currentPage === totalPages || totalPages === 0
-              ? (isDarkMode ? 'border-gray-700 text-gray-600 cursor-not-allowed' : 'border-gray-200 text-gray-400 cursor-not-allowed')
-              : (isDarkMode ? 'border-gray-600 text-white hover:border-construct-red hover:text-construct-red' : 'border-gray-300 text-gray-900 hover:border-construct-red hover:text-construct-red')
-          ]"
-        >
-          <ChevronRight size="20" />
-        </button>
-      </div>
-    </div>
+    <AdminPagination
+      :current-page="currentPage"
+      :total-pages="totalPages"
+      :total-items="filteredBackups.length"
+      v-model:items-per-page="itemsPerPage"
+      @update:current-page="currentPage = $event"
+    />
 
     <!-- Create Backup Modal -->
     <Teleport to="body">
@@ -413,7 +388,7 @@ const confirmDelete = () => {
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 ]"
               >
-                {{ t('cancel') }}
+                {{ t('admin_cancel') }}
               </button>
               <button
                 @click="handleCreateBackup"

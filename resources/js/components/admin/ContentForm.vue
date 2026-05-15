@@ -47,10 +47,10 @@ const isEditMode = computed(() => props.editData !== null);
 
 const formTitle = computed(() => {
   const typeMap = {
-    post: isEditMode.value ? t('admin_form_edit') + ' ' + t('admin_posts') : t('admin_form_add') + ' ' + t('admin_posts'),
-    video: isEditMode.value ? t('admin_form_edit') + ' ' + t('admin_videos') : t('admin_form_add') + ' ' + t('admin_videos'),
-    project: isEditMode.value ? t('admin_form_edit') + ' ' + t('admin_projects') : t('admin_form_add') + ' ' + t('admin_projects'),
-    resource: isEditMode.value ? t('admin_form_edit') + ' ' + t('admin_resources') : t('admin_form_add') + ' ' + t('admin_resources')
+    post: isEditMode.value ? t('admin_edit') + ' ' + t('admin_posts') : t('admin_add') + ' ' + t('admin_posts'),
+    video: isEditMode.value ? t('admin_edit') + ' ' + t('admin_videos') : t('admin_add') + ' ' + t('admin_videos'),
+    project: isEditMode.value ? t('admin_edit') + ' ' + t('admin_projects') : t('admin_add') + ' ' + t('admin_projects'),
+    resource: isEditMode.value ? t('admin_edit') + ' ' + t('admin_resources') : t('admin_add') + ' ' + t('admin_resources')
   };
   return typeMap[props.contentType];
 });
@@ -67,7 +67,8 @@ const initFormData = () => {
       excerpt: '',
       content: '',
       color: 'red',
-      tags: ''
+      tags: '',
+      thumbnail: ''
     },
     video: {
       title: '',
@@ -272,6 +273,23 @@ const removeDrive = (index) => {
                   placeholder="YYYY.MM.DD"
                 />
               </div>
+            </div>
+
+            <div>
+              <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
+                {{ t('admin_post_form_thumbnail') }}
+              </label>
+              <input
+                v-model="formData.thumbnail"
+                type="text"
+                :class="[
+                  'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
+                  isDarkMode 
+                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                ]"
+                placeholder="输入缩略图 URL..."
+              />
             </div>
 
             <div>
@@ -654,7 +672,7 @@ const removeDrive = (index) => {
 
               <div>
                 <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
-                  {{ t('admin_resource_form_url') }} *
+                  {{ t('admin_resource_form_format') }} *
                 </label>
                 <select
                   v-model="formData.format"
@@ -709,7 +727,7 @@ const removeDrive = (index) => {
             <div>
               <div class="flex items-center justify-between mb-2">
                 <label :class="['block text-sm font-bold', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
-                  {{ t('admin_resource_form_drive_links') }}
+                  {{ t('admin_resource_form_drives') }}
                 </label>
                 <button
                   type="button"
@@ -717,7 +735,7 @@ const removeDrive = (index) => {
                   class="flex items-center gap-1 px-3 py-1 text-sm rounded-lg transition-colors bg-construct-red text-white hover:bg-construct-red/80"
                 >
                   <Plus class="w-4 h-4" />
-                  {{ t('admin_form_add') }}
+                  {{ t('admin_add') }}
                 </button>
               </div>
               <div class="space-y-3">
@@ -846,14 +864,14 @@ const removeDrive = (index) => {
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             ]"
           >
-            {{ t('cancel') }}
+            {{ t('admin_cancel') }}
           </button>
           <button
             @click="handleSubmit"
             class="flex-1 px-4 py-2 text-sm font-bold text-white bg-gray-900 rounded-lg hover:bg-construct-red transition-colors flex items-center justify-center gap-2"
           >
             <Save :size="16" />
-            {{ isEditMode ? t('admin_form_save') : t('admin_form_create') }}
+            {{ isEditMode ? t('admin_save') : t('admin_create') }}
           </button>
         </div>
       </div>

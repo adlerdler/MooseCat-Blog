@@ -413,3 +413,33 @@
     - 新增 `admin_content`（页面管理/CONTENT/頁面管理）。
     - 新增 `admin_system`（系统设置/SYSTEM/系統設定）。
 
+### 2026-05-15: 角色表单权限关联修复 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 修复 RoleForm.vue 中权限数据获取逻辑，从分离的 role_permissions.js 关联表获取角色权限。
+- **Rationale:**
+  - 角色数据已移除内嵌权限配置，权限通过关联表管理。
+  - 原代码直接访问 `props.editData.permissions` 导致 TypeError。
+- **Status:**
+  - 在 RoleForm.vue 中导入 `getPermissionIdsByRoleId` 和 `permissions`。
+  - 添加 `getRolePermissionNames()` 辅助函数，通过角色ID获取权限名称列表。
+  - 修改 watch 逻辑，使用新函数初始化表单权限数据。
+
+### 2026-05-15: 后台页面公共引入抽离 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 创建 `useAdminImports.js` 公共引入模块，抽离后台页面重复的 import 内容。
+- **Rationale:**
+  - 后台页面存在大量重复的 Vue API、图标、工具函数和组件导入。
+  - 统一管理便于维护，减少代码重复。
+- **Status:**
+  - 创建 `resources/js/composables/useAdminImports.js`，包含：
+    - Vue API（ref, computed, watch, useRouter, useI18n）
+    - Lucide 图标（30+ 常用图标）
+    - Composables（useTheme）
+    - 工具函数（formatToShort, getCategoryLabel 等）
+    - 数据文件（adminUsers, adminRoles, permissions, adminCategories, adminTags, adminLogs）
+    - 组件（ConfirmDialog, ContentForm, RoleForm, UserForm, MetaForm, TagInput）
+  - 更新 9 个后台页面使用公共引入：
+    - AdminPosts.vue、AdminUsers.vue、AdminRoles.vue、AdminCategories.vue
+    - AdminTags.vue、AdminLogs.vue、AdminMedia.vue、AdminAnalytics.vue、AdminSettings.vue
+  - 修复导入不存在组件的问题，移除 CategoryForm、TagForm 等不存在的组件导出。
+

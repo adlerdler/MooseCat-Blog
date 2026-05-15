@@ -137,7 +137,7 @@ const getConfirmButtonClasses = () => {
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             ]"
           >
-            {{ cancelText || t('cancel') }}
+            {{ cancelText || t('admin_cancel') }}
           </button>
           <button
             @click="handleConfirm"

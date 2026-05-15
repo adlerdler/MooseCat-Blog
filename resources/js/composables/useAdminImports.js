@@ -71,7 +71,16 @@ export {
   CheckCircle,
   XCircle,
   AlertCircle,
-  AlertTriangle
+  AlertTriangle,
+
+  // 媒体库新增
+  LayoutGrid,
+  List,
+
+  // 菜单管理新增
+  GripVertical,
+  ExternalLink,
+  RotateCcw
 } from 'lucide-vue-next';
 
 // 主题 composable
@@ -103,3 +112,4 @@ export { default as RoleForm } from '../components/admin/RoleForm.vue';
 export { default as UserForm } from '../components/admin/UserForm.vue';
 export { default as MetaForm } from '../components/admin/MetaForm.vue';
 export { default as TagInput } from '../components/admin/TagInput.vue';
+export { default as AdminPagination } from '../components/admin/AdminPagination.vue';

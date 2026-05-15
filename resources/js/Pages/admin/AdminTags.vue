@@ -19,13 +19,12 @@ import {
   Search,
   Edit3,
   Trash2,
-  ChevronLeft,
-  ChevronRight,
   Filter,
   FileText,
   adminTags,
   MetaForm,
-  ConfirmDialog
+  ConfirmDialog,
+  AdminPagination
 } from '../../composables/useAdminImports';
 
 const { t } = useI18n();
@@ -34,7 +33,7 @@ const { isDarkMode } = useTheme();
 const searchQuery = ref('');
 const statusFilter = ref('all');
 const currentPage = ref(1);
-const itemsPerPage = 12;
+const itemsPerPage = ref(6);
 const isFormVisible = ref(false);
 const editingTag = ref(null);
 const showDeleteConfirm = ref(false);
@@ -50,11 +49,11 @@ const filteredTags = computed(() => {
   });
 });
 
-const totalPages = computed(() => Math.ceil(filteredTags.value.length / itemsPerPage));
+const totalPages = computed(() => Math.ceil(filteredTags.value.length / itemsPerPage.value));
 
 const paginatedTags = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage;
-  return filteredTags.value.slice(start, start + itemsPerPage);
+  const start = (currentPage.value - 1) * itemsPerPage.value;
+  return filteredTags.value.slice(start, start + itemsPerPage.value);
 });
 
 const toggleStatus = (tag) => {
@@ -197,34 +196,13 @@ const confirmDelete = () => {
     </div>
 
     <!-- Pagination -->
-    <div class="flex items-center justify-between mt-8">
-      <div :class="['text-sm', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
-        {{ t('admin_showing') }} {{ ((currentPage - 1) * itemsPerPage) + 1 }} - {{ Math.min(currentPage * itemsPerPage, filteredTags.length) }} {{ t('admin_of') }} {{ filteredTags.length }} {{ t('admin_tags') }}
-      </div>
-      <div class="flex items-center gap-2">
-        <button
-          @click="currentPage = Math.max(1, currentPage - 1)"
-          :disabled="currentPage === 1"
-          :class="[
-            'p-2 border disabled:opacity-50 disabled:cursor-not-allowed transition-colors',
-            isDarkMode ? 'border-gray-700 hover:bg-gray-700' : 'border-gray-300 hover:bg-gray-100'
-          ]"
-        >
-          <ChevronLeft size="18" />
-        </button>
-        <span :class="['px-4 py-2 border', isDarkMode ? 'border-gray-700 text-white' : 'border-gray-300 text-gray-900']">{{ currentPage }} / {{ totalPages }}</span>
-        <button
-          @click="currentPage = Math.min(totalPages, currentPage + 1)"
-          :disabled="currentPage === totalPages"
-          :class="[
-            'p-2 border disabled:opacity-50 disabled:cursor-not-allowed transition-colors',
-            isDarkMode ? 'border-gray-700 hover:bg-gray-700' : 'border-gray-300 hover:bg-gray-100'
-          ]"
-        >
-          <ChevronRight size="18" />
-        </button>
-      </div>
-    </div>
+    <AdminPagination
+      :current-page="currentPage"
+      :total-pages="totalPages"
+      :total-items="filteredTags.length"
+      v-model:items-per-page="itemsPerPage"
+      @update:current-page="currentPage = $event"
+    />
 
     <!-- Meta Form Modal -->
     <MetaForm

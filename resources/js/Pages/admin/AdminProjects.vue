@@ -17,8 +17,6 @@ import {
   Trash2,
   Eye,
   Clock,
-  ChevronLeft,
-  ChevronRight,
   Filter,
   ExternalLink,
   Github
@@ -28,13 +26,14 @@ import { useTheme } from '../../composables/useTheme';
 import { formatToShort } from '../../utils/dateUtils';
 import ContentForm from '../../components/admin/ContentForm.vue';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
+import AdminPagination from '../../components/admin/AdminPagination.vue';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
 
 const searchQuery = ref('');
 const currentPage = ref(1);
-const itemsPerPage = 10;
+const itemsPerPage = ref(6);
 const selectedStatus = ref('all');
 const isFormVisible = ref(false);
 const editingProject = ref(null);
@@ -63,13 +62,13 @@ const filteredProjects = computed(() => {
 });
 
 const paginatedProjects = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage;
-  const end = start + itemsPerPage;
+  const start = (currentPage.value - 1) * itemsPerPage.value;
+  const end = start + itemsPerPage.value;
   return filteredProjects.value.slice(start, end);
 });
 
 const totalPages = computed(() => {
-  return Math.ceil(filteredProjects.value.length / itemsPerPage);
+  return Math.ceil(filteredProjects.value.length / itemsPerPage.value);
 });
 
 const getStatusColor = (status) => {
@@ -130,12 +129,6 @@ const handleCancel = () => {
   isFormVisible.value = false;
   editingProject.value = null;
 };
-
-const goToPage = (page) => {
-  if (page >= 1 && page <= totalPages.value) {
-    currentPage.value = page;
-  }
-};
 </script>
 
 <template>
@@ -173,7 +166,7 @@ const goToPage = (page) => {
           ]"
         >
           <option v-for="s in statuses" :key="s" :value="s">
-            {{ s === 'all' ? t('admin_filter_all') : s }}
+            {{ s === 'all' ? t('admin_all') : s }}
           </option>
         </select>
       </div>
@@ -184,7 +177,7 @@ const goToPage = (page) => {
         class="flex items-center gap-2 px-6 py-3 bg-construct-red text-white font-bold tracking-widest uppercase text-sm hover:bg-red-700 transition-colors rounded"
       >
         <Plus size="16" class="!text-white" />
-        {{ t('admin_add_new') }}
+        {{ t('admin_add') }}
       </button>
     </div>
 
@@ -275,40 +268,13 @@ const goToPage = (page) => {
     </div>
 
     <!-- Pagination -->
-    <div class="flex items-center justify-between mt-8">
-      <div class="text-sm text-gray-400">
-        {{ t('admin_showing') }} {{ (currentPage - 1) * itemsPerPage + 1 }} - {{ Math.min(currentPage * itemsPerPage, filteredProjects.length) }} {{ t('admin_of') }} {{ filteredProjects.length }}
-      </div>
-      <div class="flex gap-2">
-        <button
-          @click="goToPage(currentPage - 1)"
-          :disabled="currentPage === 1"
-          class="p-2 border border-gray-700 text-gray-400 hover:text-white hover:border-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          <ChevronLeft size="18" />
-        </button>
-        <button
-          v-for="page in totalPages"
-          :key="page"
-          @click="goToPage(page)"
-          :class="[
-            'px-4 py-2 border text-sm font-bold transition-colors',
-            page === currentPage
-              ? 'border-construct-red text-construct-red bg-gray-800'
-              : 'border-gray-700 text-gray-400 hover:text-white hover:border-gray-500'
-          ]"
-        >
-          {{ page }}
-        </button>
-        <button
-          @click="goToPage(currentPage + 1)"
-          :disabled="currentPage === totalPages"
-          class="p-2 border border-gray-700 text-gray-400 hover:text-white hover:border-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          <ChevronRight size="18" />
-        </button>
-      </div>
-    </div>
+    <AdminPagination
+      :current-page="currentPage"
+      :total-pages="totalPages"
+      :total-items="filteredProjects.length"
+      v-model:items-per-page="itemsPerPage"
+      @update:current-page="currentPage = $event"
+    />
 
     <!-- Content Form Modal -->
     <ContentForm

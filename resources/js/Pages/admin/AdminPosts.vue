@@ -4,7 +4,7 @@
  * 
  * 功能说明：
  * - 管理系统中的所有文章
- * - 支持搜索和筛选功能
+ * - 支持搜索和分类筛选功能
  * - 支持文章的增删改查操作
  */
 import {
@@ -26,25 +26,48 @@ import {
   Filter,
   ConfirmDialog,
   ContentForm,
+  AdminPagination,
   getAuthorName
 } from '../../composables/useAdminImports';
 import { POSTS } from '../../data/posts';
+import { categories, adminCategories } from '../../data/categories';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
 
 const searchQuery = ref('');
 const currentPage = ref(1);
-const itemsPerPage = 10;
+const itemsPerPage = ref(6);
+const selectedCategory = ref('all');
 const isFormVisible = ref(false);
 const editingPost = ref(null);
 const showDeleteConfirm = ref(false);
 const deletingPostId = ref(null);
 
+const categoryOptions = computed(() => {
+  return ['all', ...adminCategories.map(cat => cat.value)];
+});
+
+const getCategoryColor = (category) => {
+  const colorMap = {
+    'THEORY': isDarkMode ? 'bg-purple-900 text-purple-300' : 'bg-purple-100 text-purple-700',
+    'DESIGN': isDarkMode ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-700',
+    'TECHNOLOGY': isDarkMode ? 'bg-green-900 text-green-300' : 'bg-green-100 text-green-700',
+    'CULTURE': isDarkMode ? 'bg-yellow-900 text-yellow-300' : 'bg-yellow-100 text-yellow-700',
+    'SYSTEM-DESIGN': isDarkMode ? 'bg-indigo-900 text-indigo-300' : 'bg-indigo-100 text-indigo-700',
+    'ENGINEERING': isDarkMode ? 'bg-orange-900 text-orange-300' : 'bg-orange-100 text-orange-700'
+  };
+  return colorMap[category] || (isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600');
+};
+
 const filteredPosts = computed(() => {
   let result = [...POSTS];
   
   result.sort((a, b) => new Date(b.date) - new Date(a.date));
+  
+  if (selectedCategory.value !== 'all') {
+    result = result.filter(post => post.category === selectedCategory.value);
+  }
   
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase();
@@ -58,11 +81,11 @@ const filteredPosts = computed(() => {
   return result;
 });
 
-const totalPages = computed(() => Math.ceil(filteredPosts.value.length / itemsPerPage));
+const totalPages = computed(() => Math.ceil(filteredPosts.value.length / itemsPerPage.value));
 
 const paginatedPosts = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage;
-  return filteredPosts.value.slice(start, start + itemsPerPage);
+  const start = (currentPage.value - 1) * itemsPerPage.value;
+  return filteredPosts.value.slice(start, start + itemsPerPage.value);
 });
 
 const handleAdd = () => {
@@ -92,174 +115,172 @@ const handleSave = (data) => {
   console.log('Save post:', data);
   isFormVisible.value = false;
 };
+
+const handleCancel = () => {
+  isFormVisible.value = false;
+  editingPost.value = null;
+};
 </script>
 
 <template>
-  <div class="min-h-screen">
-    <!-- Header -->
-    <div :class="['flex items-center justify-between mb-8', isDarkMode ? 'text-white' : 'text-gray-900']">
-      <div>
-        <h1 class="text-3xl font-bold tracking-wider">{{ t('admin_posts') }}</h1>
-        <p :class="['mt-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_manage_all_posts') }}</p>
+  <div class="p-8">
+    <!-- Page Header -->
+    <div class="mb-8">
+      <h2 class="font-display text-4xl tracking-tighter mb-2">{{ t('admin_posts') }}</h2>
+      <p class="text-gray-400 text-sm font-bold tracking-widest uppercase">{{ t('admin_posts_subtitle') }}</p>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="flex flex-col md:flex-row gap-4 mb-6">
+      <!-- Search -->
+      <div class="relative flex-1">
+        <Search :class="['absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5', isDarkMode ? 'text-gray-500' : 'text-gray-400']" />
+        <input
+          v-model="searchQuery"
+          type="text"
+          :placeholder="t('admin_search_placeholder')"
+          :class="[
+            'w-full pl-10 pr-4 py-3 border focus:border-construct-red focus:outline-none transition-colors',
+            isDarkMode ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
+          ]"
+        />
       </div>
-      <button @click="handleAdd" class="flex items-center gap-2 px-6 py-3 bg-construct-red hover:bg-red-600 text-white font-bold tracking-wider transition-colors rounded">
-        <Plus size="16" /> {{ t('admin_add_post') }}
+      
+      <!-- Category Filter -->
+      <div class="relative">
+        <Filter :class="['absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5', isDarkMode ? 'text-gray-500' : 'text-gray-400']" />
+        <select
+          v-model="selectedCategory"
+          :class="[
+            'pl-10 pr-8 py-3 border focus:border-construct-red focus:outline-none appearance-none cursor-pointer min-w-[150px]',
+            isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'
+          ]"
+        >
+          <option v-for="cat in categoryOptions" :key="cat" :value="cat">
+            {{ cat === 'all' ? t('admin_all') : cat }}
+          </option>
+        </select>
+      </div>
+      
+      <!-- Add Button -->
+      <button
+        @click="handleAdd"
+        class="flex items-center gap-2 px-6 py-3 bg-construct-red text-white font-bold tracking-widest uppercase text-sm hover:bg-red-700 transition-colors rounded"
+      >
+        <Plus size="16" class="!text-white" />
+        {{ t('admin_add') }}
       </button>
     </div>
 
-    <!-- Search -->
-    <div :class="['flex items-center gap-4 mb-6', isDarkMode ? 'bg-gray-800' : 'bg-gray-50']" class="p-4 rounded-lg">
-      <Search :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'" size="20" />
-      <input
-        v-model="searchQuery"
-        type="text"
-        :placeholder="t('admin_search_posts')"
+    <!-- Posts Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div
+        v-for="post in paginatedPosts"
+        :key="post.id"
         :class="[
-          'flex-1 px-4 py-3 border bg-transparent focus:border-construct-red focus:outline-none transition-colors',
-          isDarkMode ? 'border-gray-700 text-white placeholder-gray-500' : 'border-gray-300 text-gray-900 placeholder-gray-400'
+          'border overflow-hidden hover:border-construct-red transition-colors',
+          isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
         ]"
-      />
-      <div :class="['flex items-center gap-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
-        <Filter size="18" />
-        <select
-          :class="[
-            'px-4 py-3 border focus:border-construct-red focus:outline-none transition-colors',
-            isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'
-          ]"
-        >
-          <option value="all">{{ t('admin_all') }}</option>
-          <option value="recent">{{ t('admin_recent') }}</option>
-          <option value="popular">{{ t('admin_popular') }}</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- Posts Table -->
-    <div :class="['border overflow-hidden', isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200']" class="rounded-lg">
-      <table class="w-full">
-        <thead>
-          <tr :class="['text-left', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-50 text-gray-600']">
-            <th :class="['px-6 py-4 text-xs font-bold tracking-widest uppercase']">ID</th>
-            <th :class="['px-6 py-4 text-xs font-bold tracking-widest uppercase']">{{ t('admin_table_title') }}</th>
-            <th :class="['px-6 py-4 text-xs font-bold tracking-widest uppercase']">{{ t('admin_table_category') }}</th>
-            <th :class="['px-6 py-4 text-xs font-bold tracking-widest uppercase']">{{ t('admin_table_author') }}</th>
-            <th :class="['px-6 py-4 text-xs font-bold tracking-widest uppercase']">{{ t('admin_table_date') }}</th>
-            <th :class="['px-6 py-4 text-xs font-bold tracking-widest uppercase']">{{ t('admin_table_tags') }}</th>
-            <th :class="['px-6 py-4 text-xs font-bold tracking-widest uppercase']">{{ t('admin_table_actions') }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            v-for="post in paginatedPosts"
-            :key="post.id"
-            :class="['border-t hover:bg-gray-50 transition-colors', isDarkMode ? 'border-gray-700 hover:bg-gray-700' : 'border-gray-200']"
-          >
-            <td :class="['px-6 py-4 text-sm font-mono', isDarkMode ? 'text-gray-400' : 'text-gray-500']">#{{ String(post.id).padStart(4, '0') }}</td>
-            <td class="px-6 py-4">
-              <div :class="['font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">{{ post.title }}</div>
-              <p :class="['text-sm mt-1 line-clamp-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ post.excerpt }}</p>
-            </td>
-            <td class="px-6 py-4">
-              <span
-                :class="[
-                  'text-xs px-3 py-1 uppercase font-bold',
-                  post.category === 'Theory' ? (isDarkMode ? 'bg-purple-900 text-purple-300' : 'bg-purple-100 text-purple-700') :
-                  post.category === 'Design' ? (isDarkMode ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-700') :
-                  post.category === 'Technology' ? (isDarkMode ? 'bg-green-900 text-green-300' : 'bg-green-100 text-green-700') :
-                  (isDarkMode ? 'bg-orange-900 text-orange-300' : 'bg-orange-100 text-orange-700')
-                ]"
-              >
-                {{ post.category }}
-              </span>
-            </td>
-            <td :class="['px-6 py-4 text-sm', isDarkMode ? 'text-gray-300' : 'text-gray-600']">{{ getAuthorName(post.userId) }}</td>
-            <td :class="['px-6 py-4 text-sm flex items-center gap-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
-              <Clock size="14" />
+      >
+        <!-- Post Thumbnail -->
+        <div class="relative aspect-video bg-gray-900">
+          <img
+            v-if="post.thumbnail"
+            :src="post.thumbnail"
+            :alt="post.title"
+            class="w-full h-full object-cover"
+          />
+          <div v-else class="w-full h-full flex items-center justify-center">
+            <FileText class="w-12 h-12 text-gray-600" />
+          </div>
+          <div class="absolute top-2 right-2 px-2 py-1 text-xs font-bold uppercase" :class="getCategoryColor(post.category)">
+            {{ post.category }}
+          </div>
+        </div>
+        
+        <!-- Post Info -->
+        <div class="p-4">
+          <h3 :class="['font-bold mb-2 line-clamp-2', isDarkMode ? 'text-white' : 'text-gray-900']">{{ post.title }}</h3>
+          <p :class="['text-sm mb-4 line-clamp-2', isDarkMode ? 'text-gray-400' : 'text-gray-600']">{{ post.excerpt }}</p>
+          
+          <!-- Tags -->
+          <div class="flex flex-wrap gap-1 mb-4">
+            <span
+              v-for="tag in post.tags.slice(0, 3)"
+              :key="tag"
+              :class="['text-xs px-2 py-1', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600']"
+              class="rounded"
+            >
+              {{ tag }}
+            </span>
+            <span v-if="post.tags.length > 3" :class="['text-xs px-2 py-1', isDarkMode ? 'bg-gray-700 text-gray-400' : 'bg-gray-100 text-gray-500']" class="rounded">
+              +{{ post.tags.length - 3 }}
+            </span>
+          </div>
+          
+          <div class="flex items-center justify-between">
+            <div :class="['flex items-center gap-2 text-xs', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
+              <Clock size="12" />
               {{ formatToShort(post.date) }}
-            </td>
-            <td class="px-6 py-4">
-              <div class="flex flex-wrap gap-1">
-                <span
-                  v-for="tag in post.tags.slice(0, 3)"
-                  :key="tag"
-                  :class="['text-xs px-2 py-1', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600']"
-                  class="rounded"
-                >
-                  {{ tag }}
-                </span>
-                <span v-if="post.tags.length > 3" :class="['text-xs px-2 py-1', isDarkMode ? 'bg-gray-700 text-gray-400' : 'bg-gray-100 text-gray-500']" class="rounded">
-                  +{{ post.tags.length - 3 }}
-                </span>
-              </div>
-            </td>
-            <td class="px-6 py-4">
-              <div class="flex items-center gap-2">
-                <button
-                  @click="handleEdit(post)"
-                  :class="['p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100 text-gray-600']"
-                  :title="t('admin_edit')"
-                >
-                  <Edit3 size="16" />
-                </button>
-                <button
-                  @click="handleDelete(post.id)"
-                  :class="['p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-red-900/50 text-red-400' : 'hover:bg-red-50 text-red-500']"
-                  :title="t('admin_delete')"
-                >
-                  <Trash2 size="16" />
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+              <span class="ml-2">{{ getAuthorName(post.userId) }}</span>
+            </div>
+            
+            <div class="flex gap-2">
+              <button
+                @click="handleEdit(post)"
+                :class="[
+                  'p-2 transition-colors',
+                  isDarkMode ? 'text-gray-400 hover:text-blue-400 hover:bg-gray-700' : 'text-gray-500 hover:text-blue-500 hover:bg-gray-100'
+                ]"
+                :title="t('admin_edit')"
+              >
+                <Edit3 size="14" />
+              </button>
+              <button
+                :class="[
+                  'p-2 transition-colors',
+                  isDarkMode ? 'text-gray-400 hover:text-green-400 hover:bg-gray-700' : 'text-gray-500 hover:text-green-500 hover:bg-gray-100'
+                ]"
+                :title="t('admin_view')"
+              >
+                <Eye size="14" />
+              </button>
+              <button
+                @click="handleDelete(post.id)"
+                :class="[
+                  'p-2 transition-colors',
+                  isDarkMode ? 'text-gray-400 hover:text-red-400 hover:bg-gray-700' : 'text-gray-500 hover:text-red-500 hover:bg-gray-100'
+                ]"
+                :title="t('admin_delete')"
+              >
+                <Trash2 size="14" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Pagination -->
-    <div class="flex items-center justify-between mt-8">
-      <div :class="['text-sm', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
-        {{ t('admin_showing') }} {{ ((currentPage - 1) * itemsPerPage) + 1 }} - {{ Math.min(currentPage * itemsPerPage, filteredPosts.length) }} {{ t('admin_of') }} {{ filteredPosts.length }} {{ t('admin_posts') }}
-      </div>
-      <div class="flex items-center gap-2">
-        <button
-          @click="currentPage = Math.max(1, currentPage - 1)"
-          :disabled="currentPage === 1"
-          :class="[
-            'flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-colors',
-            currentPage === 1
-              ? (isDarkMode ? 'bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-gray-100 text-gray-400 cursor-not-allowed')
-              : (isDarkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50')
-          ]"
-        >
-          <ChevronLeft size="16" />
-          {{ t('admin_prev') }}
-        </button>
-        <span :class="['px-4 py-2 font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">{{ currentPage }}</span>
-        <button
-          @click="currentPage = Math.min(totalPages, currentPage + 1)"
-          :disabled="currentPage === totalPages"
-          :class="[
-            'flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-colors',
-            currentPage === totalPages
-              ? (isDarkMode ? 'bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-gray-100 text-gray-400 cursor-not-allowed')
-              : (isDarkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50')
-          ]"
-        >
-          {{ t('admin_next') }}
-          <ChevronRight size="16" />
-        </button>
-      </div>
-    </div>
+    <AdminPagination
+      :current-page="currentPage"
+      :total-pages="totalPages"
+      :total-items="filteredPosts.length"
+      :items-per-page="itemsPerPage"
+      @update:current-page="(page) => currentPage.value = page"
+      @update:items-per-page="(size) => { itemsPerPage.value = size; currentPage.value = 1; }"
+    />
 
-    <!-- Form Modal -->
+    <!-- Content Form Modal -->
     <ContentForm
+      content-type="post"
       :edit-data="editingPost"
       :visible="isFormVisible"
       @save="handleSave"
-      @cancel="isFormVisible = false"
+      @cancel="handleCancel"
     />
 
-    <!-- Delete Confirmation -->
+    <!-- Delete Confirm Dialog -->
     <ConfirmDialog
       :visible="showDeleteConfirm"
       :title="t('admin_delete_post')"

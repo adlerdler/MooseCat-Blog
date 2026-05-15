@@ -27,50 +27,50 @@
  * - status: 状态（active/inactive，后台管理使用）
  */
 export const categories = [
-  { 
-    id: 1, 
-    name: 'THEORY', 
-    label: '理论', 
+  {
+    id: 1,
+    name: 'THEORY',
+    label: '理论',
     description: '理论研究与探索',
     postCount: 24,
     status: 'active'
   },
-  { 
-    id: 2, 
-    name: 'DESIGN', 
-    label: '设计', 
+  {
+    id: 2,
+    name: 'DESIGN',
+    label: '设计',
     description: '设计与创意',
     postCount: 18,
     status: 'active'
   },
-  { 
-    id: 3, 
-    name: 'CULTURE', 
-    label: '文化', 
+  {
+    id: 3,
+    name: 'CULTURE',
+    label: '文化',
     description: '文化与艺术',
     postCount: 12,
     status: 'active'
   },
-  { 
-    id: 4, 
-    name: 'SYSTEM-DESIGN', 
-    label: '系统设计', 
+  {
+    id: 4,
+    name: 'SYSTEM-DESIGN',
+    label: '系统设计',
     description: '系统架构与设计',
     postCount: 15,
     status: 'active'
   },
-  { 
-    id: 5, 
-    name: 'ENGINEERING', 
-    label: '工程', 
+  {
+    id: 5,
+    name: 'ENGINEERING',
+    label: '工程',
     description: '工程与实践',
     postCount: 8,
     status: 'active'
   },
-  { 
-    id: 6, 
-    name: 'HISTORY', 
-    label: '历史', 
+  {
+    id: 6,
+    name: 'HISTORY',
+    label: '历史',
     description: '历史与发展',
     postCount: 20,
     status: 'active'

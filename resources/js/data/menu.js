@@ -14,6 +14,7 @@ export const adminMenuItems = [
   { id: 'categories', labelKey: 'admin_categories', iconKey: 'folder', route: '/admin/categories' },
   { id: 'tags', labelKey: 'admin_tags', iconKey: 'tag', route: '/admin/tags' },
   { id: 'comments', labelKey: 'admin_comments', iconKey: 'messageSquare', route: '/admin/comments' },
+  { id: 'advertisements', labelKey: 'admin_advertisements', iconKey: 'zap', route: '/admin/advertisements' },
   { id: 'users', labelKey: 'admin_users', iconKey: 'users', route: '/admin/users' },
   { id: 'media', labelKey: 'admin_media', iconKey: 'hardDrive', route: '/admin/media' },
   {
@@ -22,9 +23,11 @@ export const adminMenuItems = [
     iconKey: 'settings',
     children: [
       { id: 'settings', labelKey: 'admin_basic_settings', iconKey: 'sliders', route: '/admin/settings' },
+      { id: 'front_menu', labelKey: 'admin_front_menu', iconKey: 'menu', route: '/admin/front-menu' },
       { id: 'roles', labelKey: 'admin_roles', iconKey: 'shield', route: '/admin/roles' },
       { id: 'logs', labelKey: 'admin_logs', iconKey: 'fileText', route: '/admin/logs' },
       { id: 'backup', labelKey: 'admin_backup', iconKey: 'archive', route: '/admin/backup' },
+      { id: 'restore', labelKey: 'admin_restore', iconKey: 'rotateCcw', route: '/admin/restore' },
       { id: 'about', labelKey: 'admin_about', iconKey: 'info', route: '/admin/about' },
     ]
   },

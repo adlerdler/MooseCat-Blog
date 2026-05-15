@@ -37,7 +37,7 @@ const { isDarkMode } = useTheme();
 const isEditMode = computed(() => props.editData !== null);
 
 const formTitle = computed(() => {
-  return isEditMode.value ? t('admin_form_edit') + ' ' + t('admin_role') : t('admin_form_add') + ' ' + t('admin_role');
+  return isEditMode.value ? t('admin_edit') + ' ' + t('admin_role') : t('admin_add') + ' ' + t('admin_role');
 });
 
 const formData = ref({});
@@ -220,14 +220,14 @@ const handleCancel = () => {
                 : 'border-gray-300 text-gray-700 hover:bg-gray-100'
             ]"
           >
-            {{ t('cancel') }}
+            {{ t('admin_cancel') }}
           </button>
           <button
             @click="handleSubmit"
             class="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-construct-red text-white font-bold tracking-widest uppercase text-sm hover:bg-red-700 transition-colors rounded"
           >
             <Save class="w-4 h-4" />
-            {{ isEditMode ? t('admin_form_save') : t('admin_form_create') }}
+            {{ isEditMode ? t('admin_save') : t('admin_create') }}
           </button>
         </div>
       </div>

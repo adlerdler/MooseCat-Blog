@@ -22,7 +22,6 @@ import {
   Edit3,
   Trash2,
   Eye,
-  ChevronRight,
   Filter,
   User,
   Mail,
@@ -32,7 +31,8 @@ import {
   getRoleLabel,
   getRoleStyle,
   UserForm,
-  ConfirmDialog
+  ConfirmDialog,
+  AdminPagination
 } from '../../composables/useAdminImports';
 
 const { t } = useI18n();
@@ -236,28 +236,13 @@ const confirmDelete = () => {
     </div>
 
     <!-- Pagination -->
-    <div class="flex items-center justify-between mt-6">
-      <div class="text-sm text-gray-400">
-        {{ t('admin_showing') }} {{ ((currentPage - 1) * itemsPerPage) + 1 }} - {{ Math.min(currentPage * itemsPerPage, filteredUsers.length) }} {{ t('admin_of') }} {{ filteredUsers.length }} {{ t('admin_users') }}
-      </div>
-      <div class="flex items-center gap-2">
-        <button
-          @click="currentPage = Math.max(1, currentPage - 1)"
-          :disabled="currentPage === 1"
-          class="p-2 border border-gray-700 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          <ChevronLeft size="18" />
-        </button>
-        <span class="px-4 py-2 border border-gray-700">{{ currentPage }} / {{ totalPages }}</span>
-        <button
-          @click="currentPage = Math.min(totalPages, currentPage + 1)"
-          :disabled="currentPage === totalPages"
-          class="p-2 border border-gray-700 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          <ChevronRight size="18" />
-        </button>
-      </div>
-    </div>
+    <AdminPagination
+      :current-page="currentPage"
+      :total-pages="totalPages"
+      :total-items="filteredUsers.length"
+      :items-per-page="itemsPerPage"
+      @update:current-page="(page) => currentPage = page"
+    />
 
     <!-- User Detail View -->
     <UserForm

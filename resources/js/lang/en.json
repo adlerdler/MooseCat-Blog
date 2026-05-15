@@ -142,6 +142,8 @@
   "login_authenticating": "AUTHENTICATING...",
   "login_button": "LOGIN",
   "login_return_site": "RETURN TO SITE",
+  "admin_advertisements": "Ads",
+  "admin_advertisements_subtitle": "Manage sidebar and page ads",
   "admin_users": "USERS",
   "admin_search_users": "Search users...",
   "admin_all_roles": "ALL ROLES",
