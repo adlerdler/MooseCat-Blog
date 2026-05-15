@@ -13,13 +13,16 @@
  * - 键盘快捷键打开搜索（需安装 SearchOverlay）
  * - 底部 Footer 显示控制
  */
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import { Search, ArrowRight, Send, Mail } from 'lucide-vue-next'
 import { Motion, AnimatePresence } from 'motion-v'
 import { useTheme } from '../../composables/useTheme'
 import { useI18n } from 'vue-i18n'
-import { categories, marqueeText, techStack, featuredPosts } from '../../data/home'
+import { categories, marqueeText, techStack } from '../../data/home'
+import { POSTS } from '../../data/posts'
+import { categories as categoryList } from '../../data/categories'
+import { getCategoryLabel } from '../../utils/categoryUtils'
 
 const { t } = useI18n()
 const { initAccentTheme } = useTheme()
@@ -28,6 +31,17 @@ const isFooterVisible = ref(true)
 const isSearchOpen = ref(false)
 const showSplash = ref(false)
 const showContent = ref(false)
+
+const featuredPosts = computed(() => {
+  return POSTS.slice(0, 3).map(post => ({
+    id: post.id,
+    title: post.title,
+    excerpt: post.excerpt,
+    category: post.category,
+    categoryLabel: getCategoryLabel(categoryList, post.category),
+    views_count: Math.floor(Math.random() * 1000) + 500
+  }))
+})
 
 onMounted(() => {
   initAccentTheme()

@@ -305,5 +305,16 @@
   "admin_resource_form_file_size": "文件大小",
   "admin_resource_form_downloads": "下载次数",
   "admin_confirm_title": "确认操作",
-  "admin_confirm_content": "确定要继续吗？"
+  "admin_confirm_content": "确定要继续吗？",
+  "admin_all_actions": "全部操作",
+  "user_login": "用户登录",
+  "post_create": "创建文章",
+  "post_edit": "编辑文章",
+  "post_delete": "删除文章",
+  "user_update": "更新用户",
+  "role_change": "角色变更",
+  "comment_delete": "删除评论",
+  "settings_update": "更新配置",
+  "category_create": "创建分类",
+  "media_upload": "上传媒体"
 }

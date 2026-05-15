@@ -7,9 +7,12 @@
  * - 支持搜索和筛选功能
  * - 支持文章的增删改查操作
  */
-import { ref, computed } from 'vue';
-import { useI18n } from 'vue-i18n';
 import {
+  ref,
+  computed,
+  useI18n,
+  useTheme,
+  formatToShort,
   FileText,
   Plus,
   Search,
@@ -20,13 +23,12 @@ import {
   Tag,
   ChevronLeft,
   ChevronRight,
-  Filter
-} from 'lucide-vue-next';
+  Filter,
+  ConfirmDialog,
+  ContentForm,
+  getAuthorName
+} from '../../composables/useAdminImports';
 import { POSTS } from '../../data/posts';
-import { useTheme } from '../../composables/useTheme';
-import { formatToShort } from '../../utils/dateUtils';
-import ContentForm from '../../components/admin/ContentForm.vue';
-import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
@@ -34,26 +36,21 @@ const { isDarkMode } = useTheme();
 const searchQuery = ref('');
 const currentPage = ref(1);
 const itemsPerPage = 10;
-const selectedCategory = ref('all');
 const isFormVisible = ref(false);
 const editingPost = ref(null);
 const showDeleteConfirm = ref(false);
 const deletingPostId = ref(null);
 
-const categories = ['all', 'Theory', 'Design', 'Technology', 'Culture'];
-
 const filteredPosts = computed(() => {
   let result = [...POSTS];
   
-  if (selectedCategory.value !== 'all') {
-    result = result.filter(post => post.category === selectedCategory.value);
-  }
+  result.sort((a, b) => new Date(b.date) - new Date(a.date));
   
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase();
     result = result.filter(post =>
       post.title.toLowerCase().includes(query) ||
-      post.author.toLowerCase().includes(query) ||
+      getAuthorName(post.userId).toLowerCase().includes(query) ||
       post.tags.some(tag => tag.toLowerCase().includes(query))
     );
   }
@@ -61,15 +58,22 @@ const filteredPosts = computed(() => {
   return result;
 });
 
+const totalPages = computed(() => Math.ceil(filteredPosts.value.length / itemsPerPage));
+
 const paginatedPosts = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage;
-  const end = start + itemsPerPage;
-  return filteredPosts.value.slice(start, end);
+  return filteredPosts.value.slice(start, start + itemsPerPage);
 });
 
-const totalPages = computed(() => {
-  return Math.ceil(filteredPosts.value.length / itemsPerPage);
-});
+const handleAdd = () => {
+  editingPost.value = null;
+  isFormVisible.value = true;
+};
+
+const handleEdit = (post) => {
+  editingPost.value = { ...post };
+  isFormVisible.value = true;
+};
 
 const handleDelete = (id) => {
   deletingPostId.value = id;
@@ -84,134 +88,76 @@ const confirmDelete = () => {
   showDeleteConfirm.value = false;
 };
 
-const handleEdit = (post) => {
-  editingPost.value = {
-    id: post.id,
-    title: post.title,
-    author: post.author,
-    category: post.category,
-    tags: post.tags.join(', '),
-    excerpt: post.excerpt,
-    content: post.content,
-    date: post.date,
-    status: 'published'
-  };
-  isFormVisible.value = true;
-};
-
-const handleAdd = () => {
-  editingPost.value = null;
-  isFormVisible.value = true;
-};
-
 const handleSave = (data) => {
-  if (editingPost.value) {
-    console.log('Update post:', data);
-  } else {
-    console.log('Create post:', data);
-  }
+  console.log('Save post:', data);
   isFormVisible.value = false;
-  editingPost.value = null;
-};
-
-const handleCancel = () => {
-  isFormVisible.value = false;
-  editingPost.value = null;
-};
-
-const goToPage = (page) => {
-  if (page >= 1 && page <= totalPages.value) {
-    currentPage.value = page;
-  }
 };
 </script>
 
 <template>
-  <div class="p-8">
-    <!-- Page Header -->
-    <div class="mb-8">
-      <h2 :class="['font-display text-4xl tracking-tighter mb-2', isDarkMode ? 'text-white' : 'text-gray-900']">{{ t('admin_posts') }}</h2>
-      <p :class="['text-sm font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_posts_subtitle') }}</p>
-    </div>
-
-    <!-- Toolbar -->
-    <div class="flex flex-col md:flex-row gap-4 mb-6">
-      <!-- Search -->
-      <div class="relative flex-1">
-        <Search :class="['absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5', isDarkMode ? 'text-gray-500' : 'text-gray-400']" />
-        <input
-          v-model="searchQuery"
-          type="text"
-          :placeholder="t('admin_search_placeholder')"
-          :class="[
-            'w-full pl-10 pr-4 py-3 border focus:border-construct-red focus:outline-none transition-colors',
-            isDarkMode ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
-          ]"
-        />
+  <div class="min-h-screen">
+    <!-- Header -->
+    <div :class="['flex items-center justify-between mb-8', isDarkMode ? 'text-white' : 'text-gray-900']">
+      <div>
+        <h1 class="text-3xl font-bold tracking-wider">{{ t('admin_posts') }}</h1>
+        <p :class="['mt-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_manage_all_posts') }}</p>
       </div>
-      
-      <!-- Category Filter -->
-      <div class="relative">
-        <Filter :class="['absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5', isDarkMode ? 'text-gray-500' : 'text-gray-400']" />
-        <select
-          v-model="selectedCategory"
-          :class="[
-            'pl-10 pr-8 py-3 border focus:border-construct-red focus:outline-none appearance-none cursor-pointer min-w-[150px]',
-            isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'
-          ]"
-        >
-          <option v-for="cat in categories" :key="cat" :value="cat">
-            {{ cat === 'all' ? t('admin_filter_all') : cat }}
-          </option>
-        </select>
-      </div>
-      
-      <!-- Add Button -->
-      <button
-        @click="handleAdd"
-        class="flex items-center gap-2 px-6 py-3 bg-construct-red text-white font-bold tracking-widest uppercase text-sm hover:bg-red-700 transition-colors rounded"
-      >
-        <Plus size="16" class="!text-white" />
-        {{ t('admin_add_new') }}
+      <button @click="handleAdd" class="flex items-center gap-2 px-6 py-3 bg-construct-red hover:bg-red-600 text-white font-bold tracking-wider transition-colors rounded">
+        <Plus size="16" /> {{ t('admin_add_post') }}
       </button>
     </div>
 
+    <!-- Search -->
+    <div :class="['flex items-center gap-4 mb-6', isDarkMode ? 'bg-gray-800' : 'bg-gray-50']" class="p-4 rounded-lg">
+      <Search :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'" size="20" />
+      <input
+        v-model="searchQuery"
+        type="text"
+        :placeholder="t('admin_search_posts')"
+        :class="[
+          'flex-1 px-4 py-3 border bg-transparent focus:border-construct-red focus:outline-none transition-colors',
+          isDarkMode ? 'border-gray-700 text-white placeholder-gray-500' : 'border-gray-300 text-gray-900 placeholder-gray-400'
+        ]"
+      />
+      <div :class="['flex items-center gap-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
+        <Filter size="18" />
+        <select
+          :class="[
+            'px-4 py-3 border focus:border-construct-red focus:outline-none transition-colors',
+            isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'
+          ]"
+        >
+          <option value="all">{{ t('admin_all') }}</option>
+          <option value="recent">{{ t('admin_recent') }}</option>
+          <option value="popular">{{ t('admin_popular') }}</option>
+        </select>
+      </div>
+    </div>
+
     <!-- Posts Table -->
-    <div :class="['border overflow-hidden', isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200']">
+    <div :class="['border overflow-hidden', isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200']" class="rounded-lg">
       <table class="w-full">
-        <thead :class="['border-b', isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-200']">
-          <tr>
-            <th :class="['px-6 py-4 text-left text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_table_title') }}</th>
-            <th :class="['px-6 py-4 text-left text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_table_category') }}</th>
-            <th :class="['px-6 py-4 text-left text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_table_author') }}</th>
-            <th :class="['px-6 py-4 text-left text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_table_date') }}</th>
-            <th :class="['px-6 py-4 text-left text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_table_actions') }}</th>
+        <thead>
+          <tr :class="['text-left', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-50 text-gray-600']">
+            <th :class="['px-6 py-4 text-xs font-bold tracking-widest uppercase']">ID</th>
+            <th :class="['px-6 py-4 text-xs font-bold tracking-widest uppercase']">{{ t('admin_table_title') }}</th>
+            <th :class="['px-6 py-4 text-xs font-bold tracking-widest uppercase']">{{ t('admin_table_category') }}</th>
+            <th :class="['px-6 py-4 text-xs font-bold tracking-widest uppercase']">{{ t('admin_table_author') }}</th>
+            <th :class="['px-6 py-4 text-xs font-bold tracking-widest uppercase']">{{ t('admin_table_date') }}</th>
+            <th :class="['px-6 py-4 text-xs font-bold tracking-widest uppercase']">{{ t('admin_table_tags') }}</th>
+            <th :class="['px-6 py-4 text-xs font-bold tracking-widest uppercase']">{{ t('admin_table_actions') }}</th>
           </tr>
         </thead>
-        <tbody :class="['divide-y', isDarkMode ? 'divide-gray-700' : 'divide-gray-200']">
+        <tbody>
           <tr
             v-for="post in paginatedPosts"
             :key="post.id"
-            :class="['transition-colors', isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50']"
+            :class="['border-t hover:bg-gray-50 transition-colors', isDarkMode ? 'border-gray-700 hover:bg-gray-700' : 'border-gray-200']"
           >
+            <td :class="['px-6 py-4 text-sm font-mono', isDarkMode ? 'text-gray-400' : 'text-gray-500']">#{{ String(post.id).padStart(4, '0') }}</td>
             <td class="px-6 py-4">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-construct-red flex items-center justify-center">
-                  <FileText :class="isDarkMode ? 'text-white' : 'text-white'" size="18" />
-                </div>
-                <div>
-                  <div :class="['font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">{{ post.title }}</div>
-                  <div class="flex gap-2 mt-1">
-                    <span
-                      v-for="tag in post.tags.slice(0, 2)"
-                      :key="tag"
-                      :class="['text-[10px] px-2 py-0.5 uppercase', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600']"
-                    >
-                      #{{ tag }}
-                    </span>
-                  </div>
-                </div>
-              </div>
+              <div :class="['font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">{{ post.title }}</div>
+              <p :class="['text-sm mt-1 line-clamp-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ post.excerpt }}</p>
             </td>
             <td class="px-6 py-4">
               <span
@@ -226,29 +172,38 @@ const goToPage = (page) => {
                 {{ post.category }}
               </span>
             </td>
-            <td :class="['px-6 py-4 text-sm', isDarkMode ? 'text-gray-300' : 'text-gray-600']">{{ post.author }}</td>
+            <td :class="['px-6 py-4 text-sm', isDarkMode ? 'text-gray-300' : 'text-gray-600']">{{ getAuthorName(post.userId) }}</td>
             <td :class="['px-6 py-4 text-sm flex items-center gap-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
               <Clock size="14" />
               {{ formatToShort(post.date) }}
             </td>
             <td class="px-6 py-4">
-              <div class="flex gap-2">
+              <div class="flex flex-wrap gap-1">
+                <span
+                  v-for="tag in post.tags.slice(0, 3)"
+                  :key="tag"
+                  :class="['text-xs px-2 py-1', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600']"
+                  class="rounded"
+                >
+                  {{ tag }}
+                </span>
+                <span v-if="post.tags.length > 3" :class="['text-xs px-2 py-1', isDarkMode ? 'bg-gray-700 text-gray-400' : 'bg-gray-100 text-gray-500']" class="rounded">
+                  +{{ post.tags.length - 3 }}
+                </span>
+              </div>
+            </td>
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-2">
                 <button
                   @click="handleEdit(post)"
-                  :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:text-blue-400 hover:bg-gray-600' : 'text-gray-500 hover:text-blue-500 hover:bg-gray-100']"
+                  :class="['p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100 text-gray-600']"
                   :title="t('admin_edit')"
                 >
                   <Edit3 size="16" />
                 </button>
                 <button
-                  :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:text-green-400 hover:bg-gray-600' : 'text-gray-500 hover:text-green-500 hover:bg-gray-100']"
-                  :title="t('admin_view')"
-                >
-                  <Eye size="16" />
-                </button>
-                <button
                   @click="handleDelete(post.id)"
-                  :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:text-red-400 hover:bg-gray-600' : 'text-gray-500 hover:text-red-500 hover:bg-gray-100']"
+                  :class="['p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-red-900/50 text-red-400' : 'hover:bg-red-50 text-red-500']"
                   :title="t('admin_delete')"
                 >
                   <Trash2 size="16" />
@@ -261,57 +216,54 @@ const goToPage = (page) => {
     </div>
 
     <!-- Pagination -->
-    <div class="flex items-center justify-between mt-6">
+    <div class="flex items-center justify-between mt-8">
       <div :class="['text-sm', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
-        {{ t('admin_showing') }} {{ (currentPage - 1) * itemsPerPage + 1 }} - {{ Math.min(currentPage * itemsPerPage, filteredPosts.length) }} {{ t('admin_of') }} {{ filteredPosts.length }}
+        {{ t('admin_showing') }} {{ ((currentPage - 1) * itemsPerPage) + 1 }} - {{ Math.min(currentPage * itemsPerPage, filteredPosts.length) }} {{ t('admin_of') }} {{ filteredPosts.length }} {{ t('admin_posts') }}
       </div>
-      <div class="flex gap-2">
+      <div class="flex items-center gap-2">
         <button
-          @click="goToPage(currentPage - 1)"
+          @click="currentPage = Math.max(1, currentPage - 1)"
           :disabled="currentPage === 1"
-          :class="['p-2 border transition-colors disabled:opacity-50 disabled:cursor-not-allowed', isDarkMode ? 'border-gray-700 text-gray-400 hover:text-white hover:border-gray-500' : 'border-gray-200 text-gray-500 hover:text-gray-900 hover:border-gray-400']"
-        >
-          <ChevronLeft size="18" />
-        </button>
-        <button
-          v-for="page in totalPages"
-          :key="page"
-          @click="goToPage(page)"
           :class="[
-            'px-4 py-2 border text-sm font-bold transition-colors',
-            page === currentPage
-              ? 'border-construct-red text-construct-red bg-gray-800'
-              : isDarkMode ? 'border-gray-700 text-gray-400 hover:text-white hover:border-gray-500' : 'border-gray-200 text-gray-500 hover:text-gray-900 hover:border-gray-400'
+            'flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-colors',
+            currentPage === 1
+              ? (isDarkMode ? 'bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-gray-100 text-gray-400 cursor-not-allowed')
+              : (isDarkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50')
           ]"
         >
-          {{ page }}
+          <ChevronLeft size="16" />
+          {{ t('admin_prev') }}
         </button>
+        <span :class="['px-4 py-2 font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">{{ currentPage }}</span>
         <button
-          @click="goToPage(currentPage + 1)"
+          @click="currentPage = Math.min(totalPages, currentPage + 1)"
           :disabled="currentPage === totalPages"
-          :class="['p-2 border transition-colors disabled:opacity-50 disabled:cursor-not-allowed', isDarkMode ? 'border-gray-700 text-gray-400 hover:text-white hover:border-gray-500' : 'border-gray-200 text-gray-500 hover:text-gray-900 hover:border-gray-400']"
+          :class="[
+            'flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-colors',
+            currentPage === totalPages
+              ? (isDarkMode ? 'bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-gray-100 text-gray-400 cursor-not-allowed')
+              : (isDarkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50')
+          ]"
         >
-          <ChevronRight size="18" />
+          {{ t('admin_next') }}
+          <ChevronRight size="16" />
         </button>
       </div>
     </div>
 
-    <!-- Content Form Modal -->
+    <!-- Form Modal -->
     <ContentForm
-      content-type="post"
       :edit-data="editingPost"
       :visible="isFormVisible"
       @save="handleSave"
-      @cancel="handleCancel"
+      @cancel="isFormVisible = false"
     />
 
-    <!-- Delete Confirm Dialog -->
+    <!-- Delete Confirmation -->
     <ConfirmDialog
       :visible="showDeleteConfirm"
-      :title="t('admin_confirm_delete')"
-      :content="t('admin_delete_warning')"
-      :confirm-text="t('admin_delete')"
-      confirm-variant="danger"
+      :title="t('admin_delete_post')"
+      :message="t('admin_delete_post_confirm')"
       @confirm="confirmDelete"
       @cancel="showDeleteConfirm = false"
     />

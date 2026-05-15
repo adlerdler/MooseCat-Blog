@@ -305,5 +305,16 @@
   "admin_resource_form_file_size": "File Size",
   "admin_resource_form_downloads": "Downloads",
   "admin_confirm_title": "Confirm Action",
-  "admin_confirm_content": "Are you sure you want to continue?"
+  "admin_confirm_content": "Are you sure you want to continue?",
+  "admin_all_actions": "All Actions",
+  "user_login": "User Login",
+  "post_create": "Create Post",
+  "post_edit": "Edit Post",
+  "post_delete": "Delete Post",
+  "user_update": "Update User",
+  "role_change": "Role Change",
+  "comment_delete": "Delete Comment",
+  "settings_update": "Update Settings",
+  "category_create": "Create Category",
+  "media_upload": "Upload Media"
 }

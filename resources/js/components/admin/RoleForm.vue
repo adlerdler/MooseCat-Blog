@@ -14,7 +14,8 @@ import { ref, computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { X, Save, Check } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
-import { availablePermissions } from '../../data/permissions';
+import { availablePermissions, permissions } from '../../data/permissions';
+import { getPermissionIdsByRoleId } from '../../data/role_permissions';
 
 const { t } = useI18n();
 
@@ -49,13 +50,26 @@ const initFormData = () => {
   };
 };
 
+/**
+ * 根据角色ID获取角色的权限名称列表
+ * @param {number} roleId - 角色ID
+ * @returns {string[]} 权限名称数组
+ */
+const getRolePermissionNames = (roleId) => {
+  const permissionIds = getPermissionIdsByRoleId(roleId);
+  return permissionIds.map(id => {
+    const permission = permissions.find(p => p.id === id);
+    return permission ? permission.label : '';
+  }).filter(Boolean);
+};
+
 watch(() => props.visible, (newVal) => {
   if (newVal) {
     initFormData();
     if (props.editData) {
       formData.value = {
         ...props.editData,
-        permissions: [...props.editData.permissions]
+        permissions: [...getRolePermissionNames(props.editData.id)]
       };
     }
   }

@@ -8,21 +8,26 @@
  * 数据字段：
  * - id: 文章唯一标识
  * - title: 文章标题
- * - category: 分类（THEORY/DESIGN/TECHNOLOGY/CULTURE）
+ * - category: 分类（使用 categories.js 中定义的值）
  * - date: 发布日期
- * - author: 作者
+ * - userId: 作者用户ID（关联 users.js 中的用户）
  * - excerpt: 摘要
  * - content: Markdown 格式的文章内容
  * - color: 卡片颜色主题（red/black）
  * - tags: 标签数组
  */
+import { categories } from './categories.js';
+import { getCategoryNames } from '../utils/categoryUtils.js';
+
+// 验证所有文章的分类是否有效
+const validCategories = getCategoryNames(categories);
 export const POSTS = [
   {
-    id: '1',
+    id: 1,
     title: 'THE GEOMETRY OF PERCEPTION',
     category: 'THEORY',
     date: '2026-04-28T10:30:00',
-    author: 'ADLER DECHT',
+    userId: 1,
     excerpt: 'Exploring how structural design influences cognitive processes in modern interfaces.',
     content: `# The Geometry of Perception
 
@@ -138,11 +143,11 @@ The constructivist approach emphasizes intentional design decisions that guide t
     tags: ['UI', 'Cognition', 'Geometry'],
   },
   {
-    id: '2',
+    id: 2,
     title: 'TYPOGRAPHY AS ARCHITECTURE',
     category: 'DESIGN',
     date: '2026-04-20T14:00:00',
-    author: 'RODCHENKO',
+    userId: 2,
     excerpt: 'Why fonts are the literal beams and columns of a digital experience.',
     content: `# Typography as Architecture
 
@@ -246,11 +251,11 @@ The technical breakdown reveals why monospaced fonts and sans-serif grotesques f
     tags: ['Type', 'Rodchenko', 'Structure'],
   },
   {
-    id: '3',
+    id: 3,
     title: 'MANIFESTO OF THE MACHINE',
     category: 'CULTURE',
     date: '2026-04-15T00:00:00',
-    author: 'ADLERIAN',
+    userId: 3,
     excerpt: 'Redefining the relationship between human intuition and algorithmic precision.',
     content: `# Manifesto of the Machine
 
@@ -349,11 +354,11 @@ We should not aim to make technology "natural"—we should aim to make it readab
     tags: ['Manifesto', 'Machine', 'Algorithmic'],
   },
   {
-    id: '4',
+    id: 4,
     title: 'ARCHITECTURAL VECTORS',
     category: 'SYSTEM-DESIGN',
     date: '2026-04-12T00:00:00',
-    author: 'V. TATLIN',
+    userId: 5,
     excerpt: 'Analyzing the trajectory of lines in three-dimensional digital space.',
     content: `# Architectural Vectors
 
@@ -461,11 +466,11 @@ Vectors bridge the gap between physical gravity and digital directional force, c
     tags: ['Vectors', 'Tatlin', 'Space'],
   },
   {
-    id: '5',
+    id: 5,
     title: 'THE ETHICS OF THE GRID',
     category: 'ENGINEERING',
     date: '2026-04-10T00:00:00',
-    author: 'ADLER DECHT',
+    userId: 1,
     excerpt: 'Is the grid a tool of liberation or a cage for creativity?',
     content: `# The Ethics of the Grid
 

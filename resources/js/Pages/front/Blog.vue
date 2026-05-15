@@ -16,9 +16,11 @@ import { ref, computed, h } from 'vue';
 import { ArrowUpRight, Hash, BookOpen, Lightbulb, Users, Cog } from 'lucide-vue-next';
 import { RouterLink } from 'vue-router';
 import { POSTS } from '../../data/posts';
+import { getAuthorName } from '../../data/users';
 import { useI18n } from 'vue-i18n';
 import { useTheme } from '../../composables/useTheme';
 import { formatToEnglish } from '../../utils/dateUtils';
+import { formatId } from '../../utils/typeConvert';
 
 const { t } = useI18n();
 const { initAccentTheme } = useTheme();
@@ -150,7 +152,7 @@ const isFooterVisible = ref(true);
               class="absolute -bottom-8 -right-8 font-display font-black leading-none pointer-events-none transition-all duration-700 opacity-5 group-hover:text-white group-hover:opacity-10 group-hover:scale-110 group-hover:-rotate-6"
               :class="idx % 7 === 0 ? 'text-[150px] md:text-[250px]' : 'text-[100px] md:text-[150px]'"
             >
-              {{ post.id.padStart(2, '0') }}
+              {{ formatId(post.id, 2) }}
             </div>
 
             <!-- Top Bar: Category & Date -->
@@ -197,7 +199,7 @@ const isFooterVisible = ref(true);
               </div>
               <div class="flex items-center gap-4 text-[10px] md:text-xs font-bold tracking-widest uppercase shrink-0">
                 <span class="opacity-60 group-hover:opacity-100 group-hover:text-white transition-opacity">
-                  AUTHOR: {{ post.author }}
+                  AUTHOR: {{ getAuthorName(post.userId) }}
                 </span>
                 <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all duration-500 group-hover:rotate-45 shrink-0" :class="post.color === 'red' ? 'border-construct-black group-hover:border-white' : 'border-construct-black group-hover:border-white'">
                   <ArrowUpRight size="16" class="group-hover:text-white" />

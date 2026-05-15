@@ -9,9 +9,11 @@
  * - 添加、编辑、删除角色
  * - 权限配置
  */
-import { ref, computed } from 'vue';
-import { useI18n } from 'vue-i18n';
 import {
+  ref,
+  computed,
+  useI18n,
+  useTheme,
   Shield,
   Plus,
   Search,
@@ -21,12 +23,26 @@ import {
   ChevronRight,
   Users,
   Check,
-  X
-} from 'lucide-vue-next';
-import { useTheme } from '../../composables/useTheme';
-import { adminRoles } from '../../data/roles';
-import RoleForm from '../../components/admin/RoleForm.vue';
-import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
+  X,
+  adminRoles,
+  permissions,
+  getPermissionIdsByRoleId,
+  RoleForm,
+  ConfirmDialog
+} from '../../composables/useAdminImports';
+
+/**
+ * 获取角色的权限列表
+ * @param {number} roleId - 角色ID
+ * @returns {string[]} 权限名称数组
+ */
+const getRolePermissions = (roleId) => {
+  const permissionIds = getPermissionIdsByRoleId(roleId);
+  return permissionIds.map(id => {
+    const permission = permissions.find(p => p.id === id);
+    return permission ? permission.label : 'Unknown';
+  });
+};
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
@@ -168,7 +184,7 @@ const confirmDelete = () => {
           <div :class="['text-xs font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_permissions') }}</div>
           <div class="flex flex-wrap gap-2">
             <span 
-              v-for="(permission, index) in role.permissions" 
+              v-for="(permission, index) in getRolePermissions(role.id)" 
               :key="index"
               :class="['px-2 py-1 text-xs rounded', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600']"
             >

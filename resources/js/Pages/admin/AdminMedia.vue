@@ -9,9 +9,12 @@
  * - 上传、预览、删除文件
  * - 批量操作
  */
-import { ref, computed } from 'vue';
-import { useI18n } from 'vue-i18n';
 import {
+  ref,
+  computed,
+  useI18n,
+  useTheme,
+  formatToShort,
   Image,
   Video,
   FileText,
@@ -27,9 +30,7 @@ import {
   Download,
   Calendar,
   HardDrive
-} from 'lucide-vue-next';
-import { useTheme } from '../../composables/useTheme';
-import { formatToShort } from '../../utils/dateUtils';
+} from '../../composables/useAdminImports';
 import { adminMedia } from '../../data/media';
 
 const { t } = useI18n();

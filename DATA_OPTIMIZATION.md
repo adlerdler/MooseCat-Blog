@@ -4,111 +4,9 @@
 
 ---
 
-## 一、数据一致性问题
+## 一、国际化支持不足
 
-### 1. 角色定义不匹配（已完成 ✅）
-
-**问题描述**：
-- `users.js` 中存在 `role: 'guest'`，但 `roles.js` 中没有定义 'guest' 角色
-
-**影响范围**：
-- 用户管理页面的角色标签可能显示异常
-- 角色筛选功能可能遗漏 guest 用户
-
-**修复内容**：
-1. 在 `roles.js` 中的 `roles` 数组添加 guest 角色定义（id: 'guest', label: 'GUEST', color: 'cyan', description: '访客用户'）
-2. 在 `getRoleStyle` 函数中添加 guest 角色的样式（bg-cyan-600 text-white border-cyan-500）
-
-**修改文件**：
-- `resources/js/data/roles.js`
-
----
-
-### 2. 分类系统不一致
-
-**问题描述**：
-不同文件中的分类定义存在差异：
-
-| 文件 | 分类列表 |
-|------|----------|
-| `posts.js` | THEORY, DESIGN, CULTURE, SYSTEM-DESIGN, ENGINEERING |
-| `categories.js` | Architecture, Technology, Philosophy, Projects, Resources, Tutorials, Research, News |
-| `home.js` | ALL, THEORY, DESIGN, HISTORY, CULTURE |
-
-**影响范围**：
-- 前台和后台的分类筛选逻辑不一致
-- 文章分类显示可能不匹配
-
-**建议修复**：
-- 统一分类定义，建立单一数据源
-- 使用分类 ID 而非字符串名称
-- 建立分类映射表处理历史数据
-
----
-
-### 3. 权限定义不统一（已完成 ✅）
-
-**问题描述**：
-- `roles.js` 中的权限列表与 `RoleForm.vue` 中的 `availablePermissions` 不一致
-- 权限命名格式不统一（如 'All Permissions' vs 'Posts'）
-
-**影响范围**：
-- 角色管理功能可能存在权限显示/编辑不匹配
-- 权限验证逻辑可能出错
-
-**修复内容**：
-1. **创建统一的权限数据文件** `resources/js/data/permissions.js`：
-   - 定义了统一的权限列表（包含 `id`、`name`、`description`、`programId` 字段）
-   - 提供辅助函数：`getPermissionById`、`getPermissionByProgramId`、`getPermissionName`、`getPermissionDescription`
-   - 导出 `availablePermissions` 数组供 RoleForm.vue 使用
-
-2. **统一角色权限 ID**：
-   - 更新 `roles.js` 中的 `adminRoles[].permissions` 使用统一的权限 ID
-
-3. **修改组件导入统一数据**：
-   - `RoleForm.vue` - 导入 `availablePermissions` 数组
-
-**修改文件**：
-- `resources/js/data/permissions.js`（新增）
-- `resources/js/data/roles.js`
-- `resources/js/components/admin/RoleForm.vue`
-
----
-
-## 二、数据冗余问题
-
-### 4. 静态数据与组件硬编码重复（已完成 ✅）
-
-**问题描述**：
-多处定义相同的角色列表：
-- `AdminUsers.vue` 中的 `roles` 数组
-- `UserForm.vue` 中的 `roles` 数组
-- `AdminUsers.vue` 中的 `getRoleLabel` 函数
-
-**影响范围**：
-- 修改角色定义需要在多处同步
-- 容易出现数据不一致
-
-**修复内容**：
-1. **创建统一的角色数据文件** `resources/js/data/roles.js`：
-   - 定义了统一的角色列表（包含 `id`、`value`、`label`、`color`、`description` 字段）
-   - 提供辅助函数：`getRoleById`、`getRoleLabel`、`getRoleColor`、`getRoleDescription`、`getRoleStyle`
-   - 添加 `adminRoles` 数组保持与 `AdminRoles.vue` 的兼容性
-
-2. **修改组件导入统一数据**：
-   - `AdminUsers.vue` - 导入 `getRoleLabel` 和 `getRoleStyle` 函数
-   - `UserForm.vue` - 导入 `roles` 数组
-
-**修改文件**：
-- `resources/js/data/roles.js`（新增）
-- `resources/js/Pages/admin/AdminUsers.vue`
-- `resources/js/components/admin/UserForm.vue`
-
----
-
-## 三、国际化支持不足
-
-### 6. 硬编码文本
+### 1. 硬编码文本
 
 **问题描述**：
 所有数据文件中的描述性文本都是硬编码的英文：
@@ -127,7 +25,7 @@
 
 ---
 
-### 7. 枚举值未国际化
+### 2. 枚举值未国际化
 
 **问题描述**：
 角色名称、分类名称等枚举值未使用国际化 key：
@@ -145,9 +43,9 @@
 
 ---
 
-## 四、数据格式不一致
+## 二、数据格式不一致
 
-### 8. ID 类型不一致
+### 3. ID 类型不一致
 
 **问题描述**：
 不同文件中 ID 的类型不统一：
@@ -157,27 +55,26 @@
 | `posts.js` | 字符串 | `'1'` |
 | `users.js` | 数字 | `1` |
 | `categories.js` | 数字 | `1` |
-| `roles.js` | 数字 | `1` |
+| `roles.js` | 字符串 | `'admin'` |
 
 **影响范围**：
 - 数据查询和比较可能出现类型错误
 - 严格相等比较（===）可能失败
 
 **建议修复**：
-- 统一使用字符串类型的 ID
-- 或统一使用数字类型的 ID
+- 统一使用数字类型的 ID（推荐，便于数据库自增）
 - 在数据查询时进行类型转换
 
 ---
 
-### 9. 日期格式混乱
+### 4. 日期格式混乱
 
 **问题描述**：
 不同文件中的日期格式不统一：
 
 | 文件 | 日期格式 | 示例 |
 |------|----------|------|
-| `posts.js` | YYYY.MM.DD | `'2026.04.28'` |
+| `posts.js` | ISO 8601 | `'2026-04-28T10:30:00'` |
 | `users.js` | YYYY-MM-DD | `'2024-01-15'` |
 | `comments.js` | 混合格式 | `'2024-01-15 10:30'` 和 `'May 10, 2026, 14:30'` |
 
@@ -188,38 +85,13 @@
 
 **建议修复**：
 - 统一使用 ISO 8601 格式（YYYY-MM-DDTHH:mm:ss）
-- 或统一使用时间戳（数字）
 - 建立日期格式化工具函数
 
 ---
 
-## 五、数据完整性问题
+## 三、数据完整性问题
 
-### 10. 外键引用缺失
-
-**问题描述**：
-`comments.js` 中的 `post` 字段存储的是文章标题字符串，而非文章 ID：
-```javascript
-{
-  post: 'THE GEOMETRY OF PERCEPTION',  // 标题字符串
-  // 应该是：
-  // postId: '1'  // 文章 ID
-}
-```
-
-**影响范围**：
-- 无法通过 ID 关联查询
-- 文章标题修改会导致评论关联失效
-- 数据耦合度高
-
-**建议修复**：
-- 使用 `postId` 字段存储文章 ID
-- 在查询时通过 ID 关联文章数据
-- 建立外键约束机制
-
----
-
-### 11. 图片资源依赖外部链接
+### 5. 图片资源依赖外部链接
 
 **问题描述**：
 所有项目、资源的图片都依赖 Unsplash 外部链接：
@@ -239,9 +111,9 @@
 
 ---
 
-## 六、代码质量问题
+## 四、代码质量问题
 
-### 12. 缺少类型定义
+### 6. 缺少类型定义
 
 **问题描述**：
 所有数据文件都是纯 JSON 数据，缺少 TypeScript 类型定义或 JSDoc 注释
@@ -258,13 +130,16 @@
 
 ---
 
-### 13. 数据文件职责不清晰
+### 7. 数据文件职责不清晰
 
 **问题描述**：
-`admin.js` 文件包含多种类型的数据：
-- 统计数据（`analyticsStats`, `userStats`）
-- 配置数据（`defaultSettings`, `tabsConfig`）
-- 模拟数据（`postTrendData`, `trafficData`）
+部分文件同时包含业务数据和配置数据，职责混杂：
+
+| 文件 | 问题 |
+|------|------|
+| `admin.js` | 包含统计数据、配置数据、模拟数据 |
+| `home.js` | 包含业务数据和配置数据（分类、技术栈） |
+| `roles.js` | 包含角色定义和权限配置 |
 
 **影响范围**：
 - 文件职责过于混杂
@@ -272,16 +147,15 @@
 - 不符合单一职责原则
 
 **建议修复**：
-- 按数据类型拆分到多个文件：
-  - `admin-stats.js` - 统计数据
-  - `admin-config.js` - 配置数据
-  - `admin-mock.js` - 模拟数据
+- 将 `admin.js` 拆分为 `admin-config.js`、`admin-stats.js`、`admin-mock.js`
+- 将 `home.js` 中的业务数据部分移至组件
+- 将 `roles.js` 中的权限配置分离，通过关联表管理
 
 ---
 
-## 七、安全与隐私问题
+## 五、安全与隐私问题
 
-### 14. 敏感数据暴露
+### 8. 敏感数据暴露
 
 **问题描述**：
 `users.js` 中包含真实格式的邮箱地址：
@@ -301,55 +175,272 @@
 
 ---
 
-## 优化建议优先级
+## 六、API/数据库接入准备
 
-| 优先级 | 问题 | 影响程度 | 修复难度 | 状态 |
-|--------|------|----------|----------|------|
-| **P0** | 角色/分类定义不一致 | 高 | 中 | ✅ |
-| **P0** | 日期/ID 类型不一致 | 高 | 低 | ✅ |
-| **P1** | 数据冗余 | 中 | 低 | ✅ |
-| **P1** | 国际化支持不足 | 中 | 高 |  |
-| **P2** | 外键引用缺失 | 中 | 中 |  |
-| **P2** | 图片依赖外部链接 | 低 | 中 |  |
-| **P3** | 缺少类型定义 | 低 | 中 | |
-| **P3** | 敏感数据暴露 | 低 | 低 | |
+### 9. 静态数据文件迁移规划
+
+**问题描述**：
+当前 `resources/js/data` 目录下的静态数据文件在后续接入 Laravel API 和数据库时需要整体迁移。直接删除会导致应用崩溃，需要有计划地逐步迁移。
+
+**迁移策略**：
+
+#### 6.1 文件分类与处理方式
+
+| 分类 | 文件 | 处理方式 | 原因 |
+|------|------|----------|------|
+| **业务数据（需删除）** | `posts.js` | 删除 | 文章数据从 `/api/v1/posts` 获取 |
+| | `comments.js` | 删除 | 评论数据从 API 获取 |
+| | `users.js` | 删除 | 用户数据从 API 获取 |
+| | `projects.js` | 删除 | 项目数据从 API 获取 |
+| | `resources.js` | 删除 | 资源数据从 API 获取 |
+| | `videos.js` | 删除 | 视频数据从 API 获取 |
+| | `searchPosts.js` | 删除 | 搜索数据从 API 获取 |
+| | `author.js` | 删除 | 作者数据从 API 获取 |
+| | `media.js` | 删除 | 媒体数据从 API 获取 |
+| | `logs.js` | 删除 | 日志数据从后端获取 |
+| **配置类数据（删除）** | `categories.js` | 删除 | 分类数据从 `/api/v1/categories` 获取 |
+| | `tags.js` | 删除 | 标签数据从 `/api/v1/tags` 获取 |
+| | `roles.js` | 删除 | 角色数据从 `/api/v1/roles` 获取 |
+| | `permissions.js` | 删除 | 权限数据从 `/api/v1/permissions` 获取 |
+| | `menu.js` | 删除 | 菜单配置从 `/api/v1/menus` 获取 |
+| **混合数据（拆分）** | `admin.js` | 拆分 | 将配置与模拟数据分离 |
+| | `home.js` | 拆分 | 将业务数据部分抽离 |
+
+#### 6.2 目录结构演进
+
+**目标结构（接入 API 后）**：
+```
+resources/js/
+├── api/                    # 新增：API 请求层
+│   ├── posts.js
+│   ├── comments.js
+│   ├── categories.js
+│   ├── users.js
+│   └── index.js
+├── composables/            # 新增：数据获取逻辑
+│   ├── usePosts.js
+│   ├── useCategories.js
+│   ├── useUsers.js
+│   └── useAuth.js
+├── data/                   # 保留：配置类数据
+│   ├── categories.js       # 分类枚举定义
+│   ├── tags.js             # 标签枚举定义
+│   ├── roles.js            # 角色定义
+│   ├── permissions.js      # 权限定义
+│   └── menu.js             # 菜单配置
+└── utils/                  # 工具函数
+    ├── categoryUtils.js
+    └── dateUtils.js
+```
+
+#### 6.3 实施步骤
+
+**第一阶段：准备期**
+1. 创建 `api/` 目录和基础 API 封装
+2. 创建 `composables/` 目录，实现数据获取逻辑
+3. 将工具函数从数据文件中抽离到 `utils/` 目录
+
+**第二阶段：迁移期**
+1. 逐个模块迁移：先迁移独立模块（如分类、标签）
+2. 更新组件导入，从静态数据切换到 composables
+3. 保留静态数据作为 fallback（可选）
+
+**第三阶段：清理期**
+1. 删除已迁移的静态数据文件
+2. 移除所有对静态数据的引用
+3. 测试验证所有功能正常
+
+---
+
+## 七、核心模块数据表设计
+
+### 10. tags - 标签数据
+
+**建议数据表结构**：
+```sql
+CREATE TABLE tags (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    description TEXT,
+    usage_count INT DEFAULT 0,
+    status ENUM('active', 'inactive') DEFAULT 'active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- 文章标签关联表
+CREATE TABLE post_tags (
+    post_id INT NOT NULL,
+    tag_id INT NOT NULL,
+    PRIMARY KEY (post_id, tag_id),
+    FOREIGN KEY (post_id) REFERENCES posts(id),
+    FOREIGN KEY (tag_id) REFERENCES tags(id)
+);
+```
+
+**建议 API 接口**：
+- `GET /api/v1/tags` - 获取标签列表（支持分页、搜索、状态筛选）
+- `GET /api/v1/tags/{id}` - 获取单个标签
+- `POST /api/v1/tags` - 创建标签
+- `PUT /api/v1/tags/{id}` - 更新标签
+- `DELETE /api/v1/tags/{id}` - 删除标签
+
+---
+
+### 11. roles - 角色数据
+
+**建议数据表结构**：
+```sql
+CREATE TABLE roles (
+    id VARCHAR(50) PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    label VARCHAR(50) NOT NULL,
+    description TEXT,
+    color VARCHAR(20),
+    status ENUM('active', 'inactive') DEFAULT 'active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- 角色权限关联表
+CREATE TABLE role_permissions (
+    role_id VARCHAR(50) NOT NULL,
+    permission_id VARCHAR(50) NOT NULL,
+    PRIMARY KEY (role_id, permission_id),
+    FOREIGN KEY (role_id) REFERENCES roles(id),
+    FOREIGN KEY (permission_id) REFERENCES permissions(id)
+);
+```
+
+**建议 API 接口**：
+- `GET /api/v1/roles` - 获取角色列表
+- `GET /api/v1/roles/{id}` - 获取角色详情（含权限）
+- `POST /api/v1/roles` - 创建角色
+- `PUT /api/v1/roles/{id}` - 更新角色
+- `DELETE /api/v1/roles/{id}` - 删除角色
+- `POST /api/v1/roles/{id}/permissions` - 批量设置角色权限
+
+---
+
+### 12. permissions - 权限数据
+
+**建议数据表结构**：
+```sql
+CREATE TABLE permissions (
+    id VARCHAR(50) PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    program_id VARCHAR(100) NOT NULL UNIQUE,
+    status ENUM('active', 'inactive') DEFAULT 'active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+```
+
+**建议 API 接口**：
+- `GET /api/v1/permissions` - 获取权限列表
+- `GET /api/v1/permissions/{id}` - 获取单个权限
+- `POST /api/v1/permissions` - 创建权限
+- `PUT /api/v1/permissions/{id}` - 更新权限
+- `DELETE /api/v1/permissions/{id}` - 删除权限
+
+---
+
+### 13. menus - 菜单配置
+
+**建议数据表结构**：
+```sql
+CREATE TABLE menus (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    parent_id INT NULL,
+    name VARCHAR(50) NOT NULL,
+    label_key VARCHAR(100) NOT NULL,
+    icon_key VARCHAR(50),
+    route VARCHAR(255) NOT NULL,
+    sort_order INT DEFAULT 0,
+    permissions TEXT, -- JSON 数组，允许访问的权限
+    status ENUM('active', 'inactive') DEFAULT 'active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+```
+
+**建议 API 接口**：
+- `GET /api/v1/menus` - 获取菜单列表
+- `GET /api/v1/menus/{id}` - 获取单个菜单
+- `POST /api/v1/menus` - 创建菜单
+- `PUT /api/v1/menus/{id}` - 更新菜单
+- `DELETE /api/v1/menus/{id}` - 删除菜单
+
+---
+
+### 14. logs - 日志数据
+
+**建议数据表结构**：
+```sql
+CREATE TABLE logs (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    action VARCHAR(50) NOT NULL,
+    user_id INT,
+    user_name VARCHAR(100),
+    ip VARCHAR(50),
+    user_agent TEXT,
+    details TEXT,
+    target_type VARCHAR(50),
+    target_id INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 日志动作类型配置（可选）
+CREATE TABLE log_actions (
+    action VARCHAR(50) PRIMARY KEY,
+    name_zh VARCHAR(100),
+    name_en VARCHAR(100),
+    name_zh_tw VARCHAR(100)
+);
+```
+
+**建议 API 接口**：
+- `GET /api/v1/logs` - 获取日志列表（支持分页、按时间/用户/动作筛选）
+- `GET /api/v1/logs/{id}` - 获取日志详情
+- `GET /api/v1/logs/export` - 导出日志（CSV/Excel）
+- `DELETE /api/v1/logs` - 批量删除日志
+
+---
+
+## 八、优化建议优先级
+
+| 优先级 | 问题 | 影响程度 | 修复难度 |
+|--------|------|----------|----------|
+| **P1** | API 接入准备 | 高 | 高 |
+| **P1** | 国际化支持不足 | 中 | 高 |
+| **P2** | ID 类型不一致 | 中 | 低 |
+| **P2** | 日期格式混乱 | 中 | 低 |
+| **P2** | 文件职责不清 | 中 | 中 |
+| **P3** | 图片依赖外部链接 | 低 | 中 |
+| **P3** | 缺少类型定义 | 低 | 中 |
+| **P3** | 敏感数据暴露 | 低 | 低 |
 
 ---
 
 ## 修复计划建议
 
-### 第一阶段（P0 - 高优先级）
-1. 统一角色和分类定义
-2. 统一 ID 和日期格式
-3. 修复类型不一致问题
-
-### 第二阶段（P1 - 中优先级）
-1. 移除数据冗余
+### 第一阶段（P1 - 高优先级）
+1. API 接入准备
 2. 完善国际化支持
-3. 建立数据映射机制
 
-### 第三阶段（P2 - 低优先级）
-1. 优化外键引用
-2. 处理图片资源依赖
-3. 改进数据关联逻辑
+### 第二阶段（P2 - 中优先级）
+1. 统一 ID 类型
+2. 统一日期格式
+3. 优化文件组织结构
 
-### 第四阶段（P3 - 长期优化）
+### 第三阶段（P3 - 长期优化）
 1. 添加类型定义
-2. 优化文件组织结构
+2. 处理图片资源依赖
 3. 处理敏感数据
 
 ---
 
-## 注意事项
-
-1. **向后兼容**：修改数据结构时需要考虑向后兼容性
-2. **测试覆盖**：修改后需要充分测试前台和后台功能
-3. **文档更新**：同步更新相关文档和注释
-4. **代码审查**：重要修改需要进行代码审查
-5. **逐步优化**：避免一次性大规模修改，分阶段进行
-
----
-
-**文档版本**: 1.0  
+**文档版本**: 2.0  
 **创建日期**: 2026-05-14  
-**最后更新**: 2026-05-14
+**最后更新**: 2026-05-15

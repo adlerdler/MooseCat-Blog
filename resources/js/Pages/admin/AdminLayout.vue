@@ -38,7 +38,10 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronDown,
-  Info
+  Info,
+  Archive,
+  SlidersHorizontal,
+  Book
 } from 'lucide-vue-next';
 import ThemeToggle from '../../components/ThemeToggle.vue';
 import ToastContainer from '../../components/ToastContainer.vue';
@@ -61,6 +64,7 @@ const toggleMenu = (menuId) => {
   if (expandedMenus.value.has(menuId)) {
     expandedMenus.value.delete(menuId);
   } else {
+    expandedMenus.value.clear();
     expandedMenus.value.add(menuId);
   }
 };
@@ -109,6 +113,9 @@ onMounted(() => {
   const collapsed = localStorage.getItem('sidebar_collapsed');
   if (collapsed !== null) {
     isSidebarCollapsed.value = collapsed === 'true';
+    if (isSidebarCollapsed.value) {
+      expandedMenus.value.clear();
+    }
   }
   
   handleResize();
@@ -122,6 +129,9 @@ onUnmounted(() => {
 const toggleSidebarCollapse = () => {
   isSidebarCollapsed.value = !isSidebarCollapsed.value;
   localStorage.setItem('sidebar_collapsed', isSidebarCollapsed.value.toString());
+  if (isSidebarCollapsed.value) {
+    expandedMenus.value.clear();
+  }
 };
 
 const iconMap = {
@@ -137,7 +147,10 @@ const iconMap = {
   shield: Shield,
   hardDrive: HardDrive,
   settings: Settings,
-  info: Info
+  info: Info,
+  archive: Archive,
+  sliders: SlidersHorizontal,
+  books: Book
 };
 
 const menuItems = computed(() => {
@@ -173,6 +186,35 @@ const navigateTo = (item) => {
 
 const toggleSidebar = () => {
   isSidebarOpen.value = !isSidebarOpen.value;
+};
+
+const getMenuTopPosition = (menuId) => {
+  const menuIndex = menuItems.value.findIndex(item => item.id === menuId);
+  const baseTop = 72; // header(64) + nav padding(8) = first menu item top
+  const menuItemHeight = 48; // py-3(24) + content height + spacing
+  
+  return baseTop + menuIndex * menuItemHeight;
+};
+
+let leaveTimeout = null;
+
+const handleMouseEnter = (menuId) => {
+  if (leaveTimeout) {
+    clearTimeout(leaveTimeout);
+    leaveTimeout = null;
+  }
+  if (isSidebarCollapsed.value) {
+    expandedMenus.value.add(menuId);
+  }
+};
+
+const handleMouseLeave = (menuId) => {
+  if (isSidebarCollapsed.value) {
+    leaveTimeout = setTimeout(() => {
+      expandedMenus.value.delete(menuId);
+      leaveTimeout = null;
+    }, 150);
+  }
 };
 </script>
 
@@ -258,19 +300,25 @@ const toggleSidebar = () => {
     <!-- Sidebar -->
     <aside
       :class="[
-        'fixed left-0 top-16 bottom-0 transition-all duration-300 z-40 overflow-hidden admin-sidebar',
+        'fixed left-0 top-16 bottom-0 transition-all duration-300 z-40 admin-sidebar overflow-visible',
         isDarkMode ? 'bg-gray-800' : 'bg-white',
         isSidebarOpen ? (isDarkMode ? 'border-r border-gray-700' : 'border-r border-gray-200') : '',
-        isSidebarOpen && !isSidebarCollapsed ? 'w-64 lg:w-64' : '',
+        isSidebarOpen && !isSidebarCollapsed ? 'w-56 lg:w-56' : '',
         isSidebarOpen && isSidebarCollapsed ? 'w-16 lg:w-16' : '',
         !isSidebarOpen ? 'w-0 lg:w-16' : '',
         !isSidebarOpen && 'lg:shadow-sm'
       ]"
     >
-      <nav class="p-2 space-y-1 h-full flex flex-col">
-        <template v-for="item in menuItems" :key="item.id">
-          <!-- Parent menu item with children -->
-          <div v-if="item.children && item.children.length > 0">
+      <div class="flex flex-col h-full">
+        <nav class="p-2 space-y-1 flex-1 overflow-y-auto">
+          <template v-for="item in menuItems" :key="item.id">
+            <!-- Parent menu item with children -->
+            <div 
+              v-if="item.children && item.children.length > 0" 
+              class="relative"
+              @mouseenter="handleMouseEnter(item.id)"
+              @mouseleave="handleMouseLeave(item.id)"
+            >
             <button
               @click="toggleMenu(item.id)"
               :class="[
@@ -308,7 +356,7 @@ const toggleSidebar = () => {
               <span 
                 v-if="isSidebarCollapsed" 
                 :class="[
-                  'absolute left-16 px-2 py-1 text-xs rounded whitespace-nowrap opacity-0 hover:opacity-100 transition-opacity pointer-events-none z-50',
+                  'absolute left-16 px-2 py-1 text-xs rounded whitespace-nowrap opacity-0 transition-opacity pointer-events-none z-50',
                   isDarkMode ? 'bg-gray-700 text-white' : 'bg-gray-900 text-white'
                 ]"
               >
@@ -316,7 +364,7 @@ const toggleSidebar = () => {
               </span>
             </button>
             
-            <!-- Children menu items -->
+            <!-- Children menu items - expanded mode -->
             <div 
               v-show="isMenuExpanded(item.id) && !isSidebarCollapsed"
               class="ml-4 space-y-1"
@@ -350,6 +398,7 @@ const toggleSidebar = () => {
                 <span>{{ child.label }}</span>
               </button>
             </div>
+            
           </div>
           
           <!-- Regular menu item -->
@@ -394,11 +443,10 @@ const toggleSidebar = () => {
           </button>
         </template>
         
-        <!-- Spacer to push collapse button to bottom -->
-        <div class="flex-1"></div>
+        </nav>
         
         <!-- Collapse Toggle Button (hidden on mobile) -->
-        <div class="hidden lg:block mt-auto pt-4">
+        <div class="hidden lg:block p-2 border-t" :class="isDarkMode ? 'border-gray-700' : 'border-gray-200'">
           <button
             @click="toggleSidebarCollapse"
             :class="[
@@ -412,15 +460,62 @@ const toggleSidebar = () => {
             <span v-if="!isSidebarCollapsed" class="ml-2 text-xs">{{ isSidebarCollapsed ? t('admin_expand') : t('admin_collapse') }}</span>
           </button>
         </div>
-      </nav>
+      </div>
     </aside>
+    
+    <!-- Collapsed Sidebar Floating Menu -->
+    <div class="hidden lg:block">
+      <template v-for="item in menuItems" :key="'float-' + item.id">
+        <div 
+          v-if="item.children && item.children.length > 0"
+          v-show="isSidebarCollapsed && isMenuExpanded(item.id)"
+          :class="[
+            'fixed w-48 py-2 rounded-lg shadow-xl z-[100]',
+            isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'
+          ]"
+          :style="{ top: getMenuTopPosition(item.id) + 'px', left: '4rem' }"
+          @mouseenter="handleMouseEnter(item.id)"
+          @mouseleave="handleMouseLeave(item.id)"
+        >
+          <!-- Parent menu title
+          <div :class="['px-4 py-3 text-sm font-bold tracking-widest uppercase border-b', isDarkMode ? 'border-gray-700 text-gray-400' : 'border-gray-200 text-gray-500']">
+            {{ item.label }}
+          </div> -->
+          <!-- Child menu items -->
+          <button
+            v-for="child in item.children"
+            :key="child.id"
+            @click="navigateTo(child)"
+            :class="[
+              'w-full flex items-center gap-3 px-4 py-2 text-sm font-bold tracking-widest uppercase transition-all',
+              isActiveRoute(child)
+                ? isDarkMode
+                  ? 'bg-red-500/10 text-construct-red'
+                  : 'bg-red-50 text-construct-red'
+                : isDarkMode
+                  ? 'text-gray-300 hover:bg-gray-700'
+                  : 'text-gray-700 hover:bg-gray-100'
+            ]"
+          >
+            <component 
+              :is="child.icon" 
+              :size="16"
+              :class="[
+                isActiveRoute(child) ? '!text-construct-red' : (isDarkMode ? 'text-gray-400' : 'text-gray-600')
+              ]"
+            />
+            <span>{{ child.label }}</span>
+          </button>
+        </div>
+      </template>
+    </div>
     
     <!-- Main Content -->
     <main
       :class="[
         'pt-16 min-h-screen transition-all duration-300 admin-content',
         isDarkMode ? 'bg-gray-900' : 'bg-gray-50',
-        isSidebarOpen && !isSidebarCollapsed ? 'lg:ml-64' : 'lg:ml-16'
+        isSidebarOpen && !isSidebarCollapsed ? 'lg:ml-56' : 'lg:ml-16'
       ]"
     >
       <slot />

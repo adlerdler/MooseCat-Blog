@@ -17,6 +17,7 @@ import { useRoute, useRouter, RouterLink } from 'vue-router';
 import { Motion, AnimatePresence } from 'motion-v';
 import { useTheme } from '../../composables/useTheme';
 import { PROJECTS } from '../../data/projects';
+import { findById, formatId } from '../../utils/typeConvert';
 import { ExternalLink, Github, ArrowLeft, ArrowUp, Terminal, Cpu, Layers, Globe, Code } from 'lucide-vue-next';
 
 const { initAccentTheme } = useTheme();
@@ -24,7 +25,7 @@ const route = useRoute();
 const router = useRouter();
 
 const project = computed(() => {
-  return PROJECTS.find((p) => p.id === route.params.id);
+  return findById(PROJECTS, route.params.id);
 });
 
 // 动态更新页面标题
@@ -106,7 +107,7 @@ const scrollToTop = () => {
       <header class="fixed top-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-md border-b border-construct-black/10 z-40 flex items-center justify-between px-6 md:px-12">
         <div class="flex items-center gap-4">
           <span class="text-[10px] font-black tracking-[0.4em] uppercase opacity-40">
-            PROJ_{project.id.padStart(2, '0')} // ARCHIVE
+            PROJ_{{ formatId(project.id, 2) }} // ARCHIVE
           </span>
         </div>
         <div class="flex items-center gap-6">

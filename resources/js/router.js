@@ -42,6 +42,7 @@ import AdminVideos from './Pages/Admin/AdminVideos.vue';
 import AdminProjects from './Pages/Admin/AdminProjects.vue';
 import AdminResources from './Pages/Admin/AdminResources.vue';
 import AdminUsers from './Pages/Admin/AdminUsers.vue';
+import UserDetail from './Pages/Admin/UserDetail.vue';
 import AdminSettings from './Pages/Admin/AdminSettings.vue';
 import AdminAbout from './Pages/admin/AdminAbout.vue';
 import AdminCategories from './Pages/Admin/AdminCategories.vue';
@@ -49,6 +50,8 @@ import AdminTags from './Pages/Admin/AdminTags.vue';
 import AdminComments from './Pages/Admin/AdminComments.vue';
 import AdminRoles from './Pages/Admin/AdminRoles.vue';
 import AdminMedia from './Pages/Admin/AdminMedia.vue';
+import AdminLogs from './Pages/Admin/AdminLogs.vue';
+import AdminBackup from './Pages/Admin/AdminBackup.vue';
 
 const routes = [
   {
@@ -136,6 +139,12 @@ const routes = [
     meta: { title: 'ADMIN // Resources', requiresAuth: true, layout: 'admin' },
   },
   {
+    path: '/admin/users/:id',
+    name: 'admin-user-detail',
+    component: UserDetail,
+    meta: { title: 'ADMIN // User Detail', requiresAuth: true, layout: 'admin' },
+  },
+  {
     path: '/admin/users',
     name: 'admin-users',
     component: AdminUsers,
@@ -182,6 +191,18 @@ const routes = [
     name: 'admin-media',
     component: AdminMedia,
     meta: { title: 'ADMIN // Media', requiresAuth: true, layout: 'admin' },
+  },
+  {
+    path: '/admin/logs',
+    name: 'admin-logs',
+    component: AdminLogs,
+    meta: { title: 'ADMIN // Logs', requiresAuth: true, layout: 'admin' },
+  },
+  {
+    path: '/admin/backup',
+    name: 'admin-backup',
+    component: AdminBackup,
+    meta: { title: 'ADMIN // Backup', requiresAuth: true, layout: 'admin' },
   },
   {
     path: '/admin',

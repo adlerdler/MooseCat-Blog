@@ -9,32 +9,35 @@
  * - 添加、编辑、删除用户
  * - 用户状态管理（启用/禁用）
  */
-import { ref, computed } from 'vue';
-import { useI18n } from 'vue-i18n';
 import {
+  ref,
+  computed,
+  useI18n,
+  useRouter,
+  useTheme,
+  formatToShort,
   Users,
   Plus,
   Search,
   Edit3,
   Trash2,
   Eye,
-  ChevronLeft,
   ChevronRight,
   Filter,
   User,
   Mail,
   Shield,
-  X
-} from 'lucide-vue-next';
-import { useTheme } from '../../composables/useTheme';
-import { adminUsers } from '../../data/users';
-import { getRoleLabel, getRoleStyle } from '../../data/roles';
-import { formatToShort } from '../../utils/dateUtils';
-import UserForm from '../../components/admin/UserForm.vue';
-import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
+  X,
+  adminUsers,
+  getRoleLabel,
+  getRoleStyle,
+  UserForm,
+  ConfirmDialog
+} from '../../composables/useAdminImports';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
+const router = useRouter();
 
 const searchQuery = ref('');
 const roleFilter = ref('all');
@@ -44,8 +47,6 @@ const isFormVisible = ref(false);
 const editingUser = ref(null);
 const showDeleteConfirm = ref(false);
 const deletingUserId = ref(null);
-const isDetailVisible = ref(false);
-const viewingUser = ref(null);
 
 const users = ref([...adminUsers]);
 
@@ -53,7 +54,7 @@ const filteredUsers = computed(() => {
   return users.value.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
                          user.email.toLowerCase().includes(searchQuery.value.toLowerCase());
-    const matchesRole = roleFilter.value === 'all' || user.role === roleFilter.value;
+    const matchesRole = roleFilter.value === 'all' || user.roleId === parseInt(roleFilter.value);
     return matchesSearch && matchesRole;
   });
 });
@@ -104,13 +105,7 @@ const handleCancel = () => {
 };
 
 const handleView = (user) => {
-  viewingUser.value = { ...user };
-  isDetailVisible.value = true;
-};
-
-const closeDetail = () => {
-  isDetailVisible.value = false;
-  viewingUser.value = null;
+  router.push({ name: 'admin-user-detail', params: { id: user.id } });
 };
 
 const handleDelete = (id) => {
@@ -163,11 +158,11 @@ const confirmDelete = () => {
             ]"
           >
             <option value="all">{{ t('admin_all_roles') }}</option>
-            <option value="admin">ADMIN</option>
-            <option value="editor">EDITOR</option>
-            <option value="author">AUTHOR</option>
-            <option value="moderator">MODERATOR</option>
-            <option value="subscriber">SUBSCRIBER</option>
+            <option :value="1">ADMIN</option>
+            <option :value="2">EDITOR</option>
+            <option :value="3">AUTHOR</option>
+            <option :value="4">MODERATOR</option>
+            <option :value="5">SUBSCRIBER</option>
           </select>
         </div>
         <button @click="handleAdd" class="flex items-center gap-2 px-6 py-3 bg-construct-red hover:bg-red-600 text-white font-bold tracking-wider transition-colors rounded">
@@ -206,7 +201,7 @@ const confirmDelete = () => {
               </div>
             </td>
             <td class="px-6 py-4">
-              <span :class="['role-tag px-3 py-1 rounded-full text-xs font-bold border', getRoleStyle(user.role)]">{{ getRoleLabel(user.role) }}</span>
+              <span :class="['role-tag px-3 py-1 rounded-full text-xs font-bold border', getRoleStyle(user.roleId)]">{{ getRoleLabel(user.roleId) }}</span>
             </td>
             <td class="px-6 py-4">
               <button
@@ -264,7 +259,7 @@ const confirmDelete = () => {
       </div>
     </div>
 
-    <!-- User Form Modal -->
+    <!-- User Detail View -->
     <UserForm
       :edit-data="editingUser"
       :visible="isFormVisible"
@@ -282,60 +277,5 @@ const confirmDelete = () => {
       @confirm="confirmDelete"
       @cancel="showDeleteConfirm = false"
     />
-
-    <!-- User Detail Modal -->
-    <div v-if="isDetailVisible && viewingUser" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div class="absolute inset-0 bg-black/50" @click="closeDetail"></div>
-      <div :class="['relative w-full max-w-lg p-8 rounded-lg shadow-xl', isDarkMode ? 'bg-gray-800' : 'bg-white']">
-        <button 
-          @click="closeDetail" 
-          :class="['absolute top-4 right-4 p-2 rounded-full transition-colors', isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100']"
-        >
-          <X :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'" size="20" />
-        </button>
-        
-        <div class="text-center mb-8">
-          <div :class="['w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-4', isDarkMode ? 'bg-gray-700' : 'bg-gray-100']">
-            <User :class="isDarkMode ? 'text-gray-400' : 'text-gray-600'" size="36" />
-          </div>
-          <h3 :class="['text-2xl font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">{{ viewingUser.name }}</h3>
-          <p :class="['text-sm', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ viewingUser.email }}</p>
-        </div>
-
-        <div :class="['space-y-4', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
-          <div class="flex items-center justify-between p-4 rounded-lg" :class="isDarkMode ? 'bg-gray-700' : 'bg-gray-50'">
-            <span class="text-sm font-bold tracking-wider uppercase">{{ t('admin_table_role') }}</span>
-            <span :class="['px-3 py-1 rounded-full text-xs font-bold border', getRoleStyle(viewingUser.role)]">{{ getRoleLabel(viewingUser.role) }}</span>
-          </div>
-          
-          <div class="flex items-center justify-between p-4 rounded-lg" :class="isDarkMode ? 'bg-gray-700' : 'bg-gray-50'">
-            <span class="text-sm font-bold tracking-wider uppercase">{{ t('admin_table_status') }}</span>
-            <span :class="['px-3 py-1 rounded-full text-xs font-bold', viewingUser.status === 'active' ? (isDarkMode ? 'bg-green-500/20 text-green-400' : 'bg-green-100 text-green-600') : (isDarkMode ? 'bg-gray-600/50 text-gray-400' : 'bg-gray-100 text-gray-500')]">
-              {{ viewingUser.status === 'active' ? t('admin_active') : t('admin_inactive') }}
-            </span>
-          </div>
-          
-          <div class="flex items-center justify-between p-4 rounded-lg" :class="isDarkMode ? 'bg-gray-700' : 'bg-gray-50'">
-            <span class="text-sm font-bold tracking-wider uppercase">{{ t('admin_table_joined') }}</span>
-            <span>{{ formatToShort(viewingUser.joined) }}</span>
-          </div>
-        </div>
-
-        <div class="mt-8 flex gap-4">
-          <button 
-            @click="closeDetail" 
-            :class="['flex-1 py-3 font-bold tracking-wider rounded-lg transition-colors', isDarkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-900']"
-          >
-            {{ t('admin_close') }}
-          </button>
-          <button 
-            @click="handleEdit(viewingUser); closeDetail()" 
-            class="flex-1 py-3 bg-construct-red hover:bg-red-600 text-white font-bold tracking-wider rounded-lg transition-colors"
-          >
-            {{ t('admin_edit') }}
-          </button>
-        </div>
-      </div>
-    </div>
   </div>
 </template>

@@ -9,9 +9,11 @@
  * - 添加、编辑、删除分类
  * - 分类状态管理（启用/禁用）
  */
-import { ref, computed } from 'vue';
-import { useI18n } from 'vue-i18n';
 import {
+  ref,
+  computed,
+  useI18n,
+  useTheme,
   Folder,
   Plus,
   Search,
@@ -20,12 +22,11 @@ import {
   ChevronLeft,
   ChevronRight,
   Filter,
-  FileText
-} from 'lucide-vue-next';
-import { useTheme } from '../../composables/useTheme';
-import { adminCategories } from '../../data/categories';
-import MetaForm from '../../components/admin/MetaForm.vue';
-import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
+  FileText,
+  adminCategories,
+  MetaForm,
+  ConfirmDialog
+} from '../../composables/useAdminImports';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();

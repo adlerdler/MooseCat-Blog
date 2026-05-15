@@ -18,19 +18,18 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useRoute, useRouter, RouterLink } from 'vue-router';
 import { ArrowLeft, Share2, Bookmark, Clock, User, BookOpen, ChevronRight } from 'lucide-vue-next';
 import { POSTS } from '../../data/posts';
+import { getAuthorName } from '../../data/users';
 import { useI18n } from 'vue-i18n';
 import { formatToEnglish } from '../../utils/dateUtils';
+import { findById, formatId } from '../../utils/typeConvert';
 
 const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 
 const post = computed(() => {
-  const foundPost = POSTS.find(p => p.id === route.params.id);
-  if (!foundPost) {
-    return POSTS[0];
-  }
-  return foundPost;
+  const foundPost = findById(POSTS, route.params.id);
+  return foundPost || POSTS[0];
 });
 
 const updatePageTitle = () => {
@@ -170,7 +169,7 @@ onUnmounted(() => {
       <div class="container mx-auto relative z-10 md:pl-24">
         <div class="max-w-4xl">
           <div class="text-xs font-bold tracking-[0.4em] mb-4 opacity-70 animate-slide-down">
-            FILE: {{ post.category }} // ID: {{ post.id.padStart(4, '0') }}
+            FILE: {{ post.category }} // ID: {{ formatId(post.id, 4) }}
           </div>
           
           <div class="font-display text-4xl sm:text-5xl md:text-6xl lg:text-8xl leading-[0.9] tracking-tighter mb-8 animate-slide-down" style="animation-delay: 0.1s">
@@ -180,7 +179,7 @@ onUnmounted(() => {
           <div class="flex flex-wrap gap-8 items-center text-[10px] sm:text-xs font-bold tracking-[0.2em] opacity-80 animate-fade-in" style="animation-delay: 0.2s">
             <div class="flex items-center gap-2">
               <User size="14" class="text-white/40" />
-              <RouterLink :to="`/author/${encodeURIComponent(post.author)}`" class="hover:underline">{{ post.author }}</RouterLink>
+              <RouterLink :to="`/author/${encodeURIComponent(getAuthorName(post.userId))}`" class="hover:underline">{{ getAuthorName(post.userId) }}</RouterLink>
             </div>
             <div class="flex items-center gap-2">
               <Clock size="14" class="text-white/40" />

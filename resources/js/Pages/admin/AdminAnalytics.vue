@@ -9,9 +9,11 @@
  * - 用户增长趋势
  * - 访问来源分析
  */
-import { ref, computed } from 'vue';
-import { useI18n } from 'vue-i18n';
 import {
+  ref,
+  computed,
+  useI18n,
+  useTheme,
   BarChart3,
   TrendingUp,
   Users,
@@ -21,8 +23,7 @@ import {
   FolderKanban,
   Calendar,
   Clock
-} from 'lucide-vue-next';
-import { useTheme } from '../../composables/useTheme';
+} from '../../composables/useAdminImports';
 import {
   timeRanges,
   analyticsStats,

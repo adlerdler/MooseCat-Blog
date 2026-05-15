@@ -9,9 +9,11 @@
  * - 通知和邮件设置
  * - SEO和性能优化
  */
-import { ref, computed } from 'vue';
-import { useI18n } from 'vue-i18n';
 import {
+  ref,
+  computed,
+  useI18n,
+  useTheme,
   Settings,
   Globe,
   Palette,
@@ -25,8 +27,7 @@ import {
   Mail,
   Shield,
   Zap
-} from 'lucide-vue-next';
-import { useTheme } from '../../composables/useTheme';
+} from '../../composables/useAdminImports';
 import { defaultSettings, tabsConfig } from '../../data/admin';
 
 const { t } = useI18n();

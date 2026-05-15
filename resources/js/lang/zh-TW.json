@@ -211,5 +211,16 @@
   "admin_collapse": "收起",
   "admin_expand": "展開",
   "admin_collapse_sidebar": "收起側邊欄",
-  "admin_expand_sidebar": "展開側邊欄"
+  "admin_expand_sidebar": "展開側邊欄",
+  "admin_all_actions": "全部操作",
+  "user_login": "使用者登入",
+  "post_create": "建立文章",
+  "post_edit": "編輯文章",
+  "post_delete": "刪除文章",
+  "user_update": "更新使用者",
+  "role_change": "角色變更",
+  "comment_delete": "刪除評論",
+  "settings_update": "更新設定",
+  "category_create": "建立分類",
+  "media_upload": "上傳媒體"
 }

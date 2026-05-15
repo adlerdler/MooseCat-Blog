@@ -20,7 +20,7 @@
  */
 export const PROJECTS = [
   {
-    id: '1',
+    id: 1,
     title: 'CONSTRUCT_ENGINE',
     description: 'A modular UI framework built on Constructivist principles, emphasizing structural clarity and algorithmic precision.',
     longDescription: 'Construct Engine is the physical manifestation of structural honesty in digital space. It provides a set of rigid yet flexible primitives that allow designers and engineers to build interfaces that feel architected rather than just styled. By stripping away decorative clutter, it exposes the raw logic of the system.',
@@ -33,7 +33,7 @@ export const PROJECTS = [
     technologies: ['TypeScript', 'D3.js', 'Tailwind CSS', 'Redux'],
   },
   {
-    id: '2',
+    id: 2,
     title: 'VOID_NAV',
     description: 'Minimalist navigation library designed for high-performance, brute-force UI environments.',
     longDescription: 'Void Nav handles the complexity of spatial navigation in multi-layered interfaces. It uses a vector-based mapping system to ensure that the user always knows their current coordinates within the information architecture.',
