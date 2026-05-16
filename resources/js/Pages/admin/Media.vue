@@ -31,7 +31,8 @@ import {
   List,
   Info,
   X,
-  AdminPagination
+  AdminPagination,
+  MediaPreviewModal
 } from '../../composables/useAdminImports';
 import { adminMedia } from '../../data/media';
 import { Motion, AnimatePresence } from 'motion-v';
@@ -45,6 +46,13 @@ const viewMode = ref('grid'); // 'grid' or 'list'
 const currentPage = ref(1);
 const itemsPerPage = ref(12);
 const selectedFileId = ref(null);
+const showPreview = ref(false);
+const previewFile = ref(null);
+
+const handlePreview = (file) => {
+  previewFile.value = file;
+  showPreview.value = true;
+};
 
 const mediaFiles = ref([...adminMedia]);
 
@@ -189,7 +197,10 @@ const handleFileClick = (file) => {
                 
                 <!-- Quick Actions Overlay -->
                 <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 z-10">
-                  <button class="p-2 bg-white text-gray-900 rounded-full hover:bg-construct-red hover:text-white transition-colors">
+                  <button 
+                    @click.stop="handlePreview(file)"
+                    class="p-2 bg-white text-gray-900 rounded-full hover:bg-construct-red hover:text-white transition-colors"
+                  >
                     <Eye size="16" />
                   </button>
                   <button class="p-2 bg-white text-gray-900 rounded-full hover:bg-construct-red hover:text-white transition-colors">
@@ -242,7 +253,12 @@ const handleFileClick = (file) => {
                 <td class="px-6 py-3 text-xs font-bold opacity-50">{{ formatToShort(file.date) }}</td>
                 <td class="px-6 py-3 text-right">
                   <div class="flex items-center justify-end gap-1">
-                    <button class="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors"><Eye size="14" /></button>
+                    <button 
+                      @click.stop="handlePreview(file)"
+                      class="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors"
+                    >
+                      <Eye size="14" />
+                    </button>
                     <button class="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors"><Download size="14" /></button>
                     <button class="p-2 hover:bg-red-100 text-red-500 rounded transition-colors"><Trash2 size="14" /></button>
                   </div>
@@ -340,6 +356,15 @@ const handleFileClick = (file) => {
         </div>
       </Motion>
     </AnimatePresence>
+
+    <!-- Media Preview Modal -->
+    <MediaPreviewModal
+      :visible="showPreview"
+      :file="previewFile"
+      @close="showPreview = false"
+      @delete="(file) => console.log('Delete file:', file)"
+      @download="(file) => console.log('Download file:', file)"
+    />
   </div>
 </template>
 

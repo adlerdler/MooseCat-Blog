@@ -10,7 +10,7 @@
 import '../css/frontend.css';
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
-import AdminLayout from './Pages/Admin/AdminLayout.vue';
+import AdminLayout from './Pages/admin/Layout.vue';
 
 const route = useRoute();
 

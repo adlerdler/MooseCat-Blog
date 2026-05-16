@@ -426,5 +426,7 @@
   "comment_delete": "删除评论",
   "settings_update": "更新配置",
   "category_create": "创建分类",
-  "media_upload": "上传媒体"
+  "media_upload": "上传媒体",
+  "admin_save_confirm_title": "确认保存",
+  "admin_save_confirm_content": "确定要保存当前更改吗？"
 }

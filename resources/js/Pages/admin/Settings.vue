@@ -26,16 +26,20 @@ import {
   Sun,
   Mail,
   Shield,
-  Zap
+  Zap,
+  ConfirmDialog,
+  useToast
 } from '../../composables/useAdminImports';
 import { defaultSettings, tabsConfig } from '../../data/admin';
 
 const { t } = useI18n();
 const { isDarkMode, toggleTheme } = useTheme();
+const { success } = useToast();
 
 const settings = ref({ ...defaultSettings });
-
 const activeTab = ref('site');
+const isSaving = ref(false);
+const showSaveConfirm = ref(false);
 
 const iconMap = {
   globe: Globe,
@@ -54,7 +58,18 @@ const tabs = computed(() => {
 });
 
 const saveSettings = () => {
-  console.log('Settings saved:', settings.value);
+  showSaveConfirm.value = true;
+};
+
+const confirmSave = () => {
+  showSaveConfirm.value = false;
+  isSaving.value = true;
+  // 模拟保存过程
+  setTimeout(() => {
+    console.log('Settings saved:', settings.value);
+    isSaving.value = false;
+    success(t('admin_save') + ' ' + t('confirm'));
+  }, 500);
 };
 
 const resetSettings = () => {
@@ -86,9 +101,10 @@ const resetSettings = () => {
           </button>
           <button
             @click="saveSettings"
-            class="flex items-center gap-2 px-6 py-3 bg-construct-red hover:bg-red-600 text-white font-bold tracking-wider transition-colors"
+            :disabled="isSaving"
+            class="flex items-center gap-2 px-6 py-3 bg-construct-red hover:bg-red-600 text-white font-bold tracking-wider transition-colors disabled:opacity-50"
           >
-            <Save size="18" :style="{ color: '#ffffff' }" /> {{ t('admin_save') }}
+            <Save size="18" :style="{ color: '#ffffff' }" /> {{ isSaving ? t('admin_save') + '...' : t('admin_save') }}
           </button>
         </div>
       </div>
@@ -437,5 +453,16 @@ const resetSettings = () => {
         </div>
       </div>
     </div>
+
+    <!-- Confirm Dialog -->
+    <ConfirmDialog
+      :visible="showSaveConfirm"
+      :title="t('admin_save_confirm_title')"
+      :content="t('admin_save_confirm_content')"
+      :confirm-text="t('admin_save')"
+      confirm-variant="primary"
+      @confirm="confirmSave"
+      @cancel="showSaveConfirm = false"
+    />
   </div>
 </template>

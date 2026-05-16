@@ -426,5 +426,7 @@
   "comment_delete": "刪除評論",
   "settings_update": "更新設定",
   "category_create": "建立分類",
-  "media_upload": "上傳媒體"
+  "media_upload": "上傳媒體",
+  "admin_save_confirm_title": "確認儲存",
+  "admin_save_confirm_content": "確定要儲存目前更改嗎？"
 }

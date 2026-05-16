@@ -1,6 +1,6 @@
 <script setup>
 /**
- * AdminLayout.vue - 管理后台布局组件
+ * Layout.vue - 管理后台布局组件
  * 
  * 功能说明：
  * - 统一的管理后台布局框架

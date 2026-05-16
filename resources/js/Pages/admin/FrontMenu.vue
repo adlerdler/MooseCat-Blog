@@ -18,15 +18,20 @@ import {
   ExternalLink,
   Save,
   RotateCcw,
-  AdminPagination
+  AdminPagination,
+  ConfirmDialog,
+  Info,
+  useToast
 } from '../../composables/useAdminImports';
 import { frontMenuItems } from '../../data/front_menu';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
+const { success } = useToast();
 
 const menuList = ref([...frontMenuItems]);
 const isSaving = ref(false);
+const showSaveConfirm = ref(false);
 
 const handleAdd = () => {
   const newId = menuList.value.length > 0 ? Math.max(...menuList.value.map(i => i.id)) + 1 : 1;
@@ -42,12 +47,17 @@ const handleDelete = (id) => {
 };
 
 const handleSave = () => {
+  showSaveConfirm.value = true;
+};
+
+const confirmSave = () => {
+  showSaveConfirm.value = false;
   isSaving.value = true;
   // 模拟保存过程
   setTimeout(() => {
     console.log('Saved Menu List:', menuList.value);
     isSaving.value = false;
-    alert(t('admin_save') + ' ' + t('confirm'));
+    success(t('admin_save') + ' ' + t('confirm'));
   }, 500);
 };
 
@@ -175,6 +185,17 @@ const handleReset = () => {
         </p>
       </div>
     </div>
+
+    <!-- Confirm Dialog -->
+    <ConfirmDialog
+      :visible="showSaveConfirm"
+      :title="t('admin_save_confirm_title') || 'Confirm Save'"
+      :content="t('admin_save_confirm_content') || 'Are you sure you want to save the changes?'"
+      :confirm-text="t('admin_save') || 'Save'"
+      confirm-variant="primary"
+      @confirm="confirmSave"
+      @cancel="showSaveConfirm = false"
+    />
   </div>
 </template>
 

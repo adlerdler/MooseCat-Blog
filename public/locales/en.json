@@ -426,5 +426,7 @@
   "comment_delete": "Delete Comment",
   "settings_update": "Update Settings",
   "category_create": "Create Category",
-  "media_upload": "Upload Media"
+  "media_upload": "Upload Media",
+  "admin_save_confirm_title": "Confirm Save",
+  "admin_save_confirm_content": "Are you sure you want to save the changes?"
 }
