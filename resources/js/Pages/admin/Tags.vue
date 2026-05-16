@@ -240,10 +240,7 @@ const confirmDelete = () => {
     <!-- Delete Confirm Dialog -->
     <ConfirmDialog
       :visible="showDeleteConfirm"
-      title="确认删除"
-      content="确定要删除这个标签吗？此操作不可撤销。"
-      confirm-text="删除"
-      confirm-variant="danger"
+      type="delete"
       @confirm="confirmDelete"
       @cancel="showDeleteConfirm = false"
     />

@@ -436,5 +436,9 @@
   "category_create": "建立分類",
   "media_upload": "上傳媒體",
   "admin_save_confirm_title": "確認儲存",
-  "admin_save_confirm_content": "確定要儲存目前更改嗎？"
+  "admin_save_confirm_content": "確定要儲存目前更改嗎？",
+  "admin_comment_delete": "刪除評論",
+  "admin_comment_delete_confirm": "確定要永久刪除這條評論嗎？此操作不可撤銷。",
+  "admin_reply_placeholder": "輸入您的回覆內容...",
+  "admin_send_reply": "發送回覆"
 }

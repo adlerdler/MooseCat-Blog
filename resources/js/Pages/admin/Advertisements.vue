@@ -9,9 +9,11 @@
  * - 添加、编辑、删除广告
  * - 广告状态管理（启用/禁用）
  */
-import { ref, computed } from 'vue';
-import { useI18n } from 'vue-i18n';
 import {
+  ref,
+  computed,
+  useI18n,
+  useTheme,
   Plus,
   Search,
   Edit3,
@@ -21,23 +23,27 @@ import {
   X,
   CheckCircle,
   XCircle,
-  Image,
-  Link,
+  Image as ImageIcon,
+  Link as LinkIcon,
   Calendar,
   MousePointer,
   LayoutGrid,
   AlertCircle,
   Maximize,
   Sidebar,
-  SkipForward
-} from 'lucide-vue-next';
-import { useTheme } from '../../composables/useTheme';
-import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
-import AdminPagination from '../../components/admin/AdminPagination.vue';
+  SkipForward,
+  ExternalLink,
+  TrendingUp,
+  BarChart3,
+  Check,
+  ConfirmDialog,
+  AdminPagination
+} from '../../composables/useAdminImports';
+import { Motion, AnimatePresence } from 'motion-v';
 import { formatToShort } from '../../utils/dateUtils';
 import { adPositions, sampleAdvertisements } from '../../data/advertisements';
 
-const { t, locale } = useI18n();
+const { t } = useI18n();
 const { isDarkMode } = useTheme();
 
 const searchQuery = ref('');
@@ -139,10 +145,7 @@ const handleDelete = (id) => {
 
 const confirmDelete = () => {
   if (deletingAdId.value !== null) {
-    const index = ads.value.findIndex(a => a.id === deletingAdId.value);
-    if (index !== -1) {
-      ads.value.splice(index, 1);
-    }
+    ads.value = ads.value.filter(a => a.id !== deletingAdId.value);
     deletingAdId.value = null;
   }
   showDeleteConfirm.value = false;
@@ -156,49 +159,48 @@ const getCtr = (ad) => {
 
 <template>
   <div class="p-8">
-    <div class="mb-8">
+    <!-- Header -->
+    <div class="mb-10">
       <div class="flex items-center justify-between">
         <div>
           <div class="flex items-center gap-4 mb-2">
-            <Image class="text-construct-red" size="32" />
+            <ImageIcon class="text-construct-red" size="32" />
             <h2 :class="['font-display text-4xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">{{ t('admin_advertisements') }}</h2>
           </div>
-          <p :class="['text-sm font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_advertisements_subtitle') }}</p>
+          <p :class="['text-sm font-black tracking-[0.2em] uppercase opacity-50', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_advertisements_subtitle') }}</p>
         </div>
         <button
           @click="handleAdd"
-          :class="[
-            'flex items-center gap-2 px-6 py-3 font-bold uppercase tracking-wider transition-all hover:opacity-90',
-            isDarkMode ? 'bg-construct-red text-white' : 'bg-construct-red text-white'
-          ]"
+          class="flex items-center gap-3 px-8 py-4 bg-construct-red text-white font-black text-xs uppercase tracking-[0.2em] transition-all hover:scale-105 active:scale-95 shadow-lg shadow-construct-red/20 rounded-xl"
         >
-          <Plus size="20" />
+          <Plus size="18" />
           {{ t('admin_add_ad') }}
         </button>
       </div>
     </div>
 
-    <div class="flex flex-col md:flex-row gap-4 mb-8">
+    <!-- Filters -->
+    <div class="flex flex-col md:flex-row gap-4 mb-10">
       <div class="flex-1 relative">
-        <Search :class="['absolute left-4 top-1/2 -translate-y-1/2', isDarkMode ? 'text-gray-400' : 'text-gray-500']" size="20" />
+        <Search :class="['absolute left-4 top-1/2 -translate-y-1/2 transition-colors', isDarkMode ? 'text-gray-500' : 'text-gray-400']" size="20" />
         <input
           v-model="searchQuery"
           type="text"
           :placeholder="t('admin_search_ad')"
           :class="[
-            'w-full pl-12 pr-4 py-3 border focus:border-construct-red focus:outline-none transition-colors',
-            isDarkMode ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+            'w-full pl-12 pr-4 py-4 border focus:border-construct-red focus:outline-none transition-all rounded-2xl font-bold',
+            isDarkMode ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 shadow-inner' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 shadow-sm'
           ]"
         />
       </div>
       <div class="flex items-center gap-4">
         <div class="flex items-center gap-2">
-          <Filter :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'" size="18" />
+          <Filter :class="isDarkMode ? 'text-gray-500' : 'text-gray-400'" size="18" />
           <select
             v-model="positionFilter"
             :class="[
-              'px-4 py-3 border focus:border-construct-red focus:outline-none transition-colors',
-              isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'
+              'px-6 py-4 border focus:border-construct-red focus:outline-none transition-all rounded-2xl font-bold text-sm min-w-[160px]',
+              isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900 shadow-sm'
             ]"
           >
             <option value="all">{{ t('admin_all_positions') }}</option>
@@ -212,8 +214,8 @@ const getCtr = (ad) => {
         <select
           v-model="statusFilter"
           :class="[
-            'px-4 py-3 border focus:border-construct-red focus:outline-none transition-colors',
-            isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'
+            'px-6 py-4 border focus:border-construct-red focus:outline-none transition-all rounded-2xl font-bold text-sm min-w-[140px]',
+            isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900 shadow-sm'
           ]"
         >
           <option value="all">{{ t('admin_all_status') }}</option>
@@ -223,119 +225,161 @@ const getCtr = (ad) => {
       </div>
     </div>
 
-    <div class="space-y-4">
-      <div 
-        v-for="ad in paginatedAds" 
-        :key="ad.id"
-        :class="[
-          'p-6 border transition-all hover:border-construct-red',
-          isDarkMode ? 'bg-gray-800/50 border-gray-700' : 'bg-white border-gray-200'
-        ]"
-      >
-        <div class="flex items-start gap-4">
-          <div :class="['w-32 h-24 rounded overflow-hidden flex-shrink-0', isDarkMode ? 'bg-gray-700' : 'bg-gray-100']">
-            <img :src="ad.image_url" :alt="ad.title" class="w-full h-full object-cover" />
+    <!-- Ads Grid -->
+    <div class="space-y-6">
+      <AnimatePresence>
+        <Motion
+          v-for="ad in paginatedAds" 
+          :key="ad.id"
+          :initial="{ opacity: 0, y: 20 }"
+          :animate="{ opacity: 1, y: 0 }"
+          :exit="{ opacity: 0, scale: 0.95 }"
+          :class="[
+            'relative overflow-hidden group border p-6 transition-all duration-500 rounded-3xl',
+            isDarkMode 
+              ? 'bg-gray-800/40 border-gray-700/50 hover:border-construct-red/30 backdrop-blur-xl' 
+              : 'bg-white border-gray-200 hover:border-construct-red/20 shadow-sm hover:shadow-xl'
+          ]"
+        >
+          <!-- Active Status Bar -->
+          <div 
+            class="absolute left-0 top-6 bottom-6 w-1 rounded-r-full transition-all duration-500"
+            :class="ad.is_active ? 'bg-green-500' : 'bg-red-500'"
+          ></div>
+
+          <div class="flex flex-col lg:flex-row items-start gap-8">
+            <!-- Image Preview -->
+            <div class="relative w-full lg:w-48 aspect-[4/3] lg:aspect-square rounded-2xl overflow-hidden flex-shrink-0 group/img shadow-lg">
+              <img :src="ad.image_url" :alt="ad.title" class="w-full h-full object-cover transition-transform duration-700 group-hover/img:scale-110" />
+              <div class="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
+                <ExternalLink class="text-white" size="24" />
+              </div>
+            </div>
+
+            <!-- Content -->
+            <div class="flex-1 min-w-0">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-4">
+                <div class="space-y-1">
+                  <div class="flex items-center gap-3">
+                    <h3 :class="['font-display text-2xl tracking-tight truncate', isDarkMode ? 'text-white' : 'text-gray-900']">{{ ad.title }}</h3>
+                    <div :class="[
+                      'px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase border flex items-center gap-1.5',
+                      ad.is_active 
+                        ? 'bg-green-500/10 text-green-500 border-green-500/20' 
+                        : 'bg-red-500/10 text-red-500 border-red-500/20'
+                    ]">
+                      <div class="w-1.5 h-1.5 rounded-full" :class="ad.is_active ? 'bg-green-500 animate-pulse' : 'bg-red-500'"></div>
+                      {{ ad.is_active ? t('admin_active') : t('admin_inactive') }}
+                    </div>
+                  </div>
+                  <div :class="['flex items-center gap-2 text-xs font-bold uppercase tracking-wider', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
+                    <component :is="getPositionIcon(ad.position)" size="14" class="text-construct-red" />
+                    {{ getPositionLabel(ad.position) }}
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                  <button
+                    @click="toggleStatus(ad)"
+                    :class="[
+                      'p-3 rounded-xl transition-all duration-300 hover:scale-110',
+                      isDarkMode ? 'hover:bg-gray-700 text-gray-500 hover:text-white' : 'hover:bg-gray-100 text-gray-400 hover:text-gray-900'
+                    ]"
+                  >
+                    <MousePointer size="18" />
+                  </button>
+                  <button
+                    @click="handleEdit(ad)"
+                    :class="[
+                      'p-3 rounded-xl transition-all duration-300 hover:scale-110',
+                      isDarkMode ? 'hover:bg-gray-700 text-gray-500 hover:text-white' : 'hover:bg-gray-100 text-gray-400 hover:text-gray-900'
+                    ]"
+                  >
+                    <Edit3 size="18" />
+                  </button>
+                  <button
+                    @click="handleDelete(ad.id)"
+                    :class="[
+                      'p-3 rounded-xl transition-all duration-300 hover:scale-110',
+                      isDarkMode ? 'hover:bg-red-500/10 text-gray-500 hover:text-red-400' : 'hover:bg-red-50 text-gray-400 hover:text-red-600'
+                    ]"
+                  >
+                    <Trash2 size="18" />
+                  </button>
+                </div>
+              </div>
+
+              <!-- Link -->
+              <div class="mb-6">
+                <a 
+                  :href="ad.link_url" 
+                  target="_blank" 
+                  :class="[
+                    'inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium border transition-all truncate max-w-full',
+                    isDarkMode ? 'bg-blue-500/5 border-blue-500/10 text-blue-400 hover:bg-blue-500/10' : 'bg-blue-50 border-blue-100 text-blue-600 hover:bg-blue-100'
+                  ]"
+                >
+                  <LinkIcon size="14" />
+                  {{ ad.link_url }}
+                </a>
+              </div>
+
+              <!-- Stats & Info Grid -->
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div :class="['p-4 rounded-2xl border', isDarkMode ? 'bg-gray-900/30 border-gray-700/50' : 'bg-gray-50 border-gray-100']">
+                  <div class="flex items-center gap-2 mb-1 opacity-50">
+                    <Eye size="12" />
+                    <span class="text-[10px] font-black uppercase tracking-widest">{{ t('admin_views') }}</span>
+                  </div>
+                  <div :class="['font-display text-lg font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">{{ ad.views_count.toLocaleString() }}</div>
+                </div>
+                <div :class="['p-4 rounded-2xl border', isDarkMode ? 'bg-gray-900/30 border-gray-700/50' : 'bg-gray-50 border-gray-100']">
+                  <div class="flex items-center gap-2 mb-1 opacity-50">
+                    <MousePointer size="12" />
+                    <span class="text-[10px] font-black uppercase tracking-widest">{{ t('admin_clicks') }}</span>
+                  </div>
+                  <div :class="['font-display text-lg font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">{{ ad.clicks_count.toLocaleString() }}</div>
+                </div>
+                <div :class="['p-4 rounded-2xl border', isDarkMode ? 'bg-gray-900/30 border-gray-700/50' : 'bg-gray-50 border-gray-100']">
+                  <div class="flex items-center gap-2 mb-1 opacity-50">
+                    <TrendingUp size="12" />
+                    <span class="text-[10px] font-black uppercase tracking-widest">CTR</span>
+                  </div>
+                  <div :class="['font-display text-lg font-bold text-construct-red']">{{ getCtr(ad) }}</div>
+                </div>
+                <div :class="['p-4 rounded-2xl border', isDarkMode ? 'bg-gray-900/30 border-gray-700/50' : 'bg-gray-50 border-gray-100']">
+                  <div class="flex items-center gap-2 mb-1 opacity-50">
+                    <Calendar size="12" />
+                    <span class="text-[10px] font-black uppercase tracking-widest">{{ t('admin_table_date') }}</span>
+                  </div>
+                  <div :class="['text-[11px] font-bold leading-tight', isDarkMode ? 'text-white/60' : 'text-gray-600']">
+                    {{ ad.start_date }} <br/>
+                    <span class="opacity-30">{{ ad.end_date || 'Ongoing' }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="flex-1">
-            <div class="flex items-center justify-between mb-2">
-              <div class="flex items-center gap-3">
-                <span :class="['font-bold text-lg', isDarkMode ? 'text-white' : 'text-gray-900']">{{ ad.title }}</span>
-                <span :class="[
-                  'flex items-center gap-1 px-2 py-1 text-xs font-bold rounded',
-                  ad.is_active 
-                    ? 'bg-green-500/20 text-green-500' 
-                    : 'bg-red-500/20 text-red-500'
-                ]">
-                  <component :is="ad.is_active ? CheckCircle : XCircle" size="14" />
-                  {{ ad.is_active ? t('admin_active') : t('admin_inactive') }}
-                </span>
-                <span :class="['flex items-center gap-1 px-2 py-1 text-xs font-bold rounded', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600']">
-                  <component :is="getPositionIcon(ad.position)" size="14" />
-                  {{ getPositionLabel(ad.position) }}
-                </span>
-              </div>
-              <div class="flex items-center gap-2">
-                <button
-                  @click="toggleStatus(ad)"
-                  :class="[
-                    'p-2 transition-colors',
-                    isDarkMode ? 'hover:bg-gray-700 text-gray-400 hover:text-white' : 'hover:bg-gray-100 text-gray-500 hover:text-gray-900'
-                  ]"
-                  :title="ad.is_active ? t('admin_deactivate') : t('admin_activate')"
-                >
-                  <MousePointer size="18" />
-                </button>
-                <button
-                  @click="handleEdit(ad)"
-                  :class="[
-                    'p-2 transition-colors',
-                    isDarkMode ? 'hover:bg-gray-700 text-gray-400 hover:text-white' : 'hover:bg-gray-100 text-gray-500 hover:text-gray-900'
-                  ]"
-                  :title="t('admin_edit')"
-                >
-                  <Edit3 size="18" />
-                </button>
-                <button
-                  @click="handleDelete(ad.id)"
-                  :class="[
-                    'p-2 transition-colors',
-                    isDarkMode ? 'hover:bg-gray-700 text-gray-400 hover:text-red-400' : 'hover:bg-gray-100 text-gray-500 hover:text-red-600'
-                  ]"
-                  :title="t('admin_delete')"
-                >
-                  <Trash2 size="18" />
-                </button>
-              </div>
-            </div>
-            <div class="flex items-center gap-4 mb-2">
-              <a :href="ad.link_url" target="_blank" :class="['flex items-center gap-1 text-sm', isDarkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-500']">
-                <Link size="14" />
-                {{ ad.link_url }}
-              </a>
-            </div>
-            <div class="flex items-center gap-6 text-sm">
-              <div class="flex items-center gap-2">
-                <Eye :class="isDarkMode ? 'text-gray-500' : 'text-gray-400'" size="14" />
-                <span :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'">
-                  {{ t('admin_views') }}: {{ ad.views_count.toLocaleString() }}
-                </span>
-              </div>
-              <div class="flex items-center gap-2">
-                <MousePointer :class="isDarkMode ? 'text-gray-500' : 'text-gray-400'" size="14" />
-                <span :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'">
-                  {{ t('admin_clicks') }}: {{ ad.clicks_count.toLocaleString() }}
-                </span>
-              </div>
-              <div class="flex items-center gap-2">
-                <span :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'">
-                  CTR: {{ getCtr(ad) }}
-                </span>
-              </div>
-              <div class="flex items-center gap-2">
-                <Calendar :class="isDarkMode ? 'text-gray-500' : 'text-gray-400'" size="14" />
-                <span :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'">
-                  {{ ad.start_date }} ~ {{ ad.end_date }}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+        </Motion>
+      </AnimatePresence>
     </div>
 
-    <div v-if="filteredAds.length === 0" :class="['text-center py-12', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
-      <Image :class="['mx-auto mb-4 opacity-50', isDarkMode ? 'text-gray-600' : 'text-gray-400']" size="48" />
-      <p>{{ t('admin_no_ads') }}</p>
+    <!-- Empty State -->
+    <div v-if="filteredAds.length === 0" :class="['text-center py-24 rounded-3xl border-2 border-dashed', isDarkMode ? 'border-gray-700 text-gray-500' : 'border-gray-100 text-gray-400']">
+      <ImageIcon class="mx-auto mb-4 opacity-20" size="64" stroke-width="1" />
+      <p class="font-display text-xl">{{ t('admin_no_ads') }}</p>
     </div>
 
-    <AdminPagination
-      :current-page="currentPage"
-      :total-pages="totalPages"
-      :total-items="filteredAds.length"
-      :items-per-page="itemsPerPage"
-      @update:currentPage="currentPage = $event"
-      @update:itemsPerPage="itemsPerPage = $event"
-    />
+    <!-- Pagination -->
+    <div class="mt-10">
+      <AdminPagination
+        :current-page="currentPage"
+        :total-pages="totalPages"
+        :total-items="filteredAds.length"
+        v-model:items-per-page="itemsPerPage"
+        @update:current-page="currentPage = $event"
+      />
+    </div>
 
     <Teleport to="body">
       <div 
@@ -507,13 +551,26 @@ const getCtr = (ad) => {
 
     <ConfirmDialog
       :visible="showDeleteConfirm"
-      :title="t('admin_delete_ad_title')"
-      :content="t('admin_delete_ad_confirm')"
-      :confirm-text="t('admin_delete')"
-      :cancel-text="t('admin_cancel')"
-      confirm-variant="danger"
+      type="delete"
       @confirm="confirmDelete"
       @cancel="showDeleteConfirm = false"
     />
   </div>
 </template>
+
+<style scoped>
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.05);
+}
+</style>
+

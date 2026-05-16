@@ -17,6 +17,7 @@
  *   @cancel="showDeleteConfirm = false"
  * />
  */
+import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { X, AlertTriangle } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
@@ -27,6 +28,11 @@ const props = defineProps({
   visible: {
     type: Boolean,
     default: false
+  },
+  // 'delete', 'save', 'logout', etc.
+  type: {
+    type: String,
+    default: 'custom'
   },
   title: {
     type: String,
@@ -46,14 +52,50 @@ const props = defineProps({
   },
   confirmVariant: {
     type: String,
-    default: 'danger',
-    validator: (value) => ['danger', 'primary', 'warning'].includes(value)
+    default: '', // If empty, will be inferred from type
+    validator: (value) => ['', 'danger', 'primary', 'warning'].includes(value)
   }
 });
 
 const emit = defineEmits(['confirm', 'cancel']);
 
 const { isDarkMode } = useTheme();
+
+// Predefined configurations for common dialog types
+const config = computed(() => {
+  const types = {
+    delete: {
+      title: t('admin_confirm_delete'),
+      content: t('admin_delete_warning'),
+      confirmText: t('admin_delete'),
+      variant: 'danger'
+    },
+    save: {
+      title: t('admin_save_confirm_title'),
+      content: t('admin_save_confirm_content'),
+      confirmText: t('admin_save'),
+      variant: 'primary'
+    },
+    logout: {
+      title: t('admin_confirm_title'),
+      content: t('login_logout') + '?',
+      confirmText: t('login_logout'),
+      variant: 'danger'
+    },
+    custom: {
+      title: t('admin_confirm_title'),
+      content: t('admin_confirm_content'),
+      confirmText: t('confirm'),
+      variant: 'primary'
+    }
+  };
+  return types[props.type] || types.custom;
+});
+
+const displayTitle = computed(() => props.title || config.value.title);
+const displayContent = computed(() => props.content || config.value.content);
+const displayConfirmText = computed(() => props.confirmText || config.value.confirmText);
+const displayVariant = computed(() => props.confirmVariant || config.value.variant);
 
 const handleConfirm = () => {
   emit('confirm');
@@ -66,7 +108,7 @@ const handleCancel = () => {
 const getConfirmButtonClasses = () => {
   const baseClasses = 'flex-1 flex items-center justify-center gap-2 px-6 py-3 font-bold tracking-widest uppercase text-sm transition-colors rounded';
   
-  switch (props.confirmVariant) {
+  switch (displayVariant.value) {
     case 'danger':
       return `${baseClasses} bg-construct-red text-white hover:bg-red-700`;
     case 'warning':
@@ -97,15 +139,15 @@ const getConfirmButtonClasses = () => {
           <div class="flex items-center gap-3">
             <div :class="[
               'w-10 h-10 rounded-full flex items-center justify-center',
-              confirmVariant === 'danger' ? 'bg-red-500/20' : 'bg-yellow-500/20'
+              displayVariant === 'danger' ? 'bg-red-500/20' : (displayVariant === 'warning' ? 'bg-yellow-500/20' : 'bg-construct-red/20')
             ]">
               <AlertTriangle :class="[
                 'w-5 h-5',
-                confirmVariant === 'danger' ? 'text-red-500' : 'text-yellow-500'
+                displayVariant === 'danger' ? 'text-red-500' : (displayVariant === 'warning' ? 'text-yellow-500' : 'text-construct-red')
               ]" />
             </div>
             <h3 :class="['text-lg font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">
-              {{ title || t('admin_confirm_title') }}
+              {{ displayTitle }}
             </h3>
           </div>
           <button
@@ -122,7 +164,7 @@ const getConfirmButtonClasses = () => {
         <!-- Body -->
         <div class="px-6 pb-6">
           <p :class="['text-sm', isDarkMode ? 'text-gray-300' : 'text-gray-600']">
-            {{ content || t('admin_confirm_content') }}
+            {{ displayContent }}
           </p>
         </div>
 
@@ -143,7 +185,7 @@ const getConfirmButtonClasses = () => {
             @click="handleConfirm"
             :class="getConfirmButtonClasses()"
           >
-            {{ confirmText || t('confirm') }}
+            {{ displayConfirmText }}
           </button>
         </div>
       </div>

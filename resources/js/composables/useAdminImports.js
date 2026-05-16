@@ -80,7 +80,30 @@ export {
   // 菜单管理新增
   GripVertical,
   ExternalLink,
-  RotateCcw
+  RotateCcw,
+
+  // 评论管理新增
+  Send,
+  CornerDownRight,
+  ShieldCheck,
+  Reply,
+
+  // 广告管理新增
+  Link,
+  MousePointer,
+  Maximize,
+  Sidebar,
+  SkipForward,
+
+  // 关于页面新增
+  Code,
+  Cpu,
+  Terminal,
+  Coffee,
+  Github,
+  Heart,
+  Star,
+  Layers
 } from 'lucide-vue-next';
 
 // 主题 composable
