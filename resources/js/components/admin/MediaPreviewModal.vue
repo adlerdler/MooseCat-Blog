@@ -105,7 +105,10 @@ watch([() => props.file, () => props.visible], () => {
         :initial="{ opacity: 0, scale: 0.9, y: 20 }"
         :animate="{ opacity: 1, scale: 1, y: 0 }"
         :exit="{ opacity: 0, scale: 0.9, y: 20 }"
-        class="relative w-full max-w-6xl max-h-[90vh] flex flex-col md:flex-row bg-black rounded-2xl overflow-hidden shadow-2xl border border-white/10"
+        :class="[
+          'relative w-full max-w-6xl max-h-[90vh] flex flex-col md:flex-row rounded-2xl overflow-hidden shadow-2xl border',
+          isDarkMode ? 'bg-black border-white/10' : 'bg-white border-gray-200'
+        ]"
       >
         <!-- Close Button (Mobile) -->
         <button 
@@ -116,7 +119,7 @@ watch([() => props.file, () => props.visible], () => {
         </button>
 
         <!-- Preview Area -->
-        <div class="flex-1 bg-neutral-950 flex items-center justify-center relative group min-h-[300px] overflow-hidden">
+        <div :class="['flex-1 flex items-center justify-center relative group min-h-[300px] overflow-hidden', isDarkMode ? 'bg-neutral-950' : 'bg-gray-100']">
           <!-- Loading State -->
           <div v-if="isLoadingDoc" class="absolute inset-0 z-10 flex items-center justify-center bg-black/50">
             <Loader2 class="w-10 h-10 text-construct-red animate-spin" />
@@ -138,7 +141,7 @@ watch([() => props.file, () => props.visible], () => {
             ></video>
           </template>
           <template v-else-if="isPdf">
-            <div class="w-full h-full overflow-auto bg-neutral-800 p-4">
+            <div :class="['w-full h-full overflow-auto p-4', isDarkMode ? 'bg-neutral-800' : 'bg-gray-200']">
               <VuePdfEmbed 
                 :source="file?.url" 
                 class="mx-auto max-w-4xl shadow-2xl"
@@ -151,7 +154,7 @@ watch([() => props.file, () => props.visible], () => {
             </div>
           </template>
           <template v-else>
-            <div class="flex flex-col items-center gap-4 text-white/40">
+            <div :class="['flex flex-col items-center gap-4', isDarkMode ? 'text-white/40' : 'text-gray-400']">
               <FileText size="80" stroke-width="1" />
               <span class="font-bold tracking-widest uppercase text-sm">No Preview Available</span>
             </div>
@@ -161,7 +164,10 @@ watch([() => props.file, () => props.visible], () => {
           <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
             <button 
               @click="handleDownload"
-              class="px-6 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/10 rounded-full flex items-center gap-2 font-bold text-xs uppercase tracking-widest transition-all"
+              :class="[
+                'px-6 py-3 backdrop-blur-md border rounded-full flex items-center gap-2 font-bold text-xs uppercase tracking-widest transition-all',
+                isDarkMode ? 'bg-white/10 hover:bg-white/20 text-white border-white/10' : 'bg-black/10 hover:bg-black/20 text-gray-900 border-black/10'
+              ]"
             >
               <Download size="16" /> {{ t('admin_download') }}
             </button>
@@ -169,12 +175,12 @@ watch([() => props.file, () => props.visible], () => {
         </div>
 
         <!-- Sidebar Info -->
-        <div class="w-full md:w-[350px] bg-neutral-900 border-l border-white/10 flex flex-col">
-          <div class="p-6 border-b border-white/5 flex items-center justify-between">
-            <h3 class="text-white font-bold tracking-tighter text-xl">{{ t('admin_preview') }}</h3>
+        <div :class="['w-full md:w-[350px] border-l flex flex-col', isDarkMode ? 'bg-neutral-900 border-white/10' : 'bg-gray-50 border-gray-200']">
+          <div :class="['p-6 border-b flex items-center justify-between', isDarkMode ? 'border-white/5 bg-black/20' : 'border-gray-200 bg-white']">
+            <h3 :class="['font-bold tracking-tighter text-xl', isDarkMode ? 'text-white' : 'text-gray-900']">{{ t('admin_preview') }}</h3>
             <button 
               @click="handleClose"
-              class="hidden md:flex p-2 hover:bg-white/5 text-white/50 hover:text-white rounded-lg transition-colors"
+              :class="['hidden md:flex p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-white/5 text-white/50 hover:text-white' : 'hover:bg-gray-200 text-gray-400 hover:text-gray-900']"
             >
               <X size="20" />
             </button>
@@ -184,27 +190,27 @@ watch([() => props.file, () => props.visible], () => {
             <!-- File Info -->
             <div class="space-y-6">
               <div>
-                <label class="text-[10px] font-black tracking-widest text-white/30 uppercase block mb-2">File Name</label>
-                <div class="text-white font-bold text-lg break-all leading-tight">{{ file?.name }}</div>
+                <label :class="['text-[10px] font-black tracking-widest uppercase block mb-2', isDarkMode ? 'text-white/30' : 'text-gray-400']">File Name</label>
+                <div :class="['font-bold text-lg break-all leading-tight', isDarkMode ? 'text-white' : 'text-gray-900']">{{ file?.name }}</div>
               </div>
 
               <div class="grid grid-cols-2 gap-4">
-                <div class="p-4 bg-white/5 rounded-xl border border-white/5">
-                  <label class="text-[10px] font-black tracking-widest text-white/30 uppercase block mb-1">Type</label>
-                  <div class="text-white font-bold text-sm uppercase">{{ file?.type }}</div>
+                <div :class="['p-4 rounded-xl border', isDarkMode ? 'bg-white/5 border-white/5' : 'bg-white border-gray-200']">
+                  <label :class="['text-[10px] font-black tracking-widest uppercase block mb-1', isDarkMode ? 'text-white/30' : 'text-gray-400']">Type</label>
+                  <div :class="['font-bold text-sm uppercase', isDarkMode ? 'text-white' : 'text-gray-800']">{{ file?.type }}</div>
                 </div>
-                <div class="p-4 bg-white/5 rounded-xl border border-white/5">
-                  <label class="text-[10px] font-black tracking-widest text-white/30 uppercase block mb-1">Size</label>
-                  <div class="text-white font-bold text-sm">{{ file?.size }}</div>
+                <div :class="['p-4 rounded-xl border', isDarkMode ? 'bg-white/5 border-white/5' : 'bg-white border-gray-200']">
+                  <label :class="['text-[10px] font-black tracking-widest uppercase block mb-1', isDarkMode ? 'text-white/30' : 'text-gray-400']">Size</label>
+                  <div :class="['font-bold text-sm', isDarkMode ? 'text-white' : 'text-gray-800']">{{ file?.size }}</div>
                 </div>
               </div>
 
               <div class="space-y-4">
-                <div class="flex items-center gap-3 text-white/60">
+                <div :class="['flex items-center gap-3', isDarkMode ? 'text-white/60' : 'text-gray-600']">
                   <Calendar size="16" class="text-construct-red" />
                   <span class="text-sm font-medium">{{ file?.date }}</span>
                 </div>
-                <div class="flex items-center gap-3 text-white/60">
+                <div :class="['flex items-center gap-3', isDarkMode ? 'text-white/60' : 'text-gray-600']">
                   <HardDrive size="16" class="text-construct-red" />
                   <span class="text-sm font-medium">Internal Storage</span>
                 </div>
@@ -213,12 +219,12 @@ watch([() => props.file, () => props.visible], () => {
 
             <!-- URL Copy -->
             <div>
-              <label class="text-[10px] font-black tracking-widest text-white/30 uppercase block mb-2">Public URL</label>
+              <label :class="['text-[10px] font-black tracking-widest uppercase block mb-2', isDarkMode ? 'text-white/30' : 'text-gray-400']">Public URL</label>
               <div class="relative group/copy">
-                <div class="p-4 bg-black border border-white/10 rounded-xl text-[11px] font-mono text-white/40 break-all pr-10">
+                <div :class="['p-4 border rounded-xl text-[11px] font-mono break-all pr-10 transition-colors', isDarkMode ? 'bg-black border-white/10 text-white/40 group-hover/copy:text-white/60' : 'bg-white border-gray-200 text-gray-500 group-hover/copy:text-gray-700']">
                   {{ file?.url }}
                 </div>
-                <button class="absolute right-3 top-1/2 -translate-y-1/2 text-white/20 hover:text-white transition-colors">
+                <button :class="['absolute right-3 top-1/2 -translate-y-1/2 transition-colors', isDarkMode ? 'text-white/20 hover:text-white' : 'text-gray-300 hover:text-gray-600']">
                   <ExternalLink size="14" />
                 </button>
               </div>
@@ -226,7 +232,7 @@ watch([() => props.file, () => props.visible], () => {
           </div>
 
           <!-- Bottom Actions -->
-          <div class="p-6 border-t border-white/5 bg-black/20 flex gap-3">
+          <div :class="['p-6 border-t flex gap-3', isDarkMode ? 'border-white/5 bg-black/20' : 'border-gray-200 bg-white']">
             <button 
               @click="handleDelete"
               class="flex-1 py-4 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20 rounded-xl font-black text-[10px] tracking-[0.2em] uppercase transition-all flex items-center justify-center gap-2"

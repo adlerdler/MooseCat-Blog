@@ -154,44 +154,68 @@ const confirmDelete = () => {
     </div>
 
     <!-- Tags Grid -->
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
       <div 
         v-for="tag in paginatedTags" 
         :key="tag.id"
         :class="[
-          'border p-4 hover:border-construct-red transition-colors',
-          isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+          'group relative border p-5 transition-all duration-300 hover:shadow-lg hover:border-construct-red/30',
+          isDarkMode 
+            ? 'bg-gray-800/40 border-gray-700/50 backdrop-blur-md rounded-2xl' 
+            : 'bg-white/80 border-gray-200/80 backdrop-blur-md rounded-2xl shadow-sm'
         ]"
       >
-        <div class="flex items-start justify-between mb-3">
-          <div class="flex items-center gap-2">
-            <Tag :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'" size="16" />
-            <span :class="['font-bold text-sm', isDarkMode ? 'text-white' : 'text-gray-900']">{{ tag.name }}</span>
-          </div>
-          <button
-            @click="toggleStatus(tag)"
-            class="flex items-center cursor-pointer"
-          >
-            <div :class="['w-10 h-5 rounded-full relative transition-colors', tag.status === 'active' ? 'bg-green-500' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-400')]">
-              <div :class="['absolute top-0.5 w-3.5 h-3.5 rounded-full bg-white transition-transform', tag.status === 'active' ? 'left-6' : 'left-0.5']"></div>
+        <div class="flex flex-col h-full">
+          <div class="flex items-start justify-between mb-4">
+            <div :class="[
+              'px-3 py-1.5 rounded-xl flex items-center gap-2 border transition-all duration-300 group-hover:scale-105',
+              isDarkMode 
+                ? 'bg-gray-900/50 border-gray-700 text-white' 
+                : 'bg-gray-50 border-gray-100 text-gray-900'
+            ]">
+              <Tag size="14" class="text-construct-red" />
+              <span class="font-bold text-sm tracking-tight truncate max-w-[80px]">{{ tag.name }}</span>
             </div>
-          </button>
-        </div>
-        
-        <div :class="['flex items-center justify-between pt-3 border-t', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
-          <div :class="['flex items-center gap-2 text-xs', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
-            <FileText size="14" />
-            <span>{{ tag.usageCount }} {{ t('admin_posts') }}</span>
-          </div>
-          <div class="flex items-center gap-1">
-            <button @click="handleEdit(tag)" :class="['p-1.5 transition-colors', isDarkMode ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-500 hover:bg-gray-100']">
-              <Edit3 size="16" />
-            </button>
-            <button @click="handleDelete(tag.id)" :class="['p-1.5 transition-colors', isDarkMode ? 'text-gray-400 hover:bg-red-500/20' : 'text-gray-500 hover:bg-red-50']">
-              <Trash2 size="16" />
+            
+            <button
+              @click="toggleStatus(tag)"
+              class="flex items-center cursor-pointer"
+            >
+              <div :class="[
+                'w-2 h-2 rounded-full',
+                tag.status === 'active' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]' : 'bg-gray-400'
+              ]"></div>
             </button>
           </div>
+          
+          <div :class="['mt-auto flex items-center justify-between pt-4 border-t border-dashed', isDarkMode ? 'border-gray-700' : 'border-gray-100']">
+            <div :class="['flex items-center gap-1.5 text-[10px] font-black tracking-widest uppercase', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
+              <FileText size="12" />
+              <span>{{ tag.usageCount }}</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <button 
+                @click="handleEdit(tag)" 
+                :class="['p-1.5 rounded-lg transition-all duration-300 hover:scale-110', isDarkMode ? 'text-gray-400 hover:bg-gray-700 hover:text-white' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900']"
+              >
+                <Edit3 size="14" />
+              </button>
+              <button 
+                @click="handleDelete(tag.id)" 
+                :class="['p-1.5 rounded-lg transition-all duration-300 hover:scale-110', isDarkMode ? 'text-gray-400 hover:bg-red-500/10 hover:text-red-400' : 'text-gray-500 hover:bg-red-50 hover:text-red-600']"
+              >
+                <Trash2 size="14" />
+              </button>
+            </div>
+          </div>
         </div>
+
+        <!-- Status Tooltip/Overlay (Optional subtle indicator) -->
+        <div 
+          v-if="tag.status === 'inactive'"
+          class="absolute inset-0 bg-gray-900/10 backdrop-grayscale rounded-2xl pointer-events-none transition-opacity duration-300"
+          :class="isDarkMode ? 'opacity-40' : 'opacity-20'"
+        ></div>
       </div>
     </div>
 

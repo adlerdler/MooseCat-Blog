@@ -1,12 +1,11 @@
 <script setup>
 /**
- * AdminFrontMenu.vue - 前台菜单管理页面
+ * FrontMenu.vue - 菜单节点管理页面
  * 
  * 功能说明：
- * - 管理前台导航栏菜单项
- * - 编辑菜单标签 (labelKey) 和 路径 (path)
- * - 新增、删除菜单项
- * - 拖拽排序 (模拟)
+ * - 管理前台和后台导航栏菜单项 (节点管理)
+ * - 支持切换前台菜单与后台菜单视图
+ * - 编辑菜单标签 (labelKey) 和 路径 (path/route)
  */
 import {
   ref,
@@ -21,29 +20,63 @@ import {
   AdminPagination,
   ConfirmDialog,
   Info,
-  useToast
+  useToast,
+  Monitor,
+  LayoutDashboard,
+  Edit3,
+  X
 } from '../../composables/useAdminImports';
 import { frontMenuItems } from '../../data/front_menu';
+import { adminMenuItems } from '../../data/menu';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
 const { success } = useToast();
 
-const menuList = ref([...frontMenuItems]);
+const currentTab = ref('front'); // 'front' or 'admin'
+const frontMenuList = ref([...frontMenuItems]);
+const adminMenuList = ref([...adminMenuItems]);
+
 const isSaving = ref(false);
 const showSaveConfirm = ref(false);
+const isEditing = ref(false);
+
+const startEditing = () => {
+  isEditing.value = true;
+};
+
+const cancelEditing = () => {
+  frontMenuList.value = [...frontMenuItems];
+  adminMenuList.value = [...adminMenuItems];
+  isEditing.value = false;
+};
 
 const handleAdd = () => {
-  const newId = menuList.value.length > 0 ? Math.max(...menuList.value.map(i => i.id)) + 1 : 1;
-  menuList.value.push({
-    id: newId,
-    labelKey: '',
-    path: '/'
-  });
+  const targetList = currentTab.value === 'front' ? frontMenuList : adminMenuList;
+  const newId = targetList.value.length > 0 ? Math.max(...targetList.value.map(i => i.id || 0)) + 1 : 1;
+  
+  if (currentTab.value === 'front') {
+    targetList.value.push({
+      id: newId,
+      labelKey: '',
+      path: '/'
+    });
+  } else {
+    targetList.value.push({
+      id: String(newId),
+      labelKey: '',
+      iconKey: 'circle',
+      route: '/admin/'
+    });
+  }
 };
 
 const handleDelete = (id) => {
-  menuList.value = menuList.value.filter(item => item.id !== id);
+  if (currentTab.value === 'front') {
+    frontMenuList.value = frontMenuList.value.filter(item => item.id !== id);
+  } else {
+    adminMenuList.value = adminMenuList.value.filter(item => item.id !== id);
+  }
 };
 
 const handleSave = () => {
@@ -55,14 +88,20 @@ const confirmSave = () => {
   isSaving.value = true;
   // 模拟保存过程
   setTimeout(() => {
-    console.log('Saved Menu List:', menuList.value);
+    console.log('Saved Front Menu:', frontMenuList.value);
+    console.log('Saved Admin Menu:', adminMenuList.value);
     isSaving.value = false;
+    isEditing.value = false;
     success(t('admin_save') + ' ' + t('confirm'));
   }, 500);
 };
 
 const handleReset = () => {
-  menuList.value = [...frontMenuItems];
+  if (currentTab.value === 'front') {
+    frontMenuList.value = [...frontMenuItems];
+  } else {
+    adminMenuList.value = [...adminMenuItems];
+  }
 };
 </script>
 
@@ -72,83 +111,144 @@ const handleReset = () => {
     <div class="mb-8 flex justify-between items-end">
       <div>
         <h2 :class="['font-display text-4xl tracking-tighter mb-2', isDarkMode ? 'text-white' : 'text-gray-900']">
-          {{ t('admin_front_menu') }}
+          {{ t('admin_menu_management') }}
         </h2>
         <p :class="['text-sm font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
-          {{ t('admin_front_menu_subtitle') }}
+          {{ t('admin_menu_management_subtitle') }}
         </p>
       </div>
       
       <div class="flex gap-3">
-        <button 
-          @click="handleReset"
-          :class="['px-6 py-3 border flex items-center gap-2 font-bold text-sm tracking-wider uppercase transition-colors rounded hover:bg-gray-100', isDarkMode ? 'border-gray-700 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50']"
-        >
-          <RotateCcw size="16" /> {{ t('admin_reset') }}
-        </button>
-        <button 
-          @click="handleSave"
-          :disabled="isSaving"
-          class="flex items-center gap-2 px-8 py-3 bg-construct-red text-white font-bold tracking-widest uppercase text-sm hover:bg-red-700 transition-colors rounded shadow-sm disabled:opacity-50"
-        >
-          <Save size="16" class="!text-white" /> {{ isSaving ? t('admin_save') + '...' : t('admin_save') }}
-        </button>
+        <template v-if="!isEditing">
+          <button 
+            @click="startEditing"
+            class="flex items-center gap-2 px-8 py-3 bg-construct-red text-white font-bold tracking-widest uppercase text-sm hover:bg-red-700 transition-colors rounded shadow-sm"
+          >
+            <Edit3 size="16" class="!text-white" /> {{ t('admin_edit') }}
+          </button>
+        </template>
+        <template v-else>
+          <button 
+            @click="cancelEditing"
+            :class="['px-6 py-3 border flex items-center gap-2 font-bold text-sm tracking-wider uppercase transition-colors rounded hover:bg-gray-100', isDarkMode ? 'border-gray-700 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50']"
+          >
+            <X size="16" /> {{ t('admin_cancel') }}
+          </button>
+          <button 
+            @click="handleSave"
+            :disabled="isSaving"
+            class="flex items-center gap-2 px-8 py-3 bg-construct-red text-white font-bold tracking-widest uppercase text-sm hover:bg-red-700 transition-colors rounded shadow-sm disabled:opacity-50"
+          >
+            <Save size="16" class="!text-white" /> {{ isSaving ? t('admin_save') + '...' : t('admin_save') }}
+          </button>
+        </template>
       </div>
+    </div>
+
+    <!-- Tabs UI -->
+    <div class="mb-6 flex gap-2 p-1 border rounded-lg w-fit" :class="isDarkMode ? 'border-gray-700 bg-gray-900/50' : 'border-gray-200 bg-gray-100'">
+      <button 
+        @click="currentTab = 'front'"
+        :disabled="isEditing"
+        :class="[
+          'px-6 py-2 rounded-md text-xs font-black tracking-widest uppercase transition-all flex items-center gap-2',
+          currentTab === 'front' 
+            ? 'bg-construct-red text-white shadow-lg' 
+            : (isDarkMode ? 'text-gray-500 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'),
+          isEditing ? 'opacity-50 cursor-not-allowed' : ''
+        ]"
+      >
+        <Monitor size="14" /> {{ t('admin_front_menu_tab') }}
+      </button>
+      <button 
+        @click="currentTab = 'admin'"
+        :disabled="isEditing"
+        :class="[
+          'px-6 py-2 rounded-md text-xs font-black tracking-widest uppercase transition-all flex items-center gap-2',
+          currentTab === 'admin' 
+            ? 'bg-construct-red text-white shadow-lg' 
+            : (isDarkMode ? 'text-gray-500 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'),
+          isEditing ? 'opacity-50 cursor-not-allowed' : ''
+        ]"
+      >
+        <LayoutDashboard size="14" /> {{ t('admin_backend_menu_tab') }}
+      </button>
     </div>
 
     <!-- Menu List Table -->
     <div :class="['border rounded-lg overflow-hidden', isDarkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white']">
-      <table class="w-full text-left">
+      <table class="w-full text-left table-fixed">
         <thead :class="['border-b', isDarkMode ? 'border-gray-700 bg-gray-900/50 text-gray-400' : 'border-gray-200 bg-gray-50 text-gray-500']">
           <tr>
-            <th class="px-6 py-4 font-bold uppercase text-[10px] tracking-widest w-12 text-center">Order</th>
-            <th class="px-6 py-4 font-bold uppercase text-[10px] tracking-widest">Label Key (Translation)</th>
-            <th class="px-6 py-4 font-bold uppercase text-[10px] tracking-widest">Display Text</th>
-            <th class="px-6 py-4 font-bold uppercase text-[10px] tracking-widest">Path</th>
-            <th class="px-6 py-4 font-bold uppercase text-[10px] tracking-widest text-right">Actions</th>
+            <th class="px-6 py-4 font-bold uppercase text-[10px] tracking-widest w-16 text-center">Order</th>
+            <th class="px-6 py-4 font-bold uppercase text-[10px] tracking-widest w-1/4">Label Key</th>
+            <th class="px-6 py-4 font-bold uppercase text-[10px] tracking-widest w-1/4">Display Text</th>
+            <th class="px-6 py-4 font-bold uppercase text-[10px] tracking-widest w-1/4">{{ currentTab === 'front' ? 'Path' : 'Route' }}</th>
+            <th v-if="currentTab === 'admin'" class="px-6 py-4 font-bold uppercase text-[10px] tracking-widest w-24">Icon</th>
+            <th class="px-6 py-4 font-bold uppercase text-[10px] tracking-widest w-20 text-right">Actions</th>
           </tr>
         </thead>
         <tbody :class="isDarkMode ? 'text-gray-300' : 'text-gray-700'">
           <tr 
-            v-for="(item, index) in menuList" 
+            v-for="(item, index) in (currentTab === 'front' ? frontMenuList : adminMenuList)" 
             :key="item.id"
             :class="['border-b transition-colors', isDarkMode ? 'border-gray-700 hover:bg-gray-700/30' : 'border-gray-100 hover:bg-gray-50/50']"
           >
             <td class="px-6 py-4 text-center">
-              <GripVertical size="16" class="mx-auto cursor-move opacity-30 hover:opacity-100" />
+              <GripVertical size="16" :class="['mx-auto opacity-30', isEditing ? 'cursor-move hover:opacity-100' : 'opacity-10 cursor-not-allowed']" />
             </td>
             <td class="px-6 py-4">
               <input 
                 v-model="item.labelKey"
                 type="text"
+                :disabled="!isEditing"
                 :class="[
-                  'w-full px-3 py-2 border rounded font-mono text-xs focus:border-construct-red focus:outline-none',
-                  isDarkMode ? 'bg-gray-900 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'
+                  'w-full px-3 py-2 border rounded font-mono text-xs focus:border-construct-red focus:outline-none transition-all',
+                  isDarkMode ? 'bg-gray-900 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900',
+                  !isEditing ? 'opacity-50 cursor-not-allowed' : ''
                 ]"
                 placeholder="e.g. nav_home"
               />
             </td>
             <td class="px-6 py-4">
-              <span class="text-sm font-bold">{{ t(item.labelKey) || '(Empty)' }}</span>
+              <span class="text-sm font-bold truncate block" :title="t(item.labelKey)">
+                {{ t(item.labelKey) || '(Empty)' }}
+              </span>
             </td>
             <td class="px-6 py-4">
               <div class="flex items-center gap-2">
                 <input 
-                  v-model="item.path"
+                  v-model="item[currentTab === 'front' ? 'path' : 'route']"
                   type="text"
+                  :disabled="!isEditing"
                   :class="[
-                    'flex-1 px-3 py-2 border rounded font-mono text-xs focus:border-construct-red focus:outline-none',
-                    isDarkMode ? 'bg-gray-900 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'
+                    'flex-1 px-3 py-2 border rounded font-mono text-xs focus:border-construct-red focus:outline-none transition-all',
+                    isDarkMode ? 'bg-gray-900 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900',
+                    !isEditing ? 'opacity-50 cursor-not-allowed' : ''
                   ]"
                   placeholder="/"
                 />
-                <ExternalLink size="14" class="opacity-40" />
+                <ExternalLink size="14" class="opacity-40 shrink-0" />
               </div>
+            </td>
+            <td v-if="currentTab === 'admin'" class="px-6 py-4">
+              <input 
+                v-model="item.iconKey"
+                type="text"
+                :disabled="!isEditing"
+                :class="[
+                  'w-full px-3 py-2 border rounded font-mono text-xs focus:border-construct-red focus:outline-none transition-all',
+                  isDarkMode ? 'bg-gray-900 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900',
+                  !isEditing ? 'opacity-50 cursor-not-allowed' : ''
+                ]"
+                placeholder="iconName"
+              />
             </td>
             <td class="px-6 py-4 text-right">
               <button 
                 @click="handleDelete(item.id)"
-                class="p-2 text-gray-400 hover:text-red-500 transition-colors rounded hover:bg-red-50"
+                :disabled="!isEditing"
+                class="p-2 text-gray-400 hover:text-red-500 transition-colors rounded hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-20 disabled:cursor-not-allowed"
               >
                 <Trash2 size="16" />
               </button>
@@ -158,17 +258,17 @@ const handleReset = () => {
       </table>
       
       <!-- Empty State -->
-      <div v-if="menuList.length === 0" class="p-12 text-center text-gray-500 font-bold uppercase tracking-widest text-sm">
-        No menu items found. Click add to create one.
+      <div v-if="(currentTab === 'front' ? frontMenuList : adminMenuList).length === 0" class="p-12 text-center text-gray-500 font-bold uppercase tracking-widest text-sm">
+        No menu items found. Click edit to unlock management.
       </div>
 
       <!-- Add Row -->
-      <div class="p-4 bg-gray-50/30 dark:bg-gray-900/30 border-t border-dashed border-gray-200 dark:border-gray-700">
+      <div v-if="isEditing" class="p-4 bg-gray-50/30 dark:bg-gray-900/30 border-t border-dashed border-gray-200 dark:border-gray-700 transition-all">
         <button 
           @click="handleAdd"
           class="w-full py-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg flex items-center justify-center gap-2 text-sm font-bold text-gray-400 hover:text-construct-red hover:border-construct-red transition-all group"
         >
-          <Plus size="18" class="group-hover:scale-125 transition-transform" /> Add New Menu Item
+          <Plus size="18" class="group-hover:scale-125 transition-transform" /> {{ currentTab === 'front' ? 'Add Frontend Item' : 'Add Backend Item' }}
         </button>
       </div>
     </div>

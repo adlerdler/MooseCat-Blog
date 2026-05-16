@@ -23,7 +23,7 @@ export const adminMenuItems = [
     iconKey: 'settings',
     children: [
       { id: 'settings', labelKey: 'admin_basic_settings', iconKey: 'sliders', route: '/admin/settings' },
-      { id: 'front_menu', labelKey: 'admin_front_menu', iconKey: 'menu', route: '/admin/front-menu' },
+      { id: 'front_menu', labelKey: 'admin_node_management', iconKey: 'menu', route: '/admin/front-menu' },
       { id: 'roles', labelKey: 'admin_roles', iconKey: 'shield', route: '/admin/roles' },
       { id: 'logs', labelKey: 'admin_logs', iconKey: 'fileText', route: '/admin/logs' },
       { id: 'backup', labelKey: 'admin_backup', iconKey: 'archive', route: '/admin/backup' },

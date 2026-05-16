@@ -117,3 +117,4 @@ export { default as MetaForm } from '../components/admin/MetaForm.vue';
 export { default as TagInput } from '../components/admin/TagInput.vue';
 export { default as AdminPagination } from '../components/admin/AdminPagination.vue';
 export { default as MediaPreviewModal } from '../components/admin/MediaPreviewModal.vue';
+export { default as MediaUploadModal } from '../components/admin/MediaUploadModal.vue';

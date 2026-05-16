@@ -29,10 +29,10 @@ import {
   HardDrive,
   LayoutGrid,
   List,
-  Info,
   X,
   AdminPagination,
-  MediaPreviewModal
+  MediaPreviewModal,
+  MediaUploadModal
 } from '../../composables/useAdminImports';
 import { adminMedia } from '../../data/media';
 import { Motion, AnimatePresence } from 'motion-v';
@@ -45,13 +45,28 @@ const typeFilter = ref('all');
 const viewMode = ref('grid'); // 'grid' or 'list'
 const currentPage = ref(1);
 const itemsPerPage = ref(12);
-const selectedFileId = ref(null);
 const showPreview = ref(false);
 const previewFile = ref(null);
+const showUpload = ref(false);
 
 const handlePreview = (file) => {
   previewFile.value = file;
   showPreview.value = true;
+};
+
+const handleUploadSuccess = (newFiles) => {
+  // In a real app, we would refresh from API
+  // Here we just mock adding to the list
+  newFiles.forEach(f => {
+    mediaFiles.value.unshift({
+      id: Math.max(...mediaFiles.value.map(m => m.id)) + 1,
+      name: f.name,
+      type: f.type,
+      size: f.size,
+      date: new Date().toISOString().split('T')[0],
+      url: null // Local files won't have URLs in this mock
+    });
+  });
 };
 
 const mediaFiles = ref([...adminMedia]);
@@ -71,10 +86,6 @@ const paginatedMedia = computed(() => {
   return filteredMedia.value.slice(start, start + itemsPerPage.value);
 });
 
-const selectedFile = computed(() => {
-  return mediaFiles.value.find(f => f.id === selectedFileId.value) || null;
-});
-
 const getFileIcon = (type) => {
   switch (type) {
     case 'image': return ImageIcon;
@@ -91,10 +102,6 @@ const getFileColor = (type) => {
     case 'document': return isDarkMode.value ? 'text-green-400 bg-green-900/20' : 'text-green-500 bg-green-50';
     default: return isDarkMode.value ? 'text-gray-400 bg-gray-700/20' : 'text-gray-500 bg-gray-50';
   }
-};
-
-const handleFileClick = (file) => {
-  selectedFileId.value = selectedFileId.value === file.id ? null : file.id;
 };
 </script>
 
@@ -129,7 +136,10 @@ const handleFileClick = (file) => {
                 <List size="18" />
               </button>
             </div>
-            <button class="flex items-center gap-2 px-6 py-3 bg-construct-red text-white font-bold tracking-widest uppercase text-sm hover:bg-red-700 transition-colors rounded shadow-sm">
+            <button 
+              @click="showUpload = true"
+              class="flex items-center gap-2 px-6 py-3 bg-construct-red text-white font-bold tracking-widest uppercase text-sm hover:bg-red-700 transition-colors rounded shadow-sm"
+            >
               <Upload size="16" class="!text-white" /> {{ t('admin_upload') }}
             </button>
           </div>
@@ -182,9 +192,8 @@ const handleFileClick = (file) => {
               :exit="{ opacity: 0, scale: 0.95 }"
               :class="[
                 'relative group cursor-pointer border rounded-lg transition-all',
-                selectedFileId === file.id ? 'border-construct-red ring-2 ring-construct-red/20' : (isDarkMode ? 'bg-gray-800 border-gray-700 hover:border-gray-600' : 'bg-white border-gray-200 hover:border-gray-300')
+                isDarkMode ? 'bg-gray-800 border-gray-700 hover:border-gray-600' : 'bg-white border-gray-200 hover:border-gray-300'
               ]"
-              @click="handleFileClick(file)"
             >
               <!-- Preview Area -->
               <div class="aspect-square relative overflow-hidden rounded-t-lg bg-gray-50 flex items-center justify-center border-b" :class="isDarkMode ? 'border-gray-700' : 'border-gray-100'">
@@ -239,8 +248,7 @@ const handleFileClick = (file) => {
               <tr 
                 v-for="file in paginatedMedia" 
                 :key="file.id"
-                :class="['border-b transition-colors cursor-pointer', isDarkMode ? 'border-gray-700 hover:bg-gray-700/50' : 'border-gray-100 hover:bg-gray-50', selectedFileId === file.id ? (isDarkMode ? 'bg-red-900/20' : 'bg-red-50') : '']"
-                @click="handleFileClick(file)"
+                :class="['border-b transition-colors cursor-pointer', isDarkMode ? 'border-gray-700 hover:bg-gray-700/50' : 'border-gray-100 hover:bg-gray-50']"
               >
                 <td class="px-6 py-3">
                   <div class="flex items-center gap-3">
@@ -281,82 +289,6 @@ const handleFileClick = (file) => {
       </div>
     </div>
 
-    <!-- Side Info Panel -->
-    <AnimatePresence>
-      <Motion
-        v-if="selectedFile"
-        :initial="{ x: '100%' }"
-        :animate="{ x: 0 }"
-        :exit="{ x: '100%' }"
-        :transition="{ type: 'spring', damping: 25, stiffness: 200 }"
-        :class="['absolute top-0 right-0 h-full w-[380px] border-l shadow-2xl flex flex-col z-30', isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200']"
-      >
-        <div :class="['p-6 border-b flex items-center justify-between', isDarkMode ? 'border-gray-700 bg-gray-900/50' : 'border-gray-200 bg-gray-50']">
-          <div class="flex items-center gap-2">
-            <Info size="18" class="text-construct-red" />
-            <span class="font-bold text-sm uppercase tracking-wider">{{ t('admin_media') }} {{ t('admin_view') }}</span>
-          </div>
-          <button @click="selectedFileId = null" class="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors">
-            <X size="20" />
-          </button>
-        </div>
-
-        <div class="flex-1 overflow-y-auto p-6">
-          <!-- Preview -->
-          <div class="aspect-video bg-gray-50 dark:bg-gray-900 rounded-lg border border-dashed border-gray-300 dark:border-gray-600 mb-6 flex items-center justify-center overflow-hidden">
-            <template v-if="selectedFile.type === 'image' && selectedFile.url">
-              <img :src="selectedFile.url" class="w-full h-full object-cover" />
-            </template>
-            <component v-else :is="getFileIcon(selectedFile.type)" size="60" :class="getFileColor(selectedFile.type)" />
-          </div>
-
-          <!-- Meta Info -->
-          <div class="space-y-6">
-            <div>
-              <label class="text-[10px] font-black tracking-widest text-gray-400 uppercase block mb-1">Filename</label>
-              <div class="font-bold text-base break-all" :class="isDarkMode ? 'text-white' : 'text-gray-900'">{{ selectedFile.name }}</div>
-            </div>
-            
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="text-[10px] font-black tracking-widest text-gray-400 uppercase block mb-1">Type</label>
-                <div class="font-bold text-sm uppercase" :class="isDarkMode ? 'text-gray-300' : 'text-gray-700'">{{ selectedFile.type }}</div>
-              </div>
-              <div>
-                <label class="text-[10px] font-black tracking-widest text-gray-400 uppercase block mb-1">Size</label>
-                <div class="font-bold text-sm" :class="isDarkMode ? 'text-gray-300' : 'text-gray-700'">{{ selectedFile.size }}</div>
-              </div>
-            </div>
-
-            <div>
-              <label class="text-[10px] font-black tracking-widest text-gray-400 uppercase block mb-1">Uploaded At</label>
-              <div class="flex items-center gap-2 font-bold text-sm" :class="isDarkMode ? 'text-gray-300' : 'text-gray-700'">
-                <Calendar size="14" class="text-construct-red" />
-                {{ selectedFile.date }}
-              </div>
-            </div>
-
-            <div>
-              <label class="text-[10px] font-black tracking-widest text-gray-400 uppercase block mb-1">File URL</label>
-              <div class="p-3 bg-gray-50 dark:bg-gray-900 border rounded text-[11px] font-mono break-all cursor-pointer hover:border-construct-red transition-colors" :class="isDarkMode ? 'border-gray-700 text-gray-400' : 'border-gray-200 text-gray-600'">
-                {{ selectedFile.url || '/storage/media/' + selectedFile.name }}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Footer Actions -->
-        <div class="p-6 border-t flex gap-3" :class="isDarkMode ? 'border-gray-700 bg-gray-900/50' : 'border-gray-200 bg-gray-50'">
-          <button class="flex-1 py-3 bg-construct-red text-white font-bold tracking-widest uppercase text-xs hover:bg-red-700 transition-colors rounded flex items-center justify-center gap-2">
-            <Download size="16" class="!text-white" /> Download
-          </button>
-          <button class="p-3 border text-red-500 hover:bg-red-50 transition-colors rounded" :class="isDarkMode ? 'border-gray-700 hover:bg-red-900/20' : 'border-gray-300'">
-            <Trash2 size="18" />
-          </button>
-        </div>
-      </Motion>
-    </AnimatePresence>
-
     <!-- Media Preview Modal -->
     <MediaPreviewModal
       :visible="showPreview"
@@ -364,6 +296,13 @@ const handleFileClick = (file) => {
       @close="showPreview = false"
       @delete="(file) => console.log('Delete file:', file)"
       @download="(file) => console.log('Download file:', file)"
+    />
+
+    <!-- Media Upload Modal -->
+    <MediaUploadModal
+      :visible="showUpload"
+      @close="showUpload = false"
+      @uploaded="handleUploadSuccess"
     />
   </div>
 </template>

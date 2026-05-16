@@ -31,7 +31,7 @@ import {
   Image
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
-import { backupRecords, getBackupTypeLabel, getBackupStatusLabel } from '../../data/backup';
+import { backupRecords } from '../../data/backup';
 import { formatToShort } from '../../utils/dateUtils';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import AdminPagination from '../../components/admin/AdminPagination.vue';
@@ -259,7 +259,7 @@ const handlePreview = (backup) => {
                 <div class="flex items-center gap-3">
                   <span :class="['font-bold text-lg', isDarkMode ? 'text-white' : 'text-gray-900']">{{ backup.name }}</span>
                   <span :class="['px-2 py-1 text-xs font-bold uppercase rounded', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600']">
-                    {{ getBackupTypeLabel(backup.type, locale) }}
+                    {{ t('admin_backup_' + backup.type) }}
                   </span>
                 </div>
                 <div class="flex items-center gap-4">

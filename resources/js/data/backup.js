@@ -67,27 +67,3 @@ export const backupRecords = [
   }
 ];
 
-export const backupTypes = {
-  full: { zh: '完整备份', en: 'Full Backup', 'zh-TW': '完整備份' },
-  database: { zh: '数据库备份', en: 'Database Backup', 'zh-TW': '數據庫備份' },
-  files: { zh: '文件备份', en: 'Files Backup', 'zh-TW': '文件備份' },
-  incremental: { zh: '增量备份', en: 'Incremental Backup', 'zh-TW': '增量備份' }
-};
-
-export const backupStatuses = {
-  completed: { zh: '已完成', en: 'Completed', 'zh-TW': '已完成' },
-  in_progress: { zh: '进行中', en: 'In Progress', 'zh-TW': '進行中' },
-  failed: { zh: '失败', en: 'Failed', 'zh-TW': '失敗' }
-};
-
-export const getBackupTypeLabel = (type, locale = 'zh') => {
-  const labels = backupTypes[type];
-  if (!labels) return type;
-  return labels[locale] || labels.zh;
-};
-
-export const getBackupStatusLabel = (status, locale = 'zh') => {
-  const labels = backupStatuses[status];
-  if (!labels) return status;
-  return labels[locale] || labels.zh;
-};

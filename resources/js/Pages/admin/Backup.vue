@@ -26,7 +26,7 @@ import {
   Loader
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
-import { backupRecords, getBackupTypeLabel, getBackupStatusLabel } from '../../data/backup';
+import { backupRecords } from '../../data/backup';
 import { formatToShort } from '../../utils/dateUtils';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import AdminPagination from '../../components/admin/AdminPagination.vue';
@@ -134,7 +134,7 @@ const handleCreateBackup = () => {
     path: `/backups/${typeLabels[newBackupType.value]}_backup_${timestamp}.zip`,
     createdAt: now.toISOString(),
     completedAt: now.toISOString(),
-    note: newBackupNote.value || getBackupTypeLabel(newBackupType.value, locale.value)
+    note: newBackupNote.value || t('admin_backup_' + newBackupType.value)
   };
 
   backups.value.unshift(newBackup);
@@ -241,11 +241,11 @@ const confirmDelete = () => {
               <div class="flex items-center gap-3">
                 <span :class="['font-bold text-lg', isDarkMode ? 'text-white' : 'text-gray-900']">{{ backup.name }}</span>
                 <span :class="['px-2 py-1 text-xs font-bold uppercase rounded', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600']">
-                  {{ getBackupTypeLabel(backup.type, locale) }}
+                  {{ t('admin_backup_' + backup.type) }}
                 </span>
                 <span :class="['flex items-center gap-1 text-sm', getStatusColor(backup.status)]">
                   <component :is="getStatusIcon(backup.status)" size="16" :class="{ 'animate-spin': backup.status === 'in_progress' }" />
-                  {{ getBackupStatusLabel(backup.status, locale) }}
+                  {{ t('admin_backup_status_' + backup.status) }}
                 </span>
               </div>
               <div class="flex items-center gap-4">
@@ -358,7 +358,7 @@ const confirmDelete = () => {
                     ]"
                   >
                     <component :is="getTypeIcon(type)" :class="['mb-2', getTypeColor(type)]" size="24" />
-                    <p :class="['font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">{{ getBackupTypeLabel(type, locale) }}</p>
+                    <p :class="['font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">{{ t('admin_backup_' + type) }}</p>
                   </button>
                 </div>
               </div>

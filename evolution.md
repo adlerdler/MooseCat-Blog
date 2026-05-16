@@ -443,3 +443,32 @@
     - AdminTags.vue、AdminLogs.vue、AdminMedia.vue、AdminAnalytics.vue、AdminSettings.vue
   - 修复导入不存在组件的问题，移除 CategoryForm、TagForm 等不存在的组件导出。
 
+### 2026-05-16: 媒体库深度增强与全局组件应用 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 升级媒体库为包含文档预览能力的完整管理模块，并应用全局确认组件。
+- **Rationale:**
+  - `AdminSettings` 与 `AdminFrontMenu` 的敏感操作缺乏安全确认，引入统一的 `ConfirmDialog` 拦截。
+  - 原版媒体库仅支持基础的图片展示，需扩展高级文件类型（如 PDF, Docx）的原生无缝预览。
+- **Status:**
+  - 安装依赖 `vue-pdf-embed` 与 `docx-preview` 以支持多格式。
+  - 创建 `MediaPreviewModal.vue` 实现带毛玻璃特效的全屏媒体预览。
+  - 大量使用 Optional Chaining (`?.`) 修复因为文件异步加载导致的 Null Pointer 异常。
+
+### 2026-05-16: 确立全栈对接契约与 AI-FIRST 数据库蓝图 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 编写《前后端对接与同步指南》(INTEGRATION_GUIDE.md) 及《核心数据库设计》(AI-FIRST/database.md)。
+- **Rationale:**
+  - 随着前端 Mock 开发接近尾声，必须制定平滑过渡到 Laravel 后端 API 的战略，以兼顾未来的 App 开发。
+  - 决定在后台管理中采用 "Web 会话直连模式"，复用现有的 Session 认证，简化全栈开发难度。
+- **Status:**
+  - 产出 `INTEGRATION_GUIDE.md` 明确了 P0~P2 的对接任务优先级与迁移路径。
+  - 在 `AI-FIRST` 目录下生成权威版 `database.md`，统合了 `media`、`menus`、`settings` 等缺失的数据模型与 `roles` 枚举规范。
+
+### 2026-05-16: 后台组件命名空间清理 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 批量移除 `resources/js/Pages/admin/` 目录下 19 个 Vue 组件的 `Admin` 前缀。
+- **Rationale:**
+  - 既然文件已经放置在 `admin` 目录中，再添加 `Admin` 前缀属于冗余命名，且违背了极致极简主义（Extreme Minimalism）。
+- **Status:**
+  - 使用批量重命名脚本将 `AdminPosts.vue` 转为 `Posts.vue`，以此类推。
+  - 同步重构 `router.js` 与 `App.vue` 中的导入路径（为避免与前台页面重名，保持了 Router 中的对象变量名为 `AdminX`，仅改变导入源文件）。
