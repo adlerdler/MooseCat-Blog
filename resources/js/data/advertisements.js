@@ -1,3 +1,18 @@
+/**
+ * advertisements.js - 广告数据
+ * 
+ * 功能说明：
+ * - 存储广告位配置和广告内容数据
+ * - 包含广告位置、广告素材、链接、统计信息等
+ * 
+ * 广告位：
+ * - header: 顶部广告
+ * - sidebar: 侧边栏广告
+ * - footer: 底部广告
+ * - between_posts: 文章间广告
+ * - popup: 弹窗广告
+ */
+
 export const adPositions = [
   { value: 'header', labelKey: 'admin_ad_position_header' },
   { value: 'sidebar', labelKey: 'admin_ad_position_sidebar' },

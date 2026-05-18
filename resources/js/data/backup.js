@@ -1,3 +1,21 @@
+/**
+ * backup.js - 备份数据
+ * 
+ * 功能说明：
+ * - 存储系统备份记录数据
+ * - 包含完整备份、数据库备份、文件备份等
+ * 
+ * 备份类型：
+ * - full: 完整备份（所有数据）
+ * - database: 数据库备份
+ * - files: 文件备份
+ * 
+ * 状态：
+ * - completed: 备份完成
+ * - in_progress: 备份中
+ * - failed: 备份失败
+ */
+
 export const backupRecords = [
   {
     id: 1,

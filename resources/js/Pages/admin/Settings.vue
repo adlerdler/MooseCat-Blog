@@ -33,7 +33,7 @@ import {
   ConfirmDialog,
   useToast
 } from '../../composables/useAdminImports';
-import { defaultSettings, tabsConfig } from '../../data/admin';
+import { defaultSettings, tabsConfig } from '../../data/settings';
 
 const { t } = useI18n();
 const { isDarkMode, toggleTheme } = useTheme();

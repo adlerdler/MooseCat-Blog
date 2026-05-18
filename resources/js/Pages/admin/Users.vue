@@ -28,15 +28,15 @@ import {
   Shield,
   X,
   adminUsers,
-  getRoleLabel,
-  getRoleStyle,
   UserForm,
   ConfirmDialog,
   AdminPagination
 } from '../../composables/useAdminImports';
+import { useRolePermissions } from '../../composables/useRolePermissions';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
+const { getRoleLabel, getRoleStyle } = useRolePermissions();
 const router = useRouter();
 
 const searchQuery = ref('');

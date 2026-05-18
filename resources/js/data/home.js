@@ -6,12 +6,12 @@
  * - 包含分类、技术栈等信息
  */
 
-import { homeCategories } from './categories.js';
+import { categories as allCategories } from './categories.js';
 
 /**
- * 文章分类列表（从统一分类数据导入）
+ * 文章分类列表（包含 ALL 选项，前台首页使用）
  */
-export const categories = homeCategories;
+export const categories = ['ALL', ...allCategories.map(c => c.name)];
 
 /**
  * 跑马灯文本

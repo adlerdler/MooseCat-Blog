@@ -107,7 +107,4 @@ export const socialLinks = [
   },
 ];
 
-/**
- * GitHub 用户名
- */
-export const githubUsername = 'adlerdler';
+

@@ -453,5 +453,20 @@
   "admin_comment_delete": "删除评论",
   "admin_comment_delete_confirm": "确定要永久删除这条评论吗？此操作不可撤销。",
   "admin_reply_placeholder": "输入您的回复内容...",
-  "admin_send_reply": "发送回复"
+  "admin_send_reply": "发送回复",
+  "admin_search_menu": "搜索菜单...",
+  "admin_show_inactive": "显示禁用",
+  "admin_label_key_placeholder": "例如: nav_home",
+  "admin_select_icon": "选择图标",
+  "admin_no_parent": "无父级",
+  "admin_no_menu_items": "未找到菜单项",
+  "admin_click_add": "点击添加创建新菜单项",
+  "admin_click_edit": "点击编辑解锁管理",
+  "admin_add_front_item": "添加前台项",
+  "admin_add_backend_item": "添加后台项",
+  "admin_configuration_note": "配置说明",
+  "admin_menu_help_text": "菜单标签使用语言文件中的翻译key。确保您输入的",
+  "admin_menu_help_text_2": "存在于",
+  "admin_menu_help_text_3": "等文件中，以显示正确的多语言文本。",
+  "admin_error_empty_fields": "请填写所有必填字段"
 }

@@ -19,4 +19,4 @@ export const permissions = [
   { id: 12, name: 'analytics', label: 'Analytics', description: '数据分析权限', programId: 'view_analytics' }
 ];
 
-export const availablePermissions = permissions.map(p => p.label);
+// availablePermissions 已迁移到 useRolePermissions composable

@@ -453,5 +453,20 @@
   "admin_comment_delete": "刪除評論",
   "admin_comment_delete_confirm": "確定要永久刪除這條評論嗎？此操作不可撤銷。",
   "admin_reply_placeholder": "輸入您的回覆內容...",
-  "admin_send_reply": "發送回覆"
+  "admin_send_reply": "發送回覆",
+  "admin_search_menu": "搜尋選單...",
+  "admin_show_inactive": "顯示停用",
+  "admin_label_key_placeholder": "例如: nav_home",
+  "admin_select_icon": "選擇圖示",
+  "admin_no_parent": "無父級",
+  "admin_no_menu_items": "未找到選單項",
+  "admin_click_add": "點擊新增建立新選單項",
+  "admin_click_edit": "點擊編輯解鎖管理",
+  "admin_add_front_item": "新增前台項",
+  "admin_add_backend_item": "新增後台項",
+  "admin_configuration_note": "設定說明",
+  "admin_menu_help_text": "選單標籤使用語言檔中的翻譯key。確保您輸入的",
+  "admin_menu_help_text_2": "存在於",
+  "admin_menu_help_text_3": "等檔案中，以顯示正確的多語言文字。",
+  "admin_error_empty_fields": "請填寫所有必填欄位"
 }

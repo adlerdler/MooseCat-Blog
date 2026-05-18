@@ -1,3 +1,16 @@
+/**
+ * media.js - 媒体库数据
+ * 
+ * 功能说明：
+ * - 存储媒体库文件信息（图片、视频、文档等）
+ * - 包含文件名、类型、大小、上传日期、URL等
+ * 
+ * 媒体类型：
+ * - image: 图片文件
+ * - video: 视频文件
+ * - document: 文档文件
+ */
+
 export const adminMedia = [
   { id: 1, name: 'architecture-cover.jpg', type: 'image', size: '2.4 MB', date: '2024-01-15', url: 'https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=400&h=400&fit=crop' },
   { id: 2, name: 'design-system.pdf', type: 'document', size: '1.8 MB', date: '2024-01-16' },

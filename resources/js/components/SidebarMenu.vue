@@ -23,7 +23,9 @@ import SettingsPanel from './SettingsPanel.vue';
 import SearchOverlay from './SearchOverlay.vue';
 import { useI18n } from 'vue-i18n';
 
-import { frontMenuItems } from '../data/front_menu';
+import { useMenuItems } from '../composables/useMenuItems';
+
+const { frontMenuItems } = useMenuItems();
 
 const props = defineProps({
   isFooterVisible: {

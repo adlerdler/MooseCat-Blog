@@ -1,3 +1,23 @@
+/**
+ * resources.js - 资源数据
+ * 
+ * 功能说明：
+ * - 存储资源下载数据（PDF、文档、代码等）
+ * - 包含资源标题、分类、图片、格式、大小、下载链接等
+ * 
+ * 数据字段：
+ * - id: 资源唯一标识
+ * - title: 资源标题
+ * - category: 分类
+ * - image: 封面图片URL
+ * - format: 文件格式
+ * - fileSize: 文件大小
+ * - downloadCount: 下载次数
+ * - date: 上传日期
+ * - localUrl: 本地下载链接
+ * - drives: 网盘下载链接数组
+ */
+
 export const resourcesData = [
   {
     id: 1,

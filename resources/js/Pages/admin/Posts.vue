@@ -29,14 +29,15 @@ import {
   AdminPagination
 } from '../../composables/useAdminImports';
 import { POSTS } from '../../data/posts';
-import { categories, adminCategories } from '../../data/categories';
+import { categories } from '../../data/categories';
 import { adminUsers } from '../../data/users';
+import { getCategoryNameById, getCategoryLabelById } from '../../utils/categoryUtils';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
 
-const getAuthorName = (userId) => {
-  const user = adminUsers.find(u => u.id === userId);
+const getAuthorName = (authorId) => {
+  const user = adminUsers.find(u => u.id === authorId);
   return user ? (user.penName || user.name) : 'Unknown';
 };
 
@@ -50,7 +51,7 @@ const showDeleteConfirm = ref(false);
 const deletingPostId = ref(null);
 
 const categoryOptions = computed(() => {
-  return ['all', ...adminCategories.map(cat => cat.value)];
+  return ['all', ...categories.map(cat => cat.name)];
 });
 
 const getCategoryColor = (category) => {
@@ -67,22 +68,22 @@ const getCategoryColor = (category) => {
 
 const filteredPosts = computed(() => {
   let result = [...POSTS];
-  
-  result.sort((a, b) => new Date(b.date) - new Date(a.date));
-  
+
+  result.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
+
   if (selectedCategory.value !== 'all') {
-    result = result.filter(post => post.category === selectedCategory.value);
+    result = result.filter(post => getCategoryNameById(categories, post.categoryId) === selectedCategory.value);
   }
-  
+
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase();
     result = result.filter(post =>
       post.title.toLowerCase().includes(query) ||
-      getAuthorName(post.userId).toLowerCase().includes(query) ||
+      getAuthorName(post.authorId).toLowerCase().includes(query) ||
       post.tags.some(tag => tag.toLowerCase().includes(query))
     );
   }
-  
+
   return result;
 });
 
@@ -190,16 +191,16 @@ const handleCancel = () => {
         <!-- Post Thumbnail -->
         <div class="relative aspect-video bg-gray-900">
           <img
-            v-if="post.thumbnail"
-            :src="post.thumbnail"
+            v-if="post.coverImage"
+            :src="post.coverImage"
             :alt="post.title"
             class="w-full h-full object-cover"
           />
           <div v-else class="w-full h-full flex items-center justify-center">
             <FileText class="w-12 h-12 text-gray-600" />
           </div>
-          <div class="absolute top-2 right-2 px-2 py-1 text-xs font-bold uppercase" :class="getCategoryColor(post.category)">
-            {{ post.category }}
+          <div class="absolute top-2 right-2 px-2 py-1 text-xs font-bold uppercase" :class="getCategoryColor(getCategoryNameById(categories, post.categoryId))">
+            {{ getCategoryNameById(categories, post.categoryId) }}
           </div>
         </div>
         
@@ -226,8 +227,8 @@ const handleCancel = () => {
           <div class="flex items-center justify-between">
             <div :class="['flex items-center gap-2 text-xs', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
               <Clock size="12" />
-              {{ formatToShort(post.date) }}
-              <span class="ml-2">{{ getAuthorName(post.userId) }}</span>
+              {{ formatToShort(post.publishedAt) }}
+              <span class="ml-2">{{ getAuthorName(post.authorId) }}</span>
             </div>
             
             <div class="flex gap-2">

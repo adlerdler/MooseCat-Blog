@@ -22,7 +22,7 @@ import { useI18n } from 'vue-i18n'
 import { categories, marqueeText, techStack } from '../../data/home'
 import { POSTS } from '../../data/posts'
 import { categories as categoryList } from '../../data/categories'
-import { getCategoryLabel } from '../../utils/categoryUtils'
+import { getCategoryLabel, getCategoryLabelById, getCategoryNameById } from '../../utils/categoryUtils'
 
 const { t } = useI18n()
 const { initAccentTheme } = useTheme()
@@ -37,8 +37,8 @@ const featuredPosts = computed(() => {
     id: post.id,
     title: post.title,
     excerpt: post.excerpt,
-    category: post.category,
-    categoryLabel: getCategoryLabel(categoryList, post.category),
+    category: getCategoryNameById(categoryList, post.categoryId),
+    categoryLabel: getCategoryLabelById(categoryList, post.categoryId),
     views_count: Math.floor(Math.random() * 1000) + 500
   }))
 })

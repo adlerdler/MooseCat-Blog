@@ -17,27 +17,29 @@ import { ArrowUpRight, Hash, BookOpen, Lightbulb, Users, Cog } from 'lucide-vue-
 import { RouterLink } from 'vue-router';
 import { POSTS } from '../../data/posts';
 import { adminUsers } from '../../data/users';
+import { categories } from '../../data/categories';
 import { useI18n } from 'vue-i18n';
 import { useTheme } from '../../composables/useTheme';
 import { formatToEnglish } from '../../utils/dateUtils';
 import { formatId } from '../../utils/typeConvert';
+import { getCategoryNameById } from '../../utils/categoryUtils';
 
 const { t } = useI18n();
 const { initAccentTheme } = useTheme();
 const activeFilter = ref('all');
 const currentPage = ref(1);
 const itemsPerPage = 14;
-const categories = ['all', 'Theory', 'Design', 'Technology', 'Culture'];
+const categoryNames = ['all', ...categories.map(c => c.name)];
 
-const getAuthorName = (userId) => {
-  const user = adminUsers.find(u => u.id === userId);
+const getAuthorName = (authorId) => {
+  const user = adminUsers.find(u => u.id === authorId);
   return user ? (user.penName || user.name) : 'Unknown';
 };
 const filteredPosts = computed(() => {
- if (activeFilter.value === 'all') {
- return POSTS;
- }
- return POSTS.filter(post => post.category === activeFilter.value);
+  if (activeFilter.value === 'all') {
+    return POSTS;
+  }
+  return POSTS.filter(post => getCategoryNameById(categories, post.categoryId) === activeFilter.value);
 });
 const totalPages = computed(() => Math.ceil(filteredPosts.value.length / itemsPerPage));
 const paginatedPosts = computed(() => {
@@ -124,7 +126,7 @@ const isFooterVisible = ref(true);
             </div>
             <div class="flex flex-1 px-4 md:px-6 gap-2 py-2 md:py-0">
               <button
-                v-for="filter in categories"
+                v-for="filter in categoryNames"
                 :key="filter"
                 @click="handleFilterChange(filter)"
                 class="px-4 md:px-6 py-3 text-[10px] md:text-xs font-bold tracking-[0.2em] transition-all whitespace-nowrap uppercase"
@@ -164,14 +166,14 @@ const isFooterVisible = ref(true);
             <div class="flex justify-between items-start mb-8 md:mb-12 relative z-10" :class="post.color === 'red' ? 'group-hover:text-white' : 'group-hover:text-white'">
               <div class="flex items-center gap-3">
                 <span class="p-2 transition-colors duration-500" :class="post.color === 'red' ? 'bg-construct-red text-white group-hover:bg-white group-hover:text-construct-red' : 'bg-construct-black text-white group-hover:bg-white group-hover:text-construct-black'">
-                  <component :is="getCatIcon(post.category)" />
+                  <component :is="getCatIcon(getCategoryNameById(categories, post.categoryId))" />
                 </span>
                 <span class="text-[10px] md:text-xs font-bold tracking-[0.3em] uppercase group-hover:text-white">
-                  {{ post.category }}
+                  {{ getCategoryNameById(categories, post.categoryId) }}
                 </span>
               </div>
               <span class="text-[10px] font-bold tracking-widest opacity-60 group-hover:text-white">
-                  {{ formatToEnglish(post.date) }}
+                  {{ formatToEnglish(post.publishedAt) }}
                 </span>
             </div>
 
@@ -204,7 +206,7 @@ const isFooterVisible = ref(true);
               </div>
               <div class="flex items-center gap-4 text-[10px] md:text-xs font-bold tracking-widest uppercase shrink-0">
                 <span class="opacity-60 group-hover:opacity-100 group-hover:text-white transition-opacity">
-                  AUTHOR: {{ getAuthorName(post.userId) }}
+                  AUTHOR: {{ getAuthorName(post.authorId) }}
                 </span>
                 <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all duration-500 group-hover:rotate-45 shrink-0" :class="post.color === 'red' ? 'border-construct-black group-hover:border-white' : 'border-construct-black group-hover:border-white'">
                   <ArrowUpRight size="16" class="group-hover:text-white" />

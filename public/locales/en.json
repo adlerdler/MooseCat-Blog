@@ -453,5 +453,20 @@
   "admin_comment_delete": "Delete Comment",
   "admin_comment_delete_confirm": "Are you sure you want to permanently delete this comment? This action cannot be undone.",
   "admin_reply_placeholder": "Write your reply content...",
-  "admin_send_reply": "Send Reply"
+  "admin_send_reply": "Send Reply",
+  "admin_search_menu": "Search menu...",
+  "admin_show_inactive": "Show Inactive",
+  "admin_label_key_placeholder": "e.g. nav_home",
+  "admin_select_icon": "Select Icon",
+  "admin_no_parent": "No Parent",
+  "admin_no_menu_items": "No menu items found",
+  "admin_click_add": "Click add to create a new menu item",
+  "admin_click_edit": "Click edit to unlock management",
+  "admin_add_front_item": "Add Frontend Item",
+  "admin_add_backend_item": "Add Backend Item",
+  "admin_configuration_note": "Configuration Note",
+  "admin_menu_help_text": "Menu labels use translation keys from language files. Ensure the",
+  "admin_menu_help_text_2": "you enter exists in",
+  "admin_menu_help_text_3": "etc. to display correct multi-language text.",
+  "admin_error_empty_fields": "Please fill in all required fields"
 }

@@ -31,6 +31,28 @@ export function getCategoryById(categories, id) {
 }
 
 /**
+ * 根据 ID 获取分类名称
+ * @param {Array} categories - 分类数组
+ * @param {number} id - 分类 ID
+ * @returns {string} 分类名称
+ */
+export function getCategoryNameById(categories, id) {
+  const category = getCategoryById(categories, id);
+  return category ? category.name : '';
+}
+
+/**
+ * 根据 ID 获取分类标签（中文）
+ * @param {Array} categories - 分类数组
+ * @param {number} id - 分类 ID
+ * @returns {string} 分类标签
+ */
+export function getCategoryLabelById(categories, id) {
+  const category = getCategoryById(categories, id);
+  return category ? category.label : '';
+}
+
+/**
  * 获取分类标签（中文）
  * @param {Array} categories - 分类数组
  * @param {string} name - 分类名称

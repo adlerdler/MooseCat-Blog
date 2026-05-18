@@ -14,8 +14,9 @@ import { ref, computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { X, Save, Check } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
-import { availablePermissions, permissions } from '../../data/permissions';
-import { getPermissionIdsByRoleId } from '../../data/role_permissions';
+import { useRolePermissions } from '../../composables/useRolePermissions';
+
+const { availablePermissions, permissions, getPermissionIdsByRoleId } = useRolePermissions();
 
 const { t } = useI18n();
 

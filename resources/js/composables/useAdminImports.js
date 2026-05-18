@@ -22,6 +22,7 @@ export {
   Edit3,
   Trash2,
   Eye,
+  EyeOff,
   Check,
   X,
   Save,
@@ -30,6 +31,8 @@ export {
   // 导航图标
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
+  ChevronDown,
   
   // 功能图标
   Filter,
@@ -127,13 +130,11 @@ export { getCategoryLabel, getCategoryNames } from '../utils/categoryUtils';
 
 // 数据文件
 export { adminUsers } from '../data/users';
-export { adminRoles, getRoleLabel, getRoleStyle, getRoleByValue } from '../data/roles';
-export { permissions, availablePermissions } from '../data/permissions';
-export { getPermissionIdsByRoleId } from '../data/role_permissions';
-export { adminCategories } from '../data/categories';
+export { categories as adminCategories } from '../data/categories';
 export { adminTags } from '../data/tags';
 export { adminLogs } from '../data/logs';
-export { adminMenuItems } from '../data/menu';
+// 菜单数据已迁移到 useMenuItems composable
+// 角色和权限相关函数已迁移到 useRolePermissions composable
 
 // 组件
 export { default as ConfirmDialog } from '../components/admin/ConfirmDialog.vue';

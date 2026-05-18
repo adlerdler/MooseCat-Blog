@@ -64,57 +64,7 @@ export const roles = [
   }
 ];
 
-export const getRoleById = (roleId) => {
-  return roles.find(r => r.id === roleId);
-};
-
-export const getRoleByValue = (value) => {
-  return roles.find(r => r.value === value);
-};
-
-/**
- * 获取角色信息（支持数字ID和字符串value）
- * @param {number|string} roleIdentifier - 角色ID（数字）或角色value（字符串）
- * @returns {Object|undefined} 角色对象
- */
-const getRole = (roleIdentifier) => {
-  if (typeof roleIdentifier === 'number') {
-    return roles.find(r => r.id === roleIdentifier);
-  } else {
-    return roles.find(r => r.value === roleIdentifier);
-  }
-};
-
-export const getRoleLabel = (roleIdentifier) => {
-  const role = getRole(roleIdentifier);
-  return role ? role.label : 'Unknown';
-};
-
-export const getRoleColor = (roleIdentifier) => {
-  const role = getRole(roleIdentifier);
-  return role ? role.color : 'gray';
-};
-
-export const getRoleDescription = (roleIdentifier) => {
-  const role = getRole(roleIdentifier);
-  return role ? role.description : '未知角色';
-};
-
-export const getRoleStyle = (roleIdentifier) => {
-  const colorMap = {
-    admin: 'bg-red-600 text-white border-red-500',
-    editor: 'bg-blue-600 text-white border-blue-500',
-    author: 'bg-green-600 text-white border-green-500',
-    moderator: 'bg-purple-600 text-white border-purple-500',
-    subscriber: 'bg-gray-600 text-white border-gray-500',
-    api: 'bg-yellow-500 text-gray-900 border-yellow-400',
-    guest: 'bg-cyan-600 text-white border-cyan-500'
-  };
-  
-  const role = getRole(roleIdentifier);
-  const value = role ? role.value : 'guest';
-  return colorMap[value] || 'bg-gray-600 text-white border-gray-500';
-};
+// 角色相关工具函数已迁移到 useRolePermissions composable
 
 // 向后兼容：adminRoles 别名（保留现有引用）
 export const adminRoles = roles;

@@ -44,34 +44,4 @@ export const rolePermissions = [
   // 无权限
 ];
 
-/**
- * 获取角色的所有权限ID
- * @param {number} roleId - 角色ID
- * @returns {number[]} 权限ID数组
- */
-export const getPermissionIdsByRoleId = (roleId) => {
-  return rolePermissions
-    .filter(rp => rp.roleId === roleId)
-    .map(rp => rp.permissionId);
-};
-
-/**
- * 获取具有指定权限的角色ID列表
- * @param {number} permissionId - 权限ID
- * @returns {number[]} 角色ID数组
- */
-export const getRoleIdsByPermissionId = (permissionId) => {
-  return rolePermissions
-    .filter(rp => rp.permissionId === permissionId)
-    .map(rp => rp.roleId);
-};
-
-/**
- * 检查角色是否具有指定权限
- * @param {number} roleId - 角色ID
- * @param {number} permissionId - 权限ID
- * @returns {boolean}
- */
-export const hasPermission = (roleId, permissionId) => {
-  return rolePermissions.some(rp => rp.roleId === roleId && rp.permissionId === permissionId);
-};
+// 角色权限关联函数已迁移到 useRolePermissions composable

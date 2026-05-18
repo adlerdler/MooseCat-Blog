@@ -51,7 +51,9 @@ import ThemeToggle from '../../components/ThemeToggle.vue';
 import ToastContainer from '../../components/ToastContainer.vue';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import { useTheme } from '../../composables/useTheme';
-import { adminMenuItems } from '../../data/menu';
+import { useMenuItems } from '../../composables/useMenuItems';
+
+const { adminMenuItems } = useMenuItems();
 
 const { t } = useI18n();
 const router = useRouter();
@@ -183,13 +185,13 @@ const menuItems = computed(() => {
 const currentRouteName = computed(() => route.name);
 
 const isActiveRoute = (item) => {
-  if (!item.route) return false;
-  return route.path.startsWith(item.route);
+  if (!item.path) return false;
+  return route.path.startsWith(item.path);
 };
 
 const navigateTo = (item) => {
-  if (item.route) {
-    router.push(item.route);
+  if (item.path) {
+    router.push(item.path);
   }
 };
 
@@ -342,7 +344,7 @@ const handleMouseLeave = (menuId) => {
               @click="toggleMenu(item.id)"
               :class="[
                 'w-full flex items-center gap-3 px-3 py-3 text-sm font-bold tracking-widest uppercase transition-all rounded-lg',
-                item.route && isActiveRoute(item)
+                item.path && isActiveRoute(item)
                   ? isSidebarCollapsed
                     ? isDarkMode
                       ? 'bg-red-500/20 text-construct-red'
@@ -360,7 +362,7 @@ const handleMouseLeave = (menuId) => {
                 :is="item.icon" 
                 :size="isSidebarCollapsed ? 20 : 18"
                 :class="[
-                  item.route && isActiveRoute(item) ? '!text-construct-red' : (isDarkMode ? 'text-gray-400' : 'text-gray-600')
+                  item.path && isActiveRoute(item) ? '!text-construct-red' : (isDarkMode ? 'text-gray-400' : 'text-gray-600')
                 ]"
               />
               <span v-if="!isSidebarCollapsed">{{ item.label }}</span>
@@ -424,7 +426,7 @@ const handleMouseLeave = (menuId) => {
           <button
             v-else
             @click="navigateTo(item)"
-            :disabled="!item.route"
+            :disabled="!item.path"
             :class="[
               'w-full flex items-center gap-3 px-3 py-3 text-sm font-bold tracking-widest uppercase transition-all rounded-lg',
               isActiveRoute(item)
@@ -438,7 +440,7 @@ const handleMouseLeave = (menuId) => {
                 : isDarkMode
                   ? 'text-gray-400 hover:bg-construct-red hover:text-white'
                   : 'text-gray-600 hover:bg-construct-red hover:text-white',
-              !item.route && 'opacity-50 cursor-not-allowed',
+              !item.path && 'opacity-50 cursor-not-allowed',
               isSidebarCollapsed ? 'justify-center' : ''
             ]"
           >

@@ -19,7 +19,7 @@ import 'vue3-calendar-heatmap/dist/style.css';
 import { useTheme } from '@/composables/useTheme';
 import SidebarMenu from '@/components/SidebarMenu.vue';
 import Footer from '@/components/Footer.vue';
-import { skills, socialLinks, githubUsername } from '../../data/author';
+import { skills, socialLinks } from '../../data/author';
 import { PROJECTS } from '../../data/projects';
 
 const { t } = useI18n();
@@ -29,7 +29,8 @@ const isVisible = ref(false);
 const calendarValues = ref([]);
 const githubStats = ref({ commits: 0, prs: 0, repos: 7 });
 const isLoading = ref(true);
-const username = githubUsername;
+const githubLink = socialLinks.find(s => s.platform === 'github');
+const username = githubLink?.url.split('/').pop() || 'adlerdler';
 const projects = PROJECTS.filter(p => p.status === 'active');
 const endDate = computed(() => {
  const date = new Date();

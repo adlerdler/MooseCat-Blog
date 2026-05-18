@@ -22,13 +22,13 @@ import {
   Users,
   Check,
   X,
-  adminRoles,
-  permissions,
-  getPermissionIdsByRoleId,
   RoleForm,
   ConfirmDialog,
   AdminPagination
 } from '../../composables/useAdminImports';
+import { useRolePermissions } from '../../composables/useRolePermissions';
+
+const { adminRoles, permissions, getPermissionIdsByRoleId } = useRolePermissions();
 
 /**
  * 获取角色的权限列表

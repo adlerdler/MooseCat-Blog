@@ -1,23 +1,34 @@
 /**
  * posts.js - 博客文章数据
- * 
+ *
  * 功能说明：
  * - 存储所有博客文章的静态数据
  * - 包含文章内容、分类、标签等信息
- * 
- * 数据字段：
+ *
+ * 数据字段（以数据库为准）：
  * - id: 文章唯一标识
  * - title: 文章标题
- * - category: 分类（使用 categories.js 中定义的值）
- * - date: 发布日期
- * - userId: 作者用户ID（关联 users.js 中的用户）
- * - excerpt: 摘要
- * - content: Markdown 格式的文章内容
- * - color: 卡片颜色主题（red/black）
- * - tags: 标签数组
+ * - slug: 文章别名（URL友好）
+ * - excerpt: 文章摘要
+ * - content: Markdown 格式的文章正文内容
+ * - coverImage: 封面图片URL
+ * - color: 主题颜色
+ * - status: 文章状态（draft/published/pending）
+ * - viewsCount: 浏览次数
+ * - likesCount: 点赞次数
+ * - metaTitle: SEO标题
+ * - metaDescription: SEO描述
+ * - metaKeywords: SEO关键词
+ * - authorId: 作者ID（外键）
+ * - categoryId: 分类ID（外键）
+ * - publishedAt: 发布时间
+ * - createdAt: 创建时间
+ * - updatedAt: 更新时间
+ * - tags: 标签数组（通过 getTagsByPostId 函数从 taggables.js 获取）
  */
 import { categories } from './categories.js';
 import { getCategoryNames } from '../utils/categoryUtils.js';
+import { useTaggables } from '../composables/useTaggables.js';
 
 // 验证所有文章的分类是否有效
 const validCategories = getCategoryNames(categories);
@@ -25,11 +36,8 @@ export const POSTS = [
   {
     id: 1,
     title: 'THE GEOMETRY OF PERCEPTION',
-    category: 'THEORY',
-    date: '2026-04-28T10:30:00',
-    userId: 1,
+    slug: 'the-geometry-of-perception',
     excerpt: 'Exploring how structural design influences cognitive processes in modern interfaces.',
-    thumbnail: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop',
     content: `# The Geometry of Perception
 
 The human brain is wired to find patterns in chaos. In this long-form exploration, we dive into the structural foundations of user interface design through the lens of Constructivist theory.
@@ -78,70 +86,61 @@ Modern interfaces are built from modular components. Each element should functio
   <div class="card">
     <slot name="header" />
     <slot name="content" />
-    <slot name="footer" />
   </div>
 </template>
 
-<script setup>
-defineProps({
-  variant: {
-    type: String,
-    default: 'default'
-  }
-});
-<\/script>
-
 <style scoped>
 .card {
-  border: 4px solid var(--construct-black);
-  padding: 24px;
-  background: white;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  border: 1px solid var(--color-border);
 }
 <\/style>
 \`\`\`
 
-This approach allows for:
+## THE TYPOGRAPHIC GRID
 
-1. **Rapid prototyping** - Assemble interfaces quickly
-2. **Consistent branding** - Uniform design language
-3. **Scalable architecture** - Add features without breaking things
-4. **Maintainable codebases** - Easy to update and debug
-
-## PERCEPTUAL HIERARCHY
-
-Understanding how users perceive information is crucial. Size, color, and placement all influence how content is processed.
+Typography in Constructivist design follows strict geometric rules. The baseline grid ensures that text aligns across columns, creating visual rhythm.
 
 \`\`\`css
-/* Hierarchy through typography */
-.h1 {
-  font-size: 4rem;
-  font-weight: 900;
-  letter-spacing: -0.05em;
-  text-transform: uppercase;
+/* Baseline grid system */
+:root {
+  --baseline: 8px;
+  --line-height: 1.5;
 }
 
-.h2 {
-  font-size: 2.5rem;
-  font-weight: 800;
-  letter-spacing: -0.025em;
-  text-transform: uppercase;
-}
-
-.body {
-  font-size: 1.125rem;
-  line-height: 1.8;
-  font-weight: 500;
+body {
+  font-size: 1rem;
+  line-height: calc(var(--baseline) * var(--line-height));
 }
 \`\`\`
 
-The constructivist approach emphasizes intentional design decisions that guide the user's attention naturally. By applying these principles, we create interfaces that communicate effectively and resonate on a deeper cognitive level.
+## COGNITIVE MAPPING
+
+When users encounter an interface, they create mental maps based on visual hierarchy. A well-structured grid reduces cognitive load by providing consistent anchor points.
+
+## CONCLUSION
+
+The geometry of perception is not about rigid rules—it's about creating frameworks that guide users naturally through information architecture. The grid is neither inherently good nor bad—it's a tool whose ethics depend on how it's deployed.
 
 ---
 
 *Published: April 28, 2026*
 *Author: Adler Decht*`,
+    coverImage: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop',
     color: 'red',
-    tags: ['UI', 'Cognition', 'Geometry'],
+    status: 'published',
+    viewsCount: 0,
+    likesCount: 0,
+    metaTitle: 'The Geometry of Perception',
+    metaDescription: 'Exploring how structural design influences cognitive processes in modern interfaces.',
+    metaKeywords: 'design,constructivism,ui,ux',
+    authorId: 1,
+    categoryId: 1,
+    publishedAt: '2026-04-28T10:30:00',
+    createdAt: '2026-04-28T10:30:00',
+    updatedAt: '2026-04-28T10:30:00',
   },
   {
     id: 2,
@@ -249,17 +248,25 @@ The technical breakdown reveals why monospaced fonts and sans-serif grotesques f
 
 *Published: April 20, 2026*
 *Author: Rodchenko*`,
+    coverImage: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800&h=600&fit=crop',
     color: 'red',
-    tags: ['Type', 'Rodchenko', 'Structure'],
+    status: 'published',
+    viewsCount: 0,
+    likesCount: 0,
+    metaTitle: 'Typography as Architecture',
+    metaDescription: 'Why fonts are the literal beams and columns of a digital experience.',
+    metaKeywords: 'typography,fonts,design,architecture',
+    authorId: 2,
+    categoryId: 2,
+    publishedAt: '2026-04-20T14:00:00',
+    createdAt: '2026-04-20T14:00:00',
+    updatedAt: '2026-04-20T14:00:00',
   },
   {
     id: 3,
     title: 'MANIFESTO OF THE MACHINE',
-    category: 'CULTURE',
-    date: '2026-04-15T00:00:00',
-    userId: 3,
+    slug: 'manifesto-of-the-machine',
     excerpt: 'Redefining the relationship between human intuition and algorithmic precision.',
-    thumbnail: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&h=600&fit=crop',
     content: `# Manifesto of the Machine
 
 We live in an age of the hybrid. The machine provides the precision, the human provide the purpose.
@@ -353,17 +360,25 @@ We should not aim to make technology "natural"—we should aim to make it readab
 
 *Published: April 15, 2026*
 *Author: Adlerian*`,
+    coverImage: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&h=600&fit=crop',
     color: 'black',
-    tags: ['Manifesto', 'Machine', 'Algorithmic'],
+    status: 'published',
+    viewsCount: 0,
+    likesCount: 0,
+    metaTitle: 'Manifesto of the Machine',
+    metaDescription: 'Redefining the relationship between human intuition and algorithmic precision.',
+    metaKeywords: 'algorithm,machine,human,technology',
+    authorId: 3,
+    categoryId: 3,
+    publishedAt: '2026-04-15T00:00:00',
+    createdAt: '2026-04-15T00:00:00',
+    updatedAt: '2026-04-15T00:00:00',
   },
   {
     id: 4,
     title: 'ARCHITECTURAL VECTORS',
-    category: 'SYSTEM-DESIGN',
-    date: '2026-04-12T00:00:00',
-    userId: 5,
+    slug: 'architectural-vectors',
     excerpt: 'Analyzing the trajectory of lines in three-dimensional digital space.',
-    thumbnail: 'https://images.unsplash.com/photo-1633356122102-3fe601e05bd2?w=800&h=600&fit=crop',
     content: `# Architectural Vectors
 
 Vectors are the invisible strings that hold our digital world together. In this study, we bridge the gap between physical gravity and digital directional force.
@@ -466,17 +481,25 @@ Vectors bridge the gap between physical gravity and digital directional force, c
 
 *Published: April 12, 2026*
 *Author: V. Tatlin*`,
+    coverImage: 'https://images.unsplash.com/photo-1633356122102-3fe601e05bd2?w=800&h=600&fit=crop',
     color: 'red',
-    tags: ['Vectors', 'Tatlin', 'Space'],
+    status: 'published',
+    viewsCount: 0,
+    likesCount: 0,
+    metaTitle: 'Architectural Vectors',
+    metaDescription: 'Analyzing the trajectory of lines in three-dimensional digital space.',
+    metaKeywords: 'vectors,architecture,3d,space',
+    authorId: 5,
+    categoryId: 4,
+    publishedAt: '2026-04-12T00:00:00',
+    createdAt: '2026-04-12T00:00:00',
+    updatedAt: '2026-04-12T00:00:00',
   },
   {
     id: 5,
     title: 'THE ETHICS OF THE GRID',
-    category: 'ENGINEERING',
-    date: '2026-04-10T00:00:00',
-    userId: 1,
+    slug: 'the-ethics-of-the-grid',
     excerpt: 'Is the grid a tool of liberation or a cage for creativity?',
-    thumbnail: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=600&fit=crop',
     content: `# The Ethics of the Grid
 
 The grid provides structure, but at what cost? We explore the philosophical implications of strict alignment in UX design.
@@ -555,7 +578,24 @@ The grid is neither inherently good nor bad—it's a tool whose ethics depend on
 
 *Published: April 10, 2026*
 *Author: Adler Decht*`,
+    coverImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=600&fit=crop',
     color: 'black',
-    tags: ['UX', 'Ethics', 'Grid'],
+    status: 'published',
+    viewsCount: 0,
+    likesCount: 0,
+    metaTitle: 'The Ethics of the Grid',
+    metaDescription: 'Is the grid a tool of liberation or a cage for creativity?',
+    metaKeywords: 'ethics,grid,ux,design',
+    authorId: 1,
+    categoryId: 5,
+    publishedAt: '2026-04-10T00:00:00',
+    createdAt: '2026-04-10T00:00:00',
+    updatedAt: '2026-04-10T00:00:00',
   },
 ];
+
+const { getTagsByPostId, adminTags } = useTaggables();
+
+POSTS.forEach(post => {
+  post.tags = getTagsByPostId(post.id, adminTags).map(t => t.name);
+});
