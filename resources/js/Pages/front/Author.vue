@@ -19,7 +19,9 @@ import 'vue3-calendar-heatmap/dist/style.css';
 import { useTheme } from '@/composables/useTheme';
 import SidebarMenu from '@/components/SidebarMenu.vue';
 import Footer from '@/components/Footer.vue';
-import { skills, activeProjects as projects, socialLinks, githubUsername } from '../../data/author';
+import { skills, socialLinks, githubUsername } from '../../data/author';
+import { PROJECTS } from '../../data/projects';
+
 const { t } = useI18n();
 const { currentTheme } = useTheme();
 const isFooterVisible = ref(true);
@@ -28,6 +30,7 @@ const calendarValues = ref([]);
 const githubStats = ref({ commits: 0, prs: 0, repos: 7 });
 const isLoading = ref(true);
 const username = githubUsername;
+const projects = PROJECTS.filter(p => p.status === 'active');
 const endDate = computed(() => {
  const date = new Date();
  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -195,10 +198,12 @@ const generateMockCalendarData = () => {
 
           <div class="grid grid-cols-2 gap-3">
             <a
-              v-for="(item, i) in socialLinks"
-              :key="i"
-              href="#"
-              :class="['aspect-[4/3] flex flex-col items-center justify-center gap-2 transition-all', item.bg, item.text, item.hover, item.border]"
+              v-for="item in socialLinks"
+              :key="item.id"
+              :href="item.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              :class="['aspect-[4/3] flex flex-col items-center justify-center gap-2 transition-all', item.style.background, item.style.textColor, item.style.hover, item.style.border]"
             >
               <component 
                 :is="item.icon" 
@@ -247,7 +252,7 @@ const generateMockCalendarData = () => {
             <div class="space-y-6">
               <div 
                 v-for="(skill, index) in skills" 
-                :key="index" 
+                :key="skill.id" 
                 class="group relative"
               >
                 <div class="absolute -left-8 top-1 text-construct-red font-bold text-[10px] tracking-widest hidden md:block">
@@ -259,17 +264,17 @@ const generateMockCalendarData = () => {
                       {{ t(skill.label) }}
                     </span>
                     <span class="text-[11px] font-bold tracking-widest opacity-50 uppercase mt-1 block">
-                      {{ t(skill.desc) }}
+                      {{ t(skill.description) }}
                     </span>
                   </div>
                   <span class="font-display text-2xl md:text-3xl text-construct-black leading-none">
-                    {{ skill.val }}
+                    {{ skill.value }}
                   </span>
                 </div>
                 <div class="h-3 md:h-4 w-full bg-white border-2 border-construct-black overflow-hidden p-[2px]">
                   <div 
                     class="h-full bg-construct-red transition-all duration-1000 ease-out"
-                    :style="{ width: isVisible ? skill.val + '%' : '0%' }"
+                    :style="{ width: isVisible ? skill.value + '%' : '0%' }"
                   />
                 </div>
               </div>
@@ -379,8 +384,8 @@ const generateMockCalendarData = () => {
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div
-            v-for="(proj, idx) in projects"
-            :key="idx"
+            v-for="proj in projects"
+            :key="proj.id"
             class="border-4 border-construct-black p-5 bg-white relative group overflow-hidden flex flex-col"
           >
             <div class="absolute top-0 right-0 p-2 opacity-5 text-[32px] md:text-[40px] font-display pointer-events-none group-hover:opacity-20 transition-opacity">
@@ -399,7 +404,7 @@ const generateMockCalendarData = () => {
                 {{ proj.name }}
               </h4>
               <p class="text-[11px] font-bold tracking-widest text-construct-black/60 uppercase mb-6 flex-1 leading-relaxed">
-                {{ proj.desc }}
+                {{ proj.description }}
               </p>
 
               <div class="h-3 md:h-4 w-full bg-construct-paper-dark border-2 border-construct-black relative mt-auto">

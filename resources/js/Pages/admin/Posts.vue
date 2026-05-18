@@ -26,14 +26,19 @@ import {
   Filter,
   ConfirmDialog,
   ContentForm,
-  AdminPagination,
-  getAuthorName
+  AdminPagination
 } from '../../composables/useAdminImports';
 import { POSTS } from '../../data/posts';
 import { categories, adminCategories } from '../../data/categories';
+import { adminUsers } from '../../data/users';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
+
+const getAuthorName = (userId) => {
+  const user = adminUsers.find(u => u.id === userId);
+  return user ? (user.penName || user.name) : 'Unknown';
+};
 
 const searchQuery = ref('');
 const currentPage = ref(1);

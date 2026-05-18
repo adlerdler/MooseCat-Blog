@@ -21,7 +21,7 @@
 import { ref } from 'vue';
 import { ChevronRight, Send } from 'lucide-vue-next';
 import AbstractAvatar from './AbstractAvatar.vue';
-import { getApprovedComments } from '../data/comments';
+import { commentsData } from '../data/comments';
 
 const props = defineProps({
   initialComments: {
@@ -36,6 +36,10 @@ const isCommentFormOpen = ref(false);
 const isSubmitting = ref(false);
 const submitSuccess = ref(false);
 const errorMessage = ref('');
+
+const getApprovedComments = () => {
+  return commentsData.filter(comment => comment.status === 'approved');
+};
 
 const comments = ref([
   ...getApprovedComments(),

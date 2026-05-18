@@ -17,12 +17,15 @@ import { useRouter } from 'vue-router';
 import { Motion, AnimatePresence } from 'motion-v';
 import { useTheme } from '../../composables/useTheme';
 import { PROJECTS } from '../../data/projects';
+import SidebarMenu from '@/components/SidebarMenu.vue';
+import Footer from '@/components/Footer.vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 const { initAccentTheme } = useTheme();
 const router = useRouter();
 const isFooterVisible = ref(true);
+const completedProjects = PROJECTS.filter(p => p.status === 'completed');
 
 onMounted(() => {
   initAccentTheme();
@@ -60,7 +63,7 @@ const goToProject = (projectId) => {
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
           <Motion
-            v-for="(project, idx) in PROJECTS"
+            v-for="(project, idx) in completedProjects"
             :key="project.id"
             :initial="{ opacity: 0, y: 20 }"
             :animate="{ opacity: 1, y: 0 }"

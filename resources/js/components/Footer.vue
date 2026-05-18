@@ -6,6 +6,7 @@
  * - 网站全局页脚，显示品牌信息和社交链接
  * - 支持显示/隐藏控制（通过 v-model）
  * - 响应式多列布局
+ * - 社交媒体链接从 author.js 动态获取
  * 
  * 内容区域：
  * - 品牌Logo和标语
@@ -17,8 +18,8 @@
  * <Footer v-model="isFooterVisible" />
  */
 import { RouterLink } from 'vue-router';
-import { Twitter, Github, Linkedin, Instagram } from 'lucide-vue-next'
 import { useI18n } from 'vue-i18n';
+import { socialLinks } from '../data/author';
 
 const { t } = useI18n();
 
@@ -53,32 +54,20 @@ const toggleFooter = () => {
       </p>
       <div class="flex gap-4 mt-8">
         <a
-          href="#"
-          class="p-2 border-2 border-black hover:bg-black hover:text-white transition-colors w-10 h-10 flex items-center justify-center"
-          aria-label="Twitter"
+          v-for="link in socialLinks"
+          :key="link.id"
+          :href="link.url"
+          target="_blank"
+          rel="noopener noreferrer"
+          :class="[
+            'p-2 border-2 border-black transition-colors w-10 h-10 flex items-center justify-center',
+            link.style.background,
+            link.style.textColor,
+            link.style.hover
+          ]"
+          :aria-label="link.label"
         >
-          <Twitter class="w-4 h-4" />
-        </a>
-        <a
-          href="#"
-          class="p-2 border-2 border-black hover:bg-black hover:text-white transition-colors w-10 h-10 flex items-center justify-center"
-          aria-label="GitHub"
-        >
-          <Github class="w-4 h-4" />
-        </a>
-        <a
-          href="#"
-          class="p-2 border-2 border-black hover:bg-black hover:text-white transition-colors w-10 h-10 flex items-center justify-center"
-          aria-label="LinkedIn"
-        >
-          <Linkedin class="w-4 h-4" />
-        </a>
-        <a
-          href="#"
-          class="p-2 border-2 border-black hover:bg-black hover:text-white transition-colors w-10 h-10 flex items-center justify-center"
-          aria-label="Instagram"
-        >
-          <Instagram class="w-4 h-4" />
+          <component :is="link.icon" class="w-4 h-4" />
         </a>
       </div>
     </div>

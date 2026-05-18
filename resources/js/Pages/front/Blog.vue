@@ -16,7 +16,7 @@ import { ref, computed, h } from 'vue';
 import { ArrowUpRight, Hash, BookOpen, Lightbulb, Users, Cog } from 'lucide-vue-next';
 import { RouterLink } from 'vue-router';
 import { POSTS } from '../../data/posts';
-import { getAuthorName } from '../../data/users';
+import { adminUsers } from '../../data/users';
 import { useI18n } from 'vue-i18n';
 import { useTheme } from '../../composables/useTheme';
 import { formatToEnglish } from '../../utils/dateUtils';
@@ -28,6 +28,11 @@ const activeFilter = ref('all');
 const currentPage = ref(1);
 const itemsPerPage = 14;
 const categories = ['all', 'Theory', 'Design', 'Technology', 'Culture'];
+
+const getAuthorName = (userId) => {
+  const user = adminUsers.find(u => u.id === userId);
+  return user ? (user.penName || user.name) : 'Unknown';
+};
 const filteredPosts = computed(() => {
  if (activeFilter.value === 'all') {
  return POSTS;

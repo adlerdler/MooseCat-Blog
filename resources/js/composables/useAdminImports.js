@@ -103,7 +103,11 @@ export {
   Github,
   Heart,
   Star,
-  Layers
+  Layers,
+  History,
+  FileCode,
+  ArrowRight,
+  Layout
 } from 'lucide-vue-next';
 
 // 主题 composable
@@ -122,7 +126,7 @@ export { findById, formatId } from '../utils/typeConvert';
 export { getCategoryLabel, getCategoryNames } from '../utils/categoryUtils';
 
 // 数据文件
-export { adminUsers, getUserById, getAuthorName } from '../data/users';
+export { adminUsers } from '../data/users';
 export { adminRoles, getRoleLabel, getRoleStyle, getRoleByValue } from '../data/roles';
 export { permissions, availablePermissions } from '../data/permissions';
 export { getPermissionIdsByRoleId } from '../data/role_permissions';

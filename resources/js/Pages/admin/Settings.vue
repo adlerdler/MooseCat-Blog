@@ -27,6 +27,7 @@ import {
   Moon,
   Sun,
   Mail,
+  Send,
   Shield,
   Zap,
   ConfirmDialog,
@@ -87,6 +88,10 @@ const confirmSave = () => {
 
 const resetSettings = () => {
   console.log('Resetting settings');
+};
+
+const sendTestEmail = () => {
+  success(t('admin_send_test') + ' ' + t('confirm'));
 };
 </script>
 
@@ -496,6 +501,98 @@ const resetSettings = () => {
                   :disabled="!isEditing"
                 />
               </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mail Settings -->
+        <div v-if="activeTab === 'mail'">
+          <div class="flex items-center justify-between mb-8 border-b pb-4" :class="isDarkMode ? 'border-gray-700' : 'border-gray-100'">
+            <h3 class="font-display text-2xl tracking-tighter flex items-center gap-3">
+              <Mail size="24" class="text-construct-red" />
+              {{ t('admin_settings_mail') }}
+            </h3>
+            <button
+              @click="sendTestEmail"
+              :disabled="!isEditing"
+              class="flex items-center gap-2 px-4 py-2 bg-gray-900 dark:bg-gray-700 text-white text-xs font-bold uppercase tracking-widest transition-all hover:bg-black dark:hover:bg-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <Send size="14" /> {{ t('admin_send_test') }}
+            </button>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div>
+              <label :class="['block text-sm font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_smtp_host') }}</label>
+              <input
+                v-model="settings.mail.host"
+                type="text"
+                :class="[
+                  'w-full px-4 py-3 border focus:border-construct-red focus:outline-none transition-all font-mono',
+                  isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900',
+                  !isEditing ? 'cursor-not-allowed opacity-60' : ''
+                ]"
+              />
+            </div>
+            <div>
+              <label :class="['block text-sm font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_smtp_port') }}</label>
+              <input
+                v-model.number="settings.mail.port"
+                type="number"
+                :class="[
+                  'w-full px-4 py-3 border focus:border-construct-red focus:outline-none transition-all font-mono',
+                  isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900',
+                  !isEditing ? 'cursor-not-allowed opacity-60' : ''
+                ]"
+              />
+            </div>
+            <div>
+              <label :class="['block text-sm font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_smtp_user') }}</label>
+              <input
+                v-model="settings.mail.username"
+                type="text"
+                :class="[
+                  'w-full px-4 py-3 border focus:border-construct-red focus:outline-none transition-all font-mono',
+                  isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900',
+                  !isEditing ? 'cursor-not-allowed opacity-60' : ''
+                ]"
+              />
+            </div>
+            <div>
+              <label :class="['block text-sm font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_smtp_pass') }}</label>
+              <input
+                v-model="settings.mail.password"
+                type="password"
+                :class="[
+                  'w-full px-4 py-3 border focus:border-construct-red focus:outline-none transition-all font-mono',
+                  isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900',
+                  !isEditing ? 'cursor-not-allowed opacity-60' : ''
+                ]"
+              />
+            </div>
+            <div>
+              <label :class="['block text-sm font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_sender_address') }}</label>
+              <input
+                v-model="settings.mail.fromAddress"
+                type="email"
+                :class="[
+                  'w-full px-4 py-3 border focus:border-construct-red focus:outline-none transition-all font-mono',
+                  isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900',
+                  !isEditing ? 'cursor-not-allowed opacity-60' : ''
+                ]"
+              />
+            </div>
+            <div>
+              <label :class="['block text-sm font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_sender_name') }}</label>
+              <input
+                v-model="settings.mail.fromName"
+                type="text"
+                :class="[
+                  'w-full px-4 py-3 border focus:border-construct-red focus:outline-none transition-all',
+                  isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900',
+                  !isEditing ? 'cursor-not-allowed opacity-60' : ''
+                ]"
+              />
             </div>
           </div>
         </div>

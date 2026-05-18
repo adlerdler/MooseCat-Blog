@@ -44,9 +44,7 @@ import { VIDEOS } from '../../data/videos';
 import { PROJECTS } from '../../data/projects';
 import { useTheme } from '../../composables/useTheme';
 import {
-  activityLog,
   trafficData,
-  contentStats,
   topPages,
   trafficSources,
   userStats,
@@ -110,13 +108,6 @@ const iconMap = {
   userPlus: UserPlus,
   bell: Bell
 };
-
-const contentStatsWithIcons = computed(() => {
-  return contentStats.map(item => ({
-    ...item,
-    icon: iconMap[item.iconKey]
-  }));
-});
 
 const userStatsWithIcons = computed(() => {
   return userStats.map(item => ({

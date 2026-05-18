@@ -28,11 +28,11 @@ import { createRouter, createWebHistory } from 'vue-router';
 import Home from './Pages/Front/Home.vue';
 import Blog from './Pages/front/Blog.vue';
 import PostDetail from './Pages/front/PostDetail.vue';
-import Author from './Pages/Front/Author.vue';
+import Author from './Pages/front/Author.vue';
 import Videos from './Pages/Front/Videos.vue';
 import VideoDetail from './Pages/Front/VideoDetail.vue';
-import Projects from './Pages/Front/Projects.vue';
-import ProjectDetail from './Pages/Front/ProjectDetail.vue';
+import Projects from './Pages/front/Projects.vue';
+import ProjectDetail from './Pages/front/ProjectDetail.vue';
 import Resources from './Pages/Front/Resources.vue';
 import ErrorPage from './components/ErrorPage.vue';
 import Index from './Pages/admin/Index.vue';
@@ -54,7 +54,9 @@ import AdminLogs from './Pages/admin/Logs.vue';
 import AdminBackup from './Pages/admin/Backup.vue';
 import AdminRestore from './Pages/admin/Restore.vue';
 import AdminAdvertisements from './Pages/admin/Advertisements.vue';
+import SocialLinks from './Pages/admin/SocialLinks.vue';
 import AdminFrontMenu from './Pages/admin/FrontMenu.vue';
+import AdminEmailTemplates from './Pages/admin/EmailTemplates.vue';
 
 const routes = [
   {
@@ -219,11 +221,23 @@ const routes = [
     component: AdminFrontMenu,
     meta: { title: 'ADMIN // Front Menu', requiresAuth: true, layout: 'admin' },
   },
+  /* {
+    path: '/admin/email-templates',
+    name: 'admin-email-templates',
+    component: AdminEmailTemplates,
+    meta: { title: 'ADMIN // Email Templates', requiresAuth: true, layout: 'admin' },
+  }, */
   {
     path: '/admin/advertisements',
     name: 'admin-advertisements',
     component: AdminAdvertisements,
     meta: { title: 'ADMIN // Advertisements', requiresAuth: true, layout: 'admin' },
+  },
+  {
+    path: '/admin/social-links',
+    name: 'admin-social-links',
+    component: SocialLinks,
+    meta: { title: 'ADMIN // Social Links', requiresAuth: true, layout: 'admin' },
   },
   {
     path: '/admin',

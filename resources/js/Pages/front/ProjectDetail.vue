@@ -28,6 +28,11 @@ const project = computed(() => {
   return findById(PROJECTS, route.params.id);
 });
 
+// 检查项目是否存在且为已完成状态
+const isValidProject = computed(() => {
+  return project.value && project.value.status === 'completed';
+});
+
 // 动态更新页面标题
 const updatePageTitle = () => {
   if (project.value?.title) {

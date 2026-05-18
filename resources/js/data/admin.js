@@ -1,3 +1,12 @@
+/**
+ * admin.js - 管理后台配置数据
+ * 
+ * 功能说明：
+ * - 存储管理后台的配置类数据
+ * - 包含图表数据、设置配置、统计选项等
+ * - 内容统计数据从各自数据表动态计算
+ */
+
 export const timeRanges = [
   { value: '7d', label: '7 DAYS' },
   { value: '30d', label: '30 DAYS' },
@@ -10,13 +19,6 @@ export const analyticsStats = [
   { label: 'Unique Visitors', value: '18,234', change: '+8%', iconKey: 'users' },
   { label: 'Page Views', value: '89,432', change: '+15%', iconKey: 'barChart3' },
   { label: 'Avg. Duration', value: '4m 32s', change: '+5%', iconKey: 'clock' },
-];
-
-export const contentStats = [
-  { label: 'Total Posts', value: 156, iconKey: 'fileText', color: 'bg-construct-red' },
-  { label: 'Total Videos', value: 48, iconKey: 'play', color: 'bg-blue-500' },
-  { label: 'Total Projects', value: 32, iconKey: 'folderKanban', color: 'bg-green-500' },
-  { label: 'Total Comments', value: 892, iconKey: 'users', color: 'bg-purple-500' },
 ];
 
 export const userStats = [
@@ -97,14 +99,6 @@ export const trafficSources = [
   { source: 'Referral', percentage: 10, color: 'bg-purple-500' },
 ];
 
-export const activityLog = [
-  { action: 'New post published', target: 'THE GEOMETRY OF PERCEPTION', time: '2 hours ago', type: 'post' },
-  { action: 'Video uploaded', target: 'Constructivist Design Principles', time: '5 hours ago', type: 'video' },
-  { action: 'Project updated', target: 'Digital Archive System', time: '1 day ago', type: 'project' },
-  { action: 'New comment approved', target: 'By Anonymous', time: '1 day ago', type: 'comment' },
-  { action: 'User registered', target: 'New Member', time: '2 days ago', type: 'user' },
-];
-
 export const defaultSettings = {
   site: {
     name: 'ARCHYX',
@@ -144,6 +138,15 @@ export const defaultSettings = {
     enableMinification: true,
     lazyLoadImages: true,
     enableCDN: false
+  },
+  mail: {
+    host: 'smtp.archyx.com',
+    port: 587,
+    username: 'admin@archyx.com',
+    password: '****************',
+    encryption: 'tls',
+    fromAddress: 'no-reply@archyx.com',
+    fromName: 'Archyx System'
   }
 };
 
@@ -152,5 +155,6 @@ export const tabsConfig = [
   { id: 'appearance', labelKey: 'admin_settings_appearance', iconKey: 'palette' },
   { id: 'notifications', labelKey: 'admin_settings_notifications', iconKey: 'bell' },
   { id: 'seo', labelKey: 'admin_settings_seo', iconKey: 'search' },
+  { id: 'mail', labelKey: 'admin_settings_mail', iconKey: 'mail' },
   { id: 'performance', labelKey: 'admin_settings_performance', iconKey: 'zap' }
 ];

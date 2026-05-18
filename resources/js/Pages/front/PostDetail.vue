@@ -18,7 +18,7 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useRoute, useRouter, RouterLink } from 'vue-router';
 import { ArrowLeft, Share2, Bookmark, Clock, User, BookOpen, ChevronRight } from 'lucide-vue-next';
 import { POSTS } from '../../data/posts';
-import { getAuthorName } from '../../data/users';
+import { adminUsers } from '../../data/users';
 import { useI18n } from 'vue-i18n';
 import { formatToEnglish } from '../../utils/dateUtils';
 import { findById, formatId } from '../../utils/typeConvert';
@@ -26,6 +26,11 @@ import { findById, formatId } from '../../utils/typeConvert';
 const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
+
+const getAuthorName = (userId) => {
+  const user = adminUsers.find(u => u.id === userId);
+  return user ? (user.penName || user.name) : 'Unknown';
+};
 
 const post = computed(() => {
   const foundPost = findById(POSTS, route.params.id);

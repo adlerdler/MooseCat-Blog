@@ -27,7 +27,7 @@ const props = defineProps({
   contentType: {
     type: String,
     required: true,
-    validator: (value) => ['post', 'video', 'project', 'resource'].includes(value)
+    validator: (value) => ['post', 'video', 'project', 'resource', 'social-link'].includes(value)
   },
   editData: {
     type: Object,
@@ -50,7 +50,8 @@ const formTitle = computed(() => {
     post: isEditMode.value ? t('admin_edit') + ' ' + t('admin_posts') : t('admin_add') + ' ' + t('admin_posts'),
     video: isEditMode.value ? t('admin_edit') + ' ' + t('admin_videos') : t('admin_add') + ' ' + t('admin_videos'),
     project: isEditMode.value ? t('admin_edit') + ' ' + t('admin_projects') : t('admin_add') + ' ' + t('admin_projects'),
-    resource: isEditMode.value ? t('admin_edit') + ' ' + t('admin_resources') : t('admin_add') + ' ' + t('admin_resources')
+    resource: isEditMode.value ? t('admin_edit') + ' ' + t('admin_resources') : t('admin_add') + ' ' + t('admin_resources'),
+    'social-link': isEditMode.value ? t('admin_edit') + ' ' + t('admin_social_links') : t('admin_add') + ' ' + t('admin_social_links')
   };
   return typeMap[props.contentType];
 });
@@ -80,6 +81,7 @@ const initFormData = () => {
     },
     project: {
       title: '',
+      name: '',
       description: '',
       longDescription: '',
       image: '',
@@ -88,7 +90,11 @@ const initFormData = () => {
       tags: '',
       role: '',
       year: new Date().getFullYear().toString(),
-      technologies: ''
+      technologies: '',
+      status: 'completed',
+      progress: 0,
+      startDate: new Date().toISOString().split('T')[0],
+      sortOrder: 0
     },
     resource: {
       title: '',
@@ -100,6 +106,12 @@ const initFormData = () => {
       date: new Date().toISOString().split('T')[0],
       localUrl: '',
       drives: []
+    },
+    'social-link': {
+      platform: 'github',
+      label: '',
+      url: '',
+      sortOrder: 0
     }
   };
   
@@ -620,6 +632,79 @@ const removeDrive = (index) => {
               />
             </div>
 
+            <div class="grid grid-cols-3 gap-4">
+              <div>
+                <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
+                  项目状态
+                </label>
+                <select
+                  v-model="formData.status"
+                  :class="[
+                    'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
+                    isDarkMode 
+                      ? 'bg-gray-700 border-gray-600 text-white' 
+                      : 'bg-white border-gray-300 text-gray-900'
+                  ]"
+                >
+                  <option value="completed">已完成</option>
+                  <option value="active">进行中</option>
+                </select>
+              </div>
+
+              <div>
+                <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
+                  进度百分比
+                </label>
+                <input
+                  v-model.number="formData.progress"
+                  type="number"
+                  min="0"
+                  max="100"
+                  :class="[
+                    'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
+                    isDarkMode 
+                      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                  ]"
+                  placeholder="0-100"
+                />
+              </div>
+
+              <div>
+                <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
+                  排序顺序
+                </label>
+                <input
+                  v-model.number="formData.sortOrder"
+                  type="number"
+                  min="0"
+                  :class="[
+                    'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
+                    isDarkMode 
+                      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                  ]"
+                  placeholder="数字越小越靠前"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
+                开始日期（进行中项目）
+              </label>
+              <input
+                v-model="formData.startDate"
+                type="date"
+                :class="[
+                  'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
+                  isDarkMode 
+                    ? 'bg-gray-700 border-gray-600 text-white' 
+                    : 'bg-white border-gray-300 text-gray-900'
+                ]"
+              />
+            </div>
+
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <TagInput v-model="formData.tags" :label="t('admin_post_form_tags')" placeholder="输入标签，按回车或逗号添加" />
@@ -844,6 +929,81 @@ const removeDrive = (index) => {
                   placeholder="YYYY-MM-DD"
                 />
               </div>
+            </div>
+          </template>
+
+          <!-- ========== 社交媒体链接表单 ========== -->
+          <template v-if="contentType === 'social-link'">
+            <div>
+              <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
+                平台类型
+              </label>
+              <select
+                v-model="formData.platform"
+                :class="[
+                  'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
+                  isDarkMode 
+                    ? 'bg-gray-700 border-gray-600 text-white' 
+                    : 'bg-white border-gray-300 text-gray-900'
+                ]"
+              >
+                <option value="github">GitHub</option>
+                <option value="twitter">Twitter</option>
+                <option value="linkedin">LinkedIn</option>
+                <option value="email">Email</option>
+              </select>
+            </div>
+
+            <div>
+              <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
+                显示名称 *
+              </label>
+              <input
+                v-model="formData.label"
+                type="text"
+                :class="[
+                  'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
+                  isDarkMode 
+                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                ]"
+                placeholder="例如：GITHUB"
+              />
+            </div>
+
+            <div>
+              <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
+                链接地址 *
+              </label>
+              <input
+                v-model="formData.url"
+                type="text"
+                :class="[
+                  'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
+                  isDarkMode 
+                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                ]"
+                placeholder="例如：https://github.com/username"
+              />
+            </div>
+
+            <div>
+              <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
+                排序顺序
+              </label>
+              <input
+                v-model.number="formData.sortOrder"
+                type="number"
+                min="0"
+                :class="[
+                  'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
+                  isDarkMode 
+                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                ]"
+                placeholder="数字越小越靠前"
+              />
             </div>
           </template>
         </div>

@@ -31,6 +31,11 @@ import AdminPagination from '../../components/admin/AdminPagination.vue';
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
 
+const PROJECT_STATUS = Object.freeze({
+  COMPLETED: 'completed',
+  ACTIVE: 'active',
+});
+
 const searchQuery = ref('');
 const currentPage = ref(1);
 const itemsPerPage = ref(6);
@@ -40,7 +45,7 @@ const editingProject = ref(null);
 const showDeleteConfirm = ref(false);
 const deletingProjectId = ref(null);
 
-const statuses = ['all', 'Completed', 'In Progress', 'Planning'];
+const statuses = ['all', PROJECT_STATUS.COMPLETED, PROJECT_STATUS.ACTIVE];
 
 const filteredProjects = computed(() => {
   let result = [...PROJECTS];
@@ -52,9 +57,9 @@ const filteredProjects = computed(() => {
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase();
     result = result.filter(project =>
-      project.title.toLowerCase().includes(query) ||
+      (project.title || project.name).toLowerCase().includes(query) ||
       project.description.toLowerCase().includes(query) ||
-      project.tags.some(tag => tag.toLowerCase().includes(query))
+      (project.tags && project.tags.some(tag => tag.toLowerCase().includes(query)))
     );
   }
   
@@ -96,16 +101,21 @@ const confirmDelete = () => {
 const handleEdit = (project) => {
   editingProject.value = {
     id: project.id,
-    title: project.title,
+    title: project.title || '',
+    name: project.name || '',
     description: project.description,
     longDescription: project.longDescription || '',
-    image: project.image,
+    image: project.image || '',
     url: project.url || '',
     githubUrl: project.githubUrl || '',
     tags: project.tags ? project.tags.join(', ') : '',
     role: project.role || '',
     year: project.year || '',
-    technologies: project.technologies ? project.technologies.join(', ') : ''
+    technologies: project.technologies ? project.technologies.join(', ') : '',
+    status: project.status || 'completed',
+    progress: project.progress || 0,
+    startDate: project.startDate || new Date().toISOString().split('T')[0],
+    sortOrder: project.sortOrder || 0
   };
   isFormVisible.value = true;
 };
@@ -218,7 +228,7 @@ const handleCancel = () => {
           
           <div class="flex flex-wrap gap-1 mb-4">
             <span
-              v-for="tag in project.tags.slice(0, 3)"
+              v-for="tag in (project.tags || []).slice(0, 3)"
               :key="tag"
               :class="['text-[10px] px-2 py-0.5 uppercase', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600']"
             >

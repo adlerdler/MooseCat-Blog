@@ -18,6 +18,14 @@ import { ref, onMounted, computed, onUnmounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import {
+  LogOut,
+  User,
+  Menu,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
+  ExternalLink,
   LayoutDashboard,
   FileText,
   Play,
@@ -25,19 +33,11 @@ import {
   BookOpen,
   Users,
   Settings,
-  BarChart3,
-  LogOut,
-  User,
-  Menu,
-  X,
   Folder,
   Tag,
   MessageSquare,
   Shield,
   HardDrive,
-  ChevronLeft,
-  ChevronRight,
-  ChevronDown,
   Info,
   Archive,
   SlidersHorizontal,
@@ -45,7 +45,7 @@ import {
   RotateCcw,
   Image,
   Zap,
-  ExternalLink
+  Link
 } from 'lucide-vue-next';
 import ThemeToggle from '../../components/ThemeToggle.vue';
 import ToastContainer from '../../components/ToastContainer.vue';
@@ -139,26 +139,27 @@ const toggleSidebarCollapse = () => {
 };
 
 const iconMap = {
-  layoutDashboard: LayoutDashboard,
-  fileText: FileText,
-  play: Play,
-  folderKanban: FolderKanban,
-  bookOpen: BookOpen,
-  folder: Folder,
-  tag: Tag,
-  messageSquare: MessageSquare,
-  users: Users,
-  shield: Shield,
-  hardDrive: HardDrive,
-  settings: Settings,
-  info: Info,
-  archive: Archive,
-  sliders: SlidersHorizontal,
-  books: Book,
-  rotateCcw: RotateCcw,
-  image: Image,
-  zap: Zap,
-  menu: Menu
+  LayoutDashboard,
+  FileText,
+  Play,
+  FolderKanban,
+  BookOpen,
+  Users,
+  Settings,
+  Folder,
+  Tag,
+  MessageSquare,
+  Shield,
+  HardDrive,
+  Info,
+  Archive,
+  SlidersHorizontal,
+  Book,
+  RotateCcw,
+  Image,
+  Zap,
+  Link,
+  Menu
 };
 
 const menuItems = computed(() => {
@@ -166,13 +167,13 @@ const menuItems = computed(() => {
     const mappedItem = {
       ...item,
       label: t(item.labelKey),
-      icon: iconMap[item.iconKey]
+      icon: iconMap[item.iconName]
     };
     if (item.children && item.children.length > 0) {
       mappedItem.children = item.children.map(child => ({
         ...child,
         label: t(child.labelKey),
-        icon: iconMap[child.iconKey]
+        icon: iconMap[child.iconName]
       }));
     }
     return mappedItem;
