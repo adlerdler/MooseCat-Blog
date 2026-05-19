@@ -26,44 +26,27 @@ import {
   Layout,
   useToast
 } from '../../composables/useAdminImports';
+import { emailTemplates, templateVariables } from '../../data/email_templates';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
 const { success } = useToast();
 
-const templates = ref([
-  {
-    id: 'welcome',
-    name: 'Welcome Email',
-    subject: 'Welcome to Archyx!',
-    description: 'Sent to new users after registration.',
-    lastUpdated: '2026-05-10',
-    content: '<h1>Welcome, {{user_name}}!</h1><p>We are glad to have you here.</p>'
-  },
-  {
-    id: 'password_reset',
-    name: 'Password Reset',
-    subject: 'Reset Your Password',
-    description: 'Sent when a user requests a password reset.',
-    lastUpdated: '2026-05-12',
-    content: '<h1>Reset Password</h1><p>Click the link below to reset your password: <a href="{{reset_link}}">Reset Now</a></p>'
-  },
-  {
-    id: 'comment_reply',
-    name: 'Comment Reply Notification',
-    subject: 'Someone replied to your comment',
-    description: 'Sent when a user receives a reply to their comment.',
-    lastUpdated: '2026-05-15',
-    content: '<h1>New Reply</h1><p>{{replier_name}} replied to your comment: "{{comment_content}}"</p>'
-  }
-]);
+const templates = ref(emailTemplates.map(t => ({
+  id: t.name,  // Using name as the id to maintain compatibility
+  name: t.name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()), // Convert snake_case to Title Case
+  subject: t.subject,
+  description: t.description,
+  lastUpdated: t.updated_at,
+  content: t.body  // Map body to content for compatibility
+})));
 
-const selectedTemplate = ref(templates.value[0]);
+const selectedTemplate = ref({...templates.value[0]});
 const activeMode = ref('visual'); // visual | code
 const isSaving = ref(false);
 
 const selectTemplate = (template) => {
-  selectedTemplate.value = { ...template };
+  selectedTemplate.value = { ...template, content: template.content || template.body };
 };
 
 const saveTemplate = () => {
@@ -74,13 +57,7 @@ const saveTemplate = () => {
   }, 1000);
 };
 
-const variables = [
-  { name: 'user_name', desc: 'The recipient\'s full name' },
-  { name: 'site_name', desc: 'The name of your blog' },
-  { name: 'reset_link', desc: 'Unique URL for password reset' },
-  { name: 'comment_content', desc: 'Content of the comment' },
-  { name: 'replier_name', desc: 'Name of the person who replied' }
-];
+const variables = templateVariables;
 </script>
 
 <template>

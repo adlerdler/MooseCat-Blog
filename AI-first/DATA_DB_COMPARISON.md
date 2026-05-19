@@ -88,23 +88,24 @@
 
 ### 3.1 高优先级（基础功能必需）
 
-| 序号 | 建议文件名 | 对应表名 | 支持功能 | 字段建议 | 优先级 |
-|:---:|-----------|---------|---------|---------|:---:|
-| 1 | **mediaFiles.js** | media_files | 媒体库管理、文件上传、图片选择器 | id, name, type, size, url, thumbnail, uploadedAt, userId | 高 |
-| 2 | **menus.js** | menus | 前后台菜单配置、导航管理 | id, name, label, icon, path, parentId, sortOrder, isActive | 高 |
-| 3 | **roles.js** | roles | 用户角色管理、权限分配 | id, name, label, description, permissions, createdAt | 高 |
-| 4 | **permissions.js** | permissions | 功能权限控制、访问限制 | id, name, label, module, description | 高 |
-| 5 | **rolePermissions.js** | role_permissions | 角色权限关联 | roleId, permissionId | 高 |
+| 序号 | 建议文件名 | 对应表名 | 支持功能 | 字段建议 | 优先级 | 状态 |
+|:---:|-----------|---------|---------|---------|:---:|:---:|
+| 1 | **media.js** | media_files | 媒体库管理、文件上传、图片选择器 | id, name, type, size, url, thumbnail, uploadedAt, userId | 高 | ✅ 已完成 |
+| 2 | **menu.js** | menus | 前后台菜单配置、导航管理 | id, name, label, icon, path, parentId, sortOrder, isActive | 高 | ✅ 已完成 |
+| 3 | **roles.js** | roles | 用户角色管理、权限分配 | id, name, label, description, permissions, createdAt | 高 | ✅ 已完成 |
+| 4 | **permissions.js** | permissions | 功能权限控制、访问限制 | id, name, label, module, description | 高 | ✅ 已完成 |
+| 5 | **role_permissions.js** | role_permissions | 角色权限关联 | roleId, permissionId | 高 | ✅ 已完成 |
 
 ### 3.2 中优先级（增强用户体验）
 
-| 序号 | 建议文件名 | 对应表名 | 支持功能 | 字段建议 | 优先级 |
-|:---:|-----------|---------|---------|---------|:---:|
-| 6 | **userLevels.js** | user_levels | 用户等级系统、积分成长 | id, name, icon, minPoints, maxPoints, benefits | 中 |
-| 7 | **notifications.js** | notifications | 站内消息、系统通知、提醒功能 | id, userId, title, content, type, isRead, createdAt | 中 |
-| 8 | **analytics.js** | analytics | 数据统计、访问分析、仪表盘 | id, type, value, date, metadata | 中 |
-| 9 | **emailTemplates.js** | email_templates | 邮件模板、通知邮件、营销邮件 | id, name, subject, body, variables, isActive | 中 |
-| 10 | **backupRecords.js** | backup_records | 数据备份、恢复、版本管理 | id, type, path, size, status, createdAt, note | 中 |
+| 序号 | 建议文件名 | 对应表名 | 支持功能 | 字段建议 | 优先级 | 状态 |
+|:---:|-----------|---------|---------|---------|:---:|:---:|
+| 6 | **userLevels.js** | user_levels | 用户等级系统、积分成长 | id, name, icon, minPoints, maxPoints, benefits | 中 | ⏳ 待创建 |
+| 7 | **notifications.js** | notifications | 站内消息、系统通知、提醒功能 | id, userId, title, content, type, isRead, createdAt | 中 | ✅ 已完成 |
+| 8 | **visits.js** | visits | 访问记录、流量统计、用户行为分析 | id, page, title, ip, source, device, browser, os, country, duration, visitedAt | 中 | ✅ 已完成 |
+| 9 | **analytics.js** | analytics | 数据统计、访问分析、仪表盘 | id, type, value, date, metadata | 中 | ✅ 已完成 |
+| 10 | **emailTemplates.js** | email_templates | 邮件模板、通知邮件、营销邮件 | id, name, subject, body, variables, isActive | 中 | ✅ 已完成 |
+| 11 | **backupRecords.js** | backup_records | 数据备份、恢复、版本管理 | id, type, path, size, status, createdAt, note | 中 | ✅ 已完成 |
 
 ### 3.3 低优先级（高级功能）
 
@@ -112,7 +113,7 @@
 |:---:|-----------|---------|---------|---------|:---:|
 | 11 | **themes.js** | themes | 主题切换、外观定制 | id, name, label, colors, preview, isActive | 低 |
 | 12 | **plugins.js** | plugins | 插件系统、功能扩展 | id, name, version, description, config, isActive | 低 |
-| 13 | **apiKeys.js** | api_keys | API密钥管理、第三方集成 | id, name, key, permissions, expiresAt, createdAt | 低 |
+| 13 | **apiKeys.js** | api_keys | API密钥管理、第三方集成 | id, name, key, permissions, expiresAt, createdAt | 低 | 
 | 14 | **adminLogs.js** | admin_logs | 操作日志、审计追踪 | id, userId, action, target, ip, userAgent, createdAt | 低 |
 | 15 | **socialLinks.js** | social_links | 社交链接管理、分享功能 | id, platform, name, icon, url, isActive | 低 |
 | 16 | **banners.js** | banners | 首页轮播图、广告横幅 | id, title, image, link, sortOrder, isActive, startDate, endDate | 低 |
@@ -448,25 +449,25 @@
 
 ### 7.2 Data 有但数据库缺失的字段
 
-| 字段名 | 所在文件 | 用途说明 | 建议处理 |
-|--------|----------|----------|---------|
-| label | categories.js | 分类显示标签 | 使用国际化i18n替代 |
-| postCount | categories.js | 分类文章数量 | 动态计算 |
-| status | categories.js | 分类状态 | 添加到数据库 |
-| tags | posts.js | 文章标签列表 | 使用taggables中间表 |
-| usageCount | tags.js | 标签使用次数 | 动态计算 |
-| status | tags.js | 标签状态 | 添加到数据库 |
-| likes | comments.js | 评论点赞数 | 使用interactions表 |
-| name | projects.js | 项目名称（兼容字段） | 统一使用title |
-| progress | projects.js | 项目进度百分比 | 添加到数据库 |
-| startDate | projects.js | 项目开始日期 | 添加到数据库 |
-| tags | projects.js | 项目标签列表 | 使用taggables中间表 |
-| penName | users.js | 用户笔名 | 添加到数据库 |
-| level | users.js | 用户等级 | 创建user_levels表 |
-| levelId | users.js | 等级ID | 添加level_id外键 |
-| points | users.js | 用户积分 | 添加到数据库 |
-| articlesCount | users.js | 文章数量 | 动态计算 |
-| commentsCount | users.js | 评论数量 | 动态计算 |
+| 字段名 | 所在文件 | 用途说明 | 建议处理 | 状态 |
+|--------|----------|----------|---------|:---:|
+| label | categories.js | 分类显示标签 | 使用国际化i18n替代 | ⏳ 待处理 |
+| postCount | categories.js | 分类文章数量 | 动态计算 | ⏳ 待处理 |
+| status | categories.js | 分类状态 | 添加到数据库 | ⏳ 待处理 |
+| tags | posts.js | 文章标签列表 | 使用taggables中间表 | ✅ 已完成 |
+| usageCount | tags.js | 标签使用次数 | 动态计算 | ⏳ 待处理 |
+| status | tags.js | 标签状态 | 添加到数据库 | ⏳ 待处理 |
+| likes | comments.js | 评论点赞数 | 使用interactions表 | ✅ 已完成 |
+| name | projects.js | 项目名称（兼容字段） | 统一使用title | ✅ 已完成 |
+| progress | projects.js | 项目进度百分比 | 添加到数据库 | ⏳ 待处理 |
+| startDate | projects.js | 项目开始日期 | 添加到数据库 | ⏳ 待处理 |
+| tags | projects.js | 项目标签列表 | 使用taggables中间表 | ✅ 已完成 |
+| penName | users.js | 用户笔名 | 添加到数据库 | ⏳ 待处理 |
+| level | users.js | 用户等级 | 创建user_levels表 | ⏳ 待处理 |
+| levelId | users.js | 等级ID | 添加level_id外键 | ⏳ 待处理 |
+| points | users.js | 用户积分 | 添加到数据库 | ⏳ 待处理 |
+| articlesCount | users.js | 文章数量 | 动态计算 | ⏳ 待处理 |
+| commentsCount | users.js | 评论数量 | 动态计算 | ⏳ 待处理 |
 
 ---
 

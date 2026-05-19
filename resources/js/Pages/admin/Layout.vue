@@ -46,7 +46,8 @@ import {
   Image,
   Zap,
   Link,
-  Crown
+  Crown,
+  Mail
 } from 'lucide-vue-next';
 import ThemeToggle from '../../components/ThemeToggle.vue';
 import ToastContainer from '../../components/ToastContainer.vue';
@@ -163,7 +164,8 @@ const iconMap = {
   Zap,
   Link,
   Menu,
-  Crown
+  Crown,
+  Mail
 };
 
 const menuItems = computed(() => {

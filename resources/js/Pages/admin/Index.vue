@@ -42,17 +42,22 @@ import VChart from 'vue-echarts';
 import { POSTS } from '../../data/posts';
 import { VIDEOS } from '../../data/videos';
 import { PROJECTS } from '../../data/projects';
+import { adminUsers } from '../../data/users';
 import { useTheme } from '../../composables/useTheme';
 import {
-  trafficData,
-  topPages,
-  trafficSources,
-  userStats,
-  postTrendData,
-  categoryDistribution,
-  userGrowthData,
-  designRecommendations
-} from '../../data/admin';
+  getTrafficData,
+  getUserStats,
+  getPostTrendData,
+  getCategoryDistribution,
+  getUserGrowthData
+} from '../../composables/useAdminStats';
+
+const timeRanges = [
+  { value: '7d', label: '7 DAYS' },
+  { value: '30d', label: '30 DAYS' },
+  { value: '90d', label: '90 DAYS' },
+  { value: '1y', label: '1 YEAR' },
+];
 
 use([
   CanvasRenderer,
@@ -110,11 +115,13 @@ const iconMap = {
 };
 
 const userStatsWithIcons = computed(() => {
-  return userStats.map(item => ({
+  return getUserStats().map(item => ({
     ...item,
     icon: iconMap[item.icon_key] || Users
   }));
 });
+
+const trafficChartData = computed(() => getTrafficData());
 
 const trafficChartOption = computed(() => ({
   tooltip: {
@@ -141,7 +148,7 @@ const trafficChartOption = computed(() => ({
   },
   xAxis: {
     type: 'category',
-    data: trafficData.map(d => d.day),
+    data: trafficChartData.value.map(d => d.day),
     axisLine: {
       lineStyle: {
         color: isDarkMode.value ? '#374151' : '#e5e7eb',
@@ -171,7 +178,7 @@ const trafficChartOption = computed(() => ({
     {
       name: 'Total Visits',
       type: 'bar',
-      data: trafficData.map(d => d.visits),
+      data: trafficChartData.value.map(d => d.visits),
       itemStyle: {
         color: '#dc2626',
         borderRadius: [4, 4, 0, 0],
@@ -181,7 +188,7 @@ const trafficChartOption = computed(() => ({
     {
       name: 'Unique Visitors',
       type: 'bar',
-      data: trafficData.map(d => d.unique),
+      data: trafficChartData.value.map(d => d.unique),
       itemStyle: {
         color: isDarkMode.value ? '#4b5563' : '#9ca3af',
         borderRadius: [4, 4, 0, 0],
@@ -190,6 +197,8 @@ const trafficChartOption = computed(() => ({
     },
   ],
 }));
+
+const postTrendChartData = computed(() => getPostTrendData());
 
 const postTrendChartOption = computed(() => ({
   tooltip: {
@@ -216,7 +225,7 @@ const postTrendChartOption = computed(() => ({
   },
   xAxis: {
     type: 'category',
-    data: postTrendData.map(d => d.month),
+    data: postTrendChartData.value.map(d => d.month),
     axisLine: {
       lineStyle: {
         color: isDarkMode.value ? '#374151' : '#e5e7eb',
@@ -246,7 +255,7 @@ const postTrendChartOption = computed(() => ({
     {
       name: t('chart_posts'),
       type: 'bar',
-      data: postTrendData.map(d => d.posts),
+      data: postTrendChartData.value.map(d => d.posts),
       itemStyle: {
         color: '#dc2626',
         borderRadius: [4, 4, 0, 0],
@@ -256,7 +265,7 @@ const postTrendChartOption = computed(() => ({
     {
       name: t('chart_views'),
       type: 'line',
-      data: postTrendData.map(d => d.views),
+      data: postTrendChartData.value.map(d => d.views),
       smooth: true,
       itemStyle: {
         color: '#f59e0b',
@@ -270,6 +279,8 @@ const postTrendChartOption = computed(() => ({
     },
   ],
 }));
+
+const userGrowthChartData = computed(() => getUserGrowthData());
 
 const userGrowthChartOption = computed(() => ({
   tooltip: {
@@ -296,7 +307,7 @@ const userGrowthChartOption = computed(() => ({
   },
   xAxis: {
     type: 'category',
-    data: userGrowthData.map(d => d.month),
+    data: userGrowthChartData.value.map(d => d.month),
     axisLine: {
       lineStyle: {
         color: isDarkMode.value ? '#374151' : '#e5e7eb',
@@ -326,7 +337,7 @@ const userGrowthChartOption = computed(() => ({
     {
       name: t('chart_total_users'),
       type: 'line',
-      data: userGrowthData.map(d => d.users),
+      data: userGrowthChartData.value.map(d => d.users),
       smooth: true,
       itemStyle: {
         color: '#dc2626',
@@ -341,7 +352,7 @@ const userGrowthChartOption = computed(() => ({
     {
       name: t('chart_new_users'),
       type: 'bar',
-      data: userGrowthData.map(d => d.newUsers),
+      data: userGrowthChartData.value.map(d => d.newUsers),
       itemStyle: {
         color: '#16a34a',
         borderRadius: [4, 4, 0, 0],
@@ -350,6 +361,8 @@ const userGrowthChartOption = computed(() => ({
     },
   ],
 }));
+
+const categoryPieChartData = computed(() => getCategoryDistribution());
 
 const categoryPieChartOption = computed(() => ({
   tooltip: {
@@ -395,7 +408,7 @@ const categoryPieChartOption = computed(() => ({
       labelLine: {
         show: false,
       },
-      data: categoryDistribution.map(d => ({
+      data: categoryPieChartData.value.map(d => ({
         name: d.name,
         value: d.value,
         itemStyle: { color: d.color },
@@ -501,62 +514,6 @@ const categoryPieChartOption = computed(() => ({
         </h3>
         <div class="h-64">
           <v-chart :option="categoryPieChartOption" autoresize />
-        </div>
-      </div>
-    </div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <!-- Top Pages -->
-      <div :class="['p-6 border', isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200']">
-        <h3 :class="['font-display text-xl tracking-tighter mb-6', isDarkMode ? 'text-white' : 'text-gray-900']">{{ t('chart_top_pages') }}</h3>
-        <div class="space-y-4">
-          <div 
-            v-for="(page, index) in topPages" 
-            :key="page.page"
-            class="flex items-center gap-4"
-          >
-            <div :class="['w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold', isDarkMode ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-900']">
-              {{ index + 1 }}
-            </div>
-            <div class="flex-1">
-              <div :class="['text-sm font-medium truncate', isDarkMode ? 'text-white' : 'text-gray-900']">{{ page.page }}</div>
-              <div :class="['text-xs', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ page.views }} {{ t('chart_views') }}</div>
-            </div>
-            <div class="text-sm font-bold text-construct-red">{{ page.percentage }}%</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Design Recommendations -->
-      <div :class="['p-6 border', isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200']">
-        <h3 :class="['font-display text-xl tracking-tighter mb-6 flex items-center gap-3', isDarkMode ? 'text-white' : 'text-gray-900']">
-          <Lightbulb size="24" class="text-yellow-500" />
-          {{ t('chart_recommendations') }}
-        </h3>
-        <div class="space-y-4">
-          <div 
-            v-for="rec in designRecommendations" 
-            :key="rec.title"
-            :class="[
-              'p-4 rounded-lg border-l-4',
-              rec.priority === 'high' ? 'border-l-red-500' :
-              rec.priority === 'medium' ? 'border-l-yellow-500' :
-              'border-l-green-500'
-            ]"
-          >
-            <div class="flex items-start gap-3">
-              <div :class="[
-                'w-2 h-2 rounded-full mt-2',
-                rec.priority === 'high' ? 'bg-red-500' :
-                rec.priority === 'medium' ? 'bg-yellow-500' :
-                'bg-green-500'
-              ]"></div>
-              <div>
-                <h4 :class="['font-bold text-sm mb-1', isDarkMode ? 'text-white' : 'text-gray-900']">{{ t(rec.titleKey) }}</h4>
-                <p :class="['text-xs', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t(rec.descKey) }}</p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>

@@ -58,6 +58,7 @@ import SocialLinks from './Pages/admin/SocialLinks.vue';
 import AdminFrontMenu from './Pages/admin/FrontMenu.vue';
 import AdminEmailTemplates from './Pages/admin/EmailTemplates.vue';
 import AdminUserLevels from './Pages/admin/UserLevels.vue';
+import AdminMailConfig from './Pages/admin/MailConfig.vue';
 
 const routes = [
   {
@@ -169,6 +170,12 @@ const routes = [
     meta: { title: 'ADMIN // Settings', requiresAuth: true, layout: 'admin' },
   },
   {
+    path: '/admin/mail-config',
+    name: 'admin-mail-config',
+    component: AdminMailConfig,
+    meta: { title: 'ADMIN // Mail Config', requiresAuth: true, layout: 'admin' },
+  },
+  {
     path: '/admin/about',
     name: 'admin-about',
     component: AdminAbout,
@@ -228,12 +235,12 @@ const routes = [
     component: AdminFrontMenu,
     meta: { title: 'ADMIN // Front Menu', requiresAuth: true, layout: 'admin' },
   },
-  /* {
+  {
     path: '/admin/email-templates',
     name: 'admin-email-templates',
     component: AdminEmailTemplates,
     meta: { title: 'ADMIN // Email Templates', requiresAuth: true, layout: 'admin' },
-  }, */
+  },
   {
     path: '/admin/advertisements',
     name: 'admin-advertisements',

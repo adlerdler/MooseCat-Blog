@@ -41,6 +41,7 @@ export const menus = [
   { id: 211, type: 'admin', parent_id: 21, label_key: 'admin_social_links', icon_name: 'Link', path: '/admin/social-links', sort_order: 1, is_active: true },
   { id: 212, type: 'admin', parent_id: 21, label_key: 'admin_media', icon_name: 'HardDrive', path: '/admin/media', sort_order: 2, is_active: true },
   { id: 213, type: 'admin', parent_id: 21, label_key: 'admin_basic_settings', icon_name: 'Settings', path: '/admin/settings', sort_order: 3, is_active: true },
+  { id: 214, type: 'admin', parent_id: 21, label_key: 'admin_email_templates', icon_name: 'Mail', path: '/admin/email-templates', sort_order: 4, is_active: true },
 
   // 后台菜单 - 二级（内容管理）
   { id: 111, type: 'admin', parent_id: 11, label_key: 'admin_blogs', icon_name: 'Book', path: '/admin/posts', sort_order: 1, is_active: true },
@@ -51,10 +52,11 @@ export const menus = [
   // 后台菜单 - 二级（系统管理）
   { id: 192, type: 'admin', parent_id: 19, label_key: 'admin_node_management', icon_name: 'Menu', path: '/admin/front-menu', sort_order: 1, is_active: true },
   { id: 193, type: 'admin', parent_id: 19, label_key: 'admin_roles', icon_name: 'Shield', path: '/admin/roles', sort_order: 2, is_active: true },
-  { id: 194, type: 'admin', parent_id: 19, label_key: 'admin_logs', icon_name: 'FileText', path: '/admin/logs', sort_order: 3, is_active: true },
-  { id: 195, type: 'admin', parent_id: 19, label_key: 'admin_backup', icon_name: 'Archive', path: '/admin/backup', sort_order: 4, is_active: true },
-  { id: 196, type: 'admin', parent_id: 19, label_key: 'admin_restore', icon_name: 'RotateCcw', path: '/admin/restore', sort_order: 5, is_active: true },
-  { id: 197, type: 'admin', parent_id: 19, label_key: 'admin_about', icon_name: 'Info', path: '/admin/about', sort_order: 6, is_active: true },
+  { id: 198, type: 'admin', parent_id: 19, label_key: 'admin_mail_config', icon_name: 'Mail', path: '/admin/mail-config', sort_order: 3, is_active: true },
+  { id: 194, type: 'admin', parent_id: 19, label_key: 'admin_logs', icon_name: 'FileText', path: '/admin/logs', sort_order: 4, is_active: true },
+  { id: 195, type: 'admin', parent_id: 19, label_key: 'admin_backup', icon_name: 'Archive', path: '/admin/backup', sort_order: 5, is_active: true },
+  { id: 196, type: 'admin', parent_id: 19, label_key: 'admin_restore', icon_name: 'RotateCcw', path: '/admin/restore', sort_order: 6, is_active: true },
+  { id: 197, type: 'admin', parent_id: 19, label_key: 'admin_about', icon_name: 'Info', path: '/admin/about', sort_order: 7, is_active: true },
 
   // 后台菜单 - 二级（用户管理）
   { id: 201, type: 'admin', parent_id: 20, label_key: 'admin_users', icon_name: 'Users', path: '/admin/users', sort_order: 1, is_active: true },
