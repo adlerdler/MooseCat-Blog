@@ -32,7 +32,8 @@ import {
   X,
   AdminPagination,
   MediaPreviewModal,
-  MediaUploadModal
+  MediaUploadModal,
+  AdminSearchFilter
 } from '../../composables/useAdminImports';
 import { adminMedia } from '../../data/media';
 import { Motion, AnimatePresence } from 'motion-v';
@@ -103,6 +104,13 @@ const getFileColor = (type) => {
     default: return isDarkMode.value ? 'text-gray-400 bg-gray-700/20' : 'text-gray-500 bg-gray-50';
   }
 };
+
+const handleFilterChange = ({ key, value }) => {
+  if (key === 'type') {
+    typeFilter.value = value;
+  }
+  currentPage.value = 1;
+};
 </script>
 
 <template>
@@ -146,40 +154,23 @@ const getFileColor = (type) => {
         </div>
 
         <!-- Search and Filter -->
-        <div class="flex flex-col lg:flex-row gap-4 mb-8">
-          <div class="flex-1 relative">
-            <Search :class="['absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5', isDarkMode ? 'text-gray-500' : 'text-gray-400']" />
-            <input
-              v-model="searchQuery"
-              type="text"
-              :placeholder="t('admin_search_media')"
-              :class="[
-                'w-full pl-10 pr-4 py-3 border focus:border-construct-red focus:outline-none transition-colors rounded',
-                isDarkMode ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
-              ]"
-            />
-          </div>
-          <div class="flex items-center gap-4">
-            <div class="relative">
-               <Filter :class="['absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4', isDarkMode ? 'text-gray-500' : 'text-gray-400']" />
-              <select
-                v-model="typeFilter"
-                :class="[
-                  'pl-9 pr-8 py-3 border focus:border-construct-red focus:outline-none appearance-none cursor-pointer rounded text-sm font-bold',
-                  isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'
-                ]"
-              >
-                <option value="all">{{ t('admin_all_types') }}</option>
-                <option value="image">{{ t('admin_images') }}</option>
-                <option value="video">{{ t('admin_videos') }}</option>
-                <option value="document">{{ t('admin_documents') }}</option>
-              </select>
-            </div>
-            <button :class="['px-6 py-3 border flex items-center gap-2 font-bold text-sm tracking-wider uppercase transition-colors rounded hover:bg-gray-100', isDarkMode ? 'border-gray-700 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50']">
-              <Plus size="16" /> {{ t('admin_new_folder') }}
-            </button>
-          </div>
-        </div>
+        <AdminSearchFilter
+          v-model:search-query="searchQuery"
+          :search-placeholder="t('admin_search_media')"
+          :filters="[
+            {
+              key: 'type',
+              options: [
+                { value: 'all', label: t('admin_all_types') },
+                { value: 'image', label: t('admin_images') },
+                { value: 'video', label: t('admin_videos') },
+                { value: 'document', label: t('admin_documents') }
+              ]
+            }
+          ]"
+          :filter-values="{ type: typeFilter }"
+          @filter-change="handleFilterChange"
+        />
 
         <!-- Media Grid -->
         <div v-if="viewMode === 'grid'" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">

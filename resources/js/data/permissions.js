@@ -18,5 +18,3 @@ export const permissions = [
   { id: 11, name: 'api_access', label: 'API Access', description: 'API访问权限', programId: 'api_access' },
   { id: 12, name: 'analytics', label: 'Analytics', description: '数据分析权限', programId: 'view_analytics' }
 ];
-
-// availablePermissions 已迁移到 useRolePermissions composable

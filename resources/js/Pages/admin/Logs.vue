@@ -24,7 +24,8 @@ import {
   X,
   Zap,
   adminLogs,
-  AdminPagination
+  AdminPagination,
+  AdminSearchFilter
 } from '../../composables/useAdminImports';
 
 const { t } = useI18n();
@@ -132,64 +133,51 @@ const formatValue = (val) => {
   if (val === null || val === undefined) return 'NULL';
   return val;
 };
+
+const handleFilterChange = ({ key, value }) => {
+  if (key === 'module') {
+    moduleFilter.value = value;
+  } else if (key === 'action') {
+    actionFilter.value = value;
+  }
+  currentPage.value = 1;
+};
 </script>
 
 <template>
   <div class="p-8">
     <!-- Page Header -->
-    <div class="mb-8">
+    <div class="mb-10">
       <div class="flex items-center gap-4 mb-2">
         <FileText class="text-construct-red" size="32" />
         <h2 :class="['font-display text-4xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">{{ t('admin_logs') }}</h2>
       </div>
-      <p :class="['text-sm font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">System operation logs</p>
+      <p :class="['text-sm font-black tracking-[0.2em] uppercase opacity-50', isDarkMode ? 'text-gray-400' : 'text-gray-500']">System operation logs</p>
     </div>
 
     <!-- Search and Filter -->
-    <div class="flex flex-col md:flex-row gap-4 mb-8">
-      <div class="flex-1 relative">
-        <Search :class="['absolute left-4 top-1/2 -translate-y-1/2', isDarkMode ? 'text-gray-400' : 'text-gray-500']" size="20" />
-        <input
-          v-model="searchQuery"
-          type="text"
-          :placeholder="t('admin_search_logs')"
-          :class="[
-            'w-full pl-12 pr-4 py-3 border focus:border-construct-red focus:outline-none transition-colors',
-            isDarkMode ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-          ]"
-        />
-      </div>
-      <div class="flex items-center gap-4">
-        <div class="flex items-center gap-2">
-          <Filter :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'" size="18" />
-          <select
-            v-model="moduleFilter"
-            :class="[
-              'px-4 py-3 border focus:border-construct-red focus:outline-none transition-colors',
-              isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'
-            ]"
-          >
-            <option v-for="mod in moduleTypes" :key="mod" :value="mod">
-              {{ mod === 'all' ? t('admin_all_actions') : mod.toUpperCase() }}
-            </option>
-          </select>
-        </div>
-        <div class="flex items-center gap-2">
-          <Zap :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'" size="18" />
-          <select
-            v-model="actionFilter"
-            :class="[
-              'px-4 py-3 border focus:border-construct-red focus:outline-none transition-colors',
-              isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'
-            ]"
-          >
-            <option v-for="action in actionTypes" :key="action" :value="action">
-              {{ action === 'all' ? t('admin_all_actions') : t(action) }}
-            </option>
-          </select>
-        </div>
-      </div>
-    </div>
+    <AdminSearchFilter
+      v-model:search-query="searchQuery"
+      :search-placeholder="t('admin_search_logs')"
+      :filters="[
+        {
+          key: 'module',
+          options: moduleTypes.map(mod => ({
+            value: mod,
+            label: mod === 'all' ? t('admin_all_actions') : mod.toUpperCase()
+          }))
+        },
+        {
+          key: 'action',
+          options: actionTypes.map(action => ({
+            value: action,
+            label: action === 'all' ? t('admin_all_actions') : t(action)
+          }))
+        }
+      ]"
+      :filter-values="{ module: moduleFilter, action: actionFilter }"
+      @filter-change="handleFilterChange"
+    />
 
     <!-- Logs List -->
     <div class="space-y-4">

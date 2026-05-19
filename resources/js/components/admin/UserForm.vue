@@ -46,7 +46,7 @@ const initFormData = () => {
     name: '',
     email: '',
     password: '',
-    role: 'subscriber',
+    role_id: 5,
     status: 'active'
   };
 };
@@ -185,7 +185,7 @@ const toggleStatus = () => {
               {{ t('admin_user_form_role') }}
             </label>
             <select
-              v-model="formData.role"
+              v-model="formData.role_id"
               :class="[
                 'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
                 isDarkMode 
@@ -193,7 +193,7 @@ const toggleStatus = () => {
                   : 'bg-white border-gray-300 text-gray-900'
               ]"
             >
-              <option v-for="role in roles" :key="role.value" :value="role.value">
+              <option v-for="role in roles" :key="role.id" :value="role.id">
                 {{ role.label }}
               </option>
             </select>

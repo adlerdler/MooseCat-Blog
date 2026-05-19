@@ -9,7 +9,7 @@ import { menus } from '../data/menu';
 
 export const useMenuItems = () => {
   const getMenusByType = (type) => {
-    return menus.filter(menu => menu.type === type && menu.isActive);
+    return menus.filter(menu => menu.type === type && menu.is_active);
   };
 
   const buildMenuTree = (type) => {
@@ -22,16 +22,16 @@ export const useMenuItems = () => {
     });
     
     flatMenus.forEach(menu => {
-      if (menu.parentId === null) {
+      if (menu.parent_id === null) {
         tree.push(menuMap[menu.id]);
       } else {
-        menuMap[menu.parentId].children.push(menuMap[menu.id]);
+        menuMap[menu.parent_id].children.push(menuMap[menu.id]);
       }
     });
     
-    tree.sort((a, b) => a.sortOrder - b.sortOrder);
+    tree.sort((a, b) => a.sort_order - b.sort_order);
     tree.forEach(parent => {
-      parent.children.sort((a, b) => a.sortOrder - b.sortOrder);
+      parent.children.sort((a, b) => a.sort_order - b.sort_order);
     });
     
     return tree;

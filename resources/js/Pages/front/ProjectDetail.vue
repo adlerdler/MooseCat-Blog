@@ -124,8 +124,8 @@ const scrollToTop = () => {
             EXIT
           </button>
           <a
-            v-if="project.githubUrl"
-            :href="project.githubUrl"
+            v-if="project.github_url"
+            :href="project.github_url"
             target="_blank"
             rel="noopener noreferrer"
             class="hover:text-construct-red transition-colors"
@@ -201,7 +201,7 @@ const scrollToTop = () => {
             </div>
             <div class="md:col-span-8">
               <p class="font-medium text-xl md:text-2xl leading-relaxed text-construct-black italic">
-                {{ project.longDescription || project.description }}
+                {{ project.long_description || project.description }}
               </p>
             </div>
           </div>
@@ -299,8 +299,8 @@ const scrollToTop = () => {
 
               <div class="pt-8 border-t border-construct-black/10 flex flex-col gap-4">
                 <a
-                  v-if="project.githubUrl"
-                  :href="project.githubUrl"
+                  v-if="project.github_url"
+                  :href="project.github_url"
                   target="_blank"
                   rel="noopener noreferrer"
                   class="flex items-center justify-between group/link"

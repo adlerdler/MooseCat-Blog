@@ -24,7 +24,9 @@ const router = useRouter();
 const showBackToTop = ref(false);
 
 const video = computed(() => {
-  return VIDEOS.find((v) => v.id === route.params.id);
+  // 支持字符串和数字类型的 id 比较
+  const paramId = Number(route.params.id);
+  return VIDEOS.find((v) => v.id === paramId);
 });
 
 // 动态更新页面标题
@@ -42,8 +44,8 @@ watch(video, () => {
 const embedUrl = computed(() => {
   if (!video.value) return '';
   return video.value.platform === 'youtube'
-    ? `https://www.youtube.com/embed/${video.value.videoId}`
-    : `https://player.bilibili.com/player.html?bvid=${video.value.videoId}`;
+    ? `https://www.youtube.com/embed/${video.value.video_id}`
+    : `https://player.bilibili.com/player.html?bvid=${video.value.video_id}`;
 });
 
 onMounted(() => {
@@ -108,7 +110,7 @@ const scrollToTop = () => {
               {{ video.description }}
             </p>
             <p class="text-xs opacity-60 font-medium mt-4">
-              {{ video.date }} // {{ video.platform.toUpperCase() }}
+              {{ video.published_at }} // {{ video.platform.toUpperCase() }}
             </p>
           </div>
         </Motion>

@@ -23,10 +23,11 @@ import {
 } from 'lucide-vue-next';
 import { VIDEOS } from '../../data/videos';
 import { useTheme } from '../../composables/useTheme';
-import { formatToShort } from '../../utils/dateUtils';
+import { formatToRelative } from '../../utils/dateUtils';
 import ContentForm from '../../components/admin/ContentForm.vue';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import AdminPagination from '../../components/admin/AdminPagination.vue';
+import AdminSearchFilter from '../../components/admin/AdminSearchFilter.vue';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
@@ -125,57 +126,53 @@ const handleCancel = () => {
   isFormVisible.value = false;
   editingVideo.value = null;
 };
+
+const handleFilterChange = ({ key, value }) => {
+  if (key === 'platform') {
+    selectedPlatform.value = value;
+  }
+  currentPage.value = 1;
+};
 </script>
 
 <template>
   <div class="p-8">
     <!-- Page Header -->
-    <div class="mb-8">
-      <h2 class="font-display text-4xl tracking-tighter mb-2">{{ t('admin_videos') }}</h2>
-      <p class="text-gray-400 text-sm font-bold tracking-widest uppercase">{{ t('admin_videos_subtitle') }}</p>
+    <div class="mb-10">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="flex items-center gap-4 mb-2">
+            <Play class="text-construct-red" size="32" />
+            <h2 class="font-display text-4xl tracking-tighter">{{ t('admin_videos') }}</h2>
+          </div>
+          <p class="text-gray-400 text-sm font-black tracking-[0.2em] uppercase opacity-50">{{ t('admin_videos_subtitle') }}</p>
+        </div>
+        <button
+          @click="handleAdd"
+          class="flex items-center gap-3 px-8 py-4 bg-construct-red text-white font-black text-xs uppercase tracking-[0.2em] transition-all hover:scale-105 active:scale-95 shadow-lg shadow-construct-red/20 rounded-xl"
+        >
+          <Plus size="18" />
+          {{ t('admin_add') }}
+        </button>
+      </div>
     </div>
 
     <!-- Toolbar -->
-    <div class="flex flex-col md:flex-row gap-4 mb-6">
-      <!-- Search -->
-      <div class="relative flex-1">
-        <Search :class="['absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5', isDarkMode ? 'text-gray-500' : 'text-gray-400']" />
-        <input
-          v-model="searchQuery"
-          type="text"
-          :placeholder="t('admin_search_placeholder')"
-          :class="[
-            'w-full pl-10 pr-4 py-3 border focus:border-construct-red focus:outline-none transition-colors',
-            isDarkMode ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
-          ]"
-        />
-      </div>
-      
-      <!-- Platform Filter -->
-      <div class="relative">
-        <Filter :class="['absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5', isDarkMode ? 'text-gray-500' : 'text-gray-400']" />
-        <select
-          v-model="selectedPlatform"
-          :class="[
-            'pl-10 pr-8 py-3 border focus:border-construct-red focus:outline-none appearance-none cursor-pointer min-w-[150px]',
-            isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'
-          ]"
-        >
-          <option v-for="p in platforms" :key="p" :value="p">
-            {{ p === 'all' ? t('admin_all') : p }}
-          </option>
-        </select>
-      </div>
-      
-      <!-- Add Button -->
-      <button
-        @click="handleAdd"
-        class="flex items-center gap-2 px-6 py-3 bg-construct-red text-white font-bold tracking-widest uppercase text-sm hover:bg-red-700 transition-colors rounded"
-      >
-        <Plus size="16" class="!text-white" />
-        {{ t('admin_add') }}
-      </button>
-    </div>
+    <AdminSearchFilter
+      v-model:search-query="searchQuery"
+      :search-placeholder="t('admin_search_placeholder')"
+      :filters="[
+        {
+          key: 'platform',
+          options: platforms.map(p => ({
+            value: p,
+            label: p === 'all' ? t('admin_all') : p
+          }))
+        }
+      ]"
+      :filter-values="{ platform: selectedPlatform }"
+      @filter-change="handleFilterChange"
+    />
 
     <!-- Videos Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -211,7 +208,7 @@ const handleCancel = () => {
           <div class="flex items-center justify-between">
             <div :class="['flex items-center gap-2 text-xs', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
               <Clock size="12" />
-              {{ formatToShort(video.date) }}
+              {{ formatToRelative(video.published_at) }}
             </div>
             
             <div class="flex gap-2">

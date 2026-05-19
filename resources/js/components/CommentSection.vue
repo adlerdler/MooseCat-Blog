@@ -38,7 +38,7 @@ const submitSuccess = ref(false);
 const errorMessage = ref('');
 
 const getApprovedComments = () => {
-  return commentsData.filter(comment => comment.status === 'approved');
+  return commentsData.filter(comment => comment.is_approved);
 };
 
 const comments = ref([
@@ -101,19 +101,20 @@ const handleSubmit = async (e) => {
 
   await new Promise(resolve => setTimeout(resolve, 1000));
 
+  const now = new Date().toISOString();
   const newComment = {
-    id: Date.now().toString(),
+    id: Date.now(),
+    post_id: null,
+    parent_id: null,
+    user_id: null,
     name: formData.value.name.trim(),
     email: formData.value.email.trim(),
-    content: formData.value.body.trim(),
-    date: new Date().toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }),
-    likes: 0
+    body: formData.value.body.trim(),
+    is_approved: false,
+    ip_address: '127.0.0.1',
+    user_agent: navigator.userAgent,
+    created_at: now,
+    updated_at: now
   };
 
   comments.value = [newComment, ...comments.value];
@@ -249,7 +250,7 @@ const handleSubmit = async (e) => {
           <div class="flex-1">
             <h4 class="font-display text-xl tracking-tighter uppercase">{{ comment.name }}</h4>
             <span class="text-[10px] font-black tracking-widest uppercase opacity-30 block mt-1">
-              {{ formatRelativeTime(comment.date) }}
+              {{ formatRelativeTime(comment.created_at || comment.date) }}
             </span>
           </div>
 
@@ -260,14 +261,14 @@ const handleSubmit = async (e) => {
             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
             </svg>
-            {{ comment.likes }}
+            {{ comment.likes_count || 0 }}
           </button>
         </div>
 
         <!-- Comment Body -->
         <div class="pl-16">
           <p class="text-lg leading-relaxed text-construct-black/80 max-w-2xl">
-            {{ comment.content }}
+            {{ comment.body }}
           </p>
         </div>
 

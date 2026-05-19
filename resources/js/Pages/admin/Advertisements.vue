@@ -89,7 +89,7 @@ const getPositionIcon = (position) => {
 
 const getPositionLabel = (position) => {
   const pos = adPositions.find(p => p.value === position);
-  return pos ? t(pos.labelKey) : position;
+  return pos ? t(pos.label_key) : position;
 };
 
 const toggleStatus = (ad) => {

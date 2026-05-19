@@ -35,6 +35,7 @@ import { backupRecords } from '../../data/backup';
 import { formatToShort } from '../../utils/dateUtils';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import AdminPagination from '../../components/admin/AdminPagination.vue';
+import AdminSearchFilter from '../../components/admin/AdminSearchFilter.vue';
 
 const { t, locale } = useI18n();
 const { isDarkMode } = useTheme();
@@ -162,6 +163,13 @@ const confirmRestore = async () => {
 const handlePreview = (backup) => {
   toggleExpand(backup.id);
 };
+
+const handleFilterChange = ({ key, value }) => {
+  if (key === 'type') {
+    typeFilter.value = value;
+  }
+  currentPage.value = 1;
+};
 </script>
 
 <template>
@@ -188,38 +196,24 @@ const handlePreview = (backup) => {
       </div>
     </div>
 
-    <div class="flex flex-col md:flex-row gap-4 mb-8">
-      <div class="flex-1 relative">
-        <Search :class="['absolute left-4 top-1/2 -translate-y-1/2', isDarkMode ? 'text-gray-400' : 'text-gray-500']" size="20" />
-        <input
-          v-model="searchQuery"
-          type="text"
-          :placeholder="t('admin_search_backup')"
-          :class="[
-            'w-full pl-12 pr-4 py-3 border focus:border-construct-red focus:outline-none transition-colors',
-            isDarkMode ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-          ]"
-        />
-      </div>
-      <div class="flex items-center gap-4">
-        <div class="flex items-center gap-2">
-          <Filter :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'" size="18" />
-          <select
-            v-model="typeFilter"
-            :class="[
-              'px-4 py-3 border focus:border-construct-red focus:outline-none transition-colors',
-              isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'
-            ]"
-          >
-            <option value="all">{{ t('admin_all_types') }}</option>
-            <option value="full">{{ t('admin_backup_full') }}</option>
-            <option value="database">{{ t('admin_backup_database') }}</option>
-            <option value="files">{{ t('admin_backup_files') }}</option>
-            <option value="incremental">{{ t('admin_backup_incremental') }}</option>
-          </select>
-        </div>
-      </div>
-    </div>
+    <AdminSearchFilter
+      v-model:search-query="searchQuery"
+      :search-placeholder="t('admin_search_backup')"
+      :filters="[
+        {
+          key: 'type',
+          options: [
+            { value: 'all', label: t('admin_all_types') },
+            { value: 'full', label: t('admin_backup_full') },
+            { value: 'database', label: t('admin_backup_database') },
+            { value: 'files', label: t('admin_backup_files') },
+            { value: 'incremental', label: t('admin_backup_incremental') }
+          ]
+        }
+      ]"
+      :filter-values="{ type: typeFilter }"
+      @filter-change="handleFilterChange"
+    />
 
     <div v-if="isRestoring" class="mb-8">
       <div :class="['p-6 border', isDarkMode ? 'bg-gray-800/50 border-gray-700' : 'bg-white border-gray-200']">

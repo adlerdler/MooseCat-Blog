@@ -176,7 +176,7 @@ onUnmounted(() => {
       <div class="container mx-auto relative z-10 md:pl-24">
         <div class="max-w-4xl">
           <div class="text-xs font-bold tracking-[0.4em] mb-4 opacity-70 animate-slide-down">
-            FILE: {{ getCategoryNameById(categories, post.categoryId) }} // ID: {{ formatId(post.id, 4) }}
+            FILE: {{ getCategoryNameById(categories, post.category_id) }} // ID: {{ formatId(post.id, 4) }}
           </div>
           
           <div class="font-display text-4xl sm:text-5xl md:text-6xl lg:text-8xl leading-[0.9] tracking-tighter mb-8 animate-slide-down" style="animation-delay: 0.1s">
@@ -186,11 +186,11 @@ onUnmounted(() => {
           <div class="flex flex-wrap gap-8 items-center text-[10px] sm:text-xs font-bold tracking-[0.2em] opacity-80 animate-fade-in" style="animation-delay: 0.2s">
             <div class="flex items-center gap-2">
               <User size="14" class="text-white/40" />
-              <RouterLink :to="`/author/${encodeURIComponent(getAuthorName(post.authorId))}`" class="hover:underline">{{ getAuthorName(post.authorId) }}</RouterLink>
+              <RouterLink :to="`/author/${encodeURIComponent(getAuthorName(post.author_id))}`" class="hover:underline">{{ getAuthorName(post.author_id) }}</RouterLink>
             </div>
             <div class="flex items-center gap-2">
               <Clock size="14" class="text-white/40" />
-              {{ formatToEnglish(post.publishedAt) }}
+              {{ formatToEnglish(post.published_at) }}
             </div>
             <div class="flex items-center gap-2">
               <BookOpen size="14" class="text-white/40" />

@@ -30,7 +30,8 @@ import {
   adminUsers,
   UserForm,
   ConfirmDialog,
-  AdminPagination
+  AdminPagination,
+  AdminSearchFilter
 } from '../../composables/useAdminImports';
 import { useRolePermissions } from '../../composables/useRolePermissions';
 
@@ -54,7 +55,7 @@ const filteredUsers = computed(() => {
   return users.value.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
                          user.email.toLowerCase().includes(searchQuery.value.toLowerCase());
-    const matchesRole = roleFilter.value === 'all' || user.roleId === parseInt(roleFilter.value);
+    const matchesRole = roleFilter.value === 'all' || user.role_id === parseInt(roleFilter.value);
     return matchesSearch && matchesRole;
   });
 });
@@ -84,7 +85,10 @@ const handleSave = (data) => {
   if (editingUser.value) {
     const index = users.value.findIndex(u => u.id === editingUser.value.id);
     if (index !== -1) {
-      users.value[index] = { ...users.value[index], ...data };
+      users.value[index] = { 
+        ...users.value[index], 
+        ...data
+      };
     }
   } else {
     const newId = Math.max(...users.value.map(u => u.id), 0) + 1;
@@ -92,7 +96,15 @@ const handleSave = (data) => {
     users.value.push({
       id: newId,
       ...data,
-      joined: today
+      joined: today,
+      avatar: null,
+      bio: null,
+      github: null,
+      twitter: null,
+      linkedin: null,
+      last_login_at: null,
+      created_at: today,
+      updated_at: today
     });
   }
   isFormVisible.value = false;
@@ -120,56 +132,57 @@ const confirmDelete = () => {
   }
   showDeleteConfirm.value = false;
 };
+
+const handleFilterChange = ({ key, value }) => {
+  if (key === 'role') {
+    roleFilter.value = value;
+  }
+  currentPage.value = 1;
+};
 </script>
 
 <template>
   <div class="p-8">
     <!-- Page Header -->
-    <div class="mb-8">
-      <div class="flex items-center gap-4 mb-2">
-        <Users class="text-construct-red" size="32" />
-        <h2 :class="['font-display text-4xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">{{ t('admin_users') }}</h2>
-      </div>
-      <p :class="['text-sm font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_users_subtitle') }}</p>
-    </div>
-
-    <!-- Search and Filter -->
-    <div class="flex flex-col md:flex-row gap-4 mb-8">
-      <div class="flex-1 relative">
-        <Search :class="['absolute left-4 top-1/2 -translate-y-1/2', isDarkMode ? 'text-gray-400' : 'text-gray-500']" size="20" />
-        <input
-          v-model="searchQuery"
-          type="text"
-          :placeholder="t('admin_search_users')"
-          :class="[
-            'w-full pl-12 pr-4 py-3 border focus:border-construct-red focus:outline-none transition-colors',
-            isDarkMode ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-          ]"
-        />
-      </div>
-      <div class="flex items-center gap-4">
-        <div class="flex items-center gap-2">
-          <Filter :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'" size="18" />
-          <select
-            v-model="roleFilter"
-            :class="[
-              'px-4 py-3 border focus:border-construct-red focus:outline-none transition-colors',
-              isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'
-            ]"
-          >
-            <option value="all">{{ t('admin_all_roles') }}</option>
-            <option :value="1">ADMIN</option>
-            <option :value="2">EDITOR</option>
-            <option :value="3">AUTHOR</option>
-            <option :value="4">MODERATOR</option>
-            <option :value="5">SUBSCRIBER</option>
-          </select>
+    <div class="mb-10">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="flex items-center gap-4 mb-2">
+            <Users class="text-construct-red" size="32" />
+            <h2 :class="['font-display text-4xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">{{ t('admin_users') }}</h2>
+          </div>
+          <p :class="['text-sm font-black tracking-[0.2em] uppercase opacity-50', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_users_subtitle') }}</p>
         </div>
-        <button @click="handleAdd" class="flex items-center gap-2 px-6 py-3 bg-construct-red hover:bg-red-600 text-white font-bold tracking-wider transition-colors rounded">
-          <Plus size="16" class="!text-white" /> {{ t('admin_add_user') }}
+        <button
+          @click="handleAdd"
+          class="flex items-center gap-3 px-8 py-4 bg-construct-red text-white font-black text-xs uppercase tracking-[0.2em] transition-all hover:scale-105 active:scale-95 shadow-lg shadow-construct-red/20 rounded-xl"
+        >
+          <Plus size="18" />
+          {{ t('admin_add_user') }}
         </button>
       </div>
     </div>
+
+    <!-- Search and Filter -->
+    <AdminSearchFilter
+      v-model:search-query="searchQuery"
+      :search-placeholder="t('admin_search_users')"
+      :filters="[
+        {
+          key: 'role',
+          options: [
+            { value: 'all', label: t('admin_all_roles') },
+            { value: '1', label: 'ADMIN' },
+            { value: '2', label: 'EDITOR' },
+            { value: '3', label: 'AUTHOR' },
+            { value: '4', label: 'MODERATOR' },
+            { value: '5', label: 'SUBSCRIBER' }
+          ]
+        }
+      ]"
+      :filter-values="{ role: roleFilter }"
+      @filter-change="handleFilterChange"
+    />
 
     <!-- Users Table -->
     <div :class="['border overflow-hidden', isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200']">
@@ -201,7 +214,7 @@ const confirmDelete = () => {
               </div>
             </td>
             <td class="px-6 py-4">
-              <span :class="['role-tag px-3 py-1 rounded-full text-xs font-bold border', getRoleStyle(user.roleId)]">{{ getRoleLabel(user.roleId) }}</span>
+              <span :class="['role-tag px-3 py-1 rounded-full text-xs font-bold border', getRoleStyle(user.role_id)]">{{ getRoleLabel(user.role_id) }}</span>
             </td>
             <td class="px-6 py-4">
               <button

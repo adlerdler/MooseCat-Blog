@@ -26,7 +26,8 @@ import {
   ShieldCheck,
   AlertCircle,
   ConfirmDialog,
-  AdminPagination
+  AdminPagination,
+  AdminSearchFilter
 } from '../../composables/useAdminImports';
 import { useTheme } from '../../composables/useTheme';
 import { commentsData } from '../../data/comments';
@@ -59,11 +60,13 @@ const getPostTitle = (postId) => {
 
 const filteredComments = computed(() => {
   return comments.value.filter(comment => {
-    const postTitle = getPostTitle(comment.postId);
+    const postTitle = getPostTitle(comment.post_id);
     const matchesSearch = comment.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-                         comment.content.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+                         comment.body.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
                          postTitle.toLowerCase().includes(searchQuery.value.toLowerCase());
-    const matchesStatus = statusFilter.value === 'all' || comment.status === statusFilter.value;
+    const matchesStatus = statusFilter.value === 'all' || 
+                          (statusFilter.value === 'approved' && comment.is_approved) ||
+                          (statusFilter.value === 'pending' && !comment.is_approved);
     return matchesSearch && matchesStatus;
   });
 });
@@ -75,30 +78,22 @@ const paginatedComments = computed(() => {
   return filteredComments.value.slice(start, start + itemsPerPage.value);
 });
 
-const getStatusColor = (status) => {
-  const colors = {
-    approved: 'text-green-500 bg-green-500/10 border-green-500/20',
-    pending: 'text-amber-500 bg-amber-500/10 border-amber-500/20',
-    spam: 'text-red-500 bg-red-500/10 border-red-500/20'
-  };
-  return colors[status] || 'text-gray-500 bg-gray-500/10 border-gray-500/20';
+const getStatusColor = (isApproved) => {
+  return isApproved 
+    ? 'text-green-500 bg-green-500/10 border-green-500/20' 
+    : 'text-amber-500 bg-amber-500/10 border-amber-500/20';
 };
 
-const getStatusLabel = (status) => {
-  const labels = {
-    approved: t('admin_approved'),
-    pending: t('admin_pending'),
-    spam: t('admin_spam')
-  };
-  return labels[status] || status;
+const getStatusLabel = (isApproved) => {
+  return isApproved ? t('admin_approved') : t('admin_pending');
 };
 
 const approveComment = (comment) => {
-  comment.status = 'approved';
+  comment.is_approved = true;
 };
 
 const rejectComment = (comment) => {
-  comment.status = 'spam';
+  comment.is_approved = false;
 };
 
 const handleDeleteClick = (comment) => {
@@ -130,11 +125,13 @@ const submitReply = (comment) => {
   // Mock adding a reply
   if (!comment.replies) comment.replies = [];
   
+  const now = new Date().toISOString();
   comment.replies.push({
     id: Date.now(),
     name: 'Admin',
     content: replyContent.value,
-    date: new Date().toISOString(),
+    createdAt: now,
+    date: now,
     isAdmin: true
   });
   
@@ -145,51 +142,48 @@ const submitReply = (comment) => {
     comment.status = 'approved';
   }
 };
+
+const handleFilterChange = ({ key, value }) => {
+  if (key === 'status') {
+    statusFilter.value = value;
+  }
+  currentPage.value = 1;
+};
 </script>
 
 <template>
   <div class="p-8">
     <!-- Page Header -->
-    <div class="mb-8">
-      <div class="flex items-center gap-4 mb-2">
-        <MessageSquare class="text-construct-red" size="32" />
-        <h2 :class="['font-display text-4xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">{{ t('admin_comments') }}</h2>
-      </div>
-      <p :class="['text-sm font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">Control user discussions</p>
-    </div>
-
-    <!-- Search and Filter -->
-    <div class="flex flex-col md:flex-row gap-4 mb-8">
-      <div class="flex-1 relative">
-        <Search :class="['absolute left-4 top-1/2 -translate-y-1/2', isDarkMode ? 'text-gray-400' : 'text-gray-500']" size="20" />
-        <input
-          v-model="searchQuery"
-          type="text"
-          :placeholder="t('admin_search_comments')"
-          :class="[
-            'w-full pl-12 pr-4 py-3 border focus:border-construct-red focus:outline-none transition-all rounded-xl',
-            isDarkMode ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400 shadow-inner' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 shadow-sm'
-          ]"
-        />
-      </div>
-      <div class="flex items-center gap-4">
-        <div class="flex items-center gap-2">
-          <Filter :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'" size="18" />
-          <select
-            v-model="statusFilter"
-            :class="[
-              'px-4 py-3 border focus:border-construct-red focus:outline-none transition-colors rounded-xl font-bold text-sm',
-              isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'
-            ]"
-          >
-            <option value="all">{{ t('admin_all_status') }}</option>
-            <option value="approved">{{ t('admin_approved') }}</option>
-            <option value="pending">{{ t('admin_pending') }}</option>
-            <option value="spam">{{ t('admin_spam') }}</option>
-          </select>
+    <div class="mb-10">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="flex items-center gap-4 mb-2">
+            <MessageSquare class="text-construct-red" size="32" />
+            <h2 :class="['font-display text-4xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">{{ t('admin_comments') }}</h2>
+          </div>
+          <p :class="['text-sm font-black tracking-[0.2em] uppercase opacity-50', isDarkMode ? 'text-gray-400' : 'text-gray-500']">Control user discussions</p>
         </div>
       </div>
     </div>
+
+    <!-- Search and Filter -->
+    <AdminSearchFilter
+      v-model:search-query="searchQuery"
+      :search-placeholder="t('admin_search_comments')"
+      :filters="[
+        {
+          key: 'status',
+          options: [
+            { value: 'all', label: t('admin_all_status') },
+            { value: 'approved', label: t('admin_approved') },
+            { value: 'pending', label: t('admin_pending') },
+            { value: 'spam', label: t('admin_spam') }
+          ]
+        }
+      ]"
+      :filter-values="{ status: statusFilter }"
+      @filter-change="handleFilterChange"
+    />
 
     <!-- Comments List -->
     <div class="space-y-6">
@@ -206,7 +200,7 @@ const submitReply = (comment) => {
         <!-- Status Indicator Strip -->
         <div 
           class="absolute left-0 top-6 bottom-6 w-1 rounded-r-full transition-all duration-300"
-          :class="comment.status === 'approved' ? 'bg-green-500' : (comment.status === 'pending' ? 'bg-amber-500' : 'bg-red-500')"
+          :class="comment.is_approved ? 'bg-green-500' : 'bg-amber-500'"
         ></div>
 
         <div class="flex items-start justify-between mb-6 pl-2">
@@ -223,14 +217,14 @@ const submitReply = (comment) => {
             </div>
           </div>
           <div class="flex items-center gap-3">
-            <div :class="['px-3 py-1 rounded-lg text-[10px] font-black tracking-widest uppercase border', getStatusColor(comment.status)]">
-              {{ getStatusLabel(comment.status) }}
+            <div :class="['px-3 py-1 rounded-lg text-[10px] font-black tracking-widest uppercase border', getStatusColor(comment.is_approved)]">
+              {{ getStatusLabel(comment.is_approved) }}
             </div>
           </div>
         </div>
         
         <div :class="['mb-6 p-5 rounded-2xl border-l-4 ml-2 leading-relaxed', isDarkMode ? 'bg-gray-900/30 border-gray-700 text-gray-300' : 'bg-gray-50 border-gray-100 text-gray-700 shadow-inner']">
-          <p class="text-sm italic opacity-90">{{ comment.content }}</p>
+          <p class="text-sm italic opacity-90">{{ comment.body }}</p>
         </div>
 
         <!-- Replies Section -->
@@ -252,26 +246,26 @@ const submitReply = (comment) => {
           <div :class="['flex items-center gap-6 text-[10px] font-black tracking-widest uppercase', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
             <div class="flex items-center gap-2">
               <FileText size="14" class="text-construct-red" />
-              <span class="truncate max-w-[200px]">{{ getPostTitle(comment.postId) }}</span>
+              <span class="truncate max-w-[200px]">{{ getPostTitle(comment.post_id) }}</span>
             </div>
             <div class="flex items-center gap-2">
               <Clock size="14" class="text-construct-red" />
-              <span>{{ formatToShort(comment.date) }}</span>
+              <span>{{ formatToShort(comment.created_at || comment.date) }}</span>
             </div>
           </div>
           
           <div class="flex items-center gap-2 shrink-0">
             <button
-              v-if="comment.status !== 'approved'"
+              v-if="!comment.is_approved"
               @click="approveComment(comment)"
               :class="['flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black tracking-widest uppercase transition-all hover:scale-105 active:scale-95', isDarkMode ? 'bg-green-500/10 text-green-400 border border-green-500/20 hover:bg-green-500/20' : 'bg-green-50 text-green-600 border border-green-100 hover:bg-green-100']"
             >
               <Check size="14" /> {{ t('admin_approve') }}
             </button>
             <button
-              v-if="comment.status !== 'spam'"
+              v-if="comment.is_approved"
               @click="rejectComment(comment)"
-              :class="['flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black tracking-widest uppercase transition-all hover:scale-105 active:scale-95', isDarkMode ? 'bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20' : 'bg-red-50 text-red-600 border border-red-100 hover:bg-red-100']"
+              :class="['flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black tracking-widest uppercase transition-all hover:scale-105 active:scale-95', isDarkMode ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20' : 'bg-amber-50 text-amber-600 border border-amber-100 hover:bg-amber-100']"
             >
               <AlertCircle size="14" /> {{ t('admin_reject') }}
             </button>

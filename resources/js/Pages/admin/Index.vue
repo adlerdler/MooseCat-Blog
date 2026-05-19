@@ -112,7 +112,7 @@ const iconMap = {
 const userStatsWithIcons = computed(() => {
   return userStats.map(item => ({
     ...item,
-    icon: iconMap[item.iconKey] || Users
+    icon: iconMap[item.icon_key] || Users
   }));
 });
 

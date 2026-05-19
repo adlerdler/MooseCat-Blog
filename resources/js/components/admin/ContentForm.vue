@@ -75,43 +75,39 @@ const initFormData = () => {
       title: '',
       description: '',
       thumbnail: '',
-      videoId: '',
+      video_id: '',
       platform: 'youtube',
       date: new Date().toISOString().split('T')[0]
     },
     project: {
       title: '',
-      name: '',
       description: '',
-      longDescription: '',
+      long_description: '',
       image: '',
       url: '',
-      githubUrl: '',
-      tags: '',
+      github_url: '',
       role: '',
       year: new Date().getFullYear().toString(),
       technologies: '',
       status: 'completed',
-      progress: 0,
-      startDate: new Date().toISOString().split('T')[0],
-      sortOrder: 0
+      sort_order: 0
     },
     resource: {
       title: '',
       category: 'DESIGN',
       image: '',
       format: 'PDF',
-      fileSize: '',
-      downloadCount: '0',
+      file_size: '',
+      downloads_count: '0',
       date: new Date().toISOString().split('T')[0],
-      localUrl: '',
+      direct_link: '',
       drives: []
     },
     'social-link': {
       platform: 'github',
       label: '',
       url: '',
-      sortOrder: 0
+      sort_order: 0
     }
   };
   
@@ -425,7 +421,7 @@ const removeDrive = (index) => {
                   {{ t('admin_video_form_video_id') }} *
                 </label>
                 <input
-                  v-model="formData.videoId"
+                  v-model="formData.video_id"
                   type="text"
                   :class="[
                     'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
@@ -567,7 +563,7 @@ const removeDrive = (index) => {
                 {{ t('admin_project_form_desc') }}
               </label>
               <textarea
-                v-model="formData.longDescription"
+                v-model="formData.long_description"
                 rows="4"
                 :class="[
                   'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red resize-none',
@@ -620,7 +616,7 @@ const removeDrive = (index) => {
                 {{ t('admin_project_form_github') }}
               </label>
               <input
-                v-model="formData.githubUrl"
+                v-model="formData.github_url"
                 type="text"
                 :class="[
                   'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
@@ -632,7 +628,7 @@ const removeDrive = (index) => {
               />
             </div>
 
-            <div class="grid grid-cols-3 gap-4">
+            <div class="grid grid-cols-2 gap-4">
               <div>
                 <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
                   项目状态
@@ -647,35 +643,16 @@ const removeDrive = (index) => {
                   ]"
                 >
                   <option value="completed">已完成</option>
-                  <option value="active">进行中</option>
+                  <option value="in-progress">进行中</option>
+                  <option value="planning">计划中</option>
                 </select>
               </div>
-
-              <div>
-                <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
-                  进度百分比
-                </label>
-                <input
-                  v-model.number="formData.progress"
-                  type="number"
-                  min="0"
-                  max="100"
-                  :class="[
-                    'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
-                    isDarkMode 
-                      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                  ]"
-                  placeholder="0-100"
-                />
-              </div>
-
               <div>
                 <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
                   排序顺序
                 </label>
                 <input
-                  v-model.number="formData.sortOrder"
+                  v-model.number="formData.sort_order"
                   type="number"
                   min="0"
                   :class="[
@@ -687,22 +664,6 @@ const removeDrive = (index) => {
                   placeholder="数字越小越靠前"
                 />
               </div>
-            </div>
-
-            <div>
-              <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
-                开始日期（进行中项目）
-              </label>
-              <input
-                v-model="formData.startDate"
-                type="date"
-                :class="[
-                  'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
-                  isDarkMode 
-                    ? 'bg-gray-700 border-gray-600 text-white' 
-                    : 'bg-white border-gray-300 text-gray-900'
-                ]"
-              />
             </div>
 
             <div class="grid grid-cols-2 gap-4">
@@ -797,7 +758,7 @@ const removeDrive = (index) => {
                 {{ t('admin_resource_form_local_url') }} *
               </label>
               <input
-                v-model="formData.localUrl"
+                v-model="formData.direct_link"
                 type="text"
                 :class="[
                   'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
@@ -884,7 +845,7 @@ const removeDrive = (index) => {
                   {{ t('admin_resource_form_file_size') }}
                 </label>
                 <input
-                  v-model="formData.fileSize"
+                  v-model="formData.file_size"
                   type="text"
                   :class="[
                     'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
@@ -901,7 +862,7 @@ const removeDrive = (index) => {
                   {{ t('admin_resource_form_downloads') }}
                 </label>
                 <input
-                  v-model="formData.downloadCount"
+                  v-model="formData.downloads_count"
                   type="text"
                   :class="[
                     'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
@@ -993,7 +954,7 @@ const removeDrive = (index) => {
                 排序顺序
               </label>
               <input
-                v-model.number="formData.sortOrder"
+                v-model.number="formData.sort_order"
                 type="number"
                 min="0"
                 :class="[

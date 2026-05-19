@@ -31,7 +31,7 @@ const githubStats = ref({ commits: 0, prs: 0, repos: 7 });
 const isLoading = ref(true);
 const githubLink = socialLinks.find(s => s.platform === 'github');
 const username = githubLink?.url.split('/').pop() || 'adlerdler';
-const projects = PROJECTS.filter(p => p.status === 'active');
+const projects = PROJECTS.filter(p => p.status === 'in-progress' || p.status === 'planning');
 const endDate = computed(() => {
  const date = new Date();
  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -390,7 +390,7 @@ const generateMockCalendarData = () => {
             class="border-4 border-construct-black p-5 bg-white relative group overflow-hidden flex flex-col"
           >
             <div class="absolute top-0 right-0 p-2 opacity-5 text-[32px] md:text-[40px] font-display pointer-events-none group-hover:opacity-20 transition-opacity">
-              {{ proj.progress }}%
+              {{ proj.sort_order }}
             </div>
             <div class="relative z-10 flex-1 flex flex-col">
               <div class="flex justify-between items-start mb-3">
@@ -398,26 +398,24 @@ const generateMockCalendarData = () => {
                   {{ proj.status }}
                 </span>
                 <span class="text-[10px] font-mono opacity-40">
-                  0x{{ proj.name.slice(0, 4) }}
+                  0x{{ proj.title.slice(0, 4) }}
                 </span>
               </div>
               <h4 class="font-display text-lg md:text-xl uppercase tracking-tight mb-2 underline decoration-construct-red decoration-2 underline-offset-4">
-                {{ proj.name }}
+                {{ proj.title }}
               </h4>
               <p class="text-[11px] font-bold tracking-widest text-construct-black/60 uppercase mb-6 flex-1 leading-relaxed">
                 {{ proj.description }}
               </p>
 
-              <div class="h-3 md:h-4 w-full bg-construct-paper-dark border-2 border-construct-black relative mt-auto">
-                <div
-                  class="h-full bg-construct-black transition-all duration-1000 ease-out"
-                  :style="{ width: isVisible ? proj.progress + '%' : '0%' }"
-                />
-                <div class="absolute inset-0 flex items-center justify-center mix-blend-difference">
-                  <span class="text-[8px] font-black text-white tracking-[0.2em]">
-                    {{ proj.progress }}%
-                  </span>
-                </div>
+              <div class="flex flex-wrap gap-2">
+                <span
+                  v-for="tech in proj.technologies.slice(0, 3)"
+                  :key="tech"
+                  class="bg-gray-100 px-2 py-1 text-[8px] font-bold tracking-widest uppercase border border-construct-black/10"
+                >
+                  {{ tech }}
+                </span>
               </div>
             </div>
           </div>

@@ -26,11 +26,12 @@ import {
   Archive
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
-import { formatToShort } from '../../utils/dateUtils';
+import { formatToRelative } from '../../utils/dateUtils';
 import { resourcesData, resourceTypes } from '../../data/resources';
 import ContentForm from '../../components/admin/ContentForm.vue';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import AdminPagination from '../../components/admin/AdminPagination.vue';
+import AdminSearchFilter from '../../components/admin/AdminSearchFilter.vue';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
@@ -148,57 +149,53 @@ const handleCancel = () => {
   isFormVisible.value = false;
   editingResource.value = null;
 };
+
+const handleFilterChange = ({ key, value }) => {
+  if (key === 'type') {
+    selectedType.value = value;
+  }
+  currentPage.value = 1;
+};
 </script>
 
 <template>
   <div class="p-8">
     <!-- Page Header -->
-    <div class="mb-8">
-      <h2 :class="['font-display text-4xl tracking-tighter mb-2', isDarkMode ? 'text-white' : 'text-gray-900']">{{ t('admin_resources') }}</h2>
-      <p :class="['text-sm font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_resources_subtitle') }}</p>
+    <div class="mb-10">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="flex items-center gap-4 mb-2">
+            <BookOpen class="text-construct-red" size="32" />
+            <h2 :class="['font-display text-4xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">{{ t('admin_resources') }}</h2>
+          </div>
+          <p :class="['text-sm font-black tracking-[0.2em] uppercase opacity-50', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_resources_subtitle') }}</p>
+        </div>
+        <button
+          @click="handleAdd"
+          class="flex items-center gap-3 px-8 py-4 bg-construct-red text-white font-black text-xs uppercase tracking-[0.2em] transition-all hover:scale-105 active:scale-95 shadow-lg shadow-construct-red/20 rounded-xl"
+        >
+          <Plus size="18" />
+          {{ t('admin_add') }}
+        </button>
+      </div>
     </div>
 
     <!-- Toolbar -->
-    <div class="flex flex-col md:flex-row gap-4 mb-6">
-      <!-- Search -->
-      <div class="relative flex-1">
-        <Search :class="['absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5', isDarkMode ? 'text-gray-500' : 'text-gray-400']" />
-        <input
-          v-model="searchQuery"
-          type="text"
-          :placeholder="t('admin_search_placeholder')"
-          :class="[
-            'w-full pl-10 pr-4 py-3 border focus:border-construct-red focus:outline-none transition-colors',
-            isDarkMode ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
-          ]"
-        />
-      </div>
-      
-      <!-- Type Filter -->
-      <div class="relative">
-        <Filter :class="['absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5', isDarkMode ? 'text-gray-500' : 'text-gray-400']" />
-        <select
-          v-model="selectedType"
-          :class="[
-            'pl-10 pr-8 py-3 border focus:border-construct-red focus:outline-none appearance-none cursor-pointer min-w-[150px]',
-            isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'
-          ]"
-        >
-          <option v-for="type in resourceTypes" :key="type" :value="type">
-            {{ type === 'all' ? t('admin_all') : type }}
-          </option>
-        </select>
-      </div>
-      
-      <!-- Add Button -->
-      <button
-        @click="handleAdd"
-        class="flex items-center gap-2 px-6 py-3 bg-construct-red text-white font-bold tracking-widest uppercase text-sm hover:bg-red-700 transition-colors rounded"
-      >
-        <Plus size="16" class="!text-white" />
-        {{ t('admin_add') }}
-      </button>
-    </div>
+    <AdminSearchFilter
+      v-model:search-query="searchQuery"
+      :search-placeholder="t('admin_search_placeholder')"
+      :filters="[
+        {
+          key: 'type',
+          options: resourceTypes.map(type => ({
+            value: type,
+            label: type === 'all' ? t('admin_all') : type
+          }))
+        }
+      ]"
+      :filter-values="{ type: selectedType }"
+      @filter-change="handleFilterChange"
+    />
 
     <!-- Resources Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -235,17 +232,17 @@ const handleCancel = () => {
           <h3 :class="['font-bold mb-2 line-clamp-2 text-sm', isDarkMode ? 'text-white' : 'text-gray-900']">{{ resource.title }}</h3>
           
           <div :class="['flex items-center justify-between text-xs mb-3', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
-            <span>{{ resource.fileSize }}</span>
+            <span>{{ resource.file_size }}</span>
             <span class="flex items-center gap-1">
               <Download size="14" />
-              {{ resource.downloadCount }}
+              {{ resource.downloads_count }}
             </span>
           </div>
           
           <div :class="['flex items-center justify-between pt-3 border-t', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
             <div :class="['flex items-center gap-2 text-xs', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
               <Clock size="14" />
-              {{ formatToShort(resource.date) }}
+              {{ formatToRelative(resource.created_at) }}
             </div>
             
             <div class="flex gap-1">

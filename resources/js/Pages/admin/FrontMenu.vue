@@ -5,7 +5,7 @@
  * 功能说明：
  * - 管理前台和后台导航栏菜单项 (节点管理)
  * - 支持切换前台菜单与后台菜单视图
- * - 编辑菜单标签 (labelKey) 和 路径 (path/route)
+ * - 编辑菜单标签 (label_key) 和 路径 (path/route)
  * - 支持拖拽排序、禁用状态切换、搜索过滤
  */
 import {
@@ -33,7 +33,8 @@ import {
   EyeOff,
   Search,
   Filter,
-  Folder
+  Folder,
+  AdminSearchFilter
 } from '../../composables/useAdminImports';
 import { useMenuItems } from '../../composables/useMenuItems';
 
@@ -71,15 +72,15 @@ const flattenedAdminMenu = computed(() => {
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase();
     items = items.filter(item => 
-      item.labelKey.toLowerCase().includes(query) || 
-      t(item.labelKey).toLowerCase().includes(query) ||
+      item.label_key.toLowerCase().includes(query) || 
+      t(item.label_key).toLowerCase().includes(query) ||
       (item.path && item.path.toLowerCase().includes(query))
     );
   }
   
   // 状态过滤
   if (!showInactive.value) {
-    items = items.filter(item => item.isActive !== false);
+    items = items.filter(item => item.is_active !== false);
   }
   
   return items;
@@ -92,15 +93,15 @@ const filteredFrontMenu = computed(() => {
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase();
     items = items.filter(item => 
-      item.labelKey.toLowerCase().includes(query) || 
-      t(item.labelKey).toLowerCase().includes(query) ||
+      item.label_key.toLowerCase().includes(query) || 
+      t(item.label_key).toLowerCase().includes(query) ||
       (item.path && item.path.toLowerCase().includes(query))
     );
   }
   
   // 状态过滤
   if (!showInactive.value) {
-    items = items.filter(item => item.isActive !== false);
+    items = items.filter(item => item.is_active !== false);
   }
   
   return items;
@@ -130,22 +131,22 @@ const handleAdd = () => {
     targetList.value.push({
       id: newId,
       type: 'front',
-      parentId: null,
-      labelKey: '',
+      parent_id: null,
+      label_key: '',
       path: '/',
-      sortOrder: targetList.value.length + 1,
-      isActive: true
+      sort_order: targetList.value.length + 1,
+      is_active: true
     });
   } else {
     targetList.value.push({
       id: newId,
       type: 'admin',
-      parentId: null,
-      labelKey: '',
-      iconName: 'FileText',
+      parent_id: null,
+      label_key: '',
+      icon_name: 'FileText',
       path: '/admin/',
-      sortOrder: targetList.value.length + 1,
-      isActive: true,
+      sort_order: targetList.value.length + 1,
+      is_active: true,
       children: []
     });
   }
@@ -158,7 +159,7 @@ const handleDelete = (item) => {
 const confirmDelete = () => {
   const item = deleteConfirm.value.item;
   if (currentTab.value === 'front') {
-    frontMenuList.value = frontMenuList.value.filter(i => i.id !== item.id);
+    frontMenuList.value = frontMenuList.value.filter(l => l.id !== item.id);
   } else {
     // 删除树形结构中的节点
     const removeFromTree = (items) => {
@@ -186,7 +187,7 @@ const confirmSave = () => {
   
   // 验证必填字段
   const targetList = currentTab.value === 'front' ? frontMenuList.value : flattenedAdminMenu.value;
-  const invalidItems = targetList.filter(item => !item.labelKey || !item.path);
+  const invalidItems = targetList.filter(item => !item.label_key || !item.path);
   
   if (invalidItems.length > 0) {
     isSaving.value = false;
@@ -224,7 +225,7 @@ const moveItem = (index, direction) => {
       targetList.value[newIndex] = temp;
       // 更新排序
       targetList.value.forEach((item, i) => {
-        item.sortOrder = i + 1;
+        item.sort_order = i + 1;
       });
     }
   } else {
@@ -238,7 +239,7 @@ const moveItem = (index, direction) => {
             items[i] = items[newIndex];
             items[newIndex] = temp;
             items.forEach((item, idx) => {
-              item.sortOrder = idx + 1;
+              item.sort_order = idx + 1;
             });
             return true;
           }
@@ -260,7 +261,7 @@ const moveItem = (index, direction) => {
 
 // 切换禁用状态
 const toggleActive = (item) => {
-  item.isActive = !item.isActive;
+  item.is_active = !item.is_active;
 };
 
 // 获取可用图标列表
@@ -278,8 +279,8 @@ const parentMenuOptions = computed(() => {
   const parents = [];
   const collectParents = (items) => {
     items.forEach(item => {
-      if (!item.parentId) {
-        parents.push({ id: item.id, label: t(item.labelKey) });
+      if (!item.parent_id) {
+        parents.push({ id: item.id, label: t(item.label_key) });
       }
       if (item.children) {
         collectParents(item.children);
@@ -289,6 +290,12 @@ const parentMenuOptions = computed(() => {
   collectParents(adminMenuList.value);
   return parents;
 });
+
+const handleFilterChange = ({ key, value }) => {
+  if (key === 'showInactive') {
+    showInactive.value = value;
+  }
+};
 </script>
 
 <template>
@@ -316,7 +323,7 @@ const parentMenuOptions = computed(() => {
         <template v-else>
           <button 
             @click="cancelEditing"
-            :class="['px-6 py-3 border flex items-center gap-2 font-bold text-sm tracking-wider uppercase transition-colors rounded', isDarkMode ? 'border-gray-700 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50']"
+            :class="['px-6 py-3 border flex items-center gap-2 font-bold text-xs tracking-wider uppercase transition-colors rounded', isDarkMode ? 'border-gray-700 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-100']"
           >
             <X size="16" /> {{ t('admin_cancel') }}
           </button>
@@ -362,30 +369,20 @@ const parentMenuOptions = computed(() => {
     </div>
 
     <!-- Search & Filter Bar -->
-    <div class="mb-6 flex flex-col sm:flex-row gap-4">
-      <div class="relative flex-1">
-        <Search :size="18" :class="['absolute left-4 top-1/2 -translate-y-1/2', isDarkMode ? 'text-gray-500' : 'text-gray-400']" />
-        <input 
-          v-model="searchQuery"
-          type="text"
-          :class="[
-            'w-full pl-12 pr-4 py-3 rounded-lg border font-mono text-sm focus:outline-none focus:border-construct-red transition-all',
-            isDarkMode ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
-          ]"
-          :placeholder="t('admin_search_menu') || '搜索菜单...'"
-        />
-      </div>
-      <label :class="['flex items-center gap-2 px-4 py-3 rounded-lg cursor-pointer transition-colors', isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100']">
-        <input 
-          v-model="showInactive"
-          type="checkbox"
-          :class="['w-4 h-4 rounded border-gray-300 text-construct-red focus:ring-construct-red']"
-        />
-        <span :class="['text-sm font-bold tracking-wider uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-600']">
-          {{ t('admin_show_inactive') || '显示禁用' }}
-        </span>
-      </label>
-    </div>
+    <AdminSearchFilter
+      v-model:search-query="searchQuery"
+      :search-placeholder="t('admin_search_menu') || '搜索菜单...'"
+      :filters="[
+        {
+          key: 'showInactive',
+          type: 'checkbox',
+          checkedLabel: t('admin_show_inactive') || '显示禁用',
+          uncheckedLabel: t('admin_hide_inactive') || '隐藏禁用'
+        }
+      ]"
+      :filter-values="{ showInactive: showInactive }"
+      @filter-change="handleFilterChange"
+    />
 
     <!-- Menu List Table -->
     <div :class="['border rounded-lg overflow-hidden', isDarkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white']">
@@ -410,7 +407,7 @@ const parentMenuOptions = computed(() => {
               :class="[
                 'border-b transition-colors', 
                 isDarkMode ? 'border-gray-700 hover:bg-gray-700/30' : 'border-gray-100 hover:bg-gray-50/50',
-                !item.isActive ? 'opacity-50' : ''
+                !item.is_active ? 'opacity-50' : ''
               ]"
             >
               <td class="px-4 py-3">
@@ -448,19 +445,19 @@ const parentMenuOptions = computed(() => {
                   :disabled="!isEditing"
                   :class="[
                     'p-2 rounded-lg transition-colors',
-                    item.isActive 
+                    item.is_active 
                       ? (isDarkMode ? 'bg-green-500/20 text-green-400' : 'bg-green-50 text-green-600')
                       : (isDarkMode ? 'bg-red-500/20 text-red-400' : 'bg-red-50 text-red-600'),
                     !isEditing ? 'cursor-not-allowed opacity-50' : 'hover:scale-110'
                   ]"
                 >
-                  <Eye v-if="item.isActive" size="14" />
+                  <Eye v-if="item.is_active" size="14" />
                   <EyeOff v-else size="14" />
                 </button>
               </td>
               <td class="px-4 py-3">
                 <input 
-                  v-model="item.labelKey"
+                  v-model="item.label_key"
                   type="text"
                   :disabled="!isEditing"
                   :class="[
@@ -472,8 +469,8 @@ const parentMenuOptions = computed(() => {
                 />
               </td>
               <td class="px-4 py-3">
-                <span class="text-sm font-bold truncate block" :title="t(item.labelKey)">
-                  {{ t(item.labelKey) || '(Empty)' }}
+                <span class="text-sm font-bold truncate block" :title="t(item.label_key)">
+                  {{ t(item.label_key) || '(Empty)' }}
                 </span>
               </td>
               <td class="px-4 py-3">
@@ -512,7 +509,7 @@ const parentMenuOptions = computed(() => {
               :class="[
                 'border-b transition-colors', 
                 isDarkMode ? 'border-gray-700 hover:bg-gray-700/30' : 'border-gray-100 hover:bg-gray-50/50',
-                !item.isActive ? 'opacity-50' : ''
+                !item.is_active ? 'opacity-50' : ''
               ]"
             >
               <td class="px-4 py-3">
@@ -550,13 +547,13 @@ const parentMenuOptions = computed(() => {
                   :disabled="!isEditing"
                   :class="[
                     'p-2 rounded-lg transition-colors',
-                    item.isActive 
+                    item.is_active 
                       ? (isDarkMode ? 'bg-green-500/20 text-green-400' : 'bg-green-50 text-green-600')
                       : (isDarkMode ? 'bg-red-500/20 text-red-400' : 'bg-red-50 text-red-600'),
                     !isEditing ? 'cursor-not-allowed opacity-50' : 'hover:scale-110'
                   ]"
                 >
-                  <Eye v-if="item.isActive" size="14" />
+                  <Eye v-if="item.is_active" size="14" />
                   <EyeOff v-else size="14" />
                 </button>
               </td>
@@ -564,7 +561,7 @@ const parentMenuOptions = computed(() => {
                 <div class="flex items-center gap-2">
                   <span v-if="item._level > 0" :class="['text-xs font-bold', isDarkMode ? 'text-gray-500' : 'text-gray-400']">└─</span>
                   <input 
-                    v-model="item.labelKey"
+                    v-model="item.label_key"
                     type="text"
                     :disabled="!isEditing"
                     :class="[
@@ -577,8 +574,8 @@ const parentMenuOptions = computed(() => {
                 </div>
               </td>
               <td class="px-4 py-3">
-                <span class="text-sm font-bold truncate block" :title="t(item.labelKey)">
-                  {{ t(item.labelKey) || '(Empty)' }}
+                <span class="text-sm font-bold truncate block" :title="t(item.label_key)">
+                  {{ t(item.label_key) || '(Empty)' }}
                 </span>
               </td>
               <td class="px-4 py-3">
@@ -599,7 +596,7 @@ const parentMenuOptions = computed(() => {
               </td>
               <td class="px-4 py-3">
                 <select 
-                  v-model="item.iconName"
+                  v-model="item.icon_name"
                   :disabled="!isEditing"
                   :class="[
                     'w-full px-3 py-2 border rounded font-mono text-xs focus:border-construct-red focus:outline-none transition-all appearance-none',
@@ -613,7 +610,7 @@ const parentMenuOptions = computed(() => {
               </td>
               <td class="px-4 py-3">
                 <select 
-                  v-model="item.parentId"
+                  v-model="item.parent_id"
                   :disabled="!isEditing"
                   :class="[
                     'w-full px-3 py-2 border rounded text-xs focus:border-construct-red focus:outline-none transition-all appearance-none',
@@ -679,7 +676,7 @@ const parentMenuOptions = computed(() => {
         </h4>
         <p :class="['text-sm leading-relaxed', isDarkMode ? 'text-blue-400' : 'text-blue-700']">
           {{ t('admin_menu_help_text') || 'The menu labels use translation keys from the language files. Ensure the' }} 
-          <code :class="['px-1 rounded text-xs font-bold', isDarkMode ? 'bg-blue-800' : 'bg-blue-100']">labelKey</code> 
+          <code :class="['px-1 rounded text-xs font-bold', isDarkMode ? 'bg-blue-800' : 'bg-blue-100']">label_key</code> 
           {{ t('admin_menu_help_text_2') || 'you enter exists in' }} 
           <code :class="['px-1 rounded text-xs', isDarkMode ? 'bg-blue-800' : 'bg-blue-100']">zh.json</code>, 
           <code :class="['px-1 rounded text-xs', isDarkMode ? 'bg-blue-800' : 'bg-blue-100']">en.json</code>, 

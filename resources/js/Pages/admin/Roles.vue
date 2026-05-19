@@ -24,7 +24,8 @@ import {
   X,
   RoleForm,
   ConfirmDialog,
-  AdminPagination
+  AdminPagination,
+  AdminSearchFilter
 } from '../../composables/useAdminImports';
 import { useRolePermissions } from '../../composables/useRolePermissions';
 
@@ -120,32 +121,28 @@ const confirmDelete = () => {
 <template>
   <div class="p-8">
     <!-- Page Header -->
-    <div class="mb-8">
-      <div class="flex items-center gap-4 mb-2">
-        <Shield class="text-construct-red" size="32" />
-        <h2 :class="['font-display text-4xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">{{ t('admin_roles') }}</h2>
+    <div class="mb-10">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="flex items-center gap-4 mb-2">
+            <Shield class="text-construct-red" size="32" />
+            <h2 :class="['font-display text-4xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">{{ t('admin_roles') }}</h2>
+          </div>
+          <p :class="['text-sm font-black tracking-[0.2em] uppercase opacity-50', isDarkMode ? 'text-gray-400' : 'text-gray-500']">Manage system roles and permissions</p>
+        </div>
+        <button @click="handleAdd" class="flex items-center gap-3 px-8 py-4 bg-construct-red text-white font-black text-xs uppercase tracking-[0.2em] transition-all hover:scale-105 active:scale-95 shadow-lg shadow-construct-red/20 rounded-xl">
+          <Plus size="18" /> {{ t('admin_add_role') }}
+        </button>
       </div>
-      <p :class="['text-sm font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">Manage system roles and permissions</p>
     </div>
 
     <!-- Search -->
-    <div class="flex flex-col md:flex-row gap-4 mb-8">
-      <div class="flex-1 relative">
-        <Search :class="['absolute left-4 top-1/2 -translate-y-1/2', isDarkMode ? 'text-gray-400' : 'text-gray-500']" size="20" />
-        <input
-          v-model="searchQuery"
-          type="text"
-          :placeholder="t('admin_search_roles')"
-          :class="[
-            'w-full pl-12 pr-4 py-3 border focus:border-construct-red focus:outline-none transition-colors',
-            isDarkMode ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-          ]"
-        />
-      </div>
-      <button @click="handleAdd" class="flex items-center gap-2 px-6 py-3 bg-construct-red hover:bg-red-600 text-white font-bold tracking-wider transition-colors rounded">
-        <Plus size="18" /> {{ t('admin_add_role') }}
-      </button>
-    </div>
+    <AdminSearchFilter
+      v-model:search-query="searchQuery"
+      :search-placeholder="t('admin_search_roles')"
+      :filters="[]"
+      :filter-values="{}"
+    />
 
     <!-- Roles Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

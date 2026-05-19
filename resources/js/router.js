@@ -57,6 +57,7 @@ import AdminAdvertisements from './Pages/admin/Advertisements.vue';
 import SocialLinks from './Pages/admin/SocialLinks.vue';
 import AdminFrontMenu from './Pages/admin/FrontMenu.vue';
 import AdminEmailTemplates from './Pages/admin/EmailTemplates.vue';
+import AdminUserLevels from './Pages/admin/UserLevels.vue';
 
 const routes = [
   {
@@ -154,6 +155,12 @@ const routes = [
     name: 'admin-users',
     component: AdminUsers,
     meta: { title: 'ADMIN // Users', requiresAuth: true, layout: 'admin' },
+  },
+  {
+    path: '/admin/user-levels',
+    name: 'admin-user-levels',
+    component: AdminUserLevels,
+    meta: { title: 'ADMIN // User Levels', requiresAuth: true, layout: 'admin' },
   },
   {
     path: '/admin/settings',

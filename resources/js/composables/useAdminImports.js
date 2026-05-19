@@ -98,6 +98,9 @@ export {
   Sidebar,
   SkipForward,
 
+  // 用户等级管理新增
+  Crown,
+
   // 关于页面新增
   Code,
   Cpu,
@@ -141,8 +144,11 @@ export { default as ConfirmDialog } from '../components/admin/ConfirmDialog.vue'
 export { default as ContentForm } from '../components/admin/ContentForm.vue';
 export { default as RoleForm } from '../components/admin/RoleForm.vue';
 export { default as UserForm } from '../components/admin/UserForm.vue';
+export { default as UserLevelForm } from '../components/admin/UserLevelForm.vue';
 export { default as MetaForm } from '../components/admin/MetaForm.vue';
 export { default as TagInput } from '../components/admin/TagInput.vue';
 export { default as AdminPagination } from '../components/admin/AdminPagination.vue';
+export { default as AdminSearchFilter } from '../components/admin/AdminSearchFilter.vue';
 export { default as MediaPreviewModal } from '../components/admin/MediaPreviewModal.vue';
 export { default as MediaUploadModal } from '../components/admin/MediaUploadModal.vue';
+export { default as MediaPickerModal } from '../components/admin/MediaPickerModal.vue';

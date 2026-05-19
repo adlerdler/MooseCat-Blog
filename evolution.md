@@ -472,3 +472,74 @@
 - **Status:**
   - 使用批量重命名脚本将 `AdminPosts.vue` 转为 `Posts.vue`，以此类推。
   - 同步重构 `router.js` 与 `App.vue` 中的导入路径（为避免与前台页面重名，保持了 Router 中的对象变量名为 `AdminX`，仅改变导入源文件）。
+
+### 2026-05-17: 管理后台仪表盘页面与本地化实现 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 实现分类管理、广告管理、内容管理等后台仪表盘页面，并完善国际化支持。
+- **Rationale:**
+  - 扩展管理后台的内容管理维度，覆盖广告位配置、分类层级管理等运营需求。
+  - 确保所有新增页面支持 EN/ZH/ZH-TW 三语切换。
+- **Status:**
+  - 新增/重构分类管理页面，支持层级展示与状态筛选。
+  - 新增广告管理页面，支持广告位配置与投放状态管理。
+  - 完善内容管理相关页面的国际化翻译。
+
+### 2026-05-17: 菜单管理系统与动态配置页面 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 实现前台/后台菜单管理系统，支持动态配置与拖拽排序。
+- **Rationale:**
+  - 将菜单配置从硬编码迁移到可管理的动态配置系统。
+  - 支持前台菜单与后台菜单分别管理，提供可视化编辑体验。
+- **Status:**
+  - 创建 `FrontMenu.vue` 菜单节点管理页面。
+  - 实现前台/后台菜单 Tab 切换。
+  - 支持菜单项的增删改查、拖拽排序、启用/禁用状态切换。
+  - 菜单标签支持国际化 `label_key` 映射。
+
+### 2026-05-18: 项目数据重构与功能优化 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 重构项目数据层，优化各管理页面的数据流与交互体验。
+- **Rationale:**
+  - 统一各管理页面的数据获取与状态管理模式。
+  - 优化页面加载性能与用户交互反馈。
+- **Status:**
+  - 重构项目、视频、资源等页面的数据层。
+  - 优化表单验证与错误提示逻辑。
+  - 统一各页面的搜索筛选交互模式。
+
+### 2026-05-19: 通用搜索筛选组件设计与全站应用 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 创建 `AdminSearchFilter.vue` 通用搜索筛选组件，并将所有管理页面（除广告管理外）统一改用该组件。
+- **Rationale:**
+  - 消除各页面搜索筛选实现的重复代码，提升代码复用率。
+  - 统一管理后台的搜索筛选交互体验与视觉风格。
+  - 支持多种筛选类型：下拉选择、Checkbox 切换。
+- **Status:**
+  - 创建 `AdminSearchFilter.vue` 通用组件，支持：
+    - 搜索输入框（v-model 双向绑定）
+    - 下拉筛选（多筛选器支持，自定义选项）
+    - Checkbox 筛选（用于显示/隐藏类开关）
+    - 响应式布局（移动端自动堆叠）
+    - 暗色/亮色主题自适应
+  - 改造 10 个管理页面使用通用组件：
+    - `Categories.vue` - 状态筛选
+    - `Tags.vue` - 状态筛选
+    - `Comments.vue` - 状态筛选
+    - `Roles.vue` - 仅搜索
+    - `Logs.vue` - 模块 + 动作双筛选
+    - `SocialLinks.vue` - 平台筛选
+    - `Media.vue` - 文件类型筛选
+    - `Restore.vue` - 备份类型筛选
+    - `Backup.vue` - 备份类型筛选
+    - `FrontMenu.vue` - Checkbox 显示/隐藏禁用
+  - 统一各页面头部布局：标题在左，添加按钮在右。
+  - 构建验证通过，无编译错误。
+
+### 2026-05-19: AdminSearchFilter 组件 Bug 修复 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 修复 `AdminSearchFilter.vue` 中 `filterValues` 未通过 `props` 访问的引用错误。
+- **Rationale:**
+  - 在扩展 Checkbox 类型筛选时，`getOptionLabel` 函数中直接使用了 `filterValues` 而非 `props.filterValues`，导致运行时 `ReferenceError`。
+- **Status:**
+  - 修复 `getOptionLabel` 函数中的变量引用，改为 `props.filterValues`。
+  - 确保组件在 Vue 3 `<script setup>` 语法下正确访问 props。

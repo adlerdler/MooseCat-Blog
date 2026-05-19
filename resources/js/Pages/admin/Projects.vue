@@ -27,13 +27,15 @@ import { formatToShort } from '../../utils/dateUtils';
 import ContentForm from '../../components/admin/ContentForm.vue';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import AdminPagination from '../../components/admin/AdminPagination.vue';
+import AdminSearchFilter from '../../components/admin/AdminSearchFilter.vue';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
 
 const PROJECT_STATUS = Object.freeze({
   COMPLETED: 'completed',
-  ACTIVE: 'active',
+  IN_PROGRESS: 'in-progress',
+  PLANNING: 'planning',
 });
 
 const searchQuery = ref('');
@@ -45,7 +47,7 @@ const editingProject = ref(null);
 const showDeleteConfirm = ref(false);
 const deletingProjectId = ref(null);
 
-const statuses = ['all', PROJECT_STATUS.COMPLETED, PROJECT_STATUS.ACTIVE];
+const statuses = ['all', PROJECT_STATUS.COMPLETED, PROJECT_STATUS.IN_PROGRESS, PROJECT_STATUS.PLANNING];
 
 const filteredProjects = computed(() => {
   let result = [...PROJECTS];
@@ -57,9 +59,9 @@ const filteredProjects = computed(() => {
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase();
     result = result.filter(project =>
-      (project.title || project.name).toLowerCase().includes(query) ||
+      project.title.toLowerCase().includes(query) ||
       project.description.toLowerCase().includes(query) ||
-      (project.tags && project.tags.some(tag => tag.toLowerCase().includes(query)))
+      (project.technologies && project.technologies.some(tech => tech.toLowerCase().includes(query)))
     );
   }
   
@@ -102,20 +104,16 @@ const handleEdit = (project) => {
   editingProject.value = {
     id: project.id,
     title: project.title || '',
-    name: project.name || '',
     description: project.description,
-    longDescription: project.longDescription || '',
+    long_description: project.long_description || '',
     image: project.image || '',
     url: project.url || '',
-    githubUrl: project.githubUrl || '',
-    tags: project.tags ? project.tags.join(', ') : '',
+    github_url: project.github_url || '',
     role: project.role || '',
     year: project.year || '',
     technologies: project.technologies ? project.technologies.join(', ') : '',
     status: project.status || 'completed',
-    progress: project.progress || 0,
-    startDate: project.startDate || new Date().toISOString().split('T')[0],
-    sortOrder: project.sortOrder || 0
+    sort_order: project.sort_order || 0
   };
   isFormVisible.value = true;
 };
@@ -139,57 +137,53 @@ const handleCancel = () => {
   isFormVisible.value = false;
   editingProject.value = null;
 };
+
+const handleFilterChange = ({ key, value }) => {
+  if (key === 'status') {
+    selectedStatus.value = value;
+  }
+  currentPage.value = 1;
+};
 </script>
 
 <template>
   <div class="p-8">
     <!-- Page Header -->
-    <div class="mb-8">
-      <h2 :class="['font-display text-4xl tracking-tighter mb-2', isDarkMode ? 'text-white' : 'text-gray-900']">{{ t('admin_projects') }}</h2>
-      <p :class="['text-sm font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_projects_subtitle') }}</p>
+    <div class="mb-10">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="flex items-center gap-4 mb-2">
+            <FolderKanban class="text-construct-red" size="32" />
+            <h2 :class="['font-display text-4xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">{{ t('admin_projects') }}</h2>
+          </div>
+          <p :class="['text-sm font-black tracking-[0.2em] uppercase opacity-50', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_projects_subtitle') }}</p>
+        </div>
+        <button
+          @click="handleAdd"
+          class="flex items-center gap-3 px-8 py-4 bg-construct-red text-white font-black text-xs uppercase tracking-[0.2em] transition-all hover:scale-105 active:scale-95 shadow-lg shadow-construct-red/20 rounded-xl"
+        >
+          <Plus size="18" />
+          {{ t('admin_add') }}
+        </button>
+      </div>
     </div>
 
     <!-- Toolbar -->
-    <div class="flex flex-col md:flex-row gap-4 mb-6">
-      <!-- Search -->
-      <div class="relative flex-1">
-        <Search :class="['absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5', isDarkMode ? 'text-gray-500' : 'text-gray-400']" />
-        <input
-          v-model="searchQuery"
-          type="text"
-          :placeholder="t('admin_search_placeholder')"
-          :class="[
-            'w-full pl-10 pr-4 py-3 border focus:border-construct-red focus:outline-none transition-colors',
-            isDarkMode ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
-          ]"
-        />
-      </div>
-      
-      <!-- Status Filter -->
-      <div class="relative">
-        <Filter :class="['absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5', isDarkMode ? 'text-gray-500' : 'text-gray-400']" />
-        <select
-          v-model="selectedStatus"
-          :class="[
-            'pl-10 pr-8 py-3 border focus:border-construct-red focus:outline-none appearance-none cursor-pointer min-w-[150px]',
-            isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'
-          ]"
-        >
-          <option v-for="s in statuses" :key="s" :value="s">
-            {{ s === 'all' ? t('admin_all') : s }}
-          </option>
-        </select>
-      </div>
-      
-      <!-- Add Button -->
-      <button
-        @click="handleAdd"
-        class="flex items-center gap-2 px-6 py-3 bg-construct-red text-white font-bold tracking-widest uppercase text-sm hover:bg-red-700 transition-colors rounded"
-      >
-        <Plus size="16" class="!text-white" />
-        {{ t('admin_add') }}
-      </button>
-    </div>
+    <AdminSearchFilter
+      v-model:search-query="searchQuery"
+      :search-placeholder="t('admin_search_placeholder')"
+      :filters="[
+        {
+          key: 'status',
+          options: statuses.map(s => ({
+            value: s,
+            label: s === 'all' ? t('admin_all') : s
+          }))
+        }
+      ]"
+      :filter-values="{ status: selectedStatus }"
+      @filter-change="handleFilterChange"
+    />
 
     <!-- Projects Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -228,30 +222,30 @@ const handleCancel = () => {
           
           <div class="flex flex-wrap gap-1 mb-4">
             <span
-              v-for="tag in (project.tags || []).slice(0, 3)"
-              :key="tag"
+              v-for="tech in (project.technologies || []).slice(0, 3)"
+              :key="tech"
               :class="['text-[10px] px-2 py-0.5 uppercase', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600']"
             >
-              #{{ tag }}
+              #{{ tech }}
             </span>
           </div>
           
           <div :class="['flex items-center justify-between pt-3 border-t', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
             <div :class="['flex items-center gap-2 text-xs', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
               <Clock size="14" />
-              {{ formatToShort(project.date) }}
+              {{ formatToShort(project.created_at || project.date) }}
             </div>
             
             <div class="flex gap-2">
               <button
-                v-if="project.github"
+                v-if="project.github_url"
                 :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:text-white hover:bg-gray-700' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100']"
                 :title="'GitHub'"
               >
                 <Github size="16" />
               </button>
               <button
-                v-if="project.link"
+                v-if="project.url"
                 :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:text-white hover:bg-gray-700' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100']"
                 :title="'Live Demo'"
               >

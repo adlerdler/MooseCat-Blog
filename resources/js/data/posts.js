@@ -11,19 +11,19 @@
  * - slug: 文章别名（URL友好）
  * - excerpt: 文章摘要
  * - content: Markdown 格式的文章正文内容
- * - coverImage: 封面图片URL
+ * - cover_image: 封面图片URL
  * - color: 主题颜色
  * - status: 文章状态（draft/published/pending）
- * - viewsCount: 浏览次数
- * - likesCount: 点赞次数
- * - metaTitle: SEO标题
- * - metaDescription: SEO描述
- * - metaKeywords: SEO关键词
- * - authorId: 作者ID（外键）
- * - categoryId: 分类ID（外键）
- * - publishedAt: 发布时间
- * - createdAt: 创建时间
- * - updatedAt: 更新时间
+ * - views_count: 浏览次数
+ * - likes_count: 点赞次数
+ * - meta_title: SEO标题
+ * - meta_description: SEO描述
+ * - meta_keywords: SEO关键词
+ * - author_id: 作者ID（外键）
+ * - category_id: 分类ID（外键）
+ * - published_at: 发布时间
+ * - created_at: 创建时间
+ * - updated_at: 更新时间
  * - tags: 标签数组（通过 getTagsByPostId 函数从 taggables.js 获取）
  */
 import { categories } from './categories.js';
@@ -128,28 +128,25 @@ The geometry of perception is not about rigid rules—it's about creating framew
 
 *Published: April 28, 2026*
 *Author: Adler Decht*`,
-    coverImage: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop',
+    cover_image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop',
     color: 'red',
     status: 'published',
-    viewsCount: 0,
-    likesCount: 0,
-    metaTitle: 'The Geometry of Perception',
-    metaDescription: 'Exploring how structural design influences cognitive processes in modern interfaces.',
-    metaKeywords: 'design,constructivism,ui,ux',
-    authorId: 1,
-    categoryId: 1,
-    publishedAt: '2026-04-28T10:30:00',
-    createdAt: '2026-04-28T10:30:00',
-    updatedAt: '2026-04-28T10:30:00',
+    views_count: 0,
+    likes_count: 0,
+    meta_title: 'The Geometry of Perception',
+    meta_description: 'Exploring how structural design influences cognitive processes in modern interfaces.',
+    meta_keywords: 'design,constructivism,ui,ux',
+    author_id: 1,
+    category_id: 1,
+    published_at: '2026-04-28T10:30:00',
+    created_at: '2026-04-28T10:30:00',
+    updated_at: '2026-04-28T10:30:00',
   },
   {
     id: 2,
     title: 'TYPOGRAPHY AS ARCHITECTURE',
-    category: 'DESIGN',
-    date: '2026-04-20T14:00:00',
-    userId: 2,
+    slug: 'typography-as-architecture',
     excerpt: 'Why fonts are the literal beams and columns of a digital experience.',
-    thumbnail: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800&h=600&fit=crop',
     content: `# Typography as Architecture
 
 Typography is the physical material of digital communication. If a layout is the blueprint, the typeface is the concrete and steel.
@@ -248,19 +245,19 @@ The technical breakdown reveals why monospaced fonts and sans-serif grotesques f
 
 *Published: April 20, 2026*
 *Author: Rodchenko*`,
-    coverImage: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800&h=600&fit=crop',
+    cover_image: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800&h=600&fit=crop',
     color: 'red',
     status: 'published',
-    viewsCount: 0,
-    likesCount: 0,
-    metaTitle: 'Typography as Architecture',
-    metaDescription: 'Why fonts are the literal beams and columns of a digital experience.',
-    metaKeywords: 'typography,fonts,design,architecture',
-    authorId: 2,
-    categoryId: 2,
-    publishedAt: '2026-04-20T14:00:00',
-    createdAt: '2026-04-20T14:00:00',
-    updatedAt: '2026-04-20T14:00:00',
+    views_count: 0,
+    likes_count: 0,
+    meta_title: 'Typography as Architecture',
+    meta_description: 'Why fonts are the literal beams and columns of a digital experience.',
+    meta_keywords: 'typography,fonts,design,architecture',
+    author_id: 2,
+    category_id: 2,
+    published_at: '2026-04-20T14:00:00',
+    created_at: '2026-04-20T14:00:00',
+    updated_at: '2026-04-20T14:00:00',
   },
   {
     id: 3,
@@ -360,19 +357,19 @@ We should not aim to make technology "natural"—we should aim to make it readab
 
 *Published: April 15, 2026*
 *Author: Adlerian*`,
-    coverImage: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&h=600&fit=crop',
+    cover_image: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&h=600&fit=crop',
     color: 'black',
     status: 'published',
-    viewsCount: 0,
-    likesCount: 0,
-    metaTitle: 'Manifesto of the Machine',
-    metaDescription: 'Redefining the relationship between human intuition and algorithmic precision.',
-    metaKeywords: 'algorithm,machine,human,technology',
-    authorId: 3,
-    categoryId: 3,
-    publishedAt: '2026-04-15T00:00:00',
-    createdAt: '2026-04-15T00:00:00',
-    updatedAt: '2026-04-15T00:00:00',
+    views_count: 0,
+    likes_count: 0,
+    meta_title: 'Manifesto of the Machine',
+    meta_description: 'Redefining the relationship between human intuition and algorithmic precision.',
+    meta_keywords: 'algorithm,machine,human,technology',
+    author_id: 3,
+    category_id: 3,
+    published_at: '2026-04-15T00:00:00',
+    created_at: '2026-04-15T00:00:00',
+    updated_at: '2026-04-15T00:00:00',
   },
   {
     id: 4,
@@ -481,19 +478,19 @@ Vectors bridge the gap between physical gravity and digital directional force, c
 
 *Published: April 12, 2026*
 *Author: V. Tatlin*`,
-    coverImage: 'https://images.unsplash.com/photo-1633356122102-3fe601e05bd2?w=800&h=600&fit=crop',
+    cover_image: 'https://images.unsplash.com/photo-1633356122102-3fe601e05bd2?w=800&h=600&fit=crop',
     color: 'red',
     status: 'published',
-    viewsCount: 0,
-    likesCount: 0,
-    metaTitle: 'Architectural Vectors',
-    metaDescription: 'Analyzing the trajectory of lines in three-dimensional digital space.',
-    metaKeywords: 'vectors,architecture,3d,space',
-    authorId: 5,
-    categoryId: 4,
-    publishedAt: '2026-04-12T00:00:00',
-    createdAt: '2026-04-12T00:00:00',
-    updatedAt: '2026-04-12T00:00:00',
+    views_count: 0,
+    likes_count: 0,
+    meta_title: 'Architectural Vectors',
+    meta_description: 'Analyzing the trajectory of lines in three-dimensional digital space.',
+    meta_keywords: 'vectors,architecture,3d,space',
+    author_id: 5,
+    category_id: 4,
+    published_at: '2026-04-12T00:00:00',
+    created_at: '2026-04-12T00:00:00',
+    updated_at: '2026-04-12T00:00:00',
   },
   {
     id: 5,
@@ -578,19 +575,19 @@ The grid is neither inherently good nor bad—it's a tool whose ethics depend on
 
 *Published: April 10, 2026*
 *Author: Adler Decht*`,
-    coverImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=600&fit=crop',
+    cover_image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=600&fit=crop',
     color: 'black',
     status: 'published',
-    viewsCount: 0,
-    likesCount: 0,
-    metaTitle: 'The Ethics of the Grid',
-    metaDescription: 'Is the grid a tool of liberation or a cage for creativity?',
-    metaKeywords: 'ethics,grid,ux,design',
-    authorId: 1,
-    categoryId: 5,
-    publishedAt: '2026-04-10T00:00:00',
-    createdAt: '2026-04-10T00:00:00',
-    updatedAt: '2026-04-10T00:00:00',
+    views_count: 0,
+    likes_count: 0,
+    meta_title: 'The Ethics of the Grid',
+    meta_description: 'Is the grid a tool of liberation or a cage for creativity?',
+    meta_keywords: 'ethics,grid,ux,design',
+    author_id: 1,
+    category_id: 5,
+    published_at: '2026-04-10T00:00:00',
+    created_at: '2026-04-10T00:00:00',
+    updated_at: '2026-04-10T00:00:00',
   },
 ];
 

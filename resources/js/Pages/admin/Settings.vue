@@ -30,7 +30,10 @@ import {
   Send,
   Shield,
   Zap,
+  Image,
+  Upload,
   ConfirmDialog,
+  MediaPickerModal,
   useToast
 } from '../../composables/useAdminImports';
 import { defaultSettings, tabsConfig } from '../../data/settings';
@@ -44,6 +47,13 @@ const activeTab = ref('site');
 const isSaving = ref(false);
 const showSaveConfirm = ref(false);
 const isEditing = ref(false);
+const showMediaPicker = ref(false);
+
+const handleMediaSelect = (file) => {
+  if (file.url) {
+    settings.value.site.favicon = file.url;
+  }
+};
 
 const iconMap = {
   globe: Globe,
@@ -56,8 +66,8 @@ const iconMap = {
 const tabs = computed(() => {
   return tabsConfig.map(tab => ({
     ...tab,
-    label: t(tab.labelKey),
-    icon: iconMap[tab.iconKey]
+    label: t(tab.label_key),
+    icon: iconMap[tab.icon_key]
   }));
 });
 
@@ -188,6 +198,40 @@ const sendTestEmail = () => {
                   !isEditing ? 'cursor-not-allowed opacity-60' : ''
                 ]"
               />
+            </div>
+            <div>
+              <label :class="['block text-sm font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_site_icon') }}</label>
+              <div class="flex items-start gap-4">
+                <div 
+                  @click="isEditing && (showMediaPicker = true)"
+                  :class="[
+                    'w-16 h-16 border-2 border-dashed rounded-xl flex items-center justify-center flex-shrink-0 transition-all',
+                    isEditing ? 'cursor-pointer hover:border-construct-red' : 'cursor-not-allowed opacity-60',
+                    isDarkMode ? 'border-gray-600 bg-gray-700 hover:bg-gray-600' : 'border-gray-300 bg-gray-50 hover:bg-gray-100'
+                  ]"
+                >
+                  <img
+                    v-if="settings.site.favicon"
+                    :src="settings.site.favicon"
+                    alt="Site Icon"
+                    class="w-10 h-10 object-contain"
+                  />
+                  <Image v-else size="24" :class="isDarkMode ? 'text-gray-500' : 'text-gray-400'" />
+                </div>
+                <div class="flex-1">
+                  <input
+                    v-model="settings.site.favicon"
+                    type="text"
+                    :placeholder="t('admin_site_icon_placeholder')"
+                    :class="[
+                      'w-full px-4 py-3 border focus:border-construct-red focus:outline-none transition-all mb-2',
+                      isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400',
+                      !isEditing ? 'cursor-not-allowed opacity-60' : ''
+                    ]"
+                  />
+                  <p :class="['text-xs', isDarkMode ? 'text-gray-500' : 'text-gray-400']">{{ t('admin_site_icon_hint') }}</p>
+                </div>
+              </div>
             </div>
             <div>
               <label :class="['block text-sm font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_default_language') }}</label>
@@ -601,13 +645,19 @@ const sendTestEmail = () => {
 
     <!-- Confirm Dialog -->
     <ConfirmDialog
-      :visible="showSaveConfirm"
+      v-model:visible="showSaveConfirm"
       :title="t('admin_save_confirm_title')"
       :content="t('admin_save_confirm_content')"
       :confirm-text="t('admin_save')"
       confirm-variant="primary"
       @confirm="confirmSave"
       @cancel="showSaveConfirm = false"
+    />
+
+    <MediaPickerModal
+      :visible="showMediaPicker"
+      @close="showMediaPicker = false"
+      @select="handleMediaSelect"
     />
   </div>
 </template>

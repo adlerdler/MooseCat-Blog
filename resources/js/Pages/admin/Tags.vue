@@ -24,7 +24,8 @@ import {
   adminTags,
   MetaForm,
   ConfirmDialog,
-  AdminPagination
+  AdminPagination,
+  AdminSearchFilter
 } from '../../composables/useAdminImports';
 
 const { t } = useI18n();
@@ -105,53 +106,50 @@ const confirmDelete = () => {
   }
   showDeleteConfirm.value = false;
 };
+
+const handleFilterChange = ({ key, value }) => {
+  if (key === 'status') {
+    statusFilter.value = value;
+  }
+  currentPage.value = 1;
+};
 </script>
 
 <template>
   <div class="p-8">
     <!-- Page Header -->
-    <div class="mb-8">
-      <div class="flex items-center gap-4 mb-2">
-        <Tag class="text-construct-red" size="32" />
-        <h2 class="font-display text-4xl tracking-tighter">{{ t('admin_tags') }}</h2>
-      </div>
-      <p class="text-gray-400 text-sm font-bold tracking-widest uppercase">Manage content tags</p>
-    </div>
-
-    <!-- Search and Filter -->
-    <div class="flex flex-col md:flex-row gap-4 mb-8">
-      <div class="flex-1 relative">
-        <Search :class="['absolute left-4 top-1/2 -translate-y-1/2', isDarkMode ? 'text-gray-400' : 'text-gray-500']" size="20" />
-        <input
-          v-model="searchQuery"
-          type="text"
-          :placeholder="t('admin_search_tags')"
-          :class="[
-            'w-full pl-12 pr-4 py-3 border focus:border-construct-red focus:outline-none transition-colors',
-            isDarkMode ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-          ]"
-        />
-      </div>
-      <div class="flex items-center gap-4">
-        <div class="flex items-center gap-2">
-          <Filter :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'" size="18" />
-          <select
-            v-model="statusFilter"
-            :class="[
-              'px-4 py-3 border focus:border-construct-red focus:outline-none transition-colors',
-              isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'
-            ]"
-          >
-            <option value="all">{{ t('admin_all_status') }}</option>
-            <option value="active">{{ t('admin_active') }}</option>
-            <option value="inactive">{{ t('admin_inactive') }}</option>
-          </select>
+    <div class="mb-10">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="flex items-center gap-4 mb-2">
+            <Tag class="text-construct-red" size="32" />
+            <h2 :class="['font-display text-4xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">{{ t('admin_tags') }}</h2>
+          </div>
+          <p :class="['text-sm font-black tracking-[0.2em] uppercase opacity-50', isDarkMode ? 'text-gray-400' : 'text-gray-500']">Manage content tags</p>
         </div>
-        <button @click="handleAdd" class="flex items-center gap-2 px-6 py-3 bg-construct-red hover:bg-red-600 text-white font-bold tracking-wider transition-colors rounded">
-          <Plus size="16" class="!text-white" /> {{ t('admin_add_tag') }}
+        <button @click="handleAdd" class="flex items-center gap-3 px-8 py-4 bg-construct-red text-white font-black text-xs uppercase tracking-[0.2em] transition-all hover:scale-105 active:scale-95 shadow-lg shadow-construct-red/20 rounded-xl">
+          <Plus size="18" class="!text-white" /> {{ t('admin_add_tag') }}
         </button>
       </div>
     </div>
+
+    <!-- Search and Filter -->
+    <AdminSearchFilter
+      v-model:search-query="searchQuery"
+      :search-placeholder="t('admin_search_tags')"
+      :filters="[
+        {
+          key: 'status',
+          options: [
+            { value: 'all', label: t('admin_all_status') },
+            { value: 'active', label: t('admin_active') },
+            { value: 'inactive', label: t('admin_inactive') }
+          ]
+        }
+      ]"
+      :filter-values="{ status: statusFilter }"
+      @filter-change="handleFilterChange"
+    />
 
     <!-- Tags Grid -->
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">

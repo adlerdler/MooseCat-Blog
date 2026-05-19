@@ -15,17 +15,17 @@ export const timeRanges = [
 ];
 
 export const analyticsStats = [
-  { label: 'Total Visits', value: '24,567', change: '+12%', iconKey: 'eye' },
-  { label: 'Unique Visitors', value: '18,234', change: '+8%', iconKey: 'users' },
-  { label: 'Page Views', value: '89,432', change: '+15%', iconKey: 'barChart3' },
-  { label: 'Avg. Duration', value: '4m 32s', change: '+5%', iconKey: 'clock' },
+  { label: 'Total Visits', value: '24,567', change: '+12%', icon_key: 'eye' },
+  { label: 'Unique Visitors', value: '18,234', change: '+8%', icon_key: 'users' },
+  { label: 'Page Views', value: '89,432', change: '+15%', icon_key: 'barChart3' },
+  { label: 'Avg. Duration', value: '4m 32s', change: '+5%', icon_key: 'clock' },
 ];
 
 export const userStats = [
-  { label: 'Total Users', value: 2847, change: '+18%', iconKey: 'users', color: 'bg-construct-red' },
-  { label: 'Active Users', value: 1523, change: '+12%', iconKey: 'activity', color: 'bg-blue-500' },
-  { label: 'New Users', value: 156, change: '+24%', iconKey: 'userPlus', color: 'bg-green-500' },
-  { label: 'Subscribers', value: 892, change: '+8%', iconKey: 'bell', color: 'bg-purple-500' },
+  { label: 'Total Users', value: 2847, change: '+18%', icon_key: 'users', color: 'bg-construct-red' },
+  { label: 'Active Users', value: 1523, change: '+12%', icon_key: 'activity', color: 'bg-blue-500' },
+  { label: 'New Users', value: 156, change: '+24%', icon_key: 'userPlus', color: 'bg-green-500' },
+  { label: 'Subscribers', value: 892, change: '+8%', icon_key: 'bell', color: 'bg-purple-500' },
 ];
 
 export const postTrendData = [

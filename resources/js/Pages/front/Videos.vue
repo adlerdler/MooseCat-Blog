@@ -73,7 +73,7 @@ onMounted(() => {
                   {{ video.title }}
                 </h3>
                 <p class="text-xs opacity-60 font-medium">
-                  {{ video.date }} // {{ video.platform.toUpperCase() }}
+                  {{ video.published_at }} // {{ video.platform.toUpperCase() }}
                 </p>
               </div>
             </RouterLink>

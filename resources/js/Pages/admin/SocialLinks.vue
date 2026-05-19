@@ -28,6 +28,7 @@ import { socialLinks } from '../../data/author';
 import ContentForm from '../../components/admin/ContentForm.vue';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import AdminPagination from '../../components/admin/AdminPagination.vue';
+import AdminSearchFilter from '../../components/admin/AdminSearchFilter.vue';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
@@ -68,7 +69,7 @@ const filteredLinks = computed(() => {
     );
   }
   
-  return result.sort((a, b) => a.sortOrder - b.sortOrder);
+  return result.sort((a, b) => a.sort_order - b.sort_order);
 });
 
 const totalPages = computed(() => Math.ceil(filteredLinks.value.length / itemsPerPage.value));
@@ -85,7 +86,7 @@ const handleEdit = (link) => {
     label: link.label,
     url: link.url,
     style: { ...link.style },
-    sortOrder: link.sortOrder
+    sort_order: link.sort_order
   };
   isFormVisible.value = true;
 };
@@ -139,8 +140,8 @@ const moveUp = (link) => {
   const index = links.value.findIndex(l => l.id === link.id);
   if (index > 0) {
     [links.value[index], links.value[index - 1]] = [links.value[index - 1], links.value[index]];
-    links.value[index].sortOrder = index;
-    links.value[index - 1].sortOrder = index - 1;
+    links.value[index].sort_order = index;
+    links.value[index - 1].sort_order = index - 1;
   }
 };
 
@@ -148,60 +149,57 @@ const moveDown = (link) => {
   const index = links.value.findIndex(l => l.id === link.id);
   if (index < links.value.length - 1) {
     [links.value[index], links.value[index + 1]] = [links.value[index + 1], links.value[index]];
-    links.value[index].sortOrder = index;
-    links.value[index + 1].sortOrder = index + 1;
+    links.value[index].sort_order = index;
+    links.value[index + 1].sort_order = index + 1;
   }
+};
+
+const handleFilterChange = ({ key, value }) => {
+  if (key === 'platform') {
+    selectedPlatform.value = value;
+  }
+  currentPage.value = 1;
 };
 </script>
 
 <template>
   <div class="p-8">
     <!-- Page Header -->
-    <div class="mb-8">
-      <div class="flex items-center gap-4 mb-2">
-        <Link class="text-construct-red" size="32" />
-        <h2 :class="['font-display text-4xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">{{ t('admin_social_links') }}</h2>
-      </div>
-      <p :class="['text-sm font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_social_links_subtitle') }}</p>
-    </div>
-
-    <!-- Search and Filter -->
-    <div class="flex flex-col md:flex-row gap-4 mb-8">
-      <div class="flex-1 relative">
-        <Search :class="['absolute left-4 top-1/2 -translate-y-1/2', isDarkMode ? 'text-gray-400' : 'text-gray-500']" size="20" />
-        <input
-          v-model="searchQuery"
-          type="text"
-          :placeholder="t('admin_search')"
-          :class="[
-            'w-full pl-12 pr-4 py-3 border focus:border-construct-red focus:outline-none transition-colors',
-            isDarkMode ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-          ]"
-        />
-      </div>
-      <div class="flex items-center gap-4">
-        <div class="flex items-center gap-2">
-          <Filter :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'" size="18" />
-          <select
-            v-model="selectedPlatform"
-            :class="[
-              'px-4 py-3 border focus:border-construct-red focus:outline-none transition-colors',
-              isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'
-            ]"
-          >
-            <option value="all">{{ t('admin_all_platforms') }}</option>
-            <option value="github">GitHub</option>
-            <option value="twitter">Twitter</option>
-            <option value="linkedin">LinkedIn</option>
-            <option value="email">Email</option>
-          </select>
+    <div class="mb-10">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="flex items-center gap-4 mb-2">
+            <Link class="text-construct-red" size="32" />
+            <h2 :class="['font-display text-4xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">{{ t('admin_social_links') }}</h2>
+          </div>
+          <p :class="['text-sm font-black tracking-[0.2em] uppercase opacity-50', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_social_links_subtitle') }}</p>
         </div>
-        <button @click="handleAdd" class="flex items-center gap-2 px-6 py-3 bg-construct-red hover:bg-red-600 text-white font-bold tracking-wider transition-colors rounded">
+        <button @click="handleAdd" class="flex items-center gap-3 px-8 py-4 bg-construct-red text-white font-black text-xs uppercase tracking-[0.2em] transition-all hover:scale-105 active:scale-95 shadow-lg shadow-construct-red/20 rounded-xl">
           <Plus size="18" />
           {{ t('admin_add') }}
         </button>
       </div>
     </div>
+
+    <!-- Search and Filter -->
+    <AdminSearchFilter
+      v-model:search-query="searchQuery"
+      :search-placeholder="t('admin_search')"
+      :filters="[
+        {
+          key: 'platform',
+          options: [
+            { value: 'all', label: t('admin_all_platforms') },
+            { value: 'github', label: 'GitHub' },
+            { value: 'twitter', label: 'Twitter' },
+            { value: 'linkedin', label: 'LinkedIn' },
+            { value: 'email', label: 'Email' }
+          ]
+        }
+      ]"
+      :filter-values="{ platform: selectedPlatform }"
+      @filter-change="handleFilterChange"
+    />
 
     <!-- Links List -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
@@ -237,7 +235,7 @@ const moveDown = (link) => {
 
         <div class="flex items-center justify-between">
           <span :class="['text-xs font-mono', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
-            #{{ link.sortOrder }}
+            #{{ link.sort_order }}
           </span>
           <div class="flex items-center gap-2">
             <button @click="handleEdit(link)" :class="['p-2 rounded transition-colors', isDarkMode ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500']">

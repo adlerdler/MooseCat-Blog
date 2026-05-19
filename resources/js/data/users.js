@@ -1,23 +1,158 @@
 /**
- * users.js - 用户数据定义
+ * users.js - 用户数据定义（以数据库为准）
  * 
- * 角色字段使用 roles.js 中的数字 ID 进行关联：
- * - 1: admin - 系统管理员
- * - 2: editor - 内容编辑
- * - 3: author - 文章作者
- * - 4: moderator - 社区版主
- * - 5: subscriber - 订阅用户
- * - 6: api - API用户
- * - 7: guest - 访客用户
+ * 字段说明：
+ * - id: 用户唯一标识
+ * - name: 用户姓名
+ * - email: 用户邮箱
+ * - password: 加密密码
+ * - avatar: 头像
+ * - bio: 个人简介
+ * - github: GitHub链接
+ * - twitter: Twitter链接
+ * - linkedin: LinkedIn链接
+ * - role: 角色（user/admin）
+ * - status: 状态（active/inactive/suspended）
+ * - last_login_at: 最后登录时间
+ * - created_at: 创建时间
+ * - updated_at: 更新时间
  */
 
 export const adminUsers = [
-  { id: 1, name: 'Admin User', email: 'admin@archyx.com', password: 'admin123', roleId: 1, status: 'active', joined: '2024-01-15T00:00:00', penName: 'ADLER DECHT' },
-  { id: 2, name: 'Content Editor', email: 'editor@archyx.com', password: 'editor123', roleId: 2, status: 'active', joined: '2024-03-20T00:00:00', penName: 'RODCHENKO' },
-  { id: 3, name: 'Author Writer', email: 'author@archyx.com', password: 'author123', roleId: 3, status: 'active', joined: '2024-05-10T00:00:00', penName: 'ADLERIAN' },
-  { id: 4, name: 'Guest User', email: 'guest@example.com', password: 'guest123', roleId: 7, status: 'inactive', joined: '2024-06-01T00:00:00', penName: null },
-  { id: 5, name: 'Contributor', email: 'contributor@archyx.com', password: 'contributor123', roleId: 3, status: 'active', joined: '2024-07-15T00:00:00', penName: 'V. TATLIN' },
-  { id: 6, name: 'Moderator', email: 'moderator@archyx.com', password: 'moderator123', roleId: 4, status: 'active', joined: '2024-08-20T00:00:00', penName: null },
-  { id: 7, name: 'Subscriber', email: 'subscriber@example.com', password: 'subscriber123', roleId: 5, status: 'inactive', joined: '2024-09-01T00:00:00', penName: null },
-  { id: 8, name: 'API User', email: 'api@archyx.com', password: 'api123', roleId: 6, status: 'active', joined: '2024-10-15T00:00:00', penName: null },
+  {
+    id: 1,
+    name: 'Admin User',
+    email: 'admin@archyx.com',
+    password: 'admin123',
+    avatar: null,
+    bio: '系统管理员',
+    github: null,
+    twitter: null,
+    linkedin: null,
+    role_id: 1,
+    status: 'active',
+    joined: '2024-01-15',
+    last_login_at: '2024-01-15T10:00:00',
+    created_at: '2024-01-15T10:00:00',
+    updated_at: '2024-01-15T10:00:00',
+  },
+  {
+    id: 2,
+    name: 'Content Editor',
+    email: 'editor@archyx.com',
+    password: 'editor123',
+    avatar: null,
+    bio: '内容编辑',
+    github: null,
+    twitter: null,
+    linkedin: null,
+    role_id: 2,
+    status: 'active',
+    joined: '2024-03-20',
+    last_login_at: '2024-03-20T08:30:00',
+    created_at: '2024-03-20T08:30:00',
+    updated_at: '2024-03-20T08:30:00',
+  },
+  {
+    id: 3,
+    name: 'Author Writer',
+    email: 'author@archyx.com',
+    password: 'author123',
+    avatar: null,
+    bio: '文章作者',
+    github: null,
+    twitter: null,
+    linkedin: null,
+    role_id: 3,
+    status: 'active',
+    joined: '2024-05-10',
+    last_login_at: '2024-05-10T14:20:00',
+    created_at: '2024-05-10T14:20:00',
+    updated_at: '2024-05-10T14:20:00',
+  },
+  {
+    id: 4,
+    name: 'Guest User',
+    email: 'guest@example.com',
+    password: 'guest123',
+    avatar: null,
+    bio: null,
+    github: null,
+    twitter: null,
+    linkedin: null,
+    role_id: 7,
+    status: 'inactive',
+    joined: '2024-06-01',
+    last_login_at: null,
+    created_at: '2024-06-01T09:15:00',
+    updated_at: '2024-06-01T09:15:00',
+  },
+  {
+    id: 5,
+    name: 'Contributor',
+    email: 'contributor@archyx.com',
+    password: 'contributor123',
+    avatar: null,
+    bio: '贡献者',
+    github: null,
+    twitter: null,
+    linkedin: null,
+    role_id: 3,
+    status: 'active',
+    joined: '2024-07-15',
+    last_login_at: '2024-07-15T16:45:00',
+    created_at: '2024-07-15T16:45:00',
+    updated_at: '2024-07-15T16:45:00',
+  },
+  {
+    id: 6,
+    name: 'Moderator',
+    email: 'moderator@archyx.com',
+    password: 'moderator123',
+    avatar: null,
+    bio: '社区版主',
+    github: null,
+    twitter: null,
+    linkedin: null,
+    role_id: 4,
+    status: 'active',
+    joined: '2024-08-20',
+    last_login_at: '2024-08-20T11:30:00',
+    created_at: '2024-08-20T11:30:00',
+    updated_at: '2024-08-20T11:30:00',
+  },
+  {
+    id: 7,
+    name: 'Subscriber',
+    email: 'subscriber@example.com',
+    password: 'subscriber123',
+    avatar: null,
+    bio: null,
+    github: null,
+    twitter: null,
+    linkedin: null,
+    role_id: 5,
+    status: 'inactive',
+    joined: '2024-09-01',
+    last_login_at: null,
+    created_at: '2024-09-01T13:20:00',
+    updated_at: '2024-09-01T13:20:00',
+  },
+  {
+    id: 8,
+    name: 'API User',
+    email: 'api@archyx.com',
+    password: 'api123',
+    avatar: null,
+    bio: 'API用户',
+    github: null,
+    twitter: null,
+    linkedin: null,
+    role_id: 6,
+    status: 'active',
+    joined: '2024-10-15',
+    last_login_at: '2024-10-15T10:00:00',
+    created_at: '2024-10-15T10:00:00',
+    updated_at: '2024-10-15T10:00:00',
+  },
 ];

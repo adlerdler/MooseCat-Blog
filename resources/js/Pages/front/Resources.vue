@@ -16,6 +16,8 @@ import { ref, computed, onMounted, TransitionGroup } from 'vue';
 import { Motion, AnimatePresence } from 'motion-v';
 import { useTheme } from '../../composables/useTheme';
 import { resourcesData } from '../../data/resources';
+import { categories } from '../../data/categories';
+import { getCategoryNameById } from '../../utils/categoryUtils';
 import { Download, HardDrive } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
 
@@ -43,12 +45,24 @@ const getDriveLogo = (type) => {
   return driveLogos[type] || { bg: 'bg-gray-500', text: type.slice(0, 6).toUpperCase(), color: 'text-white' };
 };
 
-const categories = computed(() => {
- return ['ALL', ...new Set(resourcesData.map(r => r.category))];
+const categoryList = computed(() => {
+  // 只显示有资源的分类
+  const usedCategoryIds = [...new Set(resourcesData.map(r => r.category_id))];
+  const usedCategories = categories.filter(c => usedCategoryIds.includes(c.id));
+  return ['ALL', ...usedCategories.map(c => c.name)];
 });
 const filteredResources = computed(() => {
- return resourcesData.filter(r => selectedCategory.value === 'ALL' || r.category === selectedCategory.value);
+  if (selectedCategory.value === 'ALL') {
+    return resourcesData;
+  }
+  // 根据分类名称找到对应的分类ID，然后筛选资源
+  const selectedCategoryData = categories.find(c => c.name === selectedCategory.value);
+  if (!selectedCategoryData) return [];
+  return resourcesData.filter(r => r.category_id === selectedCategoryData.id);
 });
+const getResourceCategoryName = (categoryId) => {
+  return getCategoryNameById(categories, categoryId) || '';
+};
 onMounted(() => {
   initAccentTheme();
   // 前台页面不受后台主题设置影响，移除 light class
@@ -59,7 +73,11 @@ onMounted(() => {
   }
 });
 const selectResource = (resource) => {
- selectedResource.value = resource;
+  // 创建资源副本并添加 categoryName 字段供模态框使用
+  selectedResource.value = {
+    ...resource,
+    category: getResourceCategoryName(resource.category_id)
+  };
 };
 const closeModal = () => {
  selectedResource.value = null;
@@ -85,7 +103,7 @@ const closeModal = () => {
           <!-- Categories -->
           <div class="flex flex-wrap gap-4 mb-4">
             <button
-              v-for="cat in categories"
+              v-for="cat in categoryList"
               :key="cat"
               @click="selectedCategory = cat"
               :class="[
@@ -122,13 +140,13 @@ const closeModal = () => {
                     {{ resource.format }}
                   </div>
                   <div class="bg-white text-construct-black px-3 py-1 text-[10px] font-bold tracking-widest uppercase">
-                    {{ resource.fileSize }}
+                    {{ resource.file_size }}
                   </div>
                 </div>
               </div>
               <div class="flex justify-between items-start">
                 <div>
-                  <div class="text-[10px] font-bold tracking-widest opacity-40 uppercase mb-2">[{{ resource.category }}]</div>
+                  <div class="text-[10px] font-bold tracking-widest opacity-40 uppercase mb-2">[{{ getResourceCategoryName(resource.category_id) }}]</div>
                   <h3 class="font-display text-2xl tracking-tight mb-2 group-hover:text-construct-red transition-colors">
                     {{ resource.title }}
                   </h3>

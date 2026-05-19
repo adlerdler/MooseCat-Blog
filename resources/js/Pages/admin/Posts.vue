@@ -26,7 +26,8 @@ import {
   Filter,
   ConfirmDialog,
   ContentForm,
-  AdminPagination
+  AdminPagination,
+  AdminSearchFilter
 } from '../../composables/useAdminImports';
 import { POSTS } from '../../data/posts';
 import { categories } from '../../data/categories';
@@ -69,17 +70,17 @@ const getCategoryColor = (category) => {
 const filteredPosts = computed(() => {
   let result = [...POSTS];
 
-  result.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
+  result.sort((a, b) => new Date(b.published_at) - new Date(a.published_at));
 
   if (selectedCategory.value !== 'all') {
-    result = result.filter(post => getCategoryNameById(categories, post.categoryId) === selectedCategory.value);
+    result = result.filter(post => getCategoryNameById(categories, post.category_id) === selectedCategory.value);
   }
 
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase();
     result = result.filter(post =>
       post.title.toLowerCase().includes(query) ||
-      getAuthorName(post.authorId).toLowerCase().includes(query) ||
+      getAuthorName(post.author_id).toLowerCase().includes(query) ||
       post.tags.some(tag => tag.toLowerCase().includes(query))
     );
   }
@@ -126,57 +127,53 @@ const handleCancel = () => {
   isFormVisible.value = false;
   editingPost.value = null;
 };
+
+const handleFilterChange = ({ key, value }) => {
+  if (key === 'category') {
+    selectedCategory.value = value;
+  }
+  currentPage.value = 1;
+};
 </script>
 
 <template>
   <div class="p-8">
     <!-- Page Header -->
-    <div class="mb-8">
-      <h2 class="font-display text-4xl tracking-tighter mb-2">{{ t('admin_posts') }}</h2>
-      <p class="text-gray-400 text-sm font-bold tracking-widest uppercase">{{ t('admin_posts_subtitle') }}</p>
+    <div class="mb-10">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="flex items-center gap-4 mb-2">
+            <FileText class="text-construct-red" size="32" />
+            <h2 class="font-display text-4xl tracking-tighter">{{ t('admin_posts') }}</h2>
+          </div>
+          <p class="text-gray-400 text-sm font-black tracking-[0.2em] uppercase opacity-50">{{ t('admin_posts_subtitle') }}</p>
+        </div>
+        <button
+          @click="handleAdd"
+          class="flex items-center gap-3 px-8 py-4 bg-construct-red text-white font-black text-xs uppercase tracking-[0.2em] transition-all hover:scale-105 active:scale-95 shadow-lg shadow-construct-red/20 rounded-xl"
+        >
+          <Plus size="18" />
+          {{ t('admin_add') }}
+        </button>
+      </div>
     </div>
 
     <!-- Toolbar -->
-    <div class="flex flex-col md:flex-row gap-4 mb-6">
-      <!-- Search -->
-      <div class="relative flex-1">
-        <Search :class="['absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5', isDarkMode ? 'text-gray-500' : 'text-gray-400']" />
-        <input
-          v-model="searchQuery"
-          type="text"
-          :placeholder="t('admin_search_placeholder')"
-          :class="[
-            'w-full pl-10 pr-4 py-3 border focus:border-construct-red focus:outline-none transition-colors',
-            isDarkMode ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
-          ]"
-        />
-      </div>
-      
-      <!-- Category Filter -->
-      <div class="relative">
-        <Filter :class="['absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5', isDarkMode ? 'text-gray-500' : 'text-gray-400']" />
-        <select
-          v-model="selectedCategory"
-          :class="[
-            'pl-10 pr-8 py-3 border focus:border-construct-red focus:outline-none appearance-none cursor-pointer min-w-[150px]',
-            isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'
-          ]"
-        >
-          <option v-for="cat in categoryOptions" :key="cat" :value="cat">
-            {{ cat === 'all' ? t('admin_all') : cat }}
-          </option>
-        </select>
-      </div>
-      
-      <!-- Add Button -->
-      <button
-        @click="handleAdd"
-        class="flex items-center gap-2 px-6 py-3 bg-construct-red text-white font-bold tracking-widest uppercase text-sm hover:bg-red-700 transition-colors rounded"
-      >
-        <Plus size="16" class="!text-white" />
-        {{ t('admin_add') }}
-      </button>
-    </div>
+    <AdminSearchFilter
+      v-model:search-query="searchQuery"
+      :search-placeholder="t('admin_search_placeholder')"
+      :filters="[
+        {
+          key: 'category',
+          options: categoryOptions.map(cat => ({
+            value: cat,
+            label: cat === 'all' ? t('admin_all') : cat
+          }))
+        }
+      ]"
+      :filter-values="{ category: selectedCategory }"
+      @filter-change="handleFilterChange"
+    />
 
     <!-- Posts Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -191,16 +188,16 @@ const handleCancel = () => {
         <!-- Post Thumbnail -->
         <div class="relative aspect-video bg-gray-900">
           <img
-            v-if="post.coverImage"
-            :src="post.coverImage"
+            v-if="post.cover_image"
+            :src="post.cover_image"
             :alt="post.title"
             class="w-full h-full object-cover"
           />
           <div v-else class="w-full h-full flex items-center justify-center">
             <FileText class="w-12 h-12 text-gray-600" />
           </div>
-          <div class="absolute top-2 right-2 px-2 py-1 text-xs font-bold uppercase" :class="getCategoryColor(getCategoryNameById(categories, post.categoryId))">
-            {{ getCategoryNameById(categories, post.categoryId) }}
+          <div class="absolute top-2 right-2 px-2 py-1 text-xs font-bold uppercase" :class="getCategoryColor(getCategoryNameById(categories, post.category_id))">
+            {{ getCategoryNameById(categories, post.category_id) }}
           </div>
         </div>
         
@@ -227,8 +224,8 @@ const handleCancel = () => {
           <div class="flex items-center justify-between">
             <div :class="['flex items-center gap-2 text-xs', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
               <Clock size="12" />
-              {{ formatToShort(post.publishedAt) }}
-              <span class="ml-2">{{ getAuthorName(post.authorId) }}</span>
+              {{ formatToShort(post.published_at) }}
+              <span class="ml-2">{{ getAuthorName(post.author_id) }}</span>
             </div>
             
             <div class="flex gap-2">

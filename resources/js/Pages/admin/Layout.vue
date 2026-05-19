@@ -45,7 +45,8 @@ import {
   RotateCcw,
   Image,
   Zap,
-  Link
+  Link,
+  Crown
 } from 'lucide-vue-next';
 import ThemeToggle from '../../components/ThemeToggle.vue';
 import ToastContainer from '../../components/ToastContainer.vue';
@@ -161,21 +162,22 @@ const iconMap = {
   Image,
   Zap,
   Link,
-  Menu
+  Menu,
+  Crown
 };
 
 const menuItems = computed(() => {
   return adminMenuItems.map(item => {
     const mappedItem = {
       ...item,
-      label: t(item.labelKey),
-      icon: iconMap[item.iconName]
+      label: t(item.label_key),
+      icon: iconMap[item.icon_name]
     };
     if (item.children && item.children.length > 0) {
       mappedItem.children = item.children.map(child => ({
         ...child,
-        label: t(child.labelKey),
-        icon: iconMap[child.iconName]
+        label: t(child.label_key),
+        icon: iconMap[child.icon_name]
       }));
     }
     return mappedItem;

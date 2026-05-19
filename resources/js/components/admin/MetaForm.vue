@@ -13,6 +13,7 @@
 import { ref, computed, watch } from 'vue';
 import { X, Save } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps({
   type: {
@@ -33,14 +34,15 @@ const props = defineProps({
 const emit = defineEmits(['save', 'cancel']);
 
 const { isDarkMode } = useTheme();
+const { t } = useI18n();
 
 const isEditMode = computed(() => props.editData !== null);
 
 const formTitle = computed(() => {
   if (props.type === 'category') {
-    return isEditMode.value ? '编辑分类' : '新增分类';
+    return isEditMode.value ? t('admin_edit_category') : t('admin_add_category');
   }
-  return isEditMode.value ? '编辑标签' : '新增标签';
+  return isEditMode.value ? t('admin_edit_tag') : t('admin_add_tag');
 });
 
 const formData = ref({});
@@ -124,7 +126,7 @@ const toggleStatus = () => {
           <!-- Name -->
           <div>
             <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
-              {{ type === 'category' ? '分类名称' : '标签名称' }} *
+              {{ type === 'category' ? t('admin_category_name') : t('admin_tag_name') }} *
             </label>
             <input
               v-model="formData.name"
@@ -135,14 +137,14 @@ const toggleStatus = () => {
                   ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
                   : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
               ]"
-              :placeholder="type === 'category' ? '输入分类名称...' : '输入标签名称...'"
+              :placeholder="type === 'category' ? t('admin_enter_category_name') : t('admin_enter_tag_name')"
             />
           </div>
 
           <!-- Description (仅分类) -->
           <div v-if="type === 'category'">
             <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
-              描述
+              {{ t('admin_description') }}
             </label>
             <textarea
               v-model="formData.description"
@@ -153,14 +155,14 @@ const toggleStatus = () => {
                   ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
                   : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
               ]"
-              placeholder="输入分类描述..."
+              :placeholder="t('admin_enter_category_description')"
             ></textarea>
           </div>
 
           <!-- Status -->
           <div>
             <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
-              状态
+              {{ t('admin_status') }}
             </label>
             <div class="flex items-center gap-3">
               <button
@@ -174,7 +176,7 @@ const toggleStatus = () => {
                 <div :class="['absolute top-1 w-4 h-4 rounded-full bg-white transition-transform', formData.status === 'active' ? 'left-7' : 'left-1']"></div>
               </button>
               <span :class="['text-sm font-bold', formData.status === 'active' ? 'text-green-500' : (isDarkMode ? 'text-gray-400' : 'text-gray-500')]">
-                {{ formData.status === 'active' ? '启用' : '禁用' }}
+                {{ formData.status === 'active' ? t('admin_active') : t('admin_inactive') }}
               </span>
             </div>
           </div>
@@ -196,14 +198,14 @@ const toggleStatus = () => {
                 : 'border-gray-300 text-gray-700 hover:bg-gray-100'
             ]"
           >
-            取消
+            {{ t('admin_cancel') }}
           </button>
           <button
             @click="handleSubmit"
             class="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-construct-red text-white font-bold tracking-widest uppercase text-sm hover:bg-red-700 transition-colors rounded"
           >
             <Save class="w-4 h-4" />
-            {{ isEditMode ? '保存' : '新增' }}
+            {{ isEditMode ? t('admin_save') : t('admin_add') }}
           </button>
         </div>
       </div>

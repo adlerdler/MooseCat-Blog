@@ -59,10 +59,10 @@ export const defaultSettings = {
 };
 
 export const tabsConfig = [
-  { id: 'site', labelKey: 'admin_settings_site', iconKey: 'globe' },
-  { id: 'appearance', labelKey: 'admin_settings_appearance', iconKey: 'palette' },
-  { id: 'notifications', labelKey: 'admin_settings_notifications', iconKey: 'bell' },
-  { id: 'seo', labelKey: 'admin_settings_seo', iconKey: 'search' },
-  { id: 'mail', labelKey: 'admin_settings_mail', iconKey: 'mail' },
-  { id: 'performance', labelKey: 'admin_settings_performance', iconKey: 'zap' }
+  { id: 'site', label_key: 'admin_settings_site', icon_key: 'globe' },
+  { id: 'appearance', label_key: 'admin_settings_appearance', icon_key: 'palette' },
+  { id: 'notifications', label_key: 'admin_settings_notifications', icon_key: 'bell' },
+  { id: 'seo', label_key: 'admin_settings_seo', icon_key: 'search' },
+  { id: 'mail', label_key: 'admin_settings_mail', icon_key: 'mail' },
+  { id: 'performance', label_key: 'admin_settings_performance', icon_key: 'zap' }
 ];

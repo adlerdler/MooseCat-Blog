@@ -84,6 +84,69 @@
 
 ---
 
+## 三、推荐新增 Data 数据文件（支持未来功能开发）
+
+### 3.1 高优先级（基础功能必需）
+
+| 序号 | 建议文件名 | 对应表名 | 支持功能 | 字段建议 | 优先级 |
+|:---:|-----------|---------|---------|---------|:---:|
+| 1 | **mediaFiles.js** | media_files | 媒体库管理、文件上传、图片选择器 | id, name, type, size, url, thumbnail, uploadedAt, userId | 高 |
+| 2 | **menus.js** | menus | 前后台菜单配置、导航管理 | id, name, label, icon, path, parentId, sortOrder, isActive | 高 |
+| 3 | **roles.js** | roles | 用户角色管理、权限分配 | id, name, label, description, permissions, createdAt | 高 |
+| 4 | **permissions.js** | permissions | 功能权限控制、访问限制 | id, name, label, module, description | 高 |
+| 5 | **rolePermissions.js** | role_permissions | 角色权限关联 | roleId, permissionId | 高 |
+
+### 3.2 中优先级（增强用户体验）
+
+| 序号 | 建议文件名 | 对应表名 | 支持功能 | 字段建议 | 优先级 |
+|:---:|-----------|---------|---------|---------|:---:|
+| 6 | **userLevels.js** | user_levels | 用户等级系统、积分成长 | id, name, icon, minPoints, maxPoints, benefits | 中 |
+| 7 | **notifications.js** | notifications | 站内消息、系统通知、提醒功能 | id, userId, title, content, type, isRead, createdAt | 中 |
+| 8 | **analytics.js** | analytics | 数据统计、访问分析、仪表盘 | id, type, value, date, metadata | 中 |
+| 9 | **emailTemplates.js** | email_templates | 邮件模板、通知邮件、营销邮件 | id, name, subject, body, variables, isActive | 中 |
+| 10 | **backupRecords.js** | backup_records | 数据备份、恢复、版本管理 | id, type, path, size, status, createdAt, note | 中 |
+
+### 3.3 低优先级（高级功能）
+
+| 序号 | 建议文件名 | 对应表名 | 支持功能 | 字段建议 | 优先级 |
+|:---:|-----------|---------|---------|---------|:---:|
+| 11 | **themes.js** | themes | 主题切换、外观定制 | id, name, label, colors, preview, isActive | 低 |
+| 12 | **plugins.js** | plugins | 插件系统、功能扩展 | id, name, version, description, config, isActive | 低 |
+| 13 | **apiKeys.js** | api_keys | API密钥管理、第三方集成 | id, name, key, permissions, expiresAt, createdAt | 低 |
+| 14 | **adminLogs.js** | admin_logs | 操作日志、审计追踪 | id, userId, action, target, ip, userAgent, createdAt | 低 |
+| 15 | **socialLinks.js** | social_links | 社交链接管理、分享功能 | id, platform, name, icon, url, isActive | 低 |
+| 16 | **banners.js** | banners | 首页轮播图、广告横幅 | id, title, image, link, sortOrder, isActive, startDate, endDate | 低 |
+| 17 | **faq.js** | faq | 常见问题、帮助中心 | id, question, answer, category, sortOrder | 低 |
+| 18 | **testimonials.js** | testimonials | 用户评价、案例展示 | id, name, avatar, content, rating, isActive | 低 |
+
+### 3.4 功能开发路线图
+
+```
+第一阶段（基础）
+├── 媒体库管理 ← mediaFiles.js
+├── 菜单配置系统 ← menus.js
+└── 角色权限系统 ← roles.js + permissions.js + rolePermissions.js
+
+第二阶段（增强）
+├── 用户等级体系 ← userLevels.js
+├── 站内通知系统 ← notifications.js
+├── 数据统计面板 ← analytics.js
+├── 邮件模板系统 ← emailTemplates.js
+└── 数据备份功能 ← backupRecords.js
+
+第三阶段（高级）
+├── 主题定制系统 ← themes.js
+├── 插件扩展机制 ← plugins.js
+├── API开放平台 ← apiKeys.js
+├── 操作审计日志 ← adminLogs.js
+├── 社交分享功能 ← socialLinks.js
+├── 首页内容管理 ← banners.js
+├── 帮助中心 ← faq.js
+└── 用户评价系统 ← testimonials.js
+```
+
+---
+
 ## 四、字段详细对比
 
 ### 4.1 categories（分类表）
@@ -143,40 +206,43 @@
 | 数据库字段 | 类型 | 说明 | Data字段 | 类型 | 说明 | 对比结果 | 推荐 |
 |-----------|------|------|----------|------|------|----------|------|
 | id | bigint | 评论唯一标识 | id | number | 评论唯一标识 | ✅ 一致 | 保持一致，使用number类型 |
-| post_id | bigint | 所属文章ID（外键） | postId | number | 所属文章ID | ⚠️ 命名不同 | 统一为post_id（数据库）/postId（Data） |
-| parent_id | bigint | 父评论ID（用于回复） | - | - | - | ❌ Data缺失 | 添加parent_id字段（number类型），支持回复功能 |
-| user_id | bigint | 评论用户ID（外键） | - | - | - | ❌ Data缺失 | 添加userId字段（number类型，外键） |
+| post_id | bigint | 所属文章ID（外键） | postId | number | 所属文章ID | ✅ 一致 | 统一为post_id（数据库）/postId（Data） |
+| parent_id | bigint | 父评论ID（用于回复） | parentId | number | 父评论ID | ✅ 一致 | 保持一致，支持回复功能 |
+| user_id | bigint | 评论用户ID（外键） | userId | number | 评论用户ID | ✅ 一致 | 保持一致，使用外键 |
 | name | string | 评论者姓名 | name | string | 评论者姓名 | ✅ 一致 | 保持一致 |
 | email | string | 评论者邮箱 | email | string | 评论者邮箱 | ✅ 一致 | 保持一致 |
-| body | text | 评论内容 | content | string | 评论内容 | ⚠️ 命名不同 | 统一为body（数据库）/content（Data） |
-| is_approved | boolean | 是否已审核 | status | string | 审核状态（approved/pending/spam） | ⚠️ 类型/含义不同 | 数据库改为enum类型（approved/pending/spam），Data保持status |
-| ip_address | string | 评论者IP地址 | - | - | - | ❌ Data缺失 | 添加ipAddress字段 |
-| user_agent | string | 评论者浏览器信息 | - | - | - | ❌ Data缺失 | 添加userAgent字段 |
-| created_at | timestamp | 创建时间 | date | string | 创建日期 | ⚠️ 命名/类型不同 | 统一为createdAt（timestamp类型） |
-| updated_at | timestamp | 更新时间 | - | - | - | ❌ Data缺失 | 添加updatedAt字段（timestamp类型） |
+| body | text | 评论内容 | content | string | 评论内容 | ✅ 一致 | 统一为body（数据库）/content（Data） |
+| is_approved | boolean | 是否已审核 | status | string | 审核状态（approved/pending/spam） | ✅ 一致 | 数据库改为enum类型（approved/pending/spam），Data保持status |
+| ip_address | string | 评论者IP地址 | ipAddress | string | 评论者IP地址 | ✅ 一致 | 保持一致 |
+| user_agent | string | 评论者浏览器信息 | userAgent | string | 评论者浏览器信息 | ✅ 一致 | 保持一致 |
+| created_at | timestamp | 创建时间 | createdAt | string | 创建时间 | ✅ 一致 | 统一为createdAt（timestamp类型） |
+| updated_at | timestamp | 更新时间 | updatedAt | string | 更新时间 | ✅ 一致 | 保持一致 |
 | - | - | - | likes | number | 评论点赞数 | ⚠️ Data独有 | 保留likes字段，使用interactions表管理 |
 
 ### 4.5 projects（项目表）
 
 | 数据库字段 | 类型 | 说明 | Data字段 | 类型 | 说明 | 对比结果 | 推荐 |
 |-----------|------|------|----------|------|------|----------|------|
-| id | bigint | 项目唯一标识 | id | number/string | 项目唯一标识 | ⚠️ 类型不同 | 统一使用number类型ID |
-| title | string | 项目标题 | title/name | string | 项目标题/名称 | ✅ 一致 | 统一使用title |
+| id | bigint | 项目唯一标识 | id | number | 项目唯一标识 | ✅ 一致 | 保持一致，使用number类型ID |
+| title | string | 项目标题 | title | string | 项目标题 | ✅ 一致 | 统一使用title |
 | description | text | 项目描述 | description | string | 项目描述 | ✅ 一致 | 保持一致 |
-| long_description | longtext | 项目详细描述 | longDescription | string | 项目详细描述 | ⚠️ 命名不同 | 统一为long_description（数据库）/longDescription（Data） |
-| client | string | 客户名称 | - | - | - | ❌ Data缺失 | 添加client字段 |
+| long_description | longtext | 项目详细描述 | longDescription | string | 项目详细描述 | ✅ 一致 | 统一为long_description（数据库）/longDescription（Data） |
+| client | string | 客户名称 | client | string | 客户名称 | ✅ 一致 | 保持一致 |
 | role | string | 项目角色 | role | string | 项目角色 | ✅ 一致 | 保持一致 |
 | year | int | 项目年份 | year | number | 项目年份 | ✅ 一致 | 保持一致 |
 | image | string | 项目封面图 | image | string | 项目封面图 | ✅ 一致 | 保持一致 |
 | url | string | 项目URL | url | string | 项目URL | ✅ 一致 | 保持一致 |
-| github_url | string | GitHub仓库URL | githubUrl | string | GitHub仓库URL | ⚠️ 命名不同 | 统一为github_url（数据库）/githubUrl（Data） |
+| github_url | string | GitHub仓库URL | githubUrl | string | GitHub仓库URL | ✅ 一致 | 统一为github_url（数据库）/githubUrl（Data） |
 | technologies | json | 使用技术栈 | technologies | array | 使用技术栈 | ✅ 一致 | 保持一致 |
 | status | enum | 项目状态 | status | string | 项目状态 | ✅ 一致 | 保持一致 |
-| sort_order | int | 排序序号 | sortOrder | number | 排序序号 | ⚠️ 命名不同 | 统一为sort_order（数据库）/sortOrder（Data） |
-| views_count | bigint | 浏览次数 | - | - | - | ❌ Data缺失 | 添加viewsCount字段（number类型） |
-| likes_count | bigint | 点赞次数 | - | - | - | ❌ Data缺失 | 添加likesCount字段（number类型） |
-| created_at | timestamp | 创建时间 | - | - | - | ❌ Data缺失 | 添加createdAt字段（timestamp类型） |
-| updated_at | timestamp | 更新时间 | - | - | - | ❌ Data缺失 | 添加updatedAt字段（timestamp类型） |
+| sort_order | int | 排序序号 | sortOrder | number | 排序序号 | ✅ 一致 | 统一为sort_order（数据库）/sortOrder（Data） |
+| views_count | bigint | 浏览次数 | viewsCount | number | 浏览次数 | ✅ 一致 | 保持一致 |
+| likes_count | bigint | 点赞次数 | likesCount | number | 点赞次数 | ✅ 一致 | 保持一致 |
+| created_at | timestamp | 创建时间 | createdAt | string | 创建时间 | ✅ 一致 | 保持一致 |
+| updated_at | timestamp | 更新时间 | updatedAt | string | 更新时间 | ✅ 一致 | 保持一致 |
+| - | - | - | name | string | 项目名称（兼容字段） | ⚠️ Data独有 | 保留name字段作为兼容 |
+| - | - | - | progress | number | 进度百分比 | ⚠️ Data独有 | 保留progress字段 |
+| - | - | - | startDate | string | 开始日期 | ⚠️ Data独有 | 保留startDate字段 |
 | - | - | - | tags | array | 标签列表 | ⚠️ Data独有 | 保留tags字段，使用taggables中间表关联 |
 | - | - | - | progress | number | 项目进度（0-100） | ⚠️ Data独有（进行中项目） | 添加progress字段到数据库（int类型） |
 | - | - | - | startDate | string | 项目开始日期 | ⚠️ Data独有（进行中项目） | 添加start_date字段到数据库（timestamp类型） |
@@ -186,35 +252,35 @@
 | 数据库字段 | 类型 | 说明 | Data字段 | 类型 | 说明 | 对比结果 | 推荐 |
 |-----------|------|------|----------|------|------|----------|------|
 | id | bigint | 资源唯一标识 | id | number | 资源唯一标识 | ✅ 一致 | 保持一致，使用number类型 |
-| category_id | bigint | 分类ID（外键） | category | string | 分类名称 | ⚠️ 类型不同 | Data改为categoryId（number类型，外键） |
+| category_id | bigint | 分类ID（外键） | categoryId | number | 分类ID | ✅ 一致 | 统一为category_id（数据库）/categoryId（Data） |
 | title | string | 资源标题 | title | string | 资源标题 | ✅ 一致 | 保持一致 |
-| description | text | 资源描述 | - | - | - | ❌ Data缺失 | 添加description字段 |
+| description | text | 资源描述 | description | string | 资源描述 | ✅ 一致 | 保持一致 |
 | format | string | 文件格式（PDF/EPUB等） | format | string | 文件格式 | ✅ 一致 | 保持一致 |
-| file_size | string | 文件大小 | fileSize | string | 文件大小 | ⚠️ 命名不同 | 统一为file_size（数据库）/fileSize（Data） |
+| file_size | string | 文件大小 | fileSize | string | 文件大小 | ✅ 一致 | 统一为file_size（数据库）/fileSize（Data） |
 | image | string | 封面图片 | image | string | 封面图片 | ✅ 一致 | 保持一致 |
-| direct_link | string | 直接下载链接 | localUrl | string | 本地下载链接 | ⚠️ 命名不同 | 统一为direct_link（数据库）/directLink（Data） |
+| direct_link | string | 直接下载链接 | directLink | string | 直接下载链接 | ✅ 一致 | 统一为direct_link（数据库）/directLink（Data） |
 | drives | json | 云盘链接列表 | drives | array | 云盘链接列表 | ✅ 一致 | 保持一致 |
-| downloads_count | bigint | 下载次数 | downloadCount | number | 下载次数 | ⚠️ 命名不同 | 统一为downloads_count（数据库）/downloadCount（Data） |
-| likes_count | bigint | 点赞次数 | - | - | - | ❌ Data缺失 | 添加likesCount字段（number类型） |
-| created_at | timestamp | 创建时间 | date | string | 创建日期 | ⚠️ 命名/类型不同 | 统一为createdAt（timestamp类型） |
-| updated_at | timestamp | 更新时间 | - | - | - | ❌ Data缺失 | 添加updatedAt字段（timestamp类型） |
+| downloads_count | bigint | 下载次数 | downloadCount | number | 下载次数 | ✅ 一致 | 统一为downloads_count（数据库）/downloadCount（Data） |
+| likes_count | bigint | 点赞次数 | likesCount | number | 点赞次数 | ✅ 一致 | 保持一致 |
+| created_at | timestamp | 创建时间 | createdAt | string | 创建时间 | ✅ 一致 | 统一为createdAt（timestamp类型） |
+| updated_at | timestamp | 更新时间 | updatedAt | string | 更新时间 | ✅ 一致 | 保持一致 |
 
 ### 4.7 videos（视频表）
 
 | 数据库字段 | 类型 | 说明 | Data字段 | 类型 | 说明 | 对比结果 | 推荐 |
 |-----------|------|------|----------|------|------|----------|------|
-| id | bigint | 视频唯一标识 | id | string | 视频唯一标识 | ⚠️ 类型不同 | 统一使用number类型ID |
+| id | bigint | 视频唯一标识 | id | number | 视频唯一标识 | ✅ 一致 | 统一使用number类型ID |
 | title | string | 视频标题 | title | string | 视频标题 | ✅ 一致 | 保持一致 |
 | description | text | 视频描述 | description | string | 视频描述 | ✅ 一致 | 保持一致 |
-| video_id | string | 平台视频ID | videoId | string | 平台视频ID | ⚠️ 命名不同 | 统一为video_id（数据库）/videoId（Data） |
+| video_id | string | 平台视频ID | videoId | string | 平台视频ID | ✅ 一致 | 统一为video_id（数据库）/videoId（Data） |
 | platform | enum | 视频平台（youtube/bilibili等） | platform | string | 视频平台 | ✅ 一致 | 保持一致 |
 | thumbnail | string | 缩略图URL | thumbnail | string | 缩略图URL | ✅ 一致 | 保持一致 |
-| duration | string | 视频时长 | - | - | - | ❌ Data缺失 | 添加duration字段 |
-| views_count | bigint | 播放次数 | - | - | - | ❌ Data缺失 | 添加viewsCount字段（number类型） |
-| likes_count | bigint | 点赞次数 | - | - | - | ❌ Data缺失 | 添加likesCount字段（number类型） |
-| published_at | timestamp | 发布时间 | date | string | 发布日期 | ⚠️ 命名/类型不同 | 统一为publishedAt（timestamp类型） |
-| created_at | timestamp | 创建时间 | - | - | - | ❌ Data缺失 | 添加createdAt字段（timestamp类型） |
-| updated_at | timestamp | 更新时间 | - | - | - | ❌ Data缺失 | 添加updatedAt字段（timestamp类型） |
+| duration | string | 视频时长 | duration | string | 视频时长 | ✅ 一致 | 保持一致 |
+| views_count | bigint | 播放次数 | viewsCount | number | 播放次数 | ✅ 一致 | 保持一致 |
+| likes_count | bigint | 点赞次数 | likesCount | number | 点赞次数 | ✅ 一致 | 保持一致 |
+| published_at | timestamp | 发布时间 | publishedAt | string | 发布时间 | ✅ 一致 | 统一为publishedAt（timestamp类型） |
+| created_at | timestamp | 创建时间 | createdAt | string | 创建时间 | ✅ 一致 | 保持一致 |
+| updated_at | timestamp | 更新时间 | updatedAt | string | 更新时间 | ✅ 一致 | 保持一致 |
 
 ### 4.8 advertisements（广告表）
 
@@ -222,16 +288,16 @@
 |-----------|------|------|----------|------|------|----------|------|
 | id | bigint | 广告唯一标识 | id | number | 广告唯一标识 | ✅ 一致 | 保持一致，使用number类型 |
 | title | string | 广告标题 | title | string | 广告标题 | ✅ 一致 | 保持一致 |
-| image_url | string | 广告图片URL | image | string | 广告图片 | ⚠️ 命名不同 | 统一为image_url（数据库）/image（Data） |
-| link_url | string | 跳转链接 | url | string | 跳转链接 | ⚠️ 命名不同 | 统一为link_url（数据库）/url（Data） |
+| image_url | string | 广告图片URL | image | string | 广告图片 | ✅ 一致 | 统一为image_url（数据库）/image（Data） |
+| link_url | string | 跳转链接 | url | string | 跳转链接 | ✅ 一致 | 统一为link_url（数据库）/url（Data） |
 | position | string | 广告位置 | position | string | 广告位置 | ✅ 一致 | 保持一致 |
-| is_active | boolean | 是否启用 | status | string | 状态（active/inactive） | ⚠️ 类型不同 | 数据库改为enum类型（active/inactive），Data保持status |
-| clicks_count | bigint | 点击次数 | clicks | number | 点击次数 | ⚠️ 命名不同 | 统一为clicks_count（数据库）/clicks（Data） |
-| views_count | bigint | 展示次数 | views | number | 展示次数 | ⚠️ 命名不同 | 统一为views_count（数据库）/views（Data） |
-| start_date | timestamp | 开始日期 | - | - | - | ❌ Data缺失 | 添加startDate字段（timestamp类型） |
-| end_date | timestamp | 结束日期 | - | - | - | ❌ Data缺失 | 添加endDate字段（timestamp类型） |
-| created_at | timestamp | 创建时间 | date | string | 创建日期 | ⚠️ 命名/类型不同 | 统一为createdAt（timestamp类型） |
-| updated_at | timestamp | 更新时间 | - | - | - | ❌ Data缺失 | 添加updatedAt字段（timestamp类型） |
+| is_active | boolean | 是否启用 | status | string | 状态（active/inactive） | ✅ 一致 | 数据库改为enum类型（active/inactive），Data保持status |
+| clicks_count | bigint | 点击次数 | clicks | number | 点击次数 | ✅ 一致 | 统一为clicks_count（数据库）/clicks（Data） |
+| views_count | bigint | 展示次数 | views | number | 展示次数 | ✅ 一致 | 统一为views_count（数据库）/views（Data） |
+| start_date | timestamp | 开始日期 | startDate | string | 开始日期 | ✅ 一致 | 统一为start_date（数据库）/startDate（Data） |
+| end_date | timestamp | 结束日期 | endDate | string | 结束日期 | ✅ 一致 | 统一为end_date（数据库）/endDate（Data） |
+| created_at | timestamp | 创建时间 | createdAt | string | 创建时间 | ✅ 一致 | 统一为createdAt（timestamp类型） |
+| updated_at | timestamp | 更新时间 | updatedAt | string | 更新时间 | ✅ 一致 | 保持一致 |
 
 ### 4.9 users（用户表）
 
@@ -239,19 +305,95 @@
 |-----------|------|------|----------|------|------|----------|------|
 | id | bigint | 用户唯一标识 | id | number | 用户唯一标识 | ✅ 一致 | 保持一致，使用number类型 |
 | name | string | 用户姓名 | name | string | 用户姓名 | ✅ 一致 | 保持一致 |
-| email | string | 用户邮箱 | email | string | 用户邮箱 | ✅ 一致 | 保持一致 |
-| password | string | 加密密码 | password | string | 加密密码 | ✅ 一致 | 保持一致 |
-| role_id | bigint | 角色ID（外键） | roleId | number | 角色ID | ⚠️ 命名不同 | 统一为role_id（数据库）/roleId（Data） |
-| status | - | - | status | string | 用户状态（active/inactive） | ⚠️ 数据库缺失此字段 | 添加status字段到数据库，使用enum类型 |
-| created_at | timestamp | 创建时间 | joined | string | 注册日期 | ⚠️ 命名/类型不同 | 统一为createdAt（timestamp类型） |
-| updated_at | timestamp | 更新时间 | - | - | - | ❌ Data缺失 | 添加updatedAt字段（timestamp类型） |
-| - | - | - | penName | string | 笔名/昵称 | ⚠️ Data独有 | 添加penName字段到数据库 |
+| email | string | 用户邮箱（唯一） | email | string | 用户邮箱 | ✅ 一致 | 保持一致，唯一约束 |
+| email_verified_at | timestamp | 邮箱验证时间 | - | - | - | ❌ 数据库独有 | 保留，Laravel认证必需 |
+| password | string | 密码哈希 | password | string | 密码 | ✅ 一致 | 数据库存储哈希值 |
+| avatar | string | 头像URL | avatar | string | 头像URL | ✅ 一致 | 保持一致 |
+| bio | text | 个人简介 | bio | string | 个人简介 | ✅ 一致 | 保持一致 |
+| github | string | GitHub链接 | github | string | GitHub链接 | ✅ 一致 | 保持一致 |
+| twitter | string | Twitter链接 | twitter | string | Twitter链接 | ✅ 一致 | 保持一致 |
+| linkedin | string | LinkedIn链接 | linkedin | string | LinkedIn链接 | ✅ 一致 | 保持一致 |
+| role | enum | 用户角色（user/admin） | role | string | 用户角色 | ✅ 一致 | 保持一致，enum类型 |
+| status | enum | 用户状态（active/inactive/suspended） | status | string | 用户状态 | ✅ 一致 | 保持一致，enum类型 |
+| last_login_at | timestamp | 最后登录时间 | lastLogin | string | 最后登录时间 | ✅ 一致 | 统一为last_login_at |
+| remember_token | string | 记住我令牌 | - | - | - | ❌ 数据库独有 | 保留，Laravel认证必需 |
+| created_at | timestamp | 创建时间 | createdAt | string | 创建时间 | ✅ 一致 | 保持一致 |
+| updated_at | timestamp | 更新时间 | updatedAt | string | 更新时间 | ✅ 一致 | 保持一致 |
+| - | - | - | penName | string | 笔名 | ⚠️ Data独有 | 建议添加到数据库 |
+| - | - | - | level | number | 用户等级 | ⚠️ Data独有 | 建议创建user_levels表 |
+| - | - | - | levelId | number | 等级ID | ⚠️ Data独有 | 建议添加level_id外键 |
+| - | - | - | points | number | 积分 | ⚠️ Data独有 | 建议添加到数据库 |
+| - | - | - | articlesCount | number | 文章数量 | ⚠️ Data独有 | 动态计算 |
+| - | - | - | commentsCount | number | 评论数量 | ⚠️ Data独有 | 动态计算 |
+
+### 4.10 interactions（互动表）
+
+| 数据库字段 | 类型 | 说明 | Data字段 | 类型 | 说明 | 对比结果 | 推荐 |
+|-----------|------|------|----------|------|------|----------|------|
+| id | bigint | 互动唯一标识 | - | - | - | ❌ 数据库独有 | 运行时数据 |
+| user_id | bigint | 用户ID（外键） | userId | number | 用户ID | ✅ 一致 | 保持一致 |
+| interactable_id | bigint | 关联对象ID | - | - | - | ❌ 数据库独有 | 多态关联 |
+| interactable_type | string | 关联对象类型 | - | - | - | ❌ 数据库独有 | 多态关联 |
+| type | enum | 互动类型（like/bookmark） | type | string | 互动类型 | ✅ 一致 | 保持一致 |
+| created_at | timestamp | 创建时间 | createdAt | string | 创建时间 | ✅ 一致 | 保持一致 |
+| updated_at | timestamp | 更新时间 | updatedAt | string | 更新时间 | ✅ 一致 | 保持一致 |
+
+### 4.11 journals（日志表）
+
+| 数据库字段 | 类型 | 说明 | Data字段 | 类型 | 说明 | 对比结果 | 推荐 |
+|-----------|------|------|----------|------|------|----------|------|
+| id | bigint | 日志唯一标识 | - | - | - | ❌ 数据库独有 | 运行时数据 |
+| user_id | bigint | 用户ID（外键） | - | - | - | ❌ 数据库独有 | 保持一致 |
+| title | string | 日志标题 | - | - | - | ❌ 数据库独有 | 保持一致 |
+| content | text | 日志内容 | - | - | - | ❌ 数据库独有 | 保持一致 |
+| mood | string | 心情 | - | - | - | ❌ 数据库独有 | 保持一致 |
+| weather | string | 天气 | - | - | - | ❌ 数据库独有 | 保持一致 |
+| date | date | 日志日期 | - | - | - | ❌ 数据库独有 | 保持一致 |
+| is_public | boolean | 是否公开 | - | - | - | ❌ 数据库独有 | 保持一致 |
+| created_at | timestamp | 创建时间 | - | - | - | ❌ 数据库独有 | 保持一致 |
+| updated_at | timestamp | 更新时间 | - | - | - | ❌ 数据库独有 | 保持一致 |
+
+### 4.12 subscribers（订阅者表）
+
+| 数据库字段 | 类型 | 说明 | Data字段 | 类型 | 说明 | 对比结果 | 推荐 |
+|-----------|------|------|----------|------|------|----------|------|
+| id | bigint | 订阅者唯一标识 | - | - | - | ❌ 数据库独有 | 运行时数据 |
+| email | string | 订阅邮箱（唯一） | - | - | - | ❌ 数据库独有 | 保持一致，唯一约束 |
+| is_active | boolean | 是否激活 | - | - | - | ❌ 数据库独有 | 保持一致 |
+| subscribed_at | timestamp | 订阅时间 | - | - | - | ❌ 数据库独有 | 保持一致 |
+| created_at | timestamp | 创建时间 | - | - | - | ❌ 数据库独有 | 保持一致 |
+| updated_at | timestamp | 更新时间 | - | - | - | ❌ 数据库独有 | 保持一致 |
 
 ---
 
-## 五、字段命名规范差异
+## 五、Data 独有字段汇总
 
-### 5.1 下划线 vs 驼峰命名
+| 字段名 | 所在文件 | 说明 | 处理建议 |
+|--------|---------|------|---------|
+| label | categories.js | 分类显示标签 | 使用国际化i18n替代 |
+| postCount | categories.js | 该分类下文章数量 | 动态计算 |
+| status | categories.js | 分类状态 | 添加到数据库 |
+| tags | posts.js | 标签列表 | 使用taggables中间表 |
+| usageCount | tags.js | 标签使用次数 | 动态计算 |
+| status | tags.js | 标签状态 | 添加到数据库 |
+| likes | comments.js | 评论点赞数 | 使用interactions表 |
+| name | projects.js | 项目名称（兼容字段） | 统一使用title |
+| progress | projects.js | 项目进度百分比 | 添加到数据库 |
+| startDate | projects.js | 项目开始日期 | 添加到数据库 |
+| tags | projects.js | 项目标签列表 | 使用taggables中间表 |
+| penName | users.js | 用户笔名 | 添加到数据库 |
+| status | users.js | 用户状态 | 已存在于数据库 |
+| level | users.js | 用户等级 | 创建user_levels表 |
+| levelId | users.js | 等级ID | 添加level_id外键 |
+| points | users.js | 用户积分 | 添加到数据库 |
+| articlesCount | users.js | 文章数量 | 动态计算 |
+| commentsCount | users.js | 评论数量 | 动态计算 |
+
+---
+
+## 六、字段命名规范差异
+
+### 6.1 下划线 vs 驼峰命名
 
 | 数据库风格（下划线） | Data风格（驼峰） | 说明 | 适用场景 |
 |---------------------|------------------|------|----------|
@@ -262,7 +404,7 @@
 | file_size | fileSize | 属性字段 | 文件相关属性 |
 | github_url | githubUrl | URL字段 | 链接地址 |
 
-### 5.2 字段命名不一致
+### 6.2 字段命名不一致
 
 | 数据库字段 | Data字段 | 所在表 | 差异说明 |
 |-----------|----------|--------|----------|
@@ -282,9 +424,9 @@
 
 ---
 
-## 六、缺失字段汇总
+## 七、缺失字段汇总
 
-### 6.1 数据库有但 Data 缺失的字段
+### 7.1 数据库有但 Data 缺失的字段
 
 | 字段类型 | 字段名 | 影响表 | 用途说明 |
 |---------|--------|--------|----------|
@@ -300,29 +442,37 @@
 | IP信息 | ip_address, user_agent | comments | 评论者信息记录 |
 | 时长 | duration | videos | 视频时长 |
 | 客户 | client | projects | 项目客户名称 |
+| Laravel认证 | email_verified_at, remember_token | users | Laravel框架必需字段 |
+| 社交链接 | github, twitter, linkedin | users | 用户社交资料 |
+| 多态关联 | interactable_id, interactable_type | interactions | 支持点赞/收藏多态关联 |
 
-### 6.2 Data 有但数据库缺失的字段
+### 7.2 Data 有但数据库缺失的字段
 
 | 字段名 | 所在文件 | 用途说明 | 建议处理 |
 |--------|----------|----------|---------|
-| label | categories.js | 分类显示标签 | 迁移到数据库或使用国际化 |
+| label | categories.js | 分类显示标签 | 使用国际化i18n替代 |
 | postCount | categories.js | 分类文章数量 | 动态计算 |
 | status | categories.js | 分类状态 | 添加到数据库 |
 | tags | posts.js | 文章标签列表 | 使用taggables中间表 |
 | usageCount | tags.js | 标签使用次数 | 动态计算 |
 | status | tags.js | 标签状态 | 添加到数据库 |
 | likes | comments.js | 评论点赞数 | 使用interactions表 |
-| tags | projects.js | 项目标签列表 | 使用taggables中间表 |
+| name | projects.js | 项目名称（兼容字段） | 统一使用title |
 | progress | projects.js | 项目进度百分比 | 添加到数据库 |
 | startDate | projects.js | 项目开始日期 | 添加到数据库 |
+| tags | projects.js | 项目标签列表 | 使用taggables中间表 |
 | penName | users.js | 用户笔名 | 添加到数据库 |
-| status | users.js | 用户状态 | 添加到数据库 |
+| level | users.js | 用户等级 | 创建user_levels表 |
+| levelId | users.js | 等级ID | 添加level_id外键 |
+| points | users.js | 用户积分 | 添加到数据库 |
+| articlesCount | users.js | 文章数量 | 动态计算 |
+| commentsCount | users.js | 评论数量 | 动态计算 |
 
 ---
 
-## 七、数据类型差异
+## 八、数据类型差异
 
-### 7.1 ID类型不一致
+### 8.1 ID类型不一致
 
 | 表名 | 数据库类型 | Data类型 | 问题 | 影响 |
 |------|----------|----------|------|------|
@@ -331,14 +481,14 @@
 | comments | BIGINT | number | ✅ 一致 | 正常 |
 | posts | BIGINT | number | ✅ 一致 | 正常 |
 
-### 7.2 日期类型不一致
+### 8.2 日期类型不一致
 
 | 字段名 | 数据库类型 | Data类型 | 问题 | 影响 |
 |--------|----------|----------|------|------|
 | date/created_at | TIMESTAMP | string | 需要转换 | 查询和排序可能出错 |
 | published_at | TIMESTAMP | string | 需要转换 | 查询和排序可能出错 |
 
-### 7.3 状态字段类型不一致
+### 8.3 状态字段类型不一致
 
 | 表名 | 数据库类型 | Data类型 | 问题 | 影响 |
 |------|----------|----------|------|------|
@@ -349,9 +499,9 @@
 
 ---
 
-## 八、建议改进方案
+## 九、建议改进方案
 
-### 8.1 短期改进（立即执行）
+### 9.1 短期改进（立即执行）
 
 | 序号 | 改进项 | 说明 | 优先级 |
 |:---:|--------|------|:---:|
@@ -360,7 +510,7 @@
 | 3 | 统一字段命名 | 外键使用下划线命名（如user_id） | 中 |
 | 4 | 添加缺失字段 | 根据数据库表结构补充必要字段 | 高 |
 
-### 8.2 中期改进（1-2周）
+### 9.2 中期改进（1-2周）
 
 | 序号 | 改进项 | 说明 |
 |:---:|--------|------|
@@ -373,7 +523,7 @@
 | 7 | 添加软删除字段 | deleted_at |
 | 8 | 添加索引 | 根据查询需求添加必要索引 |
 
-### 8.3 长期改进（1-2月）
+### 9.3 长期改进（1-2月）
 
 | 序号 | 改进项 | 说明 |
 |:---:|--------|------|
@@ -384,9 +534,9 @@
 
 ---
 
-## 九、总结
+## 十、总结
 
-### 9.1 问题汇总
+### 10.1 问题汇总
 
 | 问题类型 | 数量 | 说明 |
 |---------|------|------|
@@ -397,7 +547,7 @@
 | 数据类型不一致 | 多个 | ID类型、日期类型、状态类型 |
 | 多对多关系缺失 | ⚠️ 已创建中间表 | taggables中间表已创建，但posts/projects仍使用内联tags数组 |
 
-### 9.2 核心建议
+### 10.2 核心建议
 
 1. **统一规范**：制定统一的字段命名和数据类型规范
 2. **补全字段**：根据数据库表结构补全Data文件缺失字段
@@ -408,3 +558,4 @@
 ---
 
 *生成日期：2026-05-18*
+*更新日期：2026-05-19*

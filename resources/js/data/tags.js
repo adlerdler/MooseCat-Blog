@@ -3,27 +3,29 @@
  * 
  * 功能说明：
  * - 存储文章标签数据
- * - 包含标签名称、使用次数、状态等
  * 
- * 状态：
- * - active: 启用
- * - inactive: 禁用
+ * 字段说明：
+ * - id: 标签唯一标识
+ * - name: 标签名称
+ * - slug: 标签别名（URL友好）
+ * - created_at: 创建时间
+ * - updated_at: 更新时间
  */
 
 export const adminTags = [
-  { id: 1, name: 'Architecture', slug: 'architecture', usageCount: 45, status: 'active', createdAt: '2024-01-15T08:00:00', updatedAt: '2024-01-15T08:00:00' },
-  { id: 2, name: 'Design', slug: 'design', usageCount: 38, status: 'active', createdAt: '2024-01-15T08:00:00', updatedAt: '2024-01-15T08:00:00' },
-  { id: 3, name: 'Technology', slug: 'technology', usageCount: 32, status: 'active', createdAt: '2024-01-15T08:00:00', updatedAt: '2024-01-15T08:00:00' },
-  { id: 4, name: 'Philosophy', slug: 'philosophy', usageCount: 28, status: 'active', createdAt: '2024-01-15T08:00:00', updatedAt: '2024-01-15T08:00:00' },
-  { id: 5, name: 'Research', slug: 'research', usageCount: 24, status: 'active', createdAt: '2024-01-15T08:00:00', updatedAt: '2024-01-15T08:00:00' },
-  { id: 6, name: 'Tutorial', slug: 'tutorial', usageCount: 19, status: 'active', createdAt: '2024-01-15T08:00:00', updatedAt: '2024-01-15T08:00:00' },
-  { id: 7, name: 'Case Study', slug: 'case-study', usageCount: 15, status: 'active', createdAt: '2024-01-15T08:00:00', updatedAt: '2024-01-15T08:00:00' },
-  { id: 8, name: 'Algorithm', slug: 'algorithm', usageCount: 12, status: 'active', createdAt: '2024-01-15T08:00:00', updatedAt: '2024-01-15T08:00:00' },
-  { id: 9, name: 'Parametric', slug: 'parametric', usageCount: 10, status: 'inactive', createdAt: '2024-01-15T08:00:00', updatedAt: '2024-01-15T08:00:00' },
-  { id: 10, name: 'Computational', slug: 'computational', usageCount: 18, status: 'active', createdAt: '2024-01-15T08:00:00', updatedAt: '2024-01-15T08:00:00' },
-  { id: 11, name: 'Digital Fabrication', slug: 'digital-fabrication', usageCount: 8, status: 'active', createdAt: '2024-01-15T08:00:00', updatedAt: '2024-01-15T08:00:00' },
-  { id: 12, name: 'BIM', slug: 'bim', usageCount: 6, status: 'active', createdAt: '2024-01-15T08:00:00', updatedAt: '2024-01-15T08:00:00' },
-  { id: 13, name: 'Sustainability', slug: 'sustainability', usageCount: 14, status: 'active', createdAt: '2024-01-15T08:00:00', updatedAt: '2024-01-15T08:00:00' },
-  { id: 14, name: 'Urban Design', slug: 'urban-design', usageCount: 11, status: 'active', createdAt: '2024-01-15T08:00:00', updatedAt: '2024-01-15T08:00:00' },
-  { id: 15, name: 'Generative', slug: 'generative', usageCount: 9, status: 'inactive', createdAt: '2024-01-15T08:00:00', updatedAt: '2024-01-15T08:00:00' },
+  { id: 1, name: 'Architecture', slug: 'architecture', status: 'active', usageCount: 24, created_at: '2024-01-15T08:00:00', updated_at: '2024-01-15T08:00:00' },
+  { id: 2, name: 'Design', slug: 'design', status: 'active', usageCount: 18, created_at: '2024-01-15T08:00:00', updated_at: '2024-01-15T08:00:00' },
+  { id: 3, name: 'Technology', slug: 'technology', status: 'active', usageCount: 32, created_at: '2024-01-15T08:00:00', updated_at: '2024-01-15T08:00:00' },
+  { id: 4, name: 'Philosophy', slug: 'philosophy', status: 'active', usageCount: 7, created_at: '2024-01-15T08:00:00', updated_at: '2024-01-15T08:00:00' },
+  { id: 5, name: 'Research', slug: 'research', status: 'active', usageCount: 15, created_at: '2024-01-15T08:00:00', updated_at: '2024-01-15T08:00:00' },
+  { id: 6, name: 'Tutorial', slug: 'tutorial', status: 'active', usageCount: 9, created_at: '2024-01-15T08:00:00', updated_at: '2024-01-15T08:00:00' },
+  { id: 7, name: 'Case Study', slug: 'case-study', status: 'inactive', usageCount: 4, created_at: '2024-01-15T08:00:00', updated_at: '2024-01-15T08:00:00' },
+  { id: 8, name: 'Algorithm', slug: 'algorithm', status: 'active', usageCount: 11, created_at: '2024-01-15T08:00:00', updated_at: '2024-01-15T08:00:00' },
+  { id: 9, name: 'Parametric', slug: 'parametric', status: 'active', usageCount: 6, created_at: '2024-01-15T08:00:00', updated_at: '2024-01-15T08:00:00' },
+  { id: 10, name: 'Computational', slug: 'computational', status: 'active', usageCount: 8, created_at: '2024-01-15T08:00:00', updated_at: '2024-01-15T08:00:00' },
+  { id: 11, name: 'Digital Fabrication', slug: 'digital-fabrication', status: 'inactive', usageCount: 2, created_at: '2024-01-15T08:00:00', updated_at: '2024-01-15T08:00:00' },
+  { id: 12, name: 'BIM', slug: 'bim', status: 'active', usageCount: 13, created_at: '2024-01-15T08:00:00', updated_at: '2024-01-15T08:00:00' },
+  { id: 13, name: 'Sustainability', slug: 'sustainability', status: 'active', usageCount: 5, created_at: '2024-01-15T08:00:00', updated_at: '2024-01-15T08:00:00' },
+  { id: 14, name: 'Urban Design', slug: 'urban-design', status: 'active', usageCount: 3, created_at: '2024-01-15T08:00:00', updated_at: '2024-01-15T08:00:00' },
+  { id: 15, name: 'Generative', slug: 'generative', status: 'active', usageCount: 10, created_at: '2024-01-15T08:00:00', updated_at: '2024-01-15T08:00:00' },
 ];

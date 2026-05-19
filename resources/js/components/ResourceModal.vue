@@ -15,7 +15,7 @@
  * 使用示例：
  * <ResourceModal :resource="selectedResource" @close="closeModal" />
  */
-import { ref, onMounted, onUnmounted, watch } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { X, Download, Copy, Check } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -28,6 +28,11 @@ const props = defineProps({
 const emit = defineEmits(['close']);
 
 const copiedLink = ref(null);
+
+// 计算属性：处理向后兼容
+const downloadLink = computed(() => {
+  return props.resource?.direct_link || props.resource?.localUrl;
+});
 
 const handleCopy = (text) => {
   navigator.clipboard.writeText(text);
@@ -134,7 +139,7 @@ onUnmounted(() => {
             <div class="w-full md:w-1/2 p-6 md:p-12 flex flex-col overflow-y-auto">
               <div>
                 <div class="text-[10px] font-bold tracking-[0.3em] uppercase text-construct-red mb-4 mt-8 md:mt-0">
-                  {{ resource.category }} • {{ resource.format }} • {{ resource.fileSize }}
+                  {{ resource.category }} • {{ resource.format }} • {{ resource.file_size }}
                 </div>
                 
                 <h3 class="font-display text-4xl md:text-5xl leading-none tracking-tighter mb-6">
@@ -148,24 +153,13 @@ onUnmounted(() => {
 
               <div class="space-y-4 mt-12 md:mt-auto pt-8">
                 <a
-                  v-if="resource.localUrl"
-                  :href="resource.localUrl"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="flex justify-between items-center w-full bg-construct-red text-white p-4 font-bold text-xs tracking-widest uppercase hover:bg-construct-black transition-colors"
-                >
-                  <span>Local Download</span>
-                  <Download class="w-4 h-4" />
-                </a>
-                
-                <a
-                  v-if="resource.directLink"
-                  :href="resource.directLink"
+                  v-if="downloadLink"
+                  :href="downloadLink"
                   target="_blank"
                   rel="noopener noreferrer"
                   class="flex justify-between items-center w-full bg-construct-black text-white p-4 font-bold text-xs tracking-widest uppercase hover:bg-construct-red transition-colors"
                 >
-                  <span>Direct Download</span>
+                  <span>Download</span>
                   <Download class="w-4 h-4" />
                 </a>
                 

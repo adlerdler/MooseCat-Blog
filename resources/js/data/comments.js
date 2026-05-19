@@ -1,125 +1,174 @@
 /**
  * comments.js - 评论数据
- * 
- * 统一的评论数据结构，包含：
- * - name: 评论作者
- * - email: 邮箱地址
- * - content: 评论内容
- * - postId: 关联文章ID
- * - status: 审核状态（approved, pending, spam）
- * - date: 发布日期
- * - likes: 点赞数
+ *
+ * 统一的评论数据结构（以数据库为准）：
+ * - id: 评论唯一标识
+ * - post_id: 所属文章ID（外键）
+ * - parent_id: 父评论ID（用于回复）
+ * - user_id: 评论用户ID（外键）
+ * - name: 评论者姓名
+ * - email: 评论者邮箱
+ * - body: 评论内容
+ * - is_approved: 审核状态（true/false）
+ * - ip_address: 评论者IP地址
+ * - user_agent: 评论者浏览器信息
+ * - created_at: 创建时间
+ * - updated_at: 更新时间
  */
 
 export const commentsData = [
   {
     id: 1,
+    post_id: 1,
+    parent_id: null,
+    user_id: null,
     name: 'John Doe',
     email: 'john@example.com',
-    content: 'Great article! Very insightful analysis of constructivist principles.',
-    postId: '1',
-    status: 'approved',
-    date: '2024-01-15T10:30:00',
-    likes: 12
+    body: 'Great article! Very insightful analysis of constructivist principles.',
+    is_approved: true,
+    ip_address: '192.168.1.1',
+    user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+    created_at: '2024-01-15T10:30:00',
+    updated_at: '2024-01-15T10:30:00'
   },
   {
     id: 2,
+    post_id: 2,
+    parent_id: null,
+    user_id: null,
     name: 'Jane Smith',
     email: 'jane@example.com',
-    content: 'Would love to see more examples of parametric design.',
-    postId: '2',
-    status: 'pending',
-    date: '2024-01-15T14:22:00',
-    likes: 5
+    body: 'Would love to see more examples of parametric design.',
+    is_approved: false,
+    ip_address: '192.168.1.2',
+    user_agent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
+    created_at: '2024-01-15T14:22:00',
+    updated_at: '2024-01-15T14:22:00'
   },
   {
     id: 3,
+    post_id: 3,
+    parent_id: null,
+    user_id: null,
     name: 'Bob Wilson',
     email: 'bob@example.com',
-    content: 'The code examples are very helpful. Thanks!',
-    postId: '3',
-    status: 'approved',
-    date: '2024-01-16T09:15:00',
-    likes: 8
+    body: 'The code examples are very helpful. Thanks!',
+    is_approved: true,
+    ip_address: '192.168.1.3',
+    user_agent: 'Mozilla/5.0 (Linux; Android 10)',
+    created_at: '2024-01-16T09:15:00',
+    updated_at: '2024-01-16T09:15:00'
   },
   {
     id: 4,
+    post_id: 1,
+    parent_id: 1,
+    user_id: null,
     name: 'Alice Chen',
     email: 'alice@example.com',
-    content: 'Can you elaborate on the sustainability aspect?',
-    postId: '1',
-    status: 'pending',
-    date: '2024-01-16T11:45:00',
-    likes: 3
+    body: 'Can you elaborate on the sustainability aspect?',
+    is_approved: false,
+    ip_address: '192.168.1.4',
+    user_agent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X)',
+    created_at: '2024-01-16T11:45:00',
+    updated_at: '2024-01-16T11:45:00'
   },
   {
     id: 5,
+    post_id: 4,
+    parent_id: null,
+    user_id: null,
     name: 'Mike Johnson',
     email: 'mike@example.com',
-    content: 'Excellent work on the BIM integration section.',
-    postId: '4',
-    status: 'approved',
-    date: '2024-01-17T16:30:00',
-    likes: 15
+    body: 'Excellent work on the BIM integration section.',
+    is_approved: true,
+    ip_address: '192.168.1.5',
+    user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+    created_at: '2024-01-17T16:30:00',
+    updated_at: '2024-01-17T16:30:00'
   },
   {
     id: 6,
+    post_id: 5,
+    parent_id: null,
+    user_id: null,
     name: 'Sarah Lee',
     email: 'sarah@example.com',
-    content: 'This is spam. Please remove.',
-    postId: '5',
-    status: 'spam',
-    date: '2024-01-18T08:20:00',
-    likes: 0
+    body: 'This is spam. Please remove.',
+    is_approved: false,
+    ip_address: '192.168.1.6',
+    user_agent: 'Mozilla/5.0 (X11; Linux x86_64)',
+    created_at: '2024-01-18T08:20:00',
+    updated_at: '2024-01-18T08:20:00'
   },
   {
     id: 7,
+    post_id: 5,
+    parent_id: null,
+    user_id: 1,
     name: 'David Kim',
     email: 'david@example.com',
-    content: 'The visualizations are stunning!',
-    postId: '6',
-    status: 'approved',
-    date: '2024-01-18T13:55:00',
-    likes: 20
+    body: 'The visualizations are stunning!',
+    is_approved: true,
+    ip_address: '192.168.1.7',
+    user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+    created_at: '2024-01-18T13:55:00',
+    updated_at: '2024-01-18T13:55:00'
   },
   {
     id: 8,
+    post_id: 5,
+    parent_id: null,
+    user_id: null,
     name: 'Emma White',
     email: 'emma@example.com',
-    content: 'Looking forward to the next article in this series.',
-    postId: '7',
-    status: 'pending',
-    date: '2024-01-19T10:10:00',
-    likes: 6
+    body: 'Looking forward to the next article in this series.',
+    is_approved: false,
+    ip_address: '192.168.1.8',
+    user_agent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
+    created_at: '2024-01-19T10:10:00',
+    updated_at: '2024-01-19T10:10:00'
   },
   {
     id: 9,
+    post_id: 3,
+    parent_id: null,
+    user_id: null,
     name: 'Visitor',
     email: 'visitor@example.com',
-    content: 'Interesting perspective on cognitive architecture! The grid analogy really resonates.',
-    postId: '8',
-    status: 'approved',
-    date: '2026-05-10T14:30:00',
-    likes: 3
+    body: 'Interesting perspective on cognitive architecture! The grid analogy really resonates.',
+    is_approved: true,
+    ip_address: '192.168.1.9',
+    user_agent: 'Mozilla/5.0 (Linux; Android 12)',
+    created_at: '2026-05-10T14:30:00',
+    updated_at: '2026-05-10T14:30:00'
   },
   {
     id: 10,
+    post_id: 2,
+    parent_id: 2,
+    user_id: null,
     name: 'Architect_X',
     email: 'arch@example.com',
-    content: 'Great insights! Would love to see more about the intersection of traditional architecture principles with modern computational methods.',
-    postId: '2',
-    status: 'approved',
-    date: '2026-05-11T09:15:00',
-    likes: 7
+    body: 'Great insights! Would love to see more about the intersection of traditional architecture principles with modern computational methods.',
+    is_approved: true,
+    ip_address: '192.168.1.10',
+    user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+    created_at: '2026-05-11T09:15:00',
+    updated_at: '2026-05-11T09:15:00'
   },
   {
     id: 11,
+    post_id: 4,
+    parent_id: null,
+    user_id: null,
     name: 'Digital_Builder',
     email: 'builder@example.com',
-    content: 'The concept of "structural honesty" in digital spaces is fascinating. Looking forward to future experiments!',
-    postId: '9',
-    status: 'approved',
-    date: '2026-05-12T16:45:00',
-    likes: 5
+    body: 'The concept of "structural honesty" in digital spaces is fascinating. Looking forward to future experiments!',
+    is_approved: true,
+    ip_address: '192.168.1.11',
+    user_agent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 11_6)',
+    created_at: '2026-05-12T16:45:00',
+    updated_at: '2026-05-12T16:45:00'
   }
 ];

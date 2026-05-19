@@ -90,7 +90,7 @@ const closeSearch = () => {
 
 const menuLinks = computed(() => {
   return frontMenuItems.map(item => ({
-    name: t(item.labelKey),
+    name: t(item.label_key),
     path: item.path
   }));
 });

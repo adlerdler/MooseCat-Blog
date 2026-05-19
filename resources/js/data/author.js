@@ -17,6 +17,13 @@ export { PROJECTS };
 
 /**
  * 技能列表（表格化结构）
+ * 字段说明：
+ * - id: 技能唯一标识
+ * - label: 国际化标签key
+ * - value: 技能值（百分比）
+ * - description: 技能描述key
+ * - category: 分类
+ * - sort_order: 排序顺序
  */
 export const skills = [
   {
@@ -25,7 +32,7 @@ export const skills = [
     value: 95,
     description: 'skill_1_desc',
     category: 'frontend',
-    sortOrder: 1,
+    sort_order: 1,
   },
   {
     id: 2,
@@ -33,7 +40,7 @@ export const skills = [
     value: 92,
     description: 'skill_2_desc',
     category: 'backend',
-    sortOrder: 2,
+    sort_order: 2,
   },
   {
     id: 3,
@@ -41,12 +48,20 @@ export const skills = [
     value: 84,
     description: 'skill_3_desc',
     category: 'devops',
-    sortOrder: 3,
+    sort_order: 3,
   },
 ];
 
 /**
  * 社交媒体链接配置（表格化结构）
+ * 字段说明：
+ * - id: 链接唯一标识
+ * - platform: 平台标识
+ * - icon: 图标组件
+ * - label: 显示标签
+ * - url: 链接地址
+ * - style: 样式配置
+ * - sort_order: 排序顺序
  */
 export const socialLinks = [
   {
@@ -61,7 +76,7 @@ export const socialLinks = [
       hover: 'hover:bg-construct-black hover:text-white',
       border: 'border-2 border-construct-black',
     },
-    sortOrder: 1,
+    sort_order: 1,
   },
   {
     id: 2,
@@ -75,7 +90,7 @@ export const socialLinks = [
       hover: 'hover:bg-construct-black hover:text-white',
       border: 'border-2 border-construct-black',
     },
-    sortOrder: 2,
+    sort_order: 2,
   },
   {
     id: 3,
@@ -89,7 +104,7 @@ export const socialLinks = [
       hover: 'hover:bg-construct-black hover:text-white',
       border: 'border-2 border-construct-red hover:border-construct-black',
     },
-    sortOrder: 3,
+    sort_order: 3,
   },
   {
     id: 4,
@@ -103,8 +118,6 @@ export const socialLinks = [
       hover: 'hover:bg-construct-red hover:text-white',
       border: 'border-2 border-construct-black hover:border-construct-red',
     },
-    sortOrder: 4,
+    sort_order: 4,
   },
 ];
-
-

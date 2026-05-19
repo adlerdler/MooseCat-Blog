@@ -51,14 +51,14 @@ const iconMap = {
 const stats = computed(() => {
   return analyticsStats.map(stat => ({
     ...stat,
-    icon: iconMap[stat.iconKey]
+    icon: iconMap[stat.icon_key]
   }));
 });
 
 const contentStatsWithIcons = computed(() => {
   return contentStats.map(item => ({
     ...item,
-    icon: iconMap[item.iconKey]
+    icon: iconMap[item.icon_key]
   }));
 });
 </script>

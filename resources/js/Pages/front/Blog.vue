@@ -39,7 +39,7 @@ const filteredPosts = computed(() => {
   if (activeFilter.value === 'all') {
     return POSTS;
   }
-  return POSTS.filter(post => getCategoryNameById(categories, post.categoryId) === activeFilter.value);
+  return POSTS.filter(post => getCategoryNameById(categories, post.category_id) === activeFilter.value);
 });
 const totalPages = computed(() => Math.ceil(filteredPosts.value.length / itemsPerPage));
 const paginatedPosts = computed(() => {
@@ -166,14 +166,14 @@ const isFooterVisible = ref(true);
             <div class="flex justify-between items-start mb-8 md:mb-12 relative z-10" :class="post.color === 'red' ? 'group-hover:text-white' : 'group-hover:text-white'">
               <div class="flex items-center gap-3">
                 <span class="p-2 transition-colors duration-500" :class="post.color === 'red' ? 'bg-construct-red text-white group-hover:bg-white group-hover:text-construct-red' : 'bg-construct-black text-white group-hover:bg-white group-hover:text-construct-black'">
-                  <component :is="getCatIcon(getCategoryNameById(categories, post.categoryId))" />
+                  <component :is="getCatIcon(getCategoryNameById(categories, post.category_id))" />
                 </span>
                 <span class="text-[10px] md:text-xs font-bold tracking-[0.3em] uppercase group-hover:text-white">
-                  {{ getCategoryNameById(categories, post.categoryId) }}
+                  {{ getCategoryNameById(categories, post.category_id) }}
                 </span>
               </div>
               <span class="text-[10px] font-bold tracking-widest opacity-60 group-hover:text-white">
-                  {{ formatToEnglish(post.publishedAt) }}
+                  {{ formatToEnglish(post.published_at) }}
                 </span>
             </div>
 
@@ -206,7 +206,7 @@ const isFooterVisible = ref(true);
               </div>
               <div class="flex items-center gap-4 text-[10px] md:text-xs font-bold tracking-widest uppercase shrink-0">
                 <span class="opacity-60 group-hover:opacity-100 group-hover:text-white transition-opacity">
-                  AUTHOR: {{ getAuthorName(post.authorId) }}
+                  AUTHOR: {{ getAuthorName(post.author_id) }}
                 </span>
                 <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all duration-500 group-hover:rotate-45 shrink-0" :class="post.color === 'red' ? 'border-construct-black group-hover:border-white' : 'border-construct-black group-hover:border-white'">
                   <ArrowUpRight size="16" class="group-hover:text-white" />

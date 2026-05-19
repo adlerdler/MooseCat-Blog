@@ -37,9 +37,9 @@ const featuredPosts = computed(() => {
     id: post.id,
     title: post.title,
     excerpt: post.excerpt,
-    category: getCategoryNameById(categoryList, post.categoryId),
-    categoryLabel: getCategoryLabelById(categoryList, post.categoryId),
-    views_count: Math.floor(Math.random() * 1000) + 500
+    category: getCategoryNameById(categoryList, post.category_id),
+    categoryLabel: getCategoryLabelById(categoryList, post.category_id),
+    views_count: post.views_count || Math.floor(Math.random() * 1000) + 500
   }))
 })
 
