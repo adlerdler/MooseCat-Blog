@@ -19,9 +19,13 @@
  */
 import { RouterLink } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { socialLinks } from '../data/author';
+import { Github, Twitter, Linkedin, Mail } from 'lucide-vue-next';
+import { getAuthor, getAuthorLinks } from '../data/author';
 
 const { t } = useI18n();
+
+const author = getAuthor();
+const socialLinks = getAuthorLinks(author?.user_id);
 
 const props = defineProps({
   modelValue: {
@@ -34,6 +38,16 @@ const emit = defineEmits(['update:modelValue'])
 
 const toggleFooter = () => {
   emit('update:modelValue', !props.modelValue)
+}
+
+const getIconComponent = (iconName) => {
+  const iconMap = {
+    'Github': Github,
+    'Twitter': Twitter,
+    'Linkedin': Linkedin,
+    'Mail': Mail
+  };
+  return iconMap[iconName] || Mail;
 }
 </script>
 
@@ -61,13 +75,13 @@ const toggleFooter = () => {
           rel="noopener noreferrer"
           :class="[
             'p-2 border-2 border-black transition-colors w-10 h-10 flex items-center justify-center',
-            link.style.background,
-            link.style.textColor,
-            link.style.hover
+            link.platform === 'github' || link.platform === 'twitter' ? 'bg-white text-construct-black hover:bg-construct-black hover:text-white' :
+            link.platform === 'linkedin' ? 'bg-construct-red text-white hover:bg-construct-black hover:text-white border-construct-red hover:border-construct-black' :
+            'bg-construct-black text-white hover:bg-construct-red hover:text-white hover:border-construct-red'
           ]"
           :aria-label="link.label"
         >
-          <component :is="link.icon" class="w-4 h-4" />
+          <component :is="getIconComponent(link.icon_name)" class="w-4 h-4" />
         </a>
       </div>
     </div>

@@ -1,123 +1,101 @@
 /**
- * author.js - 作者页面数据
+ * author.js - 作者信息数据（数据库格式模拟）
  * 
  * 功能说明：
- * - 存储作者页面相关的静态数据
- * - 包含技能、社交媒体链接等信息
- * - 项目数据统一从 projects.js 获取
+ * - 模拟数据库作者信息表结构
+ * - 存储作者扩展信息（宣言等）
+ * - 基础信息（名称、头像）从 users.js 获取
+ * - 技能数据通过 author_id 关联 skills.js
+ * - 社交链接通过 user_id 关联 links.js
+ * - 通过 user_id 关联 users.js 中的用户记录
+ * 
+ * 表结构：
+ * - author_info: 作者扩展信息表
  */
 
-import { Github, Twitter, Linkedin, Mail } from 'lucide-vue-next';
-import { PROJECTS } from './projects';
+import { getLinksByUserId } from './links';
+import { getSkillsByAuthorId } from './skills';
 
 /**
- * 导出项目数据（从 projects.js 统一获取）
- */
-export { PROJECTS };
-
-/**
- * 技能列表（表格化结构）
+ * 作者信息表（扩展信息，基础信息从 users.js 获取）
  * 字段说明：
- * - id: 技能唯一标识
- * - label: 国际化标签key
- * - value: 技能值（百分比）
- * - description: 技能描述key
- * - category: 分类
- * - sort_order: 排序顺序
+ * - id: 作者唯一标识
+ * - user_id: 关联用户ID（对应 users.js 中的用户）
+ * - slug: URL友好别名
+ * - bio: 作者简介
+ * - role_label: 职位标签（国际化key）
+ * - role_title: 职位名称（国际化key）
+ * - status_label: 状态标签（国际化key）
+ * - status_text: 状态文本（国际化key）
+ * - manifestos: 宣言内容数组（JSON格式，包含title、content、sort_order）
+ * - is_active: 是否启用
+ * - created_at: 创建时间
+ * - updated_at: 更新时间
  */
-export const skills = [
+export const authorInfo = [
   {
     id: 1,
-    label: 'skill_1',
-    value: 95,
-    description: 'skill_1_desc',
-    category: 'frontend',
-    sort_order: 1,
-  },
-  {
-    id: 2,
-    label: 'skill_2',
-    value: 92,
-    description: 'skill_2_desc',
-    category: 'backend',
-    sort_order: 2,
-  },
-  {
-    id: 3,
-    label: 'skill_3',
-    value: 84,
-    description: 'skill_3_desc',
-    category: 'devops',
-    sort_order: 3,
-  },
+    user_id: 9,
+    slug: 'adler-decht',
+    bio: 'Constructivist architect and designer, building digital systems and exploring the intersection of theory and practice.',
+    role_label: 'role_designation',
+    role_title: 'architect_designer',
+    status_label: 'author_status',
+    status_text: 'building_systems',
+    manifestos: [
+      {
+        title: 'manifesto',
+        content: 'I explore the intersection of architecture and technology, building digital systems that bridge the physical and virtual worlds.',
+        sort_order: 1
+      },
+      {
+        title: 'manifesto_highlight',
+        content: 'Every line of code is a brick. Every system is a structure. Design is both the blueprint and the foundation.',
+        sort_order: 2
+      },
+      {
+        title: 'manifesto_conclusion',
+        content: 'Through computational thinking and architectural principles, I create experiences that transcend traditional boundaries.',
+        sort_order: 3
+      }
+    ],
+    is_active: true,
+    created_at: '2024-01-01T00:00:00Z',
+    updated_at: '2024-01-01T00:00:00Z'
+  }
 ];
 
 /**
- * 社交媒体链接配置（表格化结构）
- * 字段说明：
- * - id: 链接唯一标识
- * - platform: 平台标识
- * - icon: 图标组件
- * - label: 显示标签
- * - url: 链接地址
- * - style: 样式配置
- * - sort_order: 排序顺序
+ * 获取作者扩展信息
  */
-export const socialLinks = [
-  {
-    id: 1,
-    platform: 'github',
-    icon: Github,
-    label: 'GITHUB',
-    url: 'https://github.com/adlerdler',
-    style: {
-      background: 'bg-white',
-      textColor: 'text-construct-black',
-      hover: 'hover:bg-construct-black hover:text-white',
-      border: 'border-2 border-construct-black',
-    },
-    sort_order: 1,
-  },
-  {
-    id: 2,
-    platform: 'twitter',
-    icon: Twitter,
-    label: 'TWITTER',
-    url: 'https://twitter.com/adlerdler',
-    style: {
-      background: 'bg-white',
-      textColor: 'text-construct-black',
-      hover: 'hover:bg-construct-black hover:text-white',
-      border: 'border-2 border-construct-black',
-    },
-    sort_order: 2,
-  },
-  {
-    id: 3,
-    platform: 'linkedin',
-    icon: Linkedin,
-    label: 'LINKEDIN',
-    url: 'https://linkedin.com/in/adlerdler',
-    style: {
-      background: 'bg-construct-red',
-      textColor: 'text-white',
-      hover: 'hover:bg-construct-black hover:text-white',
-      border: 'border-2 border-construct-red hover:border-construct-black',
-    },
-    sort_order: 3,
-  },
-  {
-    id: 4,
-    platform: 'email',
-    icon: Mail,
-    label: 'CONTACT',
-    url: 'mailto:contact@adlerdler.com',
-    style: {
-      background: 'bg-construct-black',
-      textColor: 'text-white',
-      hover: 'hover:bg-construct-red hover:text-white',
-      border: 'border-2 border-construct-black hover:border-construct-red',
-    },
-    sort_order: 4,
-  },
-];
+export const getAuthor = (id = 1) => {
+  return authorInfo.find(a => a.id === id && a.is_active);
+};
+
+/**
+ * 根据用户ID获取作者扩展信息
+ */
+export const getAuthorByUserId = (userId) => {
+  return authorInfo.find(a => a.user_id === userId && a.is_active);
+};
+
+/**
+ * 获取所有启用的作者
+ */
+export const getActiveAuthors = () => {
+  return authorInfo.filter(a => a.is_active);
+};
+
+/**
+ * 获取作者的技能列表（通过 author_id 关联 skills.js）
+ */
+export const getAuthorSkills = (authorId = 1) => {
+  return getSkillsByAuthorId(authorId);
+};
+
+/**
+ * 获取作者的社交链接列表（通过 user_id 关联 links.js）
+ */
+export const getAuthorLinks = (userId = 9) => {
+  return getLinksByUserId(userId);
+};

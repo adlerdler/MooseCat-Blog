@@ -24,7 +24,7 @@ import {
   ArrowDown
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
-import { socialLinks } from '../../data/author';
+import { links } from '../../data/links';
 import ContentForm from '../../components/admin/ContentForm.vue';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import AdminPagination from '../../components/admin/AdminPagination.vue';
@@ -32,6 +32,8 @@ import AdminSearchFilter from '../../components/admin/AdminSearchFilter.vue';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
+
+const linksList = ref([...links]);
 
 const searchQuery = ref('');
 const currentPage = ref(1);
@@ -41,8 +43,6 @@ const isFormVisible = ref(false);
 const editingLink = ref(null);
 const showDeleteConfirm = ref(false);
 const deletingLinkId = ref(null);
-
-const links = ref([...socialLinks]);
 
 const platforms = ['all', 'github', 'twitter', 'linkedin', 'email'];
 
@@ -54,7 +54,7 @@ const platformIcons = {
 };
 
 const filteredLinks = computed(() => {
-  let result = [...links.value];
+  let result = [...linksList.value];
   
   if (selectedPlatform.value !== 'all') {
     result = result.filter(link => link.platform === selectedPlatform.value);
@@ -85,7 +85,6 @@ const handleEdit = (link) => {
     platform: link.platform,
     label: link.label,
     url: link.url,
-    style: { ...link.style },
     sort_order: link.sort_order
   };
   isFormVisible.value = true;
@@ -98,20 +97,20 @@ const handleAdd = () => {
 
 const handleSave = (data) => {
   if (editingLink.value) {
-    const index = links.value.findIndex(l => l.id === editingLink.value.id);
+    const index = linksList.value.findIndex(l => l.id === editingLink.value.id);
     if (index !== -1) {
-      links.value[index] = {
-        ...links.value[index],
+      linksList.value[index] = {
+        ...linksList.value[index],
         ...data,
-        style: data.style || links.value[index].style
+        icon_name: data.icon_name || linksList.value[index].icon_name
       };
     }
   } else {
-    const newId = Math.max(...links.value.map(l => l.id), 0) + 1;
-    links.value.push({
+    const newId = Math.max(...linksList.value.map(l => l.id), 0) + 1;
+    linksList.value.push({
       id: newId,
       ...data,
-      icon: platformIcons[data.platform] || Link
+      icon_name: data.icon_name || 'Link'
     });
   }
   isFormVisible.value = false;
@@ -130,27 +129,27 @@ const handleDelete = (id) => {
 
 const confirmDelete = () => {
   if (deletingLinkId.value !== null) {
-    links.value = links.value.filter(l => l.id !== deletingLinkId.value);
+    linksList.value = linksList.value.filter(l => l.id !== deletingLinkId.value);
     deletingLinkId.value = null;
   }
   showDeleteConfirm.value = false;
 };
 
 const moveUp = (link) => {
-  const index = links.value.findIndex(l => l.id === link.id);
+  const index = linksList.value.findIndex(l => l.id === link.id);
   if (index > 0) {
-    [links.value[index], links.value[index - 1]] = [links.value[index - 1], links.value[index]];
-    links.value[index].sort_order = index;
-    links.value[index - 1].sort_order = index - 1;
+    [linksList.value[index], linksList.value[index - 1]] = [linksList.value[index - 1], linksList.value[index]];
+    linksList.value[index].sort_order = index;
+    linksList.value[index - 1].sort_order = index - 1;
   }
 };
 
 const moveDown = (link) => {
-  const index = links.value.findIndex(l => l.id === link.id);
-  if (index < links.value.length - 1) {
-    [links.value[index], links.value[index + 1]] = [links.value[index + 1], links.value[index]];
-    links.value[index].sort_order = index;
-    links.value[index + 1].sort_order = index + 1;
+  const index = linksList.value.findIndex(l => l.id === link.id);
+  if (index < linksList.value.length - 1) {
+    [linksList.value[index], linksList.value[index + 1]] = [linksList.value[index + 1], linksList.value[index]];
+    linksList.value[index].sort_order = index;
+    linksList.value[index + 1].sort_order = index + 1;
   }
 };
 

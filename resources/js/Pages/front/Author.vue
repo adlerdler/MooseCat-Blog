@@ -12,15 +12,19 @@
  * - GitHub API 获取用户信息和贡献数据
  */
 import { ref, onMounted, computed } from 'vue';
-import { ArrowRight } from 'lucide-vue-next';
+import { ArrowRight, Github, Twitter, Linkedin, Mail } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
 import { CalendarHeatmap } from 'vue3-calendar-heatmap';
 import 'vue3-calendar-heatmap/dist/style.css';
 import { useTheme } from '@/composables/useTheme';
 import SidebarMenu from '@/components/SidebarMenu.vue';
 import Footer from '@/components/Footer.vue';
-import { skills, socialLinks } from '../../data/author';
+import { getAuthor, getAuthorSkills, getAuthorLinks } from '../../data/author';
 import { PROJECTS } from '../../data/projects';
+
+const author = getAuthor();
+const skills = getAuthorSkills(author?.id);
+const socialLinks = getAuthorLinks(author?.user_id);
 
 const { t } = useI18n();
 const { currentTheme } = useTheme();
@@ -32,6 +36,17 @@ const isLoading = ref(true);
 const githubLink = socialLinks.find(s => s.platform === 'github');
 const username = githubLink?.url.split('/').pop() || 'adlerdler';
 const projects = PROJECTS.filter(p => p.status === 'in-progress' || p.status === 'planning');
+
+const getIconComponent = (iconName) => {
+  const iconMap = {
+    'Github': Github,
+    'Twitter': Twitter,
+    'Linkedin': Linkedin,
+    'Mail': Mail
+  };
+  return iconMap[iconName] || Mail;
+};
+
 const endDate = computed(() => {
  const date = new Date();
  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -204,10 +219,15 @@ const generateMockCalendarData = () => {
               :href="item.url"
               target="_blank"
               rel="noopener noreferrer"
-              :class="['aspect-[4/3] flex flex-col items-center justify-center gap-2 transition-all', item.style.background, item.style.textColor, item.style.hover, item.style.border]"
+              :class="[
+                'aspect-[4/3] flex flex-col items-center justify-center gap-2 transition-all border-2',
+                item.platform === 'github' || item.platform === 'twitter' ? 'bg-white text-construct-black hover:bg-construct-black hover:text-white border-construct-black' :
+                item.platform === 'linkedin' ? 'bg-construct-red text-white hover:bg-construct-black hover:text-white border-construct-red hover:border-construct-black' :
+                'bg-construct-black text-white hover:bg-construct-red hover:text-white border-construct-black hover:border-construct-red'
+              ]"
             >
               <component 
-                :is="item.icon" 
+                :is="getIconComponent(item.icon_name)" 
                 class="w-5 h-5 group-hover:-translate-y-1 transition-transform" 
               />
               <span class="text-[10px] font-bold tracking-[0.2em] uppercase">
