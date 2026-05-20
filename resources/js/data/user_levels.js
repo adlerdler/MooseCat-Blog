@@ -68,15 +68,3 @@ export const userLevels = [
     sort_order: 5
   }
 ];
-
-export const getLevelById = (id) => {
-  return userLevels.find(level => level.id === id);
-};
-
-export const getLevelByName = (name) => {
-  return userLevels.find(level => level.name === name);
-};
-
-export const getActiveLevels = () => {
-  return userLevels.filter(level => level.is_active).sort((a, b) => a.sort_order - b.sort_order);
-};

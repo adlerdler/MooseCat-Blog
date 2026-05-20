@@ -16,6 +16,7 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useRoute, useRouter, RouterLink } from 'vue-router';
 import { Motion, AnimatePresence } from 'motion-v';
 import { useTheme } from '../../composables/useTheme';
+import { usePageSeo } from '../../composables/usePageSeo';
 import { PROJECTS } from '../../data/projects';
 import { findById, formatId } from '../../utils/typeConvert';
 import { ExternalLink, Github, ArrowLeft, ArrowUp, Terminal, Cpu, Layers, Globe, Code } from 'lucide-vue-next';
@@ -27,6 +28,15 @@ const router = useRouter();
 const project = computed(() => {
   return findById(PROJECTS, route.params.id);
 });
+
+usePageSeo({
+  title: computed(() => project.value?.title ? `PROJECT // ${project.value.title} - ARCHYX` : 'PROJECT - ARCHYX'),
+  description: computed(() => project.value?.description || ''),
+  keywords: computed(() => project.value?.tech_stack?.join(', ') || ''),
+  image: computed(() => project.value?.image || ''),
+  url: computed(() => `${window.location.origin}/project/${project.value?.id}`),
+  type: 'CreativeWork'
+})
 
 // 检查项目是否存在且为已完成状态
 const isValidProject = computed(() => {

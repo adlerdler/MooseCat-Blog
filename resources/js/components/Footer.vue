@@ -20,14 +20,16 @@
 import { RouterLink } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { Github, Twitter, Linkedin, Globe, MessageCircle, Palette, Youtube, Facebook, Video } from 'lucide-vue-next';
-import { getFooterSocialLinks, getFooterNavLinks, footerConfig } from '../data/footer_config';
-import { getSiteName, getSiteDescription } from '../data/site_config';
+import { useFooterData } from '../composables/useFooterData';
+import { useSiteConfig } from '../composables/useSiteConfig';
 
+const { getFooterSocialLinks, getFooterNavLinks, footerConfig } = useFooterData();
 const { t } = useI18n();
 
 const socialLinks = getFooterSocialLinks();
 const categoryLinks = getFooterNavLinks('categories');
 const dataLinks = getFooterNavLinks('data');
+const { getSiteName, getSiteDescription } = useSiteConfig();
 const siteName = getSiteName();
 const siteDescription = getSiteDescription();
 

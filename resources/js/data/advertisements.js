@@ -21,7 +21,7 @@
  * - updated_at: 更新时间
  */
 
-import { adPositions, getAdPositionByName, getAdPositionById } from './ad_positions';
+import { adPositions } from './ad_positions';
 
 export const sampleAdvertisements = [
   {
@@ -115,72 +115,3 @@ export const sampleAdvertisements = [
     updated_at: '2026-05-01T11:30:00',
   }
 ];
-
-/**
- * 获取所有广告
- * @returns {Array} 广告数组
- */
-export const getAllAdvertisements = () => {
-  return sampleAdvertisements;
-};
-
-/**
- * 根据广告位名称获取广告列表
- * @param {string} positionName - 广告位名称
- * @returns {Array} 广告数组
- */
-export const getAdvertisementsByPosition = (positionName) => {
-  return sampleAdvertisements.filter(ad => ad.position === positionName && ad.is_active);
-};
-
-/**
- * 根据广告位ID获取广告列表
- * @param {number} positionId - 广告位ID
- * @returns {Array} 广告数组
- */
-export const getAdvertisementsByPositionId = (positionId) => {
-  return sampleAdvertisements.filter(ad => ad.position_id === positionId && ad.is_active);
-};
-
-/**
- * 获取广告及其关联的广告位信息
- * @param {number} adId - 广告ID
- * @returns {Object|null} 广告及广告位信息
- */
-export const getAdvertisementWithPosition = (adId) => {
-  const ad = sampleAdvertisements.find(a => a.id === adId);
-  if (!ad) return null;
-  
-  const position = getAdPositionById(ad.position_id);
-  return {
-    ...ad,
-    position_info: position
-  };
-};
-
-/**
- * 获取所有广告及其关联的广告位信息
- * @returns {Array} 广告及广告位信息数组
- */
-export const getAllAdvertisementsWithPositions = () => {
-  return sampleAdvertisements.map(ad => {
-    const position = getAdPositionById(ad.position_id);
-    return {
-      ...ad,
-      position_info: position
-    };
-  });
-};
-
-/**
- * 获取广告位选项（用于表单下拉选择）
- * @returns {Array} 广告位选项数组
- */
-export const getAdPositionOptions = () => {
-  return adPositions
-    .filter(p => p.is_active)
-    .map(p => ({
-      value: p.name,
-      label_key: p.label_key
-    }));
-};

@@ -9,7 +9,10 @@
  * - 提供便捷的主题相关工具函数
  */
 import { ref, computed, watch } from 'vue';
-import { getActiveThemes, getDefaultTheme } from '../data/themes';
+import { themes as themesData } from '../data/themes';
+
+const getActiveThemes = () => themesData.filter(t => t.is_active).sort((a, b) => a.sort_order - b.sort_order);
+const getDefaultTheme = () => themesData.find(t => t.is_default) || themesData[0];
 
 // 深色/浅色模式（仅后台使用）
 const isDarkMode = ref(true);

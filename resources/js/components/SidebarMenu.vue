@@ -22,7 +22,9 @@ import { Menu, Search, User, ChevronDown, ChevronUp, X, ArrowRight, Globe, FileT
 import SettingsPanel from './SettingsPanel.vue';
 import SearchOverlay from './SearchOverlay.vue';
 import { useI18n } from 'vue-i18n';
-import { getSiteName, getSiteCopyright } from '../data/site_config';
+import { useSiteConfig } from '../composables/useSiteConfig';
+
+const { getSiteName, getSiteCopyright } = useSiteConfig();
 
 import { useMenuItems } from '../composables/useMenuItems';
 

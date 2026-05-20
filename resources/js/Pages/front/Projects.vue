@@ -16,10 +16,23 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { Motion, AnimatePresence } from 'motion-v';
 import { useTheme } from '../../composables/useTheme';
+import { usePageSeo } from '../../composables/usePageSeo';
+import { usePageSeoData } from '../../composables/usePageSeoData';
 import { PROJECTS } from '../../data/projects';
 import SidebarMenu from '@/components/SidebarMenu.vue';
-import Footer from '@/components/Footer.vue';
+
 import { useI18n } from 'vue-i18n';
+
+const { getSeoByRoute } = usePageSeoData();
+const pageSeo = getSeoByRoute('projects')
+
+usePageSeo({
+  title: pageSeo.title,
+  description: pageSeo.description,
+  keywords: pageSeo.keywords,
+  url: `${window.location.origin}${pageSeo.path}`,
+  type: pageSeo.schemaType
+})
 
 const { t } = useI18n();
 const { initAccentTheme } = useTheme();

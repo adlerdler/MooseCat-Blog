@@ -18,8 +18,10 @@ import {
   Lock
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
-import { getMoodLabel, getWeatherLabel, getMoodTypes, getWeatherTypes } from '../../data/journals';
+import { useJournalData } from '../../composables/useJournalData';
 import { adminUsers } from '../../data/users';
+
+const { getMoodLabel, getWeatherLabel, getMoodTypes, getWeatherTypes } = useJournalData();
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();

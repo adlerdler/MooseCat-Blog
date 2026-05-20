@@ -65,24 +65,3 @@ export const templateVariables = [
   { name: 'replier_name', desc: '回复者的名称' },
   { name: 'post_url', desc: '文章/评论所在页面的链接' }
 ];
-
-/**
- * 根据ID获取邮件模板
- */
-export const getEmailTemplateById = (id) => {
-  return emailTemplates.find(template => template.id === id);
-};
-
-/**
- * 获取所有启用的邮件模板
- */
-export const getActiveEmailTemplates = () => {
-  return emailTemplates.filter(template => template.is_active);
-};
-
-/**
- * 根据名称获取邮件模板
- */
-export const getEmailTemplateByName = (name) => {
-  return emailTemplates.find(template => template.name === name);
-};

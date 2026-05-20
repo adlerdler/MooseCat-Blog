@@ -19,7 +19,7 @@ import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTheme } from '../composables/useTheme'
 import { setLocale } from '../i18n'
-import { getSiteCopyright } from '../data/site_config'
+import { useSiteConfig } from '../composables/useSiteConfig';
 
 defineProps({
   isMobile: {
@@ -30,7 +30,8 @@ defineProps({
 
 const { t, locale } = useI18n()
 const { themes, currentTheme, setTheme } = useTheme()
-const siteCopyright = getSiteCopyright()
+const { getSiteCopyright } = useSiteConfig();
+const siteCopyright = getSiteCopyright();
 
 const languages = [
   { code: 'en', label: 'EN' },

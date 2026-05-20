@@ -14,7 +14,6 @@ import { useI18n } from 'vue-i18n';
 import {
   LayoutPanelLeft,
   Plus,
-  Search,
   Edit3,
   Trash2,
   ChevronUp,
@@ -35,12 +34,14 @@ import {
   X
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
-import { footerConfig, getFooterSocialLinks, getFooterNavLinks } from '../../data/footer_config';
+import { useFooterData } from '../../composables/useFooterData';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import AdminPagination from '../../components/admin/AdminPagination.vue';
+import AdminSearchFilter from '../../components/admin/AdminSearchFilter.vue';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
+const { getFooterSocialLinks, getFooterNavLinks, getFooterBrand, footerConfig } = useFooterData();
 
 const activeTab = ref('social');
 
@@ -60,6 +61,10 @@ const showAddLinkModal = ref(false);
 const newLinkPlatform = ref('');
 const newLinkUrl = ref('');
 const detectedPlatform = ref('');
+
+const showEditModal = ref(false);
+const editingLink = ref(null);
+const editForm = ref({});
 
 const detectPlatformFromUrl = (url) => {
   if (!url) return '';
@@ -241,6 +246,42 @@ const handleSaveAll = () => {
   alert('页脚配置已保存');
 };
 
+const openEditModal = (link) => {
+  editingLink.value = link;
+  editForm.value = {
+    label: link.label || link.label_default || '',
+    url: link.url || '',
+    route: link.route || '',
+    is_active: link.is_active !== undefined ? link.is_active : true
+  };
+  showEditModal.value = true;
+};
+
+const closeEditModal = () => {
+  showEditModal.value = false;
+  editingLink.value = null;
+  editForm.value = {};
+};
+
+const saveEdit = () => {
+  const link = editingLink.value;
+  if (!link) return;
+  if (!editForm.value.label.trim()) {
+    alert('请输入名称');
+    return;
+  }
+  if (!editForm.value.url.trim() && !editForm.value.route?.trim()) {
+    alert('请输入链接地址或路由');
+    return;
+  }
+  link.label = editForm.value.label;
+  link.label_default = editForm.value.label;
+  link.url = editForm.value.url;
+  link.route = editForm.value.route;
+  link.is_active = editForm.value.is_active;
+  closeEditModal();
+};
+
 const tabs = [
   { key: 'social', label: '社交链接', icon: LinkIcon },
   { key: 'categories', label: '分类导航', icon: Navigation },
@@ -283,132 +324,116 @@ const getPlatformGradient = (platform) => {
           @click="handleSaveAll"
           class="flex items-center gap-3 px-8 py-4 bg-construct-red text-white font-black text-xs uppercase tracking-[0.2em] transition-all hover:scale-105 active:scale-95 shadow-lg shadow-construct-red/20 rounded-xl"
         >
-          <Save size="18" class="!text-white" />
+          <Save size="18" :style="{ color: '#ffffff' }" />
           {{ t('admin_save') }}
         </button>
       </div>
     </div>
 
+    <!-- Search and Filter -->
+    <AdminSearchFilter
+      v-model:search-query="searchQuery"
+      :search-placeholder="t('admin_search_placeholder')"
+    />
+
     <!-- Tabs -->
-    <div :class="['flex gap-2 mb-6 border-b', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
+    <div :class="['flex gap-2 mb-6 mt-6 border-b', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
       <button
         v-for="tab in tabs"
         :key="tab.key"
         @click="activeTab = tab.key; currentPage = 1; searchQuery = ''"
         :class="[
-          'flex items-center gap-2 px-6 py-3 font-bold text-sm uppercase tracking-wider transition-all border-b-2',
+          'flex items-center gap-2 px-6 py-3 font-black text-xs uppercase tracking-[0.2em] transition-all border-b-2',
           activeTab === tab.key
             ? 'border-construct-red text-construct-red'
-            : isDarkMode 
-              ? 'border-transparent text-gray-400 hover:text-white' 
+            : isDarkMode
+              ? 'border-transparent text-gray-400 hover:text-white'
               : 'border-transparent text-gray-500 hover:text-gray-900'
         ]"
       >
         <component :is="tab.icon" size="16" />
         {{ tab.label }}
       </button>
-    </div>
-
-    <!-- Search and Add -->
-    <div class="mb-6 flex items-center justify-between gap-4">
-      <div :class="['flex items-center gap-3 px-4 py-3 border flex-1 max-w-md transition-colors', isDarkMode ? 'bg-gray-800/40 border-gray-700/50' : 'bg-white/80 border-gray-200/80']">
-        <Search size="18" :class="isDarkMode ? 'text-gray-500' : 'text-gray-400'" />
-        <input
-          v-model="searchQuery"
-          :class="['flex-1 bg-transparent focus:outline-none text-sm', isDarkMode ? 'text-white placeholder-gray-500' : 'text-gray-900 placeholder-gray-400']"
-          :placeholder="t('admin_search_placeholder')"
-        />
-      </div>
+      <div class="flex-1" />
       <button
         v-if="activeTab === 'social'"
         @click="openAddLinkModal"
-        class="flex items-center gap-3 px-8 py-4 bg-construct-red text-white font-black text-xs uppercase tracking-[0.2em] transition-all hover:scale-105 active:scale-95 shadow-lg shadow-construct-red/20 rounded-xl"
+        class="flex items-center gap-3 mb-1 px-8 py-3 bg-construct-red text-white font-black text-xs uppercase tracking-[0.2em] transition-all hover:scale-105 active:scale-95 shadow-lg shadow-construct-red/20 rounded-xl"
       >
-        <Plus size="18" class="!text-white" />
+        <Plus size="18" :style="{ color: '#ffffff' }" />
         {{ t('admin_add') }}
       </button>
     </div>
 
     <!-- Links Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <div
         v-for="link in paginatedLinks"
         :key="link.id"
         :class="[
-          'group relative border p-6 transition-all duration-500 hover:-translate-y-2',
-          isDarkMode 
-            ? 'bg-gray-800/40 border-gray-700/50 hover:border-construct-red/50 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.3)]' 
-            : 'bg-white/80 border-gray-200/80 hover:border-construct-red/30 backdrop-blur-md shadow-[0_8px_32px_0_rgba(31,38,135,0.07)]'
+          'border transition-all duration-500 hover:-translate-y-1 rounded-lg overflow-hidden',
+          isDarkMode
+            ? 'bg-gray-800 border-gray-700 hover:border-construct-red/50 hover:shadow-lg'
+            : 'bg-white border-gray-200 hover:border-construct-red/30 hover:shadow-lg'
         ]"
       >
-        <!-- Card Background Accent -->
-        <div class="absolute top-0 right-0 p-8 opacity-0 group-hover:opacity-10 transition-opacity duration-500 pointer-events-none">
-          <component 
-            v-if="activeTab === 'social'" 
-            :is="getLinkIcon(link.platform)" 
-            size="80" 
-            class="rotate-12" 
-          />
-          <Navigation v-else size="80" class="rotate-12" />
-        </div>
+        <div class="p-6">
+          <div class="flex items-start justify-between mb-4">
+            <div :class="[
+              'w-12 h-12 rounded-lg flex items-center justify-center shadow-md',
+              getPlatformGradient(link.platform)
+            ]">
+              <component
+                v-if="activeTab === 'social'"
+                :is="getLinkIcon(link.platform)"
+                size="24"
+              />
+              <component v-else :is="Navigation" size="24" />
+            </div>
+            <div class="flex items-center gap-1">
+              <button
+                @click="moveUp(link, activeTab === 'social' ? socialLinksList : activeTab === 'categories' ? categoryLinksList : dataLinksList)"
+                :class="['p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100']"
+              >
+                <ChevronUp size="14" :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'" />
+              </button>
+              <button
+                @click="moveDown(link, activeTab === 'social' ? socialLinksList : activeTab === 'categories' ? categoryLinksList : dataLinksList)"
+                :class="['p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100']"
+              >
+                <ChevronDown size="14" :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'" />
+              </button>
+            </div>
+          </div>
 
-        <div class="flex items-start justify-between mb-6">
-          <div :class="[
-            'w-14 h-14 rounded-2xl flex items-center justify-center transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3 shadow-lg',
-            getPlatformGradient(link.platform)
-          ]">
-            <component
-              v-if="activeTab === 'social'"
-              :is="getLinkIcon(link.platform)"
-              size="28"
-            />
-            <Navigation v-else size="28" />
-          </div>
-          <div class="flex items-center gap-1">
-            <button 
-              @click="moveUp(link, activeTab === 'social' ? socialLinksList : activeTab === 'categories' ? categoryLinksList : dataLinksList)" 
-              :class="['p-2 rounded-lg transition-all', isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100']"
-            >
-              <ChevronUp size="16" :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'" />
-            </button>
-            <button 
-              @click="moveDown(link, activeTab === 'social' ? socialLinksList : activeTab === 'categories' ? categoryLinksList : dataLinksList)" 
-              :class="['p-2 rounded-lg transition-all', isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100']"
-            >
-              <ChevronDown size="16" :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'" />
-            </button>
-          </div>
-        </div>
-        
-        <div class="mb-4">
-          <h3 :class="['font-bold text-lg mb-2', isDarkMode ? 'text-white' : 'text-gray-900']">
+          <h4 :class="['font-bold text-lg mb-2', isDarkMode ? 'text-white' : 'text-gray-900']">
             {{ link.label || link.label_default }}
-          </h3>
-          <p :class="['text-xs uppercase tracking-wider', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
+          </h4>
+          <p :class="['text-xs font-bold uppercase tracking-wider mb-1', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
             {{ activeTab === 'social' ? link.platform : (link.route || link.url || '') }}
           </p>
-        </div>
+          <p :class="['text-sm truncate', isDarkMode ? 'text-gray-500' : 'text-gray-600']">
+            {{ link.url || link.route }}
+          </p>
 
-        <div :class="['text-sm mb-4 truncate border-t pt-4', isDarkMode ? 'text-gray-500 border-gray-700/50' : 'text-gray-600 border-gray-100']">
-          {{ link.url || link.route }}
-        </div>
-
-        <div class="flex items-center justify-between">
-          <span :class="['text-xs font-mono', isDarkMode ? 'text-gray-600' : 'text-gray-400']">
-            #{{ link.sort_order }}
-          </span>
-          <div class="flex items-center gap-2">
-            <button
-              :class="['p-2 rounded-lg transition-all', isDarkMode ? 'hover:bg-gray-700 text-gray-400 hover:text-construct-red' : 'hover:bg-gray-100 text-gray-400 hover:text-construct-red']"
-            >
-              <Edit3 size="16" />
-            </button>
-            <button
-              @click="handleDelete(link.id, activeTab)"
-              :class="['p-2 rounded-lg transition-all', isDarkMode ? 'hover:bg-gray-700 text-gray-400 hover:text-red-400' : 'hover:bg-gray-100 text-gray-400 hover:text-red-500']"
-            >
-              <Trash2 size="16" />
-            </button>
+          <div :class="['flex items-center justify-between mt-4 pt-4 border-t', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
+            <span :class="['text-xs font-mono font-bold', isDarkMode ? 'text-gray-600' : 'text-gray-400']">
+              #{{ link.sort_order }}
+            </span>
+            <div class="flex items-center gap-2">
+              <button
+                @click="openEditModal(link)"
+                :class="['p-2 rounded-lg transition-colors', isDarkMode ? 'text-gray-400 hover:bg-gray-700 hover:text-construct-red' : 'text-gray-400 hover:bg-gray-100 hover:text-construct-red']"
+              >
+                <Edit3 size="14" />
+              </button>
+              <button
+                @click="handleDelete(link.id, activeTab)"
+                :class="['p-2 rounded-lg transition-colors', isDarkMode ? 'text-gray-400 hover:bg-gray-700 hover:text-red-400' : 'text-gray-400 hover:bg-gray-100 hover:text-red-500']"
+              >
+                <Trash2 size="14" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -424,10 +449,10 @@ const getPlatformGradient = (platform) => {
     <!-- Add Link Modal -->
     <Transition name="modal">
       <div v-if="showAddLinkModal" class="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-sm" @click.self="cancelAddLink">
-        <div :class="['w-full max-w-md mx-4 shadow-2xl rounded-2xl border', isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200']">
+        <div :class="['w-full max-w-md mx-4 rounded-lg shadow-xl border', isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200']">
           <div :class="['flex justify-between items-center p-6 border-b', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
-            <h3 :class="['text-xl font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">添加社交链接</h3>
-            <button @click="cancelAddLink" :class="['p-2 rounded-full transition-colors', isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100']">
+            <h3 :class="['text-xl font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">{{ t('admin_add') }} 社交链接</h3>
+            <button @click="cancelAddLink" :class="['p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100']">
               <X :size="20" :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'" />
             </button>
           </div>
@@ -435,10 +460,10 @@ const getPlatformGradient = (platform) => {
           <div class="p-6 space-y-4">
             <div>
               <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">平台名称</label>
-              <input 
-                v-model="newLinkPlatform" 
-                :class="['w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-construct-red/50 focus:border-construct-red transition-all', isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200 text-gray-900']" 
-                placeholder="如：instagram, tiktok, bilibili..." 
+              <input
+                v-model="newLinkPlatform"
+                :class="['w-full px-3 py-2 border rounded-lg', isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300']"
+                placeholder="如：instagram, tiktok, bilibili..."
               />
               <p v-if="detectedPlatform" class="text-xs mt-2 text-green-600 dark:text-green-400">
                 ✓ 已自动识别为 {{ detectedPlatform }}
@@ -447,11 +472,11 @@ const getPlatformGradient = (platform) => {
 
             <div>
               <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">链接地址</label>
-              <input 
-                v-model="newLinkUrl" 
+              <input
+                v-model="newLinkUrl"
                 @input="handleUrlInput"
-                :class="['w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-construct-red/50 focus:border-construct-red transition-all', isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200 text-gray-900']" 
-                placeholder="https://..." 
+                :class="['w-full px-3 py-2 border rounded-lg', isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300']"
+                placeholder="https://..."
               />
             </div>
 
@@ -465,12 +490,75 @@ const getPlatformGradient = (platform) => {
           </div>
 
           <div :class="['flex gap-3 p-6 border-t', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
-            <button @click="cancelAddLink" :class="['flex-1 px-4 py-3 font-bold text-sm border rounded-lg transition-all', isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-200 text-gray-700 hover:bg-gray-50']">
+            <button @click="cancelAddLink" :class="['flex-1 px-4 py-3 font-bold text-sm border rounded-lg transition-colors', isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 hover:bg-gray-100']">
               {{ t('admin_cancel') }}
             </button>
-            <button @click="confirmAddLink" class="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-construct-red text-white font-bold text-sm rounded-lg hover:bg-red-700 transition-all">
-              <Plus :size="16" />
+            <button @click="confirmAddLink" class="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-construct-red text-white font-bold text-sm rounded-lg hover:bg-red-700 transition-colors">
+              <Plus :size="16" :style="{ color: '#ffffff' }" />
               {{ t('admin_add') }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Transition>
+
+    <!-- Edit Link Modal -->
+    <Transition name="modal">
+      <div v-if="showEditModal" class="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-sm" @click.self="closeEditModal">
+        <div :class="['w-full max-w-md mx-4 rounded-lg shadow-xl border', isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200']">
+          <div :class="['flex justify-between items-center p-6 border-b', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
+            <h3 :class="['text-xl font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">编辑链接</h3>
+            <button @click="closeEditModal" :class="['p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100']">
+              <X :size="20" :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'" />
+            </button>
+          </div>
+
+          <div class="p-6 space-y-4">
+            <div>
+              <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">名称</label>
+              <input
+                v-model="editForm.label"
+                :class="['w-full px-3 py-2 border rounded-lg', isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300']"
+                placeholder="链接显示名称"
+              />
+            </div>
+
+            <div>
+              <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">链接地址</label>
+              <input
+                v-model="editForm.url"
+                :class="['w-full px-3 py-2 border rounded-lg', isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300']"
+                placeholder="https://..."
+              />
+            </div>
+
+            <div v-if="activeTab !== 'social'">
+              <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">路由 (可选)</label>
+              <input
+                v-model="editForm.route"
+                :class="['w-full px-3 py-2 border rounded-lg', isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300']"
+                placeholder="如：/blog"
+              />
+            </div>
+
+            <div class="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="edit-link-active"
+                v-model="editForm.is_active"
+                class="w-4 h-4 rounded"
+              />
+              <label for="edit-link-active" :class="['text-sm font-bold', isDarkMode ? 'text-gray-300' : 'text-gray-700']">启用</label>
+            </div>
+          </div>
+
+          <div :class="['flex gap-3 p-6 border-t', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
+            <button @click="closeEditModal" :class="['flex-1 px-4 py-3 font-bold text-sm border rounded-lg transition-colors', isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 hover:bg-gray-100']">
+              取消
+            </button>
+            <button @click="saveEdit" class="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-construct-red text-white font-bold text-sm rounded-lg hover:bg-red-700 transition-colors">
+              <Save :size="16" :style="{ color: '#ffffff' }" />
+              保存
             </button>
           </div>
         </div>

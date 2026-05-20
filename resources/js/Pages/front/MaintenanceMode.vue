@@ -8,8 +8,9 @@
  * - 提供预计恢复时间
  */
 import { ref, onMounted } from 'vue';
-import { getSiteName } from '../../data/site_config';
+import { useSiteConfig } from '../../composables/useSiteConfig';
 
+const { getSiteName } = useSiteConfig();
 const siteName = getSiteName();
 const currentTime = ref(new Date());
 

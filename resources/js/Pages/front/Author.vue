@@ -17,10 +17,42 @@ import { useI18n } from 'vue-i18n';
 import { CalendarHeatmap } from 'vue3-calendar-heatmap';
 import 'vue3-calendar-heatmap/dist/style.css';
 import { useTheme } from '@/composables/useTheme';
+import { usePageSeo } from '../../composables/usePageSeo';
+import { usePageSeoData } from '../../composables/usePageSeoData';
 import SidebarMenu from '@/components/SidebarMenu.vue';
 import Footer from '@/components/Footer.vue';
-import { getAuthorProfileByUserId, getAuthorSkills, getAuthorManifestos, getAuthorSocialLinks } from '../../data/author_profiles';
+import { authorProfiles } from '../../data/author_profiles';
 import { PROJECTS } from '../../data/projects';
+
+const { getSeoByRoute } = usePageSeoData();
+const pageSeo = getSeoByRoute('author')
+
+const getAuthorProfileByUserId = (userId) => {
+  return authorProfiles.find(p => p.user_id === userId && p.is_active);
+};
+
+const getAuthorSkills = (userId) => {
+  const profile = getAuthorProfileByUserId(userId);
+  return profile ? (profile.skills || []).sort((a, b) => a.sort_order - b.sort_order) : [];
+};
+
+const getAuthorManifestos = (userId) => {
+  const profile = getAuthorProfileByUserId(userId);
+  return profile ? (profile.manifestos || []).sort((a, b) => a.sort_order - b.sort_order) : [];
+};
+
+const getAuthorSocialLinks = (userId) => {
+  const profile = getAuthorProfileByUserId(userId);
+  return profile ? profile.social_links : {};
+};
+
+usePageSeo({
+  title: pageSeo.title,
+  description: pageSeo.description,
+  keywords: pageSeo.keywords,
+  url: `${window.location.origin}${pageSeo.path}`,
+  type: pageSeo.schemaType
+})
 
 const author = getAuthorProfileByUserId(9);
 const skills = getAuthorSkills(9);

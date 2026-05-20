@@ -26,7 +26,7 @@ export const footerConfig = {
       platform: 'github',
       icon_name: 'Github',
       label: 'GITHUB',
-      url: 'https://github.com/adler-decht',
+      url: 'https://github.com/adlerdler',
       sort_order: 1,
       is_active: true,
       style: {
@@ -161,29 +161,3 @@ export const footerConfig = {
     data_default: 'Data'
   }
 };
-
-/**
- * 获取社交链接列表
- */
-export function getFooterSocialLinks() {
-  return footerConfig.social_links
-    .filter(link => link.is_active)
-    .sort((a, b) => a.sort_order - b.sort_order);
-}
-
-/**
- * 获取导航链接
- */
-export function getFooterNavLinks(section = 'categories') {
-  const links = footerConfig.nav_links[section] || [];
-  return links
-    .filter(link => link.is_active)
-    .sort((a, b) => a.sort_order - b.sort_order);
-}
-
-/**
- * 获取品牌信息
- */
-export function getFooterBrand() {
-  return footerConfig.brand;
-}

@@ -22,7 +22,7 @@ import {
   User
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
-import { subscribers as subscribersData, getSourceLabel, getSourceOptions } from '../../data/subscribers';
+import { subscribers as subscribersData } from '../../data/subscribers';
 import { findById, findIndexById } from '../../utils/typeConvert';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import AdminSearchFilter from '../../components/admin/AdminSearchFilter.vue';
@@ -31,6 +31,17 @@ import { formatToShort } from '../../utils/dateUtils';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
+
+const getSourceLabel = (source) => {
+  const labels = {
+    website: '网站',
+    newsletter: '邮件订阅',
+    social: '社交媒体',
+  };
+  return labels[source] || source;
+};
+
+const getSourceOptions = () => ['website', 'newsletter', 'social'];
 
 const searchQuery = ref('');
 const statusFilter = ref('all');

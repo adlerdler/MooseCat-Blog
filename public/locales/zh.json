@@ -145,6 +145,7 @@
   "admin_system": "系统设置",
   "admin_basic_settings": "常规选项",
   "admin_general_options": "基础配置",
+  "admin_seo_manager": "页面 SEO",
   "admin_node_management": "节点管理",
   "admin_menu_management": "前后台菜单管理",
   "admin_menu_management_subtitle": "管理前台和后台导航栏菜单项",

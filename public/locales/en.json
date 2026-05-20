@@ -145,6 +145,7 @@
   "admin_system": "SYSTEM SETTINGS",
   "admin_basic_settings": "GENERAL OPTIONS",
   "admin_general_options": "BASIC SETTINGS",
+  "admin_seo_manager": "PAGE SEO",
   "admin_node_management": "NODES",
   "admin_menu_management": "MENU",
   "admin_menu_management_subtitle": "Manage frontend and backend navigation menus",

@@ -543,3 +543,104 @@
 - **Status:**
   - 修复 `getOptionLabel` 函数中的变量引用，改为 `props.filterValues`。
   - 确保组件在 Vue 3 `<script setup>` 语法下正确访问 props。
+
+### 2026-05-20: 页面 SEO 管理重构与全局 SEO 分离 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 将全局 SEO 设置从 `SeoManager.vue` 中移除，使页面 SEO 管理专注于页面级配置，并重构为卡片式网格布局。
+- **Rationale:**
+  - **关注点分离：** 全局 SEO 配置与页面 SEO 配置属于不同层级的设置，混在一起会造成概念混淆和操作不便。
+  - **视觉统一：** 采用与其他后台页面（如 Subscribers）一致的卡片式网格布局，配合深色/浅色模式适配，提升视觉层次感。
+- **Status:**
+  - 移除 `SeoManager.vue` 中所有全局 SEO 相关模板、脚本和样式：`startEditGlobal`、`cancelEditGlobal`、`saveEditGlobal` 等函数。
+  - 重构页面列表为网格卡片布局，使用 `grid-cols-3` 响应式网格。
+  - 实现 `getRouteColor` 函数，为不同路由类型（post、blog、author 等）提供独特的颜色标识。
+  - 卡片内联编辑功能：点击编辑按钮展开表单，支持标题、描述、关键词、Schema 类型四个字段。
+  - 活动/禁用状态切换按钮，带绿色/灰色状态指示。
+  - 恢复 `Search` 图标导入（模板中使用了但导入被误删）。
+
+### 2026-05-20: 搜索功能统一为公共组件 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 将页脚管理（SocialLinks.vue）和页面 SEO 管理（SeoManager.vue）的搜索功能统一替换为 `AdminSearchFilter` 公共组件。
+- **Rationale:**
+  - **代码复用：** 避免在每个页面重复实现搜索逻辑，减少维护成本。
+  - **体验一致：** 统一的搜索组件提供一致的交互体验和视觉风格。
+  - **功能增强：** `AdminSearchFilter` 支持搜索 + 下拉筛选，功能更强大。
+- **Status:**
+  - `SocialLinks.vue`：移除自定义搜索框，集成 `AdminSearchFilter`，搜索框移至页面头部下方独立一行。
+  - `SeoManager.vue`：移除自定义搜索框，集成 `AdminSearchFilter`，搜索框移至页面头部右侧。
+  - 两个页面的搜索均支持实时过滤，无需额外分页重置逻辑。
+
+### 2026-05-20: 页脚管理（SocialLinks）样式全面重构 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 对 `SocialLinks.vue` 进行多轮样式重构，使其与 Subscribers、Advertisements 等后台页面保持完全一致的视觉风格。
+- **Rationale:**
+  - 用户多次反馈样式不一致、布局混乱、视觉丑陋，需要从根本上统一设计语言。
+  - 参照 Subscribers.vue 的布局模式，采用相同的 padding、字体、间距、按钮样式、边框处理等。
+- **Status:**
+  - **页面头部：** 图标 + 标题 + 副标题在左，保存按钮在右。保存按钮使用 `font-black text-xs uppercase tracking-[0.2em]` + `px-8 py-4`。
+  - **搜索区域：** `AdminSearchFilter` 独立一行，位于头部与选项卡之间。
+  - **选项卡（Tabs）：** 按钮字体统一为 `font-black text-xs uppercase tracking-[0.2em]`，添加按钮集成在 tab 栏右侧。
+  - **卡片：** 去除花哨的 `backdrop-blur`、渐变阴影、背景装饰图标、`group-hover` 复杂动画。改为简洁的 `border` + `rounded-lg` + `hover:-translate-y-1` + `hover:shadow-lg`。
+  - **卡片内部：** 图标容器 `w-12 h-12 rounded-lg`，标题 `text-lg font-bold`，底部边框使用统一的 `border-gray-200/700`。
+  - **模态框：** 统一为 `rounded-lg shadow-xl`，输入框 `px-3 py-2`，按钮风格与其他页面一致。
+  - **修复 bug：** 非社交链接选项卡卡片中的图标引用 `tab.icon` 变量作用域错误（tab 不在 v-for 作用域内），改为直接使用 `Navigation` 组件。
+
+### 2026-05-20: 页面 SEO 管理样式对齐 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 调整 `SeoManager.vue` 样式细节，使其与其他后台页面保持完全一致。
+- **Rationale:**
+  - 移除 `space-y-8` 冗余包裹层。
+  - 统一搜索框位置到页面头部右侧。
+  - 修复无效的 `</div>` 结束标签导致的 Vite 编译错误。
+- **Status:**
+  - 模板结构优化：移除多余的 `</div>` 标签，修复 `[plugin:vite:vue] Invalid end tag` 错误。
+  - 搜索框集成 AdminSearchFilter 并移至头部右侧。
+  - 卡片样式与 SocialLinks 保持一致的 `border`、`rounded-lg`、`hover:-translate-y-1` 风格。
+
+### 2026-05-20: 动态路由注册机制 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 实现前后台动态路由注册，新增或修改菜单项无需手动修改 `router.js`。
+- **Rationale:**
+  - **后台：** 从 `data/menu.js` 读取菜单配置，配合 `componentRegistry.js` 自动解析组件路径，动态生成路由。
+  - **前台：** 同理，前台页面也能通过 `data/menu.js` 中的 `frontMenuItems` 动态注册路由。
+  - **解耦：** 菜单配置与路由定义分离，新增页面只需添加菜单配置和组件文件，无需修改路由文件。
+- **Status:**
+  - **后台动态路由：** 遍历 `adminMenuItems`，通过 `getComponentPath()` 自动解析组件路径，`generateRouteName()` 生成 kebab-case 路由名称。
+  - **前台动态路由：** 遍历 `frontMenuItems`，同样使用组件注册表自动匹配组件。
+  - **静态兜底路由：** 保留手动定义的关键路由（如 `/admin/login`、`/admin/users/:id`）作为兜底。
+  - **路由顺序修复：** 将 `/admin/login` 路由放在 `/admin` 之前，确保登录页面优先匹配。
+  - **带参数路由：** 手动添加 `/admin/users/:id` 路由（`name: 'admin-user-detail'`），解决动态路由无法处理参数的问题。
+  - **路由名称修复：** 修复 `generateRouteName` 函数中错误的 camelCase 转换，保持 kebab-case 格式（如 `admin-users` 而非 `adminUsers`）。
+
+### 2026-05-20: settings.js 清理与优化 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 移除 `data/settings.js` 中无用的 `appearance` 配置，精简代码。
+- **Rationale:**
+  - `appearance` 对象（theme、fontSize、fontFamily、layoutDensity）未被任何组件引用，属于遗留代码。
+  - 保持代码库整洁，遵循 "只保留有用代码" 的原则。
+- **Status:**
+  - 从 `defaultSettings` 中删除 `appearance` 对象。
+  - 保留 `notifications` 和 `performance` 两个实际使用的配置模块。
+
+### 2026-05-21: Author.vue GitHub API 404 修复 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 修复 Author.vue 中 GitHub 数据获取 404 错误。
+- **Rationale:**
+  - `author_profiles.js` 中的 GitHub 用户名与实际不符，导致 `https://api.github.com/users/adlerdecht` 返回 404。
+  - GitHub 热力图和统计数据是作者页面的核心展示内容，必须正确获取。
+- **Status:**
+  - 检查 `author_profiles.js` 中的 GitHub 链接配置。
+  - 调整为正确的 GitHub 用户名。
+  - 修复 `fetchGitHubData` 错误处理逻辑，提供更清晰的错误提示。
+
+### 2026-05-21: 管理后台搜索与筛选组件统一改造 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 为所有管理后台页面统一引入 `AdminSearchFilter` 公共搜索组件，并改造为表格布局。
+- **Rationale:**
+  - 替换各页面零散的自定义搜索实现，统一交互体验。
+  - 表格布局更符合后台管理场景的数据展示需求。
+- **Status:**
+  - `Subscribers.vue`：集成 AdminSearchFilter，改造为表格布局，包含邮箱、状态、订阅日期、操作列。
+  - `Advertisements.vue`：集成 AdminSearchFilter，改造为表格布局，包含标题、位置、状态、展示次数、操作列。
+  - 搜索和分页完美配合，搜索时自动重置页码。
+  - 构建验证通过，无编译错误。

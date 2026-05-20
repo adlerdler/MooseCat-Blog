@@ -1,9 +1,9 @@
 /**
- * seo_config.js - SEO 优化配置数据（数据库格式）
+ * seo_config.js - 全局 SEO 配置数据（数据库格式）
  * 
  * 功能说明：
- * - 模拟数据库 SEO 配置表结构
- * - 存储网站 SEO 优化相关配置
+ * - 模拟数据库 seo_settings 表结构
+ * - 存储网站全局 SEO 优化相关配置
  * - 包含 Meta 标签、搜索引擎、站点地图等设置
  * - 支持后台管理页面编辑
  * 
@@ -37,69 +37,6 @@ export const seoConfig = {
   ogImage: '',
   ogType: 'website',
   twitterCard: 'summary_large_image',
+  createdAt: '2024-01-01T00:00:00Z',
   updatedAt: '2024-01-01T00:00:00Z'
 };
-
-/**
- * 获取 SEO 配置
- * @returns {Object} SEO 配置对象
- */
-export function getSeoConfig() {
-  return { ...seoConfig };
-}
-
-/**
- * 获取 Meta Title
- * @returns {string} Meta Title
- */
-export function getMetaTitle() {
-  return seoConfig.metaTitle;
-}
-
-/**
- * 获取 Meta Description
- * @returns {string} Meta Description
- */
-export function getMetaDescription() {
-  return seoConfig.metaDescription;
-}
-
-/**
- * 获取 Meta Keywords
- * @returns {string} Meta Keywords
- */
-export function getMetaKeywords() {
-  return seoConfig.metaKeywords;
-}
-
-/**
- * 获取 Canonical URL
- * @returns {string} Canonical URL
- */
-export function getCanonicalUrl() {
-  return seoConfig.canonicalUrl;
-}
-
-/**
- * 检查是否启用站点地图
- * @returns {boolean} 站点地图状态
- */
-export function isSitemapEnabled() {
-  return seoConfig.enableSitemap;
-}
-
-/**
- * 检查是否启用 Robots.txt
- * @returns {boolean} Robots.txt 状态
- */
-export function isRobotsEnabled() {
-  return seoConfig.enableRobots;
-}
-
-/**
- * 检查是否启用 llm.txt
- * @returns {boolean} llm.txt 状态
- */
-export function isLlmTxtEnabled() {
-  return seoConfig.enableLlmTxt;
-}

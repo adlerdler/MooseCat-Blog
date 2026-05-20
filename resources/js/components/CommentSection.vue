@@ -22,7 +22,10 @@ import { ref } from 'vue';
 import { ChevronRight, Send, Heart } from 'lucide-vue-next';
 import AbstractAvatar from './AbstractAvatar.vue';
 import { commentsData } from '../data/comments';
-import { interactions, hasUserLiked, getLikesByTarget } from '../data/interactions';
+import { interactions } from '../data/interactions';
+import { useInteractionData } from '../composables/useInteractionData';
+
+const { hasUserLiked, getLikesByTarget } = useInteractionData();
 
 const props = defineProps({
   initialComments: {

@@ -29,9 +29,23 @@ import {
 import { useTheme } from '../../composables/useTheme';
 import { adminUsers } from '../../data/users';
 import { roles } from '../../data/roles';
-import { authorProfiles, getAuthorProfileByUserId, getAuthorSkills, getAuthorSocialLinks, getAuthorManifestos } from '../../data/author_profiles';
+import { authorProfiles } from '../../data/author_profiles';
 import { findById, findIndexById } from '../../utils/typeConvert';
 import UserDetailForm from '../../components/admin/UserDetailForm.vue';
+
+const getAuthorProfileByUserId = (userId) => authorProfiles.find(p => p.user_id === userId) || null;
+const getAuthorSkills = (userId) => {
+  const profile = getAuthorProfileByUserId(userId);
+  return profile ? profile.skills : [];
+};
+const getAuthorSocialLinks = (userId) => {
+  const profile = getAuthorProfileByUserId(userId);
+  return profile ? profile.social_links : {};
+};
+const getAuthorManifestos = (userId) => {
+  const profile = getAuthorProfileByUserId(userId);
+  return profile ? profile.manifestos : [];
+};
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();

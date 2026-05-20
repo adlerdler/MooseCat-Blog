@@ -8,10 +8,6 @@
  */
 
 export const defaultSettings = {
-  appearance: {
-    showAuthorBio: true,
-    showComments: true
-  },
   notifications: {
     emailNotifications: true,
     commentApproval: true,

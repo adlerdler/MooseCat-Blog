@@ -15,11 +15,24 @@
 import { ref, computed, onMounted, TransitionGroup } from 'vue';
 import { Motion, AnimatePresence } from 'motion-v';
 import { useTheme } from '../../composables/useTheme';
+import { usePageSeo } from '../../composables/usePageSeo';
+import { usePageSeoData } from '../../composables/usePageSeoData';
 import { resourcesData } from '../../data/resources';
 import { categories } from '../../data/categories';
 import { getCategoryNameById } from '../../utils/categoryUtils';
 import { Download, HardDrive } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
+
+const { getSeoByRoute } = usePageSeoData();
+const pageSeo = getSeoByRoute('resources')
+
+usePageSeo({
+  title: pageSeo.title,
+  description: pageSeo.description,
+  keywords: pageSeo.keywords,
+  url: `${window.location.origin}${pageSeo.path}`,
+  type: pageSeo.schemaType
+})
 
 const { t } = useI18n();
 const { initAccentTheme } = useTheme();

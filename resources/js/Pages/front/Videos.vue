@@ -16,8 +16,21 @@ import { ref, onMounted } from 'vue';
 import { RouterLink } from 'vue-router';
 import { Motion, AnimatePresence } from 'motion-v';
 import { useTheme } from '../../composables/useTheme';
+import { usePageSeo } from '../../composables/usePageSeo';
+import { usePageSeoData } from '../../composables/usePageSeoData';
 import { VIDEOS } from '../../data/videos';
 import { useI18n } from 'vue-i18n';
+
+const { getSeoByRoute } = usePageSeoData();
+const pageSeo = getSeoByRoute('videos')
+
+usePageSeo({
+  title: pageSeo.title,
+  description: pageSeo.description,
+  keywords: pageSeo.keywords,
+  url: `${window.location.origin}${pageSeo.path}`,
+  type: pageSeo.schemaType
+})
 
 const { t } = useI18n();
 const { initAccentTheme } = useTheme();

@@ -26,7 +26,8 @@ import {
   Plus
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
-import { journals as journalsData, getJournalsByUserId, getMoodLabel, getWeatherLabel, getMoodTypes, getWeatherTypes } from '../../data/journals';
+import { journals as journalsData } from '../../data/journals';
+import { useJournalData } from '../../composables/useJournalData';
 import { adminUsers } from '../../data/users';
 import { findById, findIndexById } from '../../utils/typeConvert';
 import JournalForm from '../../components/admin/JournalForm.vue';
@@ -35,6 +36,7 @@ import AdminSearchFilter from '../../components/admin/AdminSearchFilter.vue';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
+const { getJournalsByUserId, getMoodLabel, getWeatherLabel, getMoodTypes, getWeatherTypes } = useJournalData();
 const router = useRouter();
 
 const searchQuery = ref('');

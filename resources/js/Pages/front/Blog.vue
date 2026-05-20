@@ -20,9 +20,22 @@ import { adminUsers } from '../../data/users';
 import { categories } from '../../data/categories';
 import { useI18n } from 'vue-i18n';
 import { useTheme } from '../../composables/useTheme';
+import { usePageSeo } from '../../composables/usePageSeo';
+import { usePageSeoData } from '../../composables/usePageSeoData';
 import { formatToEnglish } from '../../utils/dateUtils';
 import { formatId } from '../../utils/typeConvert';
 import { getCategoryNameById } from '../../utils/categoryUtils';
+
+const { getSeoByRoute } = usePageSeoData();
+const pageSeo = getSeoByRoute('blog')
+
+usePageSeo({
+  title: pageSeo.title,
+  description: pageSeo.description,
+  keywords: pageSeo.keywords,
+  url: `${window.location.origin}${pageSeo.path}`,
+  type: pageSeo.schemaType
+})
 
 const { t } = useI18n();
 const { initAccentTheme } = useTheme();

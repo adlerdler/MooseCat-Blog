@@ -19,6 +19,8 @@ import { Search, ArrowRight, Send, Mail } from 'lucide-vue-next'
 import { Motion, AnimatePresence } from 'motion-v'
 import { useTheme } from '../../composables/useTheme'
 import { useI18n } from 'vue-i18n'
+import { usePageSeo } from '../../composables/usePageSeo'
+import { seoConfig } from '../../data/seo_config'
 import { POSTS } from '../../data/posts'
 import { categories as categoryList } from '../../data/categories'
 import { getCategoryLabel, getCategoryLabelById, getCategoryNameById } from '../../utils/categoryUtils'
@@ -26,6 +28,17 @@ import { getCategoryLabel, getCategoryLabelById, getCategoryNameById } from '../
 const categories = ['ALL', ...categoryList.map(c => c.name)]
 const marqueeText = 'ARCHYX VOL. 2026 // BUILDING SYSTEM // MINIMALISM //'
 const techStack = ['TYPESCRIPT', 'VUE', 'LARAVEL', 'TAILWIND', 'NODE.JS', 'POSTGRES']
+
+const getSeoSettings = () => ({ ...seoConfig })
+const seoSettings = getSeoSettings()
+
+usePageSeo({
+  title: seoSettings.metaTitle,
+  description: seoSettings.metaDescription,
+  keywords: seoSettings.metaKeywords,
+  url: seoSettings.canonicalUrl,
+  type: seoSettings.ogType
+})
 
 const { t } = useI18n()
 const { initAccentTheme } = useTheme()

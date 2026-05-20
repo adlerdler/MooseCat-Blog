@@ -57,17 +57,3 @@ export const mailConfig = [
     updated_at: '2024-01-01T00:00:00Z'
   }
 ];
-
-/**
- * 获取默认邮件配置
- */
-export const getDefaultMailConfig = () => {
-  return mailConfig.find(config => config.is_default) || mailConfig[0];
-};
-
-/**
- * 获取所有启用的邮件配置
- */
-export const getActiveMailConfigs = () => {
-  return mailConfig.filter(config => config.is_active);
-};

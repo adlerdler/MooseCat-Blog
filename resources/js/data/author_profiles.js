@@ -33,7 +33,7 @@ export const authorProfiles = [
     status_text: 'building_systems',
     is_active: true,
     social_links: {
-      github: 'https://github.com/adler-decht',
+      github: 'https://github.com/adlerdler',
       twitter: 'https://twitter.com/adler_decht',
       linkedin: 'https://linkedin.com/in/adler-decht',
       website: 'https://adler-decht.com'
@@ -167,77 +167,3 @@ export const authorProfiles = [
     updated_at: '2024-07-15T16:45:00Z'
   }
 ];
-
-/**
- * 获取所有作者资料
- * @returns {Array} 作者资料数组
- */
-export const getAllAuthorProfiles = () => {
-  return authorProfiles;
-};
-
-/**
- * 根据ID获取作者资料
- * @param {number} id - 资料ID
- * @returns {Object|undefined} 作者资料
- */
-export const getAuthorProfileById = (id) => {
-  return authorProfiles.find(p => p.id === id && p.is_active);
-};
-
-/**
- * 根据用户ID获取作者资料
- * @param {number} userId - 用户ID
- * @returns {Object|undefined} 作者资料
- */
-export const getAuthorProfileByUserId = (userId) => {
-  return authorProfiles.find(p => p.user_id === userId && p.is_active);
-};
-
-/**
- * 获取所有启用的作者
- * @returns {Array} 启用的作者数组
- */
-export const getActiveAuthorProfiles = () => {
-  return authorProfiles.filter(p => p.is_active);
-};
-
-/**
- * 获取作者的社交链接
- * @param {number} userId - 用户ID
- * @returns {Object} 社交链接对象
- */
-export const getAuthorSocialLinks = (userId) => {
-  const profile = getAuthorProfileByUserId(userId);
-  return profile ? profile.social_links : {};
-};
-
-/**
- * 获取作者的专业领域
- * @param {number} userId - 用户ID
- * @returns {Array} 专业领域数组
- */
-export const getAuthorExpertise = (userId) => {
-  const profile = getAuthorProfileByUserId(userId);
-  return profile ? profile.expertise : [];
-};
-
-/**
- * 获取作者的技能列表
- * @param {number} userId - 用户ID
- * @returns {Array} 技能数组
- */
-export const getAuthorSkills = (userId) => {
-  const profile = getAuthorProfileByUserId(userId);
-  return profile ? (profile.skills || []).sort((a, b) => a.sort_order - b.sort_order) : [];
-};
-
-/**
- * 获取作者的宣言列表
- * @param {number} userId - 用户ID
- * @returns {Array} 宣言数组
- */
-export const getAuthorManifestos = (userId) => {
-  const profile = getAuthorProfileByUserId(userId);
-  return profile ? (profile.manifestos || []).sort((a, b) => a.sort_order - b.sort_order) : [];
-};

@@ -145,6 +145,7 @@
   "admin_system": "系統設置",
   "admin_basic_settings": "常規選項",
   "admin_general_options": "基礎配置",
+  "admin_seo_manager": "頁面 SEO",
   "admin_node_management": "節點管理",
   "admin_menu_management": "前后台菜單管理",
   "admin_menu_management_subtitle": "管理前台和後台導航欄菜單項",

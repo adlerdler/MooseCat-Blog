@@ -36,12 +36,15 @@ import {
 } from '../../composables/useAdminImports';
 import { defaultSettings, tabsConfig } from '../../data/settings';
 import { siteConfig } from '../../data/site_config';
-import { getThemes, getDefaultTheme } from '../../data/themes';
+import { themes } from '../../data/themes';
 import { seoConfig as defaultSeoConfig } from '../../data/seo_config';
 import { Plus, Edit2, Trash2 } from 'lucide-vue-next';
 
 const { t } = useI18n();
 const { isDarkMode, toggleTheme } = useTheme();
+
+const getThemes = () => [...themes];
+const getDefaultTheme = () => themes.find(t => t.is_default) || themes[0];
 const { success } = useToast();
 
 const settings = ref({ ...defaultSettings });

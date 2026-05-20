@@ -22,9 +22,11 @@ import {
   useToast,
   ConfirmDialog
 } from '../../composables/useAdminImports';
-import { getDefaultMailConfig } from '../../data/mail_config';
+import { mailConfig } from '../../data/mail_config';
 
 const { t } = useI18n();
+
+const getDefaultMailConfig = () => mailConfig.find(config => config.is_default) || mailConfig[0];
 const { isDarkMode } = useTheme();
 const { success } = useToast();
 

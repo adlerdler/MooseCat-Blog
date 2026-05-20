@@ -24,8 +24,12 @@ import { useI18n } from 'vue-i18n';
 import { formatToEnglish } from '../../utils/dateUtils';
 import { findById, formatId } from '../../utils/typeConvert';
 import { getCategoryNameById } from '../../utils/categoryUtils';
-import { interactions, hasUserLiked, getLikesByTarget } from '../../data/interactions';
-import { isCommentsVisible, isAuthorBioVisible } from '../../data/site_config';
+import { interactions } from '../../data/interactions';
+import { useInteractionData } from '../../composables/useInteractionData';
+import { useSiteConfig } from '../../composables/useSiteConfig';
+import { usePageSeo } from '../../composables/usePageSeo';
+
+const { hasUserLiked, getLikesByTarget } = useInteractionData();
 
 const { t } = useI18n();
 const route = useRoute();
@@ -33,6 +37,7 @@ const router = useRouter();
 const currentUserId = 1;
 const localInteractions = ref([...interactions]);
 
+const { isCommentsVisible, isAuthorBioVisible } = useSiteConfig();
 const showComments = computed(() => isCommentsVisible());
 const showAuthorBio = computed(() => isAuthorBioVisible());
 
@@ -46,19 +51,15 @@ const post = computed(() => {
   return foundPost || POSTS[0];
 });
 
-const updatePageTitle = () => {
-  if (post.value?.title) {
-    document.title = `POST // ${post.value.title}`;
-  }
-};
-
-watch(post, () => {
-  updatePageTitle();
-}, { immediate: true });
-
-onMounted(() => {
-  updatePageTitle();
-});
+usePageSeo({
+  title: computed(() => post.value?.meta_title || (post.value?.title ? `${post.value.title} - ARCHYX` : 'ARCHYX')),
+  description: computed(() => post.value?.meta_description || post.value?.excerpt || ''),
+  keywords: computed(() => post.value?.meta_keywords || (post.value?.tags?.join(', ') || '')),
+  image: computed(() => post.value?.cover_image || ''),
+  url: computed(() => `${window.location.origin}/post/${post.value?.id}`),
+  type: 'Article',
+  author: computed(() => getAuthorName(post.value?.author_id))
+})
 
 const tableOfContents = computed(() => {
   if (!post.value?.content) return [];
