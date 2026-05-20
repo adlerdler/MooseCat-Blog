@@ -6,7 +6,7 @@
  * - 网站全局页脚，显示品牌信息和社交链接
  * - 支持显示/隐藏控制（通过 v-model）
  * - 响应式多列布局
- * - 社交媒体链接从 author.js 动态获取
+ * - 数据从 footer_config.js 动态获取
  * 
  * 内容区域：
  * - 品牌Logo和标语
@@ -19,13 +19,17 @@
  */
 import { RouterLink } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { Github, Twitter, Linkedin, Mail } from 'lucide-vue-next';
-import { getAuthor, getAuthorLinks } from '../data/author';
+import { Github, Twitter, Linkedin, Globe, MessageCircle, Palette, Youtube, Facebook, Video } from 'lucide-vue-next';
+import { getFooterSocialLinks, getFooterNavLinks, footerConfig } from '../data/footer_config';
+import { getSiteName, getSiteDescription } from '../data/site_config';
 
 const { t } = useI18n();
 
-const author = getAuthor();
-const socialLinks = getAuthorLinks(author?.user_id);
+const socialLinks = getFooterSocialLinks();
+const categoryLinks = getFooterNavLinks('categories');
+const dataLinks = getFooterNavLinks('data');
+const siteName = getSiteName();
+const siteDescription = getSiteDescription();
 
 const props = defineProps({
   modelValue: {
@@ -45,9 +49,19 @@ const getIconComponent = (iconName) => {
     'Github': Github,
     'Twitter': Twitter,
     'Linkedin': Linkedin,
-    'Mail': Mail
+    'Globe': Globe,
+    'MessageCircle': MessageCircle,
+    'Palette': Palette,
+    'Youtube': Youtube,
+    'Facebook': Facebook,
+    'Video': Video
   };
-  return iconMap[iconName] || Mail;
+  return iconMap[iconName] || Globe;
+}
+
+const getLinkStyle = (style) => {
+  if (!style) return 'bg-construct-black text-white hover:bg-construct-red hover:text-white hover:border-construct-red';
+  return `${style.bg} ${style.text} ${style.hover_bg} ${style.hover_text} border-2 ${style.border} ${style.hover_border}`;
 }
 </script>
 
@@ -61,10 +75,10 @@ const getIconComponent = (iconName) => {
         to="/"
         class="font-display text-5xl md:text-6xl tracking-tighter mb-4 block hover:text-accent transition-colors"
       >
-        ARCHYX
+        {{ siteName }}
       </RouterLink>
       <p class="max-w-xs text-sm uppercase font-bold tracking-tight opacity-60 min-h-[3rem]">
-        {{ t('footer_tagline') }}
+        {{ siteDescription }}
       </p>
       <div class="flex gap-4 mt-8">
         <a
@@ -74,10 +88,8 @@ const getIconComponent = (iconName) => {
           target="_blank"
           rel="noopener noreferrer"
           :class="[
-            'p-2 border-2 border-black transition-colors w-10 h-10 flex items-center justify-center',
-            link.platform === 'github' || link.platform === 'twitter' ? 'bg-white text-construct-black hover:bg-construct-black hover:text-white' :
-            link.platform === 'linkedin' ? 'bg-construct-red text-white hover:bg-construct-black hover:text-white border-construct-red hover:border-construct-black' :
-            'bg-construct-black text-white hover:bg-construct-red hover:text-white hover:border-construct-red'
+            'p-2 transition-colors w-10 h-10 flex items-center justify-center',
+            getLinkStyle(link.style)
           ]"
           :aria-label="link.label"
         >
@@ -87,44 +99,28 @@ const getIconComponent = (iconName) => {
     </div>
     <div>
       <h4 class="font-display mb-6 tracking-widest text-sm uppercase bg-black text-white inline-block px-3 py-1">
-        {{ t('footer_categories') }}
+        {{ t(footerConfig.section_titles.categories_key) || footerConfig.section_titles.categories_default }}
       </h4>
       <ul class="text-xs space-y-3 font-bold tracking-widest uppercase">
-        <li>
-          <RouterLink to="/" class="hover:text-accent hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
-            / {{ t('footer_theory') }}
-          </RouterLink>
-        </li>
-        <li>
-          <RouterLink to="/" class="hover:text-accent hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
-            / {{ t('footer_design') }}
-          </RouterLink>
-        </li>
-        <li>
-          <RouterLink to="/blog" class="hover:text-accent hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
-            / {{ t('footer_blog') }}
-          </RouterLink>
-        </li>
-        <li>
-          <RouterLink to="/author" class="hover:text-accent hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
-            / {{ t('footer_about') }}
+        <li v-for="link in categoryLinks" :key="link.id">
+          <RouterLink :to="link.route" class="hover:text-accent hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
+            / {{ t(link.label_key) || link.label_default }}
           </RouterLink>
         </li>
       </ul>
     </div>
     <div>
       <h4 class="font-display mb-6 tracking-widest text-sm uppercase bg-black text-white inline-block px-3 py-1">
-        {{ t('footer_data') }}
+        {{ t(footerConfig.section_titles.data_key) || footerConfig.section_titles.data_default }}
       </h4>
       <ul class="text-xs space-y-3 font-bold tracking-widest uppercase">
-        <li class="hover:text-accent hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
-          {{ t('footer_rss') }}
-        </li>
-        <li class="hover:text-accent hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
-          {{ t('footer_api') }}
-        </li>
-        <li class="hover:text-accent hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
-          GITHUB
+        <li v-for="link in dataLinks" :key="link.id">
+          <a v-if="link.url" :href="link.url" target="_blank" rel="noopener noreferrer" class="hover:text-accent hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
+            {{ t(link.label_key) || link.label_default }}
+          </a>
+          <RouterLink v-else :to="link.route" class="hover:text-accent hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
+            / {{ t(link.label_key) || link.label_default }}
+          </RouterLink>
         </li>
       </ul>
     </div>
@@ -132,7 +128,6 @@ const getIconComponent = (iconName) => {
 </template>
 
 <style lang="scss" scoped>
-// 字体变量
 $font-display: 'Space Grotesk', system-ui, sans-serif;
 
 .font-display {

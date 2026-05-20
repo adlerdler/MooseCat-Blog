@@ -22,10 +22,14 @@ import { Menu, Search, User, ChevronDown, ChevronUp, X, ArrowRight, Globe, FileT
 import SettingsPanel from './SettingsPanel.vue';
 import SearchOverlay from './SearchOverlay.vue';
 import { useI18n } from 'vue-i18n';
+import { getSiteName, getSiteCopyright } from '../data/site_config';
 
 import { useMenuItems } from '../composables/useMenuItems';
 
 const { frontMenuItems } = useMenuItems();
+
+const siteName = getSiteName();
+const siteCopyright = getSiteCopyright();
 
 const props = defineProps({
   isFooterVisible: {
@@ -161,7 +165,7 @@ const showSidebar = computed(() => true);
         <!-- Mobile Header -->
         <div class="flex md:hidden items-center justify-between p-4 bg-black shrink-0">
           <span class="font-display text-xl text-white tracking-widest">
-            ARCHYX
+            {{ siteName }}
           </span>
           <div class="flex items-center gap-2">
             <button @click="toggleSettings" class="p-2 text-white">
@@ -196,10 +200,10 @@ const showSidebar = computed(() => true);
             <!-- Mobile Footer Info -->
             <div class="mt-auto pt-8 md:hidden">
               <p class="text-white font-display text-xs tracking-[0.3em] uppercase">
-                Archyx v0.1
+                Archyx
               </p>
               <p class="text-white/40 text-[10px] uppercase tracking-[0.2em] mt-2">
-                © 2026 Archyx-Blog-System
+                {{ siteCopyright }}
               </p>
             </div>
           </div>
@@ -227,7 +231,7 @@ const showSidebar = computed(() => true);
             <div class="w-full max-w-md">
               <div class="flex justify-between items-center mb-8">
                 <span class="font-display text-xl text-white tracking-widest">
-                  ARCHYX
+                  {{ siteName }}
                 </span>
                 <button @click="toggleSettings" class="p-2 text-white">
                   <X class="w-6 h-6" />

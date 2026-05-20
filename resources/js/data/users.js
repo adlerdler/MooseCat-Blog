@@ -7,8 +7,9 @@
  * - email: 用户邮箱
  * - password: 加密密码
  * - avatar: 头像
- * - role: 角色（user/admin）
+ * - role_id: 角色ID
  * - status: 状态（active/inactive/suspended）
+ * - points: 积分
  * - last_login_at: 最后登录时间
  * - created_at: 创建时间
  * - updated_at: 更新时间
@@ -23,6 +24,7 @@ export const adminUsers = [
     avatar: null,
     role_id: 1,
     status: 'active',
+    points: 1000,
     joined: '2024-01-15',
     last_login_at: '2024-01-15T10:00:00',
     created_at: '2024-01-15T10:00:00',
@@ -36,6 +38,7 @@ export const adminUsers = [
     avatar: '/images/avatars/adler.jpg',
     role_id: 3,
     status: 'active',
+    points: 850,
     joined: '2024-01-01',
     last_login_at: '2024-01-01T00:00:00',
     created_at: '2024-01-01T00:00:00',
@@ -49,6 +52,7 @@ export const adminUsers = [
     avatar: null,
     role_id: 2,
     status: 'active',
+    points: 750,
     joined: '2024-03-20',
     last_login_at: '2024-03-20T08:30:00',
     created_at: '2024-03-20T08:30:00',
@@ -62,6 +66,7 @@ export const adminUsers = [
     avatar: null,
     role_id: 3,
     status: 'active',
+    points: 620,
     joined: '2024-05-10',
     last_login_at: '2024-05-10T14:20:00',
     created_at: '2024-05-10T14:20:00',
@@ -75,6 +80,7 @@ export const adminUsers = [
     avatar: null,
     role_id: 7,
     status: 'inactive',
+    points: 0,
     joined: '2024-06-01',
     last_login_at: null,
     created_at: '2024-06-01T09:15:00',
@@ -88,6 +94,7 @@ export const adminUsers = [
     avatar: null,
     role_id: 3,
     status: 'active',
+    points: 480,
     joined: '2024-07-15',
     last_login_at: '2024-07-15T16:45:00',
     created_at: '2024-07-15T16:45:00',
@@ -101,6 +108,7 @@ export const adminUsers = [
     avatar: null,
     role_id: 4,
     status: 'active',
+    points: 550,
     joined: '2024-08-20',
     last_login_at: '2024-08-20T11:30:00',
     created_at: '2024-08-20T11:30:00',
@@ -114,6 +122,7 @@ export const adminUsers = [
     avatar: null,
     role_id: 5,
     status: 'inactive',
+    points: 100,
     joined: '2024-09-01',
     last_login_at: null,
     created_at: '2024-09-01T13:20:00',
@@ -127,6 +136,7 @@ export const adminUsers = [
     avatar: null,
     role_id: 6,
     status: 'active',
+    points: 300,
     joined: '2024-10-15',
     last_login_at: '2024-10-15T10:00:00',
     created_at: '2024-10-15T10:00:00',

@@ -35,12 +35,18 @@ import {
   useToast
 } from '../../composables/useAdminImports';
 import { defaultSettings, tabsConfig } from '../../data/settings';
+import { siteConfig } from '../../data/site_config';
+import { getThemes, getDefaultTheme } from '../../data/themes';
+import { seoConfig as defaultSeoConfig } from '../../data/seo_config';
+import { Plus, Edit2, Trash2 } from 'lucide-vue-next';
 
 const { t } = useI18n();
 const { isDarkMode, toggleTheme } = useTheme();
 const { success } = useToast();
 
 const settings = ref({ ...defaultSettings });
+const site = ref({ ...siteConfig });
+const seo = ref({ ...defaultSeoConfig });
 const activeTab = ref('site');
 const isSaving = ref(false);
 const showSaveConfirm = ref(false);
@@ -49,7 +55,7 @@ const showMediaPicker = ref(false);
 
 const handleMediaSelect = (file) => {
   if (file.url) {
-    settings.value.site.favicon = file.url;
+    site.value.favicon = file.url;
   }
 };
 
@@ -69,12 +75,70 @@ const tabs = computed(() => {
   }));
 });
 
+const availableThemes = computed(() => {
+  return getThemes().filter(t => t.is_active);
+});
+
+const themeList = ref(getThemes().map(t => ({ ...t })));
+const showThemeForm = ref(false);
+const editingTheme = ref(null);
+const themeForm = ref({ id: null, name: '', label: '', color: '#CF202E', sort_order: 1, is_active: true, is_default: false });
+
+const openAddTheme = () => {
+  editingTheme.value = null;
+  themeForm.value = {
+    id: Date.now(),
+    name: '',
+    label: '',
+    color: '#CF202E',
+    sort_order: themeList.value.length + 1,
+    is_active: true,
+    is_default: false
+  };
+  showThemeForm.value = true;
+};
+
+const openEditTheme = (theme) => {
+  editingTheme.value = theme;
+  themeForm.value = { ...theme };
+  showThemeForm.value = true;
+};
+
+const saveTheme = () => {
+  if (!themeForm.value.name || !themeForm.value.label) {
+    return;
+  }
+  
+  if (editingTheme.value) {
+    const index = themeList.value.findIndex(t => t.id === editingTheme.value.id);
+    if (index !== -1) {
+      themeList.value[index] = { ...themeForm.value };
+    }
+  } else {
+    themeList.value.push({ ...themeForm.value });
+  }
+  
+  showThemeForm.value = false;
+};
+
+const deleteTheme = (theme) => {
+  if (confirm(`确定要删除主题 "${theme.label}" 吗？`)) {
+    themeList.value = themeList.value.filter(t => t.id !== theme.id);
+  }
+};
+
+const cancelThemeForm = () => {
+  showThemeForm.value = false;
+};
+
 const startEditing = () => {
   isEditing.value = true;
 };
 
 const cancelEditing = () => {
-  settings.value = { ...defaultSettings }; // 模拟回滚到原始值
+  settings.value = { ...defaultSettings };
+  site.value = { ...siteConfig };
+  seo.value = { ...defaultSeoConfig };
   isEditing.value = false;
 };
 
@@ -172,7 +236,7 @@ const resetSettings = () => {
             <div>
               <label :class="['block text-sm font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_site_name') }}</label>
               <input
-                v-model="settings.site.name"
+                v-model="site.name"
                 type="text"
                 :class="[
                   'w-full px-4 py-3 border focus:border-construct-red focus:outline-none transition-all',
@@ -182,9 +246,22 @@ const resetSettings = () => {
               />
             </div>
             <div>
+              <label :class="['block text-sm font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_site_url') }}</label>
+              <input
+                v-model="site.siteUrl"
+                type="url"
+                :placeholder="t('admin_site_url_placeholder')"
+                :class="[
+                  'w-full px-4 py-3 border focus:border-construct-red focus:outline-none transition-all',
+                  isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400',
+                  !isEditing ? 'cursor-not-allowed opacity-60' : ''
+                ]"
+              />
+            </div>
+            <div>
               <label :class="['block text-sm font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_site_description') }}</label>
               <input
-                v-model="settings.site.description"
+                v-model="site.description"
                 type="text"
                 :class="[
                   'w-full px-4 py-3 border focus:border-construct-red focus:outline-none transition-all',
@@ -205,8 +282,8 @@ const resetSettings = () => {
                   ]"
                 >
                   <img
-                    v-if="settings.site.favicon"
-                    :src="settings.site.favicon"
+                    v-if="site.favicon"
+                    :src="site.favicon"
                     alt="Site Icon"
                     class="w-10 h-10 object-contain"
                   />
@@ -214,7 +291,7 @@ const resetSettings = () => {
                 </div>
                 <div class="flex-1">
                   <input
-                    v-model="settings.site.favicon"
+                    v-model="site.favicon"
                     type="text"
                     :placeholder="t('admin_site_icon_placeholder')"
                     :class="[
@@ -227,10 +304,23 @@ const resetSettings = () => {
                 </div>
               </div>
             </div>
+            <div class="md:col-span-2">
+              <label :class="['block text-sm font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_site_copyright') }}</label>
+              <input
+                v-model="site.copyright"
+                type="text"
+                :placeholder="t('admin_site_copyright_placeholder')"
+                :class="[
+                  'w-full px-4 py-3 border focus:border-construct-red focus:outline-none transition-all',
+                  isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400',
+                  !isEditing ? 'cursor-not-allowed opacity-60' : ''
+                ]"
+              />
+            </div>
             <div>
               <label :class="['block text-sm font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_default_language') }}</label>
               <select
-                v-model="settings.site.defaultLanguage"
+                v-model="site.defaultLanguage"
                 :class="[
                   'w-full px-4 py-3 border focus:border-construct-red focus:outline-none transition-all',
                   isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900',
@@ -245,7 +335,7 @@ const resetSettings = () => {
             <div>
               <label :class="['block text-sm font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_timezone') }}</label>
               <select
-                v-model="settings.site.timezone"
+                v-model="site.timezone"
                 :class="[
                   'w-full px-4 py-3 border focus:border-construct-red focus:outline-none transition-all',
                   isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900',
@@ -260,12 +350,40 @@ const resetSettings = () => {
             </div>
             <div class="md:col-span-2">
               <label :class="['flex items-center gap-3', isEditing ? 'cursor-pointer' : 'cursor-not-allowed opacity-60']">
-                <div :class="['w-12 h-6 rounded-full relative transition-colors', settings.site.maintenanceMode ? 'bg-construct-red' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-400')]">
-                  <div :class="['absolute top-1 w-4 h-4 rounded-full bg-white transition-transform', settings.site.maintenanceMode ? 'left-7' : 'left-1']"></div>
+                <div :class="['w-12 h-6 rounded-full relative transition-colors', site.maintenanceMode ? 'bg-construct-red' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-400')]">
+                  <div :class="['absolute top-1 w-4 h-4 rounded-full bg-white transition-transform', site.maintenanceMode ? 'left-7' : 'left-1']"></div>
                 </div>
                 <span :class="['font-bold tracking-wider', isDarkMode ? 'text-gray-300' : 'text-gray-700']">{{ t('admin_maintenance_mode') }}</span>
                 <input
-                  v-model="settings.site.maintenanceMode"
+                  v-model="site.maintenanceMode"
+                  type="checkbox"
+                  class="hidden"
+                  :disabled="!isEditing"
+                />
+              </label>
+            </div>
+            <div>
+              <label :class="['flex items-center gap-3', isEditing ? 'cursor-pointer' : 'cursor-not-allowed opacity-60']">
+                <div :class="['w-12 h-6 rounded-full relative transition-colors', site.showAuthorBio ? 'bg-construct-red' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-400')]">
+                  <div :class="['absolute top-1 w-4 h-4 rounded-full bg-white transition-transform', site.showAuthorBio ? 'left-7' : 'left-1']"></div>
+                </div>
+                <span :class="['font-bold tracking-wider', isDarkMode ? 'text-gray-300' : 'text-gray-700']">{{ t('admin_show_author_bio') }}</span>
+                <input
+                  v-model="site.showAuthorBio"
+                  type="checkbox"
+                  class="hidden"
+                  :disabled="!isEditing"
+                />
+              </label>
+            </div>
+            <div>
+              <label :class="['flex items-center gap-3', isEditing ? 'cursor-pointer' : 'cursor-not-allowed opacity-60']">
+                <div :class="['w-12 h-6 rounded-full relative transition-colors', site.showComments ? 'bg-construct-red' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-400')]">
+                  <div :class="['absolute top-1 w-4 h-4 rounded-full bg-white transition-transform', site.showComments ? 'left-7' : 'left-1']"></div>
+                </div>
+                <span :class="['font-bold tracking-wider', isDarkMode ? 'text-gray-300' : 'text-gray-700']">{{ t('admin_show_comments') }}</span>
+                <input
+                  v-model="site.showComments"
                   type="checkbox"
                   class="hidden"
                   :disabled="!isEditing"
@@ -283,70 +401,74 @@ const resetSettings = () => {
           </h3>
           
           <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div>
-              <label :class="['block text-sm font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_color_scheme') }}</label>
-              <div class="flex gap-4">
-                <button
-                  @click="toggleTheme()"
-                  :disabled="!isEditing"
-                  class="flex items-center gap-2 px-4 py-2 border transition-colors disabled:cursor-not-allowed"
-                  :class="isDarkMode ? 'border-construct-red bg-gray-700 text-white' : 'border-gray-300 bg-white text-gray-700'"
-                >
-                  <Moon size="18" /> {{ t('admin_dark_mode') }}
-                </button>
-                <button
-                  @click="toggleTheme()"
-                  :disabled="!isEditing"
-                  class="flex items-center gap-2 px-4 py-2 border transition-colors disabled:cursor-not-allowed"
-                  :class="!isDarkMode ? 'border-construct-red bg-white text-gray-900' : 'border-gray-600 bg-gray-800 text-gray-400'"
-                >
-                  <Sun size="18" /> {{ t('admin_light_mode') }}
-                </button>
-              </div>
-            </div>
-            <div>
-              <label :class="['block text-sm font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_accent_color') }}</label>
-              <div class="flex items-center gap-4">
-                <input
-                  v-model="settings.appearance.accentColor"
-                  type="color"
-                  :disabled="!isEditing"
-                  :class="[
-                    'w-12 h-10 border transition-all',
-                    isDarkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-300 bg-white',
-                    isEditing ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'
-                  ]"
-                />
-                <span :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'">{{ settings.appearance.accentColor }}</span>
-              </div>
-            </div>
-            <div>
-              <label :class="['flex items-center gap-3', isEditing ? 'cursor-pointer' : 'cursor-not-allowed opacity-60']">
-                <div :class="['w-12 h-6 rounded-full relative transition-colors', settings.appearance.showAuthorBio ? 'bg-construct-red' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-400')]">
-                  <div :class="['absolute top-1 w-4 h-4 rounded-full bg-white transition-transform', settings.appearance.showAuthorBio ? 'left-7' : 'left-1']"></div>
+            <div class="md:col-span-2">
+              <!-- Theme Management -->
+              <div :class="['border-t pt-4', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
+                <div class="flex items-center justify-between mb-4">
+                  <span :class="['text-sm font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_theme_management') }}</span>
+                  <button
+                    @click="openAddTheme"
+                    :disabled="!isEditing"
+                    class="flex items-center gap-2 px-4 py-2 bg-construct-red hover:bg-red-600 text-white text-xs font-bold tracking-wider transition-colors rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Plus size="14" /> {{ t('admin_add_theme') }}
+                  </button>
                 </div>
-                <span :class="['font-bold tracking-wider', isDarkMode ? 'text-gray-300' : 'text-gray-700']">{{ t('admin_show_author_bio') }}</span>
-                <input
-                  v-model="settings.appearance.showAuthorBio"
-                  type="checkbox"
-                  class="hidden"
-                  :disabled="!isEditing"
-                />
-              </label>
-            </div>
-            <div>
-              <label :class="['flex items-center gap-3', isEditing ? 'cursor-pointer' : 'cursor-not-allowed opacity-60']">
-                <div :class="['w-12 h-6 rounded-full relative transition-colors', settings.appearance.showComments ? 'bg-construct-red' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-400')]">
-                  <div :class="['absolute top-1 w-4 h-4 rounded-full bg-white transition-transform', settings.appearance.showComments ? 'left-7' : 'left-1']"></div>
+                
+                <!-- Theme List Table -->
+                <div :class="['border rounded-lg overflow-hidden', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
+                  <table class="w-full text-sm">
+                    <thead :class="isDarkMode ? 'bg-gray-700' : 'bg-gray-50'">
+                      <tr>
+                        <th :class="['px-4 py-3 text-left font-bold tracking-wider uppercase text-xs', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_theme_color') }}</th>
+                        <th :class="['px-4 py-3 text-left font-bold tracking-wider uppercase text-xs', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_theme_name') }}</th>
+                        <th :class="['px-4 py-3 text-left font-bold tracking-wider uppercase text-xs', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_theme_label') }}</th>
+                        <th :class="['px-4 py-3 text-center font-bold tracking-wider uppercase text-xs', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_status') }}</th>
+                        <th :class="['px-4 py-3 text-center font-bold tracking-wider uppercase text-xs', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_default') }}</th>
+                        <th :class="['px-4 py-3 text-center font-bold tracking-wider uppercase text-xs', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_actions') }}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="theme in themeList" :key="theme.id" :class="['border-t', isDarkMode ? 'border-gray-700 hover:bg-gray-700/50' : 'border-gray-200 hover:bg-gray-50']">
+                        <td class="px-4 py-3">
+                          <div class="w-8 h-8 rounded-full" :style="{ backgroundColor: theme.color }"></div>
+                        </td>
+                        <td :class="['px-4 py-3 font-mono text-xs', isDarkMode ? 'text-gray-300' : 'text-gray-700']">{{ theme.name }}</td>
+                        <td :class="['px-4 py-3', isDarkMode ? 'text-gray-300' : 'text-gray-700']">{{ theme.label }}</td>
+                        <td class="px-4 py-3 text-center">
+                          <span :class="['px-2 py-1 text-xs font-bold rounded', theme.is_active ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400']">
+                            {{ theme.is_active ? t('admin_enabled') : t('admin_disabled') }}
+                          </span>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <span :class="['px-2 py-1 text-xs font-bold rounded', theme.is_default ? 'bg-construct-red/20 text-construct-red' : 'bg-gray-500/20 text-gray-400']">
+                            {{ theme.is_default ? t('admin_yes') : t('admin_no') }}
+                          </span>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                          <div class="flex items-center justify-center gap-2">
+                            <button
+                              @click="openEditTheme(theme)"
+                              :disabled="!isEditing"
+                              class="p-1.5 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              :class="isDarkMode ? 'hover:bg-gray-600 text-gray-400' : 'hover:bg-gray-200 text-gray-600'"
+                            >
+                              <Edit2 size="14" />
+                            </button>
+                            <button
+                              @click="deleteTheme(theme)"
+                              :disabled="!isEditing"
+                              class="p-1.5 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-red-500 hover:bg-red-500/10"
+                            >
+                              <Trash2 size="14" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
-                <span :class="['font-bold tracking-wider', isDarkMode ? 'text-gray-300' : 'text-gray-700']">{{ t('admin_show_comments') }}</span>
-                <input
-                  v-model="settings.appearance.showComments"
-                  type="checkbox"
-                  class="hidden"
-                  :disabled="!isEditing"
-                />
-              </label>
+              </div>
             </div>
           </div>
         </div>
@@ -426,10 +548,10 @@ const resetSettings = () => {
           </h3>
           
           <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div>
+            <div class="md:col-span-2">
               <label :class="['block text-sm font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_meta_title') }}</label>
               <input
-                v-model="settings.seo.metaTitle"
+                v-model="seo.metaTitle"
                 type="text"
                 :class="[
                   'w-full px-4 py-3 border focus:border-construct-red focus:outline-none transition-all',
@@ -437,25 +559,41 @@ const resetSettings = () => {
                   !isEditing ? 'cursor-not-allowed opacity-60' : ''
                 ]"
               />
+              <p :class="['text-xs mt-2', isDarkMode ? 'text-gray-500' : 'text-gray-400']">{{ t('admin_meta_title_hint') }}</p>
             </div>
-            <div>
+            <div class="md:col-span-2">
               <label :class="['block text-sm font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_meta_description') }}</label>
               <textarea
-                v-model="settings.seo.metaDescription"
-                rows="2"
+                v-model="seo.metaDescription"
+                rows="3"
                 :class="[
                   'w-full px-4 py-3 border focus:border-construct-red focus:outline-none resize-none transition-all',
                   isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900',
                   !isEditing ? 'cursor-not-allowed opacity-60' : ''
                 ]"
               ></textarea>
+              <p :class="['text-xs mt-2', isDarkMode ? 'text-gray-500' : 'text-gray-400']">{{ t('admin_meta_description_hint') }}</p>
+            </div>
+            <div class="md:col-span-2">
+              <label :class="['block text-sm font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_meta_keywords') }}</label>
+              <input
+                v-model="seo.metaKeywords"
+                type="text"
+                :placeholder="t('admin_meta_keywords_placeholder')"
+                :class="[
+                  'w-full px-4 py-3 border focus:border-construct-red focus:outline-none transition-all',
+                  isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400',
+                  !isEditing ? 'cursor-not-allowed opacity-60' : ''
+                ]"
+              />
+              <p :class="['text-xs mt-2', isDarkMode ? 'text-gray-500' : 'text-gray-400']">{{ t('admin_meta_keywords_hint') }}</p>
             </div>
             <div>
               <label :class="['block text-sm font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_google_analytics') }}</label>
               <input
-                v-model="settings.seo.googleAnalytics"
+                v-model="seo.googleAnalytics"
                 type="text"
-                placeholder="UA-XXXXXXXXX-X"
+                :placeholder="t('admin_google_analytics_placeholder')"
                 :class="[
                   'w-full px-4 py-3 border focus:border-construct-red focus:outline-none transition-all',
                   isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400',
@@ -464,16 +602,102 @@ const resetSettings = () => {
               />
             </div>
             <div>
+              <label :class="['block text-sm font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_baidu_analytics') }}</label>
+              <input
+                v-model="seo.baiduAnalytics"
+                type="text"
+                :placeholder="t('admin_baidu_analytics_placeholder')"
+                :class="[
+                  'w-full px-4 py-3 border focus:border-construct-red focus:outline-none transition-all',
+                  isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400',
+                  !isEditing ? 'cursor-not-allowed opacity-60' : ''
+                ]"
+              />
+            </div>
+            <div class="md:col-span-2">
               <label :class="['block text-sm font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_canonical_url') }}</label>
               <input
-                v-model="settings.seo.canonicalUrl"
+                v-model="seo.canonicalUrl"
+                type="url"
+                :placeholder="t('admin_canonical_url_placeholder')"
+                :class="[
+                  'w-full px-4 py-3 border focus:border-construct-red focus:outline-none transition-all',
+                  isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400',
+                  !isEditing ? 'cursor-not-allowed opacity-60' : ''
+                ]"
+              />
+            </div>
+            <div>
+              <label :class="['block text-sm font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_og_image') }}</label>
+              <input
+                v-model="seo.ogImage"
                 type="text"
+                :placeholder="t('admin_og_image_placeholder')"
+                :class="[
+                  'w-full px-4 py-3 border focus:border-construct-red focus:outline-none transition-all',
+                  isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400',
+                  !isEditing ? 'cursor-not-allowed opacity-60' : ''
+                ]"
+              />
+            </div>
+            <div>
+              <label :class="['block text-sm font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_og_type') }}</label>
+              <select
+                v-model="seo.ogType"
                 :class="[
                   'w-full px-4 py-3 border focus:border-construct-red focus:outline-none transition-all',
                   isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900',
                   !isEditing ? 'cursor-not-allowed opacity-60' : ''
                 ]"
-              />
+              >
+                <option value="website">Website</option>
+                <option value="article">Article</option>
+                <option value="profile">Profile</option>
+                <option value="book">Book</option>
+              </select>
+            </div>
+            <div>
+              <label :class="['block text-sm font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_twitter_card') }}</label>
+              <select
+                v-model="seo.twitterCard"
+                :class="[
+                  'w-full px-4 py-3 border focus:border-construct-red focus:outline-none transition-all',
+                  isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900',
+                  !isEditing ? 'cursor-not-allowed opacity-60' : ''
+                ]"
+              >
+                <option value="summary_large_image">Summary Large Image</option>
+                <option value="summary">Summary</option>
+                <option value="player">Player</option>
+                <option value="app">App</option>
+              </select>
+            </div>
+            <div class="md:col-span-2">
+              <div class="flex items-center gap-8">
+                <label :class="['flex items-center gap-3', isEditing ? 'cursor-pointer' : 'cursor-not-allowed opacity-60']">
+                  <div :class="['w-12 h-6 rounded-full relative transition-colors', seo.enableSitemap ? 'bg-construct-red' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-400')]">
+                    <div :class="['absolute top-1 w-4 h-4 rounded-full bg-white transition-transform', seo.enableSitemap ? 'left-7' : 'left-1']"></div>
+                  </div>
+                  <span :class="['font-bold tracking-wider', isDarkMode ? 'text-gray-300' : 'text-gray-700']">{{ t('admin_enable_sitemap') }}</span>
+                  <input v-model="seo.enableSitemap" type="checkbox" class="hidden" :disabled="!isEditing" />
+                </label>
+
+                <label :class="['flex items-center gap-3', isEditing ? 'cursor-pointer' : 'cursor-not-allowed opacity-60']">
+                  <div :class="['w-12 h-6 rounded-full relative transition-colors', seo.enableRobots ? 'bg-construct-red' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-400')]">
+                    <div :class="['absolute top-1 w-4 h-4 rounded-full bg-white transition-transform', seo.enableRobots ? 'left-7' : 'left-1']"></div>
+                  </div>
+                  <span :class="['font-bold tracking-wider', isDarkMode ? 'text-gray-300' : 'text-gray-700']">{{ t('admin_enable_robots') }}</span>
+                  <input v-model="seo.enableRobots" type="checkbox" class="hidden" :disabled="!isEditing" />
+                </label>
+
+                <label :class="['flex items-center gap-3', isEditing ? 'cursor-pointer' : 'cursor-not-allowed opacity-60']">
+                  <div :class="['w-12 h-6 rounded-full relative transition-colors', seo.enableLlmTxt ? 'bg-construct-red' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-400')]">
+                    <div :class="['absolute top-1 w-4 h-4 rounded-full bg-white transition-transform', seo.enableLlmTxt ? 'left-7' : 'left-1']"></div>
+                  </div>
+                  <span :class="['font-bold tracking-wider', isDarkMode ? 'text-gray-300' : 'text-gray-700']">{{ t('admin_enable_llm_txt') }}</span>
+                  <input v-model="seo.enableLlmTxt" type="checkbox" class="hidden" :disabled="!isEditing" />
+                </label>
+              </div>
             </div>
           </div>
         </div>
@@ -561,5 +785,110 @@ const resetSettings = () => {
       @close="showMediaPicker = false"
       @select="handleMediaSelect"
     />
+
+    <!-- Theme Form Dialog -->
+    <Transition name="fade">
+      <div
+        v-if="showThemeForm"
+        class="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4"
+        @click.self="cancelThemeForm"
+      >
+        <div :class="['w-full max-w-lg border rounded-xl shadow-2xl', isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200']">
+          <div :class="['flex items-center justify-between px-6 py-4 border-b', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
+            <h3 :class="['font-display text-xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">
+              {{ editingTheme ? t('admin_edit_theme') : t('admin_add_theme') }}
+            </h3>
+            <button @click="cancelThemeForm" :class="['p-2 rounded transition-colors', isDarkMode ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-600']">
+              <X size="20" />
+            </button>
+          </div>
+
+          <div class="p-6 space-y-4">
+            <div>
+              <label :class="['block text-sm font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_theme_name') }}</label>
+              <input
+                v-model="themeForm.name"
+                type="text"
+                placeholder="e.g. construct-red"
+                :class="[
+                  'w-full px-4 py-3 border focus:border-construct-red focus:outline-none transition-all',
+                  isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
+                ]"
+              />
+            </div>
+
+            <div>
+              <label :class="['block text-sm font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_theme_label') }}</label>
+              <input
+                v-model="themeForm.label"
+                type="text"
+                placeholder="e.g. 建筑红"
+                :class="[
+                  'w-full px-4 py-3 border focus:border-construct-red focus:outline-none transition-all',
+                  isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
+                ]"
+              />
+            </div>
+
+            <div>
+              <label :class="['block text-sm font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_theme_color') }}</label>
+              <div class="flex items-center gap-4">
+                <input
+                  v-model="themeForm.color"
+                  type="color"
+                  class="w-16 h-12 border rounded cursor-pointer"
+                  :class="isDarkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-300 bg-white'"
+                />
+                <input
+                  v-model="themeForm.color"
+                  type="text"
+                  placeholder="#CF202E"
+                  :class="[
+                    'flex-1 px-4 py-3 border focus:border-construct-red focus:outline-none transition-all',
+                    isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
+                  ]"
+                />
+              </div>
+            </div>
+
+            <div class="flex items-center gap-6">
+              <label class="flex items-center gap-3 cursor-pointer">
+                <div :class="['w-12 h-6 rounded-full relative transition-colors', themeForm.is_active ? 'bg-construct-red' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-400')]">
+                  <div :class="['absolute top-1 w-4 h-4 rounded-full bg-white transition-transform', themeForm.is_active ? 'left-7' : 'left-1']"></div>
+                </div>
+                <span :class="['font-bold tracking-wider', isDarkMode ? 'text-gray-300' : 'text-gray-700']">{{ t('admin_enabled') }}</span>
+                <input v-model="themeForm.is_active" type="checkbox" class="hidden" />
+              </label>
+
+              <label class="flex items-center gap-3 cursor-pointer">
+                <div :class="['w-12 h-6 rounded-full relative transition-colors', themeForm.is_default ? 'bg-construct-red' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-400')]">
+                  <div :class="['absolute top-1 w-4 h-4 rounded-full bg-white transition-transform', themeForm.is_default ? 'left-7' : 'left-1']"></div>
+                </div>
+                <span :class="['font-bold tracking-wider', isDarkMode ? 'text-gray-300' : 'text-gray-700']">{{ t('admin_default') }}</span>
+                <input v-model="themeForm.is_default" type="checkbox" class="hidden" />
+              </label>
+            </div>
+          </div>
+
+          <div :class="['flex items-center justify-end gap-4 px-6 py-4 border-t', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
+            <button
+              @click="cancelThemeForm"
+              :class="[
+                'px-6 py-3 border font-bold tracking-wider transition-colors rounded',
+                isDarkMode ? 'border-gray-700 hover:bg-gray-700 text-white' : 'border-gray-300 hover:bg-gray-100 text-gray-900'
+              ]"
+            >
+              {{ t('admin_cancel') }}
+            </button>
+            <button
+              @click="saveTheme"
+              class="px-8 py-3 bg-construct-red hover:bg-red-600 text-white font-bold tracking-wider transition-colors rounded shadow-sm"
+            >
+              {{ t('admin_save') }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>

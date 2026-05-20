@@ -42,12 +42,14 @@ import {
   Archive,
   SlidersHorizontal,
   Book,
+  BookText,
   RotateCcw,
   Image,
   Zap,
   Link,
   Crown,
-  Mail
+  Mail,
+  LayoutPanelLeft
 } from 'lucide-vue-next';
 import ThemeToggle from '../../components/ThemeToggle.vue';
 import ToastContainer from '../../components/ToastContainer.vue';
@@ -148,6 +150,7 @@ const iconMap = {
   Play,
   FolderKanban,
   BookOpen,
+  BookText,
   Users,
   Settings,
   Folder,
@@ -165,7 +168,8 @@ const iconMap = {
   Link,
   Menu,
   Crown,
-  Mail
+  Mail,
+  LayoutPanelLeft
 };
 
 const menuItems = computed(() => {

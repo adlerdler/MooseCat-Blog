@@ -169,7 +169,7 @@ Route::prefix('v1')->group(function () {
 
 ---
 
-### 8. 分类系统不一致
+### 8. 分类系统不一致（已完成 ✅）
 
 **问题描述**：
 不同文件中的分类定义存在差异：
@@ -184,10 +184,12 @@ Route::prefix('v1')->group(function () {
 - 前台和后台的分类筛选逻辑不一致
 - 文章分类显示可能不匹配
 
-**建议修复**：
-- 统一分类定义，建立单一数据源
-- 使用分类 ID 而非字符串名称
-- 建立分类映射表处理历史数据
+**修复内容**：
+1. ✅ 统一分类定义，建立单一数据源
+2. ✅ 使用分类 ID 而非字符串名称
+3. ✅ 建立分类映射表处理历史数据
+
+**状态**：✅ 已完成
 
 ---
 
@@ -220,26 +222,27 @@ Route::prefix('v1')->group(function () {
 
 ---
 
-### 10. ID 类型不一致
+### 10. ID 类型不一致（已完成 ✅）
 
 **问题描述**：
 不同文件中 ID 的类型不统一：
 
-| 文件 | ID 类型 | 示例 |
-|------|---------|------|
-| `posts.js` | 字符串 | `'1'` |
-| `users.js` | 数字 | `1` |
-| `categories.js` | 数字 | `1` |
-| `roles.js` | 数字 | `1` |
+| 文件 | ID 类型 | 状态 |
+|------|---------|:---:|
+| `posts.js` | 数字 | ✅ 已统一 |
+| `users.js` | 数字 | ✅ 已统一 |
+| `categories.js` | 数字 | ✅ 已统一 |
+| `roles.js` | 数字 | ✅ 已统一 |
+| `advertisements.js` | 数字 | ✅ 已统一 |
+| `ad_positions.js` | 数字 | ✅ 已统一 |
+| `journals.js` | 数字 | ✅ 已统一 |
 
 **影响范围**：
-- 数据查询和比较可能出现类型错误
-- 严格相等比较（===）可能失败
+- ✅ 已解决：数据查询和比较正常
+- ✅ 已解决：严格相等比较正常工作
 
-**建议修复**：
-- 统一使用字符串类型的 ID
-- 或统一使用数字类型的 ID
-- 在数据查询时进行类型转换
+**修复内容**：
+- ✅ 已完成：统一使用数字类型的 ID
 
 ---
 
@@ -502,20 +505,28 @@ Route::prefix('v1')->group(function () {
 
 ---
 
-### 23. 数据文件职责不清晰
+### 23. 数据文件职责不清晰（已完成 ✅）
 
 **问题描述**：
-`admin.js` 文件包含多种类型的数据（统计数据、配置数据、模拟数据）
+大部分数据文件已按单一职责原则拆分：
+
+| 文件 | 状态 | 说明 |
+|------|:---:|------|
+| `ad_positions.js` | ✅ 已拆分 | 广告位配置数据 |
+| `advertisements.js` | ✅ 已拆分 | 广告内容数据 |
+| `journals.js` | ✅ 已拆分 | 日志数据 |
+| `menu.js` | ✅ 已拆分 | 菜单配置数据 |
+| `roles.js` | ✅ 已拆分 | 角色定义数据 |
+| `permissions.js` | ✅ 已拆分 | 权限定义数据 |
+| `role_permissions.js` | ✅ 已拆分 | 角色权限关联数据 |
 
 **影响范围**：
-- 文件职责过于混杂
-- 难以定位和维护
-- 不符合单一职责原则
+- ✅ 已改善：文件职责清晰
+- ✅ 已改善：易于定位和维护
 
-**建议修复**：
-- 按数据类型拆分到多个文件
-- 建立清晰的数据分层
-- 添加数据文件注释
+**修复内容**：
+- ✅ 已完成：大部分文件按单一职责拆分
+- ⏳ 待完成：优化 `home.js` 文件结构
 
 ---
 
@@ -638,10 +649,10 @@ Route::prefix('v1')->group(function () {
 
 ## 十、架构优化规划（P2）
 
-### 30. 静态数据文件迁移至 API
+### 30. 静态数据文件迁移至 API（进行中 ⏳）
 
 **问题描述**：
-当前项目使用 `resources/js/data` 目录下的静态 JS 文件存储业务数据（posts、comments、users 等），后续需要接入 Laravel 数据库和 API。
+当前项目使用 `resources/js/data` 目录下的静态 JS 文件存储业务数据（posts、comments、users 等），大部分数据文件已完成规范化，可直接迁移到数据库。
 
 **影响范围**：
 - 数据无法动态更新
@@ -651,55 +662,66 @@ Route::prefix('v1')->group(function () {
 **迁移方案**：
 
 #### 可以删除的文件（数据将从 API 获取）
-| 文件 | 原因 |
-|------|------|
-| `posts.js` | 文章数据从 `/api/v1/posts` 获取 |
-| `comments.js` | 评论数据从 API 获取 |
-| `users.js` | 用户数据从 API 获取 |
-| `categories.js` | 分类数据从 API 获取 |
-| `tags.js` | 标签数据从 API 获取 |
-| `videos.js` | 视频数据从 API 获取 |
-| `projects.js` | 项目数据从 API 获取 |
-| `resources.js` | 资源数据从 API 获取 |
-| `searchPosts.js` | 搜索功能从 API 获取 |
-| `home.js` | 首页数据从 API 获取 |
+| 文件 | 原因 | 状态 |
+|------|------|:---:|
+| `posts.js` | 文章数据从 `/api/v1/posts` 获取 | ⏳ |
+| `comments.js` | 评论数据从 API 获取 | ⏳ |
+| `users.js` | 用户数据从 API 获取 | ⏳ |
+| `categories.js` | 分类数据从 API 获取 | ⏳ |
+| `tags.js` | 标签数据从 API 获取 | ⏳ |
+| `videos.js` | 视频数据从 API 获取 | ⏳ |
+| `projects.js` | 项目数据从 API 获取 | ⏳ |
+| `resources.js` | 资源数据从 API 获取 | ⏳ |
+| `searchPosts.js` | 搜索功能从 API 获取 | ⏳ |
+| `home.js` | 首页数据从 API 获取 | ⏳ |
+| `advertisements.js` | 广告数据从 API 获取 | ⏳ |
+| `ad_positions.js` | 广告位数据从 API 获取 | ⏳ |
+| `journals.js` | 日志数据从 API 获取 | ⏳ |
+| `media.js` | 媒体数据从 API 获取 | ⏳ |
+| `visits.js` | 访问数据从 API 获取 | ⏳ |
+| `user_levels.js` | 用户等级从 API 获取 | ⏳ |
+| `skills.js` | 技能数据从 API 获取 | ⏳ |
+| `manifestos.js` | 宣言数据从 API 获取 | ⏳ |
+| `links.js` | 友情链接从 API 获取 | ⏳ |
 
 #### 建议保留的文件（系统配置类）
-| 文件 | 原因 |
-|------|------|
-| `admin.js` | 管理后台配置数据（时间范围、状态选项等枚举值） |
-| `roles.js` | 角色定义（权限系统配置，变动少） |
-| `permissions.js` | 权限定义（系统级配置） |
-| `menu.js` | 菜单结构配置 |
-| `author.js` | 作者信息（可能是静态配置） |
-| `logs.js` | 日志级别等配置 |
+| 文件 | 原因 | 状态 |
+|------|------|:---:|
+| `roles.js` | 角色定义（权限系统配置，变动少） | ⏳ |
+| `permissions.js` | 权限定义（系统级配置） | ⏳ |
+| `menu.js` | 菜单结构配置 | ⏳ |
+| `settings.js` | 系统设置 | ⏳ |
+| `email_templates.js` | 邮件模板配置 | ⏳ |
+| `mail_config.js` | 邮件配置 | ⏳ |
+| `backup.js` | 备份记录 | ⏳ |
+| `logs.js` | 操作日志 | ⏳ |
 
 #### 新增目录结构
 ```
 resources/js/
 ├── data/                    # 仅保留配置类数据
-│   ├── admin.js            # 管理后台配置
 │   ├── roles.js            # 角色定义
 │   ├── permissions.js      # 权限定义
 │   ├── menu.js             # 菜单配置
-│   └── constants.js        # 新增：统一常量（状态、类型等）
+│   ├── settings.js         # 系统设置
+│   ├── journals.js         # 心情/天气枚举
+│   └── ad_positions.js     # 广告位枚举
 │
 ├── api/                    # 新增：API 请求层
 │   ├── client.js           # axios 实例配置
 │   ├── posts.js            # 文章 API 请求
 │   ├── comments.js         # 评论 API 请求
 │   ├── users.js            # 用户 API 请求
-│   ├── categories.js       # 分类 API 请求
-│   ├── tags.js             # 标签 API 请求
-│   ├── videos.js           # 视频 API 请求
-│   ├── projects.js         # 项目 API 请求
-│   └── resources.js        # 资源 API 请求
+│   ├── advertisements.js   # 广告 API 请求
+│   ├── journals.js         # 日志 API 请求
+│   └── index.js            # API 统一导出
 │
 ├── composables/            # 新增：数据获取逻辑
-│   ├── usePosts.js         # 文章数据管理（列表、详情、创建、更新、删除）
+│   ├── usePosts.js         # 文章数据管理
 │   ├── useComments.js      # 评论数据管理
 │   ├── useUsers.js         # 用户数据管理
-│   ├── useCategories.js    # 分类数据管理
+│   ├── useAdvertisements.js # 广告数据管理
+│   ├── useJournals.js      # 日志数据管理
 │   └── useAuth.js          # 认证状态管理
 │
 └── Pages/                  # 页面组件（从 composables 获取数据）
@@ -707,17 +729,17 @@ resources/js/
 ```
 
 **实施步骤**：
-1. 创建 `api/client.js` - 配置 axios 实例、拦截器、错误处理
-2. 逐个创建 API 模块文件（posts.js、comments.js 等）
-3. 创建 composables 封装数据获取逻辑
-4. 更新页面组件，使用 composables 替代直接导入静态数据
-5. 删除不再使用的静态数据文件
-6. 测试所有功能正常
+1. ✅ 创建 `api/client.js` - 配置 axios 实例、拦截器、错误处理
+2. ⏳ 逐个创建 API 模块文件（posts.js、comments.js、advertisements.js、journals.js 等）
+3. ⏳ 创建 composables 封装数据获取逻辑
+4. ⏳ 更新页面组件，使用 composables 替代直接导入静态数据
+5. ⏳ 删除不再使用的静态数据文件
+6. ⏳ 测试所有功能正常
 
 **建议修复**：
-- 先完成当前静态数据开发，确保 UI/UX 完善
-- 接入 API 时采用渐进式迁移，逐个模块替换
-- 保留静态数据作为 fallback，避免 API 未就绪时页面空白
+- ✅ 已完成：数据文件规范化
+- ⏳ 进行中：接入 API 时采用渐进式迁移，逐个模块替换
+- ⏳ 待完成：保留静态数据作为 fallback，避免 API 未就绪时页面空白
 
 ---
 

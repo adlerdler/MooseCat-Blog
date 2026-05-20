@@ -19,14 +19,19 @@
  * <CommentSection :initial-comments="comments" @comment-submitted="handleComment" />
  */
 import { ref } from 'vue';
-import { ChevronRight, Send } from 'lucide-vue-next';
+import { ChevronRight, Send, Heart } from 'lucide-vue-next';
 import AbstractAvatar from './AbstractAvatar.vue';
 import { commentsData } from '../data/comments';
+import { interactions, hasUserLiked, getLikesByTarget } from '../data/interactions';
 
 const props = defineProps({
   initialComments: {
     type: Array,
     default: () => []
+  },
+  currentUserId: {
+    type: Number,
+    default: null
   }
 });
 
@@ -36,6 +41,7 @@ const isCommentFormOpen = ref(false);
 const isSubmitting = ref(false);
 const submitSuccess = ref(false);
 const errorMessage = ref('');
+const localInteractions = ref([...interactions]);
 
 const getApprovedComments = () => {
   return commentsData.filter(comment => comment.is_approved);
@@ -45,6 +51,54 @@ const comments = ref([
   ...getApprovedComments(),
   ...props.initialComments
 ]);
+
+const getLikeCount = (commentId) => {
+  return localInteractions.value.filter(
+    i => i.interactable_id === commentId && 
+         i.interactable_type === 'Comment' && 
+         i.type === 'like'
+  ).length;
+};
+
+const isCommentLiked = (commentId) => {
+  if (!props.currentUserId) return false;
+  return localInteractions.value.some(
+    i => i.user_id === props.currentUserId && 
+         i.interactable_id === commentId && 
+         i.interactable_type === 'Comment' && 
+         i.type === 'like'
+  );
+};
+
+const toggleLike = (commentId) => {
+  if (!props.currentUserId) {
+    errorMessage.value = 'Please login to like comments';
+    return;
+  }
+
+  const existingIndex = localInteractions.value.findIndex(
+    i => i.user_id === props.currentUserId && 
+         i.interactable_id === commentId && 
+         i.interactable_type === 'Comment' && 
+         i.type === 'like'
+  );
+
+  if (existingIndex !== -1) {
+    localInteractions.value.splice(existingIndex, 1);
+  } else {
+    const now = new Date().toISOString();
+    const newId = Math.max(...localInteractions.value.map(i => i.id), 0) + 1;
+    localInteractions.value.push({
+      id: newId,
+      user_id: props.currentUserId,
+      interactable_id: commentId,
+      interactable_type: 'Comment',
+      type: 'like',
+      created_at: now,
+      updated_at: now
+    });
+  }
+};
 
 const formData = ref({
   name: '',
@@ -256,12 +310,20 @@ const handleSubmit = async (e) => {
 
           <!-- Like Button -->
           <button 
-            class="flex items-center gap-2 text-[10px] font-black tracking-widest opacity-40 hover:opacity-100 hover:text-construct-red transition-colors"
+            @click="toggleLike(comment.id)"
+            :class="[
+              'flex items-center gap-2 text-[10px] font-black tracking-widest transition-all cursor-pointer',
+              isCommentLiked(comment.id)
+                ? 'text-construct-red opacity-100'
+                : 'opacity-40 hover:opacity-100 hover:text-construct-red'
+            ]"
           >
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-            </svg>
-            {{ comment.likes_count || 0 }}
+            <Heart 
+              :size="16" 
+              :fill="isCommentLiked(comment.id) ? 'currentColor' : 'none'" 
+              :stroke-width="2"
+            />
+            {{ getLikeCount(comment.id) }}
           </button>
         </div>
 

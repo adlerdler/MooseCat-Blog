@@ -19,10 +19,13 @@ import { Search, ArrowRight, Send, Mail } from 'lucide-vue-next'
 import { Motion, AnimatePresence } from 'motion-v'
 import { useTheme } from '../../composables/useTheme'
 import { useI18n } from 'vue-i18n'
-import { categories, marqueeText, techStack } from '../../data/home'
 import { POSTS } from '../../data/posts'
 import { categories as categoryList } from '../../data/categories'
 import { getCategoryLabel, getCategoryLabelById, getCategoryNameById } from '../../utils/categoryUtils'
+
+const categories = ['ALL', ...categoryList.map(c => c.name)]
+const marqueeText = 'ARCHYX VOL. 2026 // BUILDING SYSTEM // MINIMALISM //'
+const techStack = ['TYPESCRIPT', 'VUE', 'LARAVEL', 'TAILWIND', 'NODE.JS', 'POSTGRES']
 
 const { t } = useI18n()
 const { initAccentTheme } = useTheme()

@@ -16,7 +16,7 @@
  */
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useRoute, useRouter, RouterLink } from 'vue-router';
-import { ArrowLeft, Share2, Bookmark, Clock, User, BookOpen, ChevronRight } from 'lucide-vue-next';
+import { ArrowLeft, Share2, Bookmark, Clock, User, BookOpen, ChevronRight, Heart } from 'lucide-vue-next';
 import { POSTS } from '../../data/posts';
 import { adminUsers } from '../../data/users';
 import { categories } from '../../data/categories';
@@ -24,10 +24,17 @@ import { useI18n } from 'vue-i18n';
 import { formatToEnglish } from '../../utils/dateUtils';
 import { findById, formatId } from '../../utils/typeConvert';
 import { getCategoryNameById } from '../../utils/categoryUtils';
+import { interactions, hasUserLiked, getLikesByTarget } from '../../data/interactions';
+import { isCommentsVisible, isAuthorBioVisible } from '../../data/site_config';
 
 const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
+const currentUserId = 1;
+const localInteractions = ref([...interactions]);
+
+const showComments = computed(() => isCommentsVisible());
+const showAuthorBio = computed(() => isAuthorBioVisible());
 
 const getAuthorName = (authorId) => {
   const user = adminUsers.find(u => u.id === authorId);
@@ -130,6 +137,52 @@ const handleCommentSubmitted = (comment) => {
   console.log('New comment submitted:', comment);
 };
 
+const getPostLikeCount = () => {
+  if (!post.value) return 0;
+  return localInteractions.value.filter(
+    i => i.interactable_id === post.value.id && 
+         i.interactable_type === 'Post' && 
+         i.type === 'like'
+  ).length;
+};
+
+const isPostLiked = () => {
+  if (!post.value) return false;
+  return localInteractions.value.some(
+    i => i.user_id === currentUserId && 
+         i.interactable_id === post.value.id && 
+         i.interactable_type === 'Post' && 
+         i.type === 'like'
+  );
+};
+
+const togglePostLike = () => {
+  if (!post.value) return;
+
+  const existingIndex = localInteractions.value.findIndex(
+    i => i.user_id === currentUserId && 
+         i.interactable_id === post.value.id && 
+         i.interactable_type === 'Post' && 
+         i.type === 'like'
+  );
+
+  if (existingIndex !== -1) {
+    localInteractions.value.splice(existingIndex, 1);
+  } else {
+    const now = new Date().toISOString();
+    const newId = Math.max(...localInteractions.value.map(i => i.id), 0) + 1;
+    localInteractions.value.push({
+      id: newId,
+      user_id: currentUserId,
+      interactable_id: post.value.id,
+      interactable_type: 'Post',
+      type: 'like',
+      created_at: now,
+      updated_at: now
+    });
+  }
+};
+
 onMounted(() => {
   window.addEventListener('scroll', handleScroll);
 });
@@ -209,6 +262,13 @@ onUnmounted(() => {
             <div class="h-4 w-[1px] bg-white/20 hidden sm:block" />
             <div class="flex gap-4">
               <button @click="showShareModal = true" class="hover:text-construct-black transition-colors"><Share2 size="16" /></button>
+              <button 
+                @click="togglePostLike" 
+                :class="['flex items-center gap-1 transition-colors', isPostLiked() ? 'text-construct-red' : 'hover:text-construct-black']"
+              >
+                <Heart size="16" :fill="isPostLiked() ? 'currentColor' : 'none'" :stroke-width="2" />
+                <span class="text-[10px] font-bold">{{ getPostLikeCount() }}</span>
+              </button>
               <button class="hover:text-construct-black transition-colors"><Bookmark size="16" /></button>
             </div>
           </div>
@@ -254,8 +314,35 @@ onUnmounted(() => {
           <h4 class="font-display text-2xl mb-8 tracking-tighter">{{ t('post_end_transmission') }}</h4>
         </div>
 
+        <!-- Author Bio Section -->
+        <div v-if="showAuthorBio" class="mt-16 pt-16 border-t-4 border-construct-black">
+          <div class="flex items-start gap-6">
+            <div class="w-16 h-16 bg-construct-black flex items-center justify-center flex-shrink-0">
+              <User size="32" class="text-white" />
+            </div>
+            <div class="flex-1">
+              <h4 class="font-display text-xl tracking-tighter uppercase mb-2">
+                {{ t('author_title') }} {{ getAuthorName(post.author_id) }}
+              </h4>
+              <p class="text-sm leading-relaxed text-construct-black/70">
+                {{ t('author_bio') }}
+              </p>
+              <RouterLink 
+                :to="`/author/${encodeURIComponent(getAuthorName(post.author_id))}`" 
+                class="inline-flex items-center gap-2 mt-4 text-[10px] font-black tracking-widest uppercase text-construct-red hover:underline"
+              >
+                {{ t('read_more') || 'VIEW_FULL_PROFILE' }} <ArrowRight size="12" />
+              </RouterLink>
+            </div>
+          </div>
+        </div>
+
         <!-- Comment Section -->
-        <CommentSection @comment-submitted="handleCommentSubmitted" />
+        <CommentSection 
+          v-if="showComments"
+          :current-user-id="1" 
+          @comment-submitted="handleCommentSubmitted" 
+        />
       </div>
 
       <!-- 右侧：文章元数据 -->

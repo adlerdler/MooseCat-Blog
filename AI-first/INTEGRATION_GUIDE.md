@@ -6,29 +6,75 @@
 
 ## 一、 数据库与模型同步 (Database & Models)
 
-### 1. 待创建的表 (Missing Tables)
+### 1. 已创建的数据文件 (Completed Data Files)
+
+| 模块 | 数据文件 | 核心字段 | 状态 |
+| :--- | :--- | :--- | :--- |
+| **广告位** | `ad_positions.js` | `id`, `name`, `label_key`, `description`, `default_width`, `default_height`, `is_active`, `sort_order` | ✅ 已完成 |
+| **日志管理** | `journals.js` | `id`, `user_id`, `title`, `content`, `mood`, `weather`, `date`, `is_public` | ✅ 已完成 |
+| **菜单管理** | `menu.js` | `id`, `type`, `parent_id`, `label_key`, `icon_name`, `path`, `sort_order` | ✅ 已完成 |
+| **角色权限** | `roles.js`, `permissions.js`, `role_permissions.js` | 角色/权限定义及关联 | ✅ 已完成 |
+| **系统设置** | `settings.js` | 系统配置项 | ✅ 已完成 |
+| **媒体文件** | `media.js` | 媒体资源管理 | ✅ 已完成 |
+| **操作日志** | `logs.js` | 管理员操作记录 | ✅ 已完成 |
+| **备份记录** | `backup.js` | 数据库备份信息 | ✅ 已完成 |
+| **用户等级** | `user_levels.js` | 用户等级体系 | ✅ 已完成 |
+| **访问统计** | `visits.js` | 访问记录统计 | ✅ 已完成 |
+| **邮件模板** | `email_templates.js` | 邮件模板管理 | ✅ 已完成 |
+| **友情链接** | `links.js` | 友情链接管理 | ✅ 已完成 |
+| **邮件配置** | `mail_config.js` | 邮件服务器配置 | ✅ 已完成 |
+| **宣言/理念** | `manifestos.js` | 网站宣言内容 | ✅ 已完成 |
+| **技能/能力** | `skills.js` | 技能展示管理 | ✅ 已完成 |
+
+### 2. 待创建的数据库表 (Missing Tables)
 
 | 模块 | 建议表名 | 核心字段 | 状态 |
 | :--- | :--- | :--- | :--- |
-| **媒体库** | `media` | `id`, `filename`, `original_name`, `path`, `mime_type`, `size`, `disk` | ⏳ 待创建 |
-| **系统设置** | `settings` | `key`, `value`, `group`, `type` | ⏳ 待创建 |
-| **菜单管理** | `menus` | `id`, `title`, `url`, `icon`, `order`, `parent_id`, `target` | ⏳ 待创建 |
+| **广告位** | `ad_positions` | `id`, `name`, `label_key`, `description`, `default_width`, `default_height`, `is_active`, `sort_order` | ⏳ 待创建 |
+| **日志管理** | `journals` | `id`, `user_id`, `title`, `content`, `mood`, `weather`, `date`, `is_public` | ⏳ 待创建 |
+| **广告管理** | `advertisements` | `id`, `position_id`, `title`, `image_url`, `link_url`, `position`, `is_active` | ⏳ 待创建 |
+| **用户等级** | `user_levels` | `id`, `name`, `min_points`, `max_points`, `level`, `badge` | ⏳ 待创建 |
+| **访问记录** | `visits` | `id`, `ip`, `user_agent`, `page`, `referrer`, `visited_at` | ⏳ 待创建 |
+| **邮件模板** | `email_templates` | `id`, `name`, `subject`, `content`, `variables` | ⏳ 待创建 |
+| **友情链接** | `links` | `id`, `name`, `url`, `description`, `logo`, `is_active` | ⏳ 待创建 |
+| **宣言/理念** | `manifestos` | `id`, `title`, `content`, `is_active` | ⏳ 待创建 |
+| **技能/能力** | `skills` | `id`, `name`, `description`, `level`, `icon` | ⏳ 待创建 |
 
-### 2. 现有表字段补全/优化建议
+### 3. 现有表字段补全/优化建议
 *   **Users 表**: 增加 `avatar` (头像路径), `last_login_at` (最后登录时间), `status` (激活/禁用)。
 *   **Posts 表**: 确保 `status` 字段支持 `['draft', 'published', 'archived']`。
 *   **Comments 表**: 增加 `is_approved` (审核状态), `parent_id` (支持楼中楼回复)。
+*   **Advertisements 表**: 增加 `position_id` 外键关联 `ad_positions` 表。
 
 ---
 
 ## 二、 API 契约设计 (API Contract Design)
 
-### 1. 媒体库 (Media Library)
+### 1. 广告管理 (Advertisement Management)
+*   `GET /api/v1/ad-positions`: 获取广告位列表
+*   `GET /api/v1/ad-positions/{id}`: 获取单个广告位
+*   `POST /api/v1/ad-positions`: 创建广告位
+*   `PUT /api/v1/ad-positions/{id}`: 更新广告位
+*   `DELETE /api/v1/ad-positions/{id}`: 删除广告位
+*   `GET /api/v1/advertisements`: 获取广告列表（支持按广告位筛选）
+*   `POST /api/v1/advertisements`: 创建广告
+*   `PUT /api/v1/advertisements/{id}`: 更新广告
+*   `DELETE /api/v1/advertisements/{id}`: 删除广告
+
+### 2. 日志管理 (Journal Management)
+*   `GET /api/v1/journals`: 获取日志列表（支持分页、心情/天气/状态筛选）
+*   `GET /api/v1/journals/{id}`: 获取单个日志
+*   `POST /api/v1/journals`: 创建日志
+*   `PUT /api/v1/journals/{id}`: 更新日志
+*   `DELETE /api/v1/journals/{id}`: 删除日志
+*   `GET /api/v1/journals/user/{userId}`: 获取用户日志列表
+
+### 3. 媒体库 (Media Library)
 *   `GET /admin/api/media`: 返回文件列表。
 *   `POST /admin/api/media/upload`: 处理二进制上传，存入 `storage/app/public/media`。
 *   `DELETE /admin/api/media/{id}`: 同步删除磁盘文件与数据库记录。
 
-### 2. 文章/内容管理 (Content Management)
+### 4. 文章/内容管理 (Content Management)
 *   所有资源使用标准的 `RESTful` 路由（`index`, `store`, `show`, `update`, `destroy`）。
 *   **注意**：所有返回的日期应统一为 ISO 8601 格式，由前端 `dateUtils.js` 统一处理显示。
 
@@ -39,20 +85,56 @@
 ### 1. 目录结构调整
 按照 `OPTIMIZATION.md` 建议，新增以下结构：
 *   `resources/js/api/`: 存放所有 axios 请求模块。
-*   `resources/js/composables/`: 存放封装了 loading 和数据状态的 Hook（如 `useMedia.js`）。
+*   `resources/js/composables/`: 存放封装了 loading 和数据状态的 Hook（如 `useMedia.js`, `useJournals.js`, `useAdvertisements.js`）。
+*   `resources/js/data/`: 保留配置类数据（枚举定义、菜单配置等）。
 
-### 2. 对接示例 (针对本项目的 Hybrid 模式)
+### 2. 数据文件结构
+当前 `resources/js/data/` 目录包含以下数据文件：
+
+**业务数据文件**：
+- `posts.js` - 文章数据
+- `comments.js` - 评论数据
+- `users.js` - 用户数据
+- `projects.js` - 项目数据
+- `resources.js` - 资源数据
+- `videos.js` - 视频数据
+- `advertisements.js` - 广告数据
+- `ad_positions.js` - 广告位数据
+- `journals.js` - 日志数据
+- `media.js` - 媒体数据
+- `logs.js` - 操作日志
+- `visits.js` - 访问统计
+- `user_levels.js` - 用户等级
+- `skills.js` - 技能管理
+- `manifestos.js` - 宣言管理
+- `links.js` - 友情链接
+
+**配置类数据文件**：
+- `categories.js` - 分类枚举
+- `tags.js` - 标签枚举
+- `roles.js` - 角色定义
+- `permissions.js` - 权限定义
+- `role_permissions.js` - 角色权限关联
+- `menu.js` - 菜单配置
+- `settings.js` - 系统设置
+- `email_templates.js` - 邮件模板
+- `mail_config.js` - 邮件配置
+- `backup.js` - 备份记录
+
+### 3. 对接示例 (针对本项目的 Hybrid 模式)
 ```javascript
-// resources/js/composables/useMedia.js
-export function useMedia() {
-  const files = ref([]);
+// resources/js/composables/useJournals.js
+export function useJournals() {
+  const journals = ref([]);
   const isLoading = ref(false);
+  const total = ref(0);
 
-  const fetchFiles = async () => {
+  const fetchJournals = async (params = {}) => {
     isLoading.value = true;
     try {
-      const res = await axios.get('/admin/media/list'); // 走 Web 路由以复用 Session 认证
-      files.value = res.data;
+      const res = await axios.get('/api/v1/journals', { params });
+      journals.value = res.data.data;
+      total.value = res.data.total;
     } catch (e) {
       console.error(e);
     } finally {
@@ -60,7 +142,7 @@ export function useMedia() {
     }
   };
 
-  return { files, isLoading, fetchFiles };
+  return { journals, isLoading, total, fetchJournals };
 }
 ```
 
@@ -70,14 +152,19 @@ export function useMedia() {
 
 | 优先级 | 任务描述 | 涉及模块 | 状态 |
 | :--- | :--- | :--- | :--- |
+| **P0** | **广告位管理全栈实现** | AdPositionController, ad_positions Table | ⏳ |
+| **P0** | **日志管理全栈实现** | JournalController, journals Table | ⏳ |
 | **P0** | **媒体库全栈实现** | MediaController, Media Table | ⏳ |
 | **P0** | **管理后台 Web 认证迁移** | Auth Middleware, Session Logic | ⏳ |
 | **P0** | **文章管理 CRUD 对接** | Post Management | ⏳ |
+| **P1** | **广告管理 CRUD 对接** | Advertisement Management | ⏳ |
 | **P1** | **评论审核系统对接** | Comment System | ⏳ |
 | **P1** | **系统设置持久化** | Settings Management | ⏳ |
 | **P1** | **前台菜单动态化同步** | Front Menu Management | ⏳ |
 | **P2** | **仪表盘统计数据真实化** | Analytics Dashboard | ⏳ |
 | **P2** | **全局 SEO 元数据同步** | Meta Management | ⏳ |
+| **P2** | **用户等级系统对接** | User Levels | ⏳ |
+| **P2** | **访问统计系统对接** | Visits Analytics | ⏳ |
 
 ---
 
@@ -85,6 +172,8 @@ export function useMedia() {
 1.  **Storage Link**: 对接媒体库前，必须执行 `php artisan storage:link`。
 2.  **CSRF**: 所有非 GET 请求必须携带 CSRF Token。
 3.  **App 兼容性**: 核心业务逻辑应封装在 Service 层，以便将来 `routes/api.php` 也能直接复用。
+4.  **数据迁移**: 使用 Laravel Migration 工具将现有 data 文件数据迁移到数据库。
+5.  **国际化**: 确保所有用户可见文本使用 i18n key，支持多语言切换。
 
 ---
-*最后更新：2026-05-16*
+*最后更新：2026-05-20*

@@ -3,27 +3,14 @@
  * 
  * 功能说明：
  * - 存储系统各项设置的默认配置
- * - 包含站点信息、外观、通知、SEO、性能、邮件等设置
+ * - 包含外观、通知、性能等设置
  * - 提供设置页签配置
  */
 
 export const defaultSettings = {
-  site: {
-    name: 'ARCHYX',
-    description: 'Constructivist Digital Archive',
-    logo: '',
-    favicon: '',
-    defaultLanguage: 'en',
-    timezone: 'UTC+8',
-    maintenanceMode: false
-  },
   appearance: {
-    theme: 'dark',
-    accentColor: '#E53E3E',
-    font: 'system',
     showAuthorBio: true,
-    showComments: true,
-    showRelatedPosts: true
+    showComments: true
   },
   notifications: {
     emailNotifications: true,
@@ -32,29 +19,12 @@ export const defaultSettings = {
     weeklyReport: false,
     digestFrequency: 'weekly'
   },
-  seo: {
-    metaTitle: 'ARCHYX - Constructivist Digital Archive',
-    metaDescription: 'Exploring digital constructivism through articles, videos, and projects',
-    googleAnalytics: '',
-    enableSitemap: true,
-    enableRobots: true,
-    canonicalUrl: 'https://archyx.com'
-  },
   performance: {
     enableCache: true,
     cacheDuration: 3600,
     enableMinification: true,
     lazyLoadImages: true,
     enableCDN: false
-  },
-  mail: {
-    host: 'smtp.archyx.com',
-    port: 587,
-    username: 'admin@archyx.com',
-    password: '****************',
-    encryption: 'tls',
-    fromAddress: 'no-reply@archyx.com',
-    fromName: 'Archyx System'
   }
 };
 

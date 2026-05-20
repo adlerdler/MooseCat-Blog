@@ -19,12 +19,36 @@ import 'vue3-calendar-heatmap/dist/style.css';
 import { useTheme } from '@/composables/useTheme';
 import SidebarMenu from '@/components/SidebarMenu.vue';
 import Footer from '@/components/Footer.vue';
-import { getAuthor, getAuthorSkills, getAuthorLinks } from '../../data/author';
+import { getAuthorProfileByUserId, getAuthorSkills, getAuthorManifestos, getAuthorSocialLinks } from '../../data/author_profiles';
 import { PROJECTS } from '../../data/projects';
 
-const author = getAuthor();
-const skills = getAuthorSkills(author?.id);
-const socialLinks = getAuthorLinks(author?.user_id);
+const author = getAuthorProfileByUserId(9);
+const skills = getAuthorSkills(9);
+const manifestos = getAuthorManifestos(9);
+const socialLinksObj = getAuthorSocialLinks(9);
+const socialLinks = Object.entries(socialLinksObj).map(([platform, url], index) => {
+  const iconMap = {
+    github: 'Github',
+    twitter: 'Twitter',
+    linkedin: 'Linkedin',
+    website: 'Globe',
+    email: 'Mail'
+  };
+  const labelMap = {
+    github: 'GITHUB',
+    twitter: 'TWITTER',
+    linkedin: 'LINKEDIN',
+    website: 'WEBSITE',
+    email: 'CONTACT'
+  };
+  return {
+    platform,
+    icon_name: iconMap[platform] || 'Link',
+    label: labelMap[platform] || platform.toUpperCase(),
+    url,
+    sort_order: index + 1
+  };
+});
 
 const { t } = useI18n();
 const { currentTheme } = useTheme();
@@ -34,7 +58,7 @@ const calendarValues = ref([]);
 const githubStats = ref({ commits: 0, prs: 0, repos: 7 });
 const isLoading = ref(true);
 const githubLink = socialLinks.find(s => s.platform === 'github');
-const username = githubLink?.url.split('/').pop() || 'adlerdler';
+const username = githubLink?.url?.split('/').pop() || 'adler-decht';
 const projects = PROJECTS.filter(p => p.status === 'in-progress' || p.status === 'planning');
 
 const getIconComponent = (iconName) => {
@@ -214,8 +238,8 @@ const generateMockCalendarData = () => {
 
           <div class="grid grid-cols-2 gap-3">
             <a
-              v-for="item in socialLinks"
-              :key="item.id"
+              v-for="(item, index) in socialLinks"
+              :key="index"
               :href="item.url"
               target="_blank"
               rel="noopener noreferrer"
@@ -250,14 +274,14 @@ const generateMockCalendarData = () => {
                 !
               </div>
               <h3 class="font-display text-xl md:text-2xl lg:text-3xl uppercase tracking-tighter mb-6 border-b-4 border-construct-black pb-4">
-                {{ t('manifesto') }}
+                {{ t(manifestos[0]?.title || 'manifesto') }}
               </h3>
               <div class="space-y-6 text-base md:text-lg font-medium leading-relaxed">
-                <p>{{ t('manifesto_p1') }}</p>
+                <p>{{ manifestos[0]?.content }}</p>
                 <p class="pl-4 md:pl-6 border-l-4 border-construct-red">
-                  {{ t('manifesto_p2') }}
+                  {{ manifestos[1]?.content }}
                 </p>
-                <p>{{ t('manifesto_p3') }}</p>
+                <p>{{ manifestos[2]?.content }}</p>
               </div>
             </section>
           </div>

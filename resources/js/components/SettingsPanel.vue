@@ -19,6 +19,7 @@ import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTheme } from '../composables/useTheme'
 import { setLocale } from '../i18n'
+import { getSiteCopyright } from '../data/site_config'
 
 defineProps({
   isMobile: {
@@ -29,6 +30,7 @@ defineProps({
 
 const { t, locale } = useI18n()
 const { themes, currentTheme, setTheme } = useTheme()
+const siteCopyright = getSiteCopyright()
 
 const languages = [
   { code: 'en', label: 'EN' },
@@ -114,7 +116,7 @@ const activeThemeLabel = computed(() => {
     <!-- Copyright -->
     <div class="w-12 h-0.5 bg-accent mx-auto mt-4"></div>
     <p class="text-[10px] uppercase tracking-[0.2em] font-bold text-white/40 text-right">
-      © 2026 Archyx-Blog-System
+      {{ siteCopyright }}
     </p>
   </div>
 </template>

@@ -41,7 +41,8 @@ import {
 } from '../../composables/useAdminImports';
 import { Motion, AnimatePresence } from 'motion-v';
 import { formatToShort } from '../../utils/dateUtils';
-import { adPositions, sampleAdvertisements } from '../../data/advertisements';
+import { adPositions } from '../../data/ad_positions';
+import { sampleAdvertisements } from '../../data/advertisements';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();

@@ -9,28 +9,29 @@
 ### 1. 硬编码文本
 
 **问题描述**：
-所有数据文件中的描述性文本都是硬编码的英文：
-- `description` 字段
-- `label` 字段
-- `title` 字段
+部分数据文件中的描述性文本仍是硬编码的中文/英文：
+- `journals.js` 中的 `title` 和 `content` 字段
+- `manifestos.js` 中的文本内容
+- `settings.js` 中的部分描述
 
 **影响范围**：
 - 多语言切换功能无法覆盖这些数据
-- 中文用户看到英文内容
+- 不同语言用户看到的内容不一致
 
 **建议修复**：
 - 使用国际化 key 替代硬编码文本
 - 在语言文件中添加对应的翻译
 - 建立数据翻译机制
+- ✅ 已完成：广告位数据使用 `label_key` 进行国际化
 
 ---
 
 ### 2. 枚举值未国际化
 
 **问题描述**：
-角色名称、分类名称等枚举值未使用国际化 key：
-- 'ADMIN', 'EDITOR', 'AUTHOR' 等角色名称
-- 'THEORY', 'DESIGN' 等分类名称
+部分枚举值未使用国际化 key：
+- `journals.js` 中的心情和天气类型（已有 `getMoodLabel` 和 `getWeatherLabel` 函数）
+- 角色名称、分类名称等
 
 **影响范围**：
 - 多语言切换无法覆盖枚举值显示
@@ -40,6 +41,7 @@
 - 使用 `admin_role_admin` 这类 key 替代硬编码
 - 在组件中使用 `$t()` 函数翻译
 - 建立枚举值到国际化 key 的映射
+- ✅ 已完成：广告位使用 `label_key` 字段
 
 ---
 
@@ -48,44 +50,48 @@
 ### 3. ID 类型不一致
 
 **问题描述**：
-不同文件中 ID 的类型不统一：
+大部分文件已统一使用数字类型 ID：
 
-| 文件 | ID 类型 | 示例 |
-|------|---------|------|
-| `posts.js` | 字符串 | `'1'` |
-| `users.js` | 数字 | `1` |
-| `categories.js` | 数字 | `1` |
-| `roles.js` | 字符串 | `'admin'` |
+| 文件 | ID 类型 | 状态 |
+|------|---------|:---:|
+| `posts.js` | 数字 | ✅ 已统一 |
+| `users.js` | 数字 | ✅ 已统一 |
+| `categories.js` | 数字 | ✅ 已统一 |
+| `roles.js` | 数字 | ✅ 已统一 |
+| `advertisements.js` | 数字 | ✅ 已统一 |
+| `ad_positions.js` | 数字 | ✅ 已统一 |
+| `journals.js` | 数字 | ✅ 已统一 |
 
 **影响范围**：
-- 数据查询和比较可能出现类型错误
-- 严格相等比较（===）可能失败
+- ✅ 已解决：数据查询和比较正常
+- ✅ 已解决：严格相等比较正常工作
 
 **建议修复**：
-- 统一使用数字类型的 ID（推荐，便于数据库自增）
-- 在数据查询时进行类型转换
+- ✅ 已完成：统一使用数字类型的 ID
 
 ---
 
 ### 4. 日期格式混乱
 
 **问题描述**：
-不同文件中的日期格式不统一：
+大部分文件已统一使用标准日期格式：
 
-| 文件 | 日期格式 | 示例 |
-|------|----------|------|
-| `posts.js` | ISO 8601 | `'2026-04-28T10:30:00'` |
-| `users.js` | YYYY-MM-DD | `'2024-01-15'` |
-| `comments.js` | 混合格式 | `'2024-01-15 10:30'` 和 `'May 10, 2026, 14:30'` |
+| 文件 | 日期格式 | 状态 |
+|------|----------|:---:|
+| `posts.js` | ISO 8601 | ✅ 已统一 |
+| `users.js` | YYYY-MM-DD HH:mm:ss | ✅ 已统一 |
+| `comments.js` | YYYY-MM-DD HH:mm:ss | ✅ 已统一 |
+| `journals.js` | YYYY-MM-DD / YYYY-MM-DD HH:mm:ss | ✅ 已统一 |
+| `advertisements.js` | YYYY-MM-DD | ✅ 已统一 |
+| `ad_positions.js` | YYYY-MM-DD HH:mm:ss | ✅ 已统一 |
 
 **影响范围**：
-- 日期排序可能出错
-- 日期格式化显示不统一
-- 日期比较逻辑复杂
+- ✅ 已解决：日期排序正常
+- ✅ 已解决：日期格式化显示统一
+- ✅ 已解决：日期比较逻辑正常
 
 **建议修复**：
-- 统一使用 ISO 8601 格式（YYYY-MM-DDTHH:mm:ss）
-- 建立日期格式化工具函数
+- ✅ 已完成：统一使用标准日期格式
 
 ---
 
@@ -94,7 +100,7 @@
 ### 5. 图片资源依赖外部链接
 
 **问题描述**：
-所有项目、资源的图片都依赖 Unsplash 外部链接：
+部分项目、资源的图片仍依赖 Unsplash 外部链接：
 - `projects.js` 中的 `image` 字段
 - `resources.js` 中的 `image` 字段
 - `videos.js` 中的 `thumbnail` 字段
@@ -116,40 +122,45 @@
 ### 6. 缺少类型定义
 
 **问题描述**：
-所有数据文件都是纯 JSON 数据，缺少 TypeScript 类型定义或 JSDoc 注释
+大部分数据文件已添加 JSDoc 注释：
+- ✅ `ad_positions.js` - 完整字段说明和函数注释
+- ✅ `advertisements.js` - 完整字段说明和函数注释
+- ✅ `journals.js` - 完整字段说明和函数注释
+- ⏳ 其他文件待补充
 
 **影响范围**：
-- IDE 无法提供智能提示
-- 容易出现类型错误
-- 代码可维护性差
+- ✅ 已改善：IDE 可提供智能提示
+- ⏳ 部分文件仍需补充类型定义
 
 **建议修复**：
-- 添加 TypeScript 类型定义文件
-- 或使用 JSDoc 注释
-- 建立数据模型接口
+- ✅ 已完成：核心数据文件添加 JSDoc 注释
+- ⏳ 待完成：为所有数据文件补充类型定义
 
 ---
 
 ### 7. 数据文件职责不清晰
 
 **问题描述**：
-部分文件同时包含业务数据和配置数据，职责混杂：
+大部分文件已按单一职责原则拆分：
 
-| 文件 | 问题 |
-|------|------|
-| `admin.js` | 包含统计数据、配置数据、模拟数据 |
-| `home.js` | 包含业务数据和配置数据（分类、技术栈） |
-| `roles.js` | 包含角色定义和权限配置 |
+| 文件 | 状态 | 说明 |
+|------|:---:|------|
+| `ad_positions.js` | ✅ 已拆分 | 广告位配置数据 |
+| `advertisements.js` | ✅ 已拆分 | 广告内容数据 |
+| `journals.js` | ✅ 已拆分 | 日志数据 |
+| `menu.js` | ✅ 已拆分 | 菜单配置数据 |
+| `roles.js` | ✅ 已拆分 | 角色定义数据 |
+| `permissions.js` | ✅ 已拆分 | 权限定义数据 |
+| `role_permissions.js` | ✅ 已拆分 | 角色权限关联数据 |
+| `home.js` | ⚠️ 待优化 | 包含业务数据和配置数据 |
 
 **影响范围**：
-- 文件职责过于混杂
-- 难以定位和维护
-- 不符合单一职责原则
+- ✅ 已改善：文件职责清晰
+- ✅ 已改善：易于定位和维护
 
 **建议修复**：
-- 将 `admin.js` 拆分为 `admin-config.js`、`admin-stats.js`、`admin-mock.js`
-- 将 `home.js` 中的业务数据部分移至组件
-- 将 `roles.js` 中的权限配置分离，通过关联表管理
+- ✅ 已完成：大部分文件按单一职责拆分
+- ⏳ 待完成：优化 `home.js` 文件结构
 
 ---
 
@@ -180,31 +191,42 @@
 ### 9. 静态数据文件迁移规划
 
 **问题描述**：
-当前 `resources/js/data` 目录下的静态数据文件在后续接入 Laravel API 和数据库时需要整体迁移。直接删除会导致应用崩溃，需要有计划地逐步迁移。
+当前 `resources/js/data` 目录下的静态数据文件在后续接入 Laravel API 和数据库时需要整体迁移。大部分数据文件已完成规范化，可直接迁移到数据库。
 
 **迁移策略**：
 
 #### 6.1 文件分类与处理方式
 
-| 分类 | 文件 | 处理方式 | 原因 |
-|------|------|----------|------|
-| **业务数据（需删除）** | `posts.js` | 删除 | 文章数据从 `/api/v1/posts` 获取 |
-| | `comments.js` | 删除 | 评论数据从 API 获取 |
-| | `users.js` | 删除 | 用户数据从 API 获取 |
-| | `projects.js` | 删除 | 项目数据从 API 获取 |
-| | `resources.js` | 删除 | 资源数据从 API 获取 |
-| | `videos.js` | 删除 | 视频数据从 API 获取 |
-| | `searchPosts.js` | 删除 | 搜索数据从 API 获取 |
-| | `author.js` | 删除 | 作者数据从 API 获取 |
-| | `media.js` | 删除 | 媒体数据从 API 获取 |
-| | `logs.js` | 删除 | 日志数据从后端获取 |
-| **配置类数据（删除）** | `categories.js` | 删除 | 分类数据从 `/api/v1/categories` 获取 |
-| | `tags.js` | 删除 | 标签数据从 `/api/v1/tags` 获取 |
-| | `roles.js` | 删除 | 角色数据从 `/api/v1/roles` 获取 |
-| | `permissions.js` | 删除 | 权限数据从 `/api/v1/permissions` 获取 |
-| | `menu.js` | 删除 | 菜单配置从 `/api/v1/menus` 获取 |
-| **混合数据（拆分）** | `admin.js` | 拆分 | 将配置与模拟数据分离 |
-| | `home.js` | 拆分 | 将业务数据部分抽离 |
+| 分类 | 文件 | 处理方式 | 原因 | 状态 |
+|------|------|----------|------|:---:|
+| **业务数据（需迁移）** | `posts.js` | 迁移 | 文章数据从 `/api/v1/posts` 获取 | ⏳ |
+| | `comments.js` | 迁移 | 评论数据从 API 获取 | ⏳ |
+| | `users.js` | 迁移 | 用户数据从 API 获取 | ⏳ |
+| | `projects.js` | 迁移 | 项目数据从 API 获取 | ⏳ |
+| | `resources.js` | 迁移 | 资源数据从 API 获取 | ⏳ |
+| | `videos.js` | 迁移 | 视频数据从 API 获取 | ⏳ |
+| | `searchPosts.js` | 删除 | 搜索数据从 API 获取 | ⏳ |
+| | `author.js` | 迁移 | 作者数据从 API 获取 | ⏳ |
+| | `media.js` | 迁移 | 媒体数据从 API 获取 | ⏳ |
+| | `logs.js` | 迁移 | 日志数据从后端获取 | ⏳ |
+| | `journals.js` | 迁移 | 日志数据从 API 获取 | ⏳ |
+| | `advertisements.js` | 迁移 | 广告数据从 API 获取 | ⏳ |
+| | `ad_positions.js` | 迁移 | 广告位数据从 API 获取 | ⏳ |
+| | `visits.js` | 迁移 | 访问数据从 API 获取 | ⏳ |
+| | `user_levels.js` | 迁移 | 用户等级从 API 获取 | ⏳ |
+| | `skills.js` | 迁移 | 技能数据从 API 获取 | ⏳ |
+| | `manifestos.js` | 迁移 | 宣言数据从 API 获取 | ⏳ |
+| | `links.js` | 迁移 | 友情链接从 API 获取 | ⏳ |
+| **配置类数据（需迁移）** | `categories.js` | 迁移 | 分类数据从 `/api/v1/categories` 获取 | ⏳ |
+| | `tags.js` | 迁移 | 标签数据从 `/api/v1/tags` 获取 | ⏳ |
+| | `roles.js` | 迁移 | 角色数据从 `/api/v1/roles` 获取 | ⏳ |
+| | `permissions.js` | 迁移 | 权限数据从 `/api/v1/permissions` 获取 | ⏳ |
+| | `menu.js` | 迁移 | 菜单配置从 `/api/v1/menus` 获取 | ⏳ |
+| | `settings.js` | 迁移 | 系统设置从 `/api/v1/settings` 获取 | ⏳ |
+| | `email_templates.js` | 迁移 | 邮件模板从 API 获取 | ⏳ |
+| | `mail_config.js` | 迁移 | 邮件配置从 API 获取 | ⏳ |
+| | `backup.js` | 迁移 | 备份记录从 API 获取 | ⏳ |
+| **混合数据（拆分）** | `home.js` | 拆分 | 将配置与模拟数据分离 | ⏳ |
 
 #### 6.2 目录结构演进
 
@@ -216,36 +238,44 @@ resources/js/
 │   ├── comments.js
 │   ├── categories.js
 │   ├── users.js
+│   ├── advertisements.js
+│   ├── journals.js
 │   └── index.js
 ├── composables/            # 新增：数据获取逻辑
 │   ├── usePosts.js
 │   ├── useCategories.js
 │   ├── useUsers.js
+│   ├── useAdvertisements.js
+│   ├── useJournals.js
 │   └── useAuth.js
-├── data/                   # 保留：配置类数据
+├── data/                   # 保留：配置类数据（枚举定义）
 │   ├── categories.js       # 分类枚举定义
 │   ├── tags.js             # 标签枚举定义
 │   ├── roles.js            # 角色定义
 │   ├── permissions.js      # 权限定义
-│   └── menu.js             # 菜单配置
+│   ├── menu.js             # 菜单配置
+│   ├── journals.js         # 心情/天气枚举
+│   └── ad_positions.js     # 广告位枚举
 └── utils/                  # 工具函数
     ├── categoryUtils.js
-    └── dateUtils.js
+    ├── dateUtils.js
+    └── journalUtils.js
 ```
 
 #### 6.3 实施步骤
 
-**第一阶段：准备期**
-1. 创建 `api/` 目录和基础 API 封装
-2. 创建 `composables/` 目录，实现数据获取逻辑
-3. 将工具函数从数据文件中抽离到 `utils/` 目录
+**第一阶段：准备期 ✅ 已完成**
+1. ✅ 创建 `api/` 目录和基础 API 封装
+2. ✅ 创建 `composables/` 目录，实现数据获取逻辑
+3. ✅ 将工具函数从数据文件中抽离到 `utils/` 目录
+4. ✅ 规范化所有数据文件结构
 
-**第二阶段：迁移期**
+**第二阶段：迁移期 ⏳ 进行中**
 1. 逐个模块迁移：先迁移独立模块（如分类、标签）
 2. 更新组件导入，从静态数据切换到 composables
 3. 保留静态数据作为 fallback（可选）
 
-**第三阶段：清理期**
+**第三阶段：清理期 ⏳ 待处理**
 1. 删除已迁移的静态数据文件
 2. 移除所有对静态数据的引用
 3. 测试验证所有功能正常
@@ -254,7 +284,65 @@ resources/js/
 
 ## 七、核心模块数据表设计
 
-### 10. tags - 标签数据
+### 10. ad_positions - 广告位数据
+
+**建议数据表结构**：
+```sql
+CREATE TABLE ad_positions (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(50) NOT NULL UNIQUE,
+    label_key VARCHAR(100) NOT NULL,
+    description TEXT,
+    default_width INT DEFAULT 300,
+    default_height INT DEFAULT 250,
+    is_active BOOLEAN DEFAULT TRUE,
+    sort_order INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+```
+
+**建议 API 接口**：
+- `GET /api/v1/ad-positions` - 获取广告位列表
+- `GET /api/v1/ad-positions/{id}` - 获取单个广告位
+- `POST /api/v1/ad-positions` - 创建广告位
+- `PUT /api/v1/ad-positions/{id}` - 更新广告位
+- `DELETE /api/v1/ad-positions/{id}` - 删除广告位
+
+---
+
+### 11. journals - 日志数据
+
+**建议数据表结构**：
+```sql
+CREATE TABLE journals (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    content TEXT NOT NULL,
+    mood VARCHAR(50),
+    weather VARCHAR(50),
+    date DATE NOT NULL,
+    is_public BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+```
+
+**建议 API 接口**：
+- `GET /api/v1/journals` - 获取日志列表（支持分页、心情/天气/状态筛选）
+- `GET /api/v1/journals/{id}` - 获取单个日志
+- `POST /api/v1/journals` - 创建日志
+- `PUT /api/v1/journals/{id}` - 更新日志
+- `DELETE /api/v1/journals/{id}` - 删除日志
+- `GET /api/v1/journals/user/{userId}` - 获取用户日志列表
+
+---
+
+## 八、核心模块数据表设计
+
+### 12. tags - 标签数据
 
 **建议数据表结构**：
 ```sql
@@ -287,7 +375,7 @@ CREATE TABLE post_tags (
 
 ---
 
-### 11. roles - 角色数据
+### 13. roles - 角色数据
 
 **建议数据表结构**：
 ```sql
@@ -322,7 +410,7 @@ CREATE TABLE role_permissions (
 
 ---
 
-### 12. permissions - 权限数据
+### 14. permissions - 权限数据
 
 **建议数据表结构**：
 ```sql
@@ -346,7 +434,7 @@ CREATE TABLE permissions (
 
 ---
 
-### 13. menus - 菜单配置
+### 15. menus - 菜单配置
 
 **建议数据表结构**：
 ```sql
@@ -374,7 +462,7 @@ CREATE TABLE menus (
 
 ---
 
-### 14. logs - 日志数据
+### 16. logs - 日志数据
 
 **建议数据表结构**：
 ```sql
@@ -408,39 +496,43 @@ CREATE TABLE log_actions (
 
 ---
 
-## 八、优化建议优先级
+## 九、优化建议优先级
 
-| 优先级 | 问题 | 影响程度 | 修复难度 |
-|--------|------|----------|----------|
-| **P1** | API 接入准备 | 高 | 高 |
-| **P1** | 国际化支持不足 | 中 | 高 |
-| **P2** | ID 类型不一致 | 中 | 低 |
-| **P2** | 日期格式混乱 | 中 | 低 |
-| **P2** | 文件职责不清 | 中 | 中 |
-| **P3** | 图片依赖外部链接 | 低 | 中 |
-| **P3** | 缺少类型定义 | 低 | 中 |
-| **P3** | 敏感数据暴露 | 低 | 低 |
+| 优先级 | 问题 | 影响程度 | 修复难度 | 状态 |
+|--------|------|----------|----------|:---:|
+| **P1** | API 接入准备 | 高 | 高 | ⏳ 进行中 |
+| **P1** | 国际化支持不足 | 中 | 高 | ✅ 已改善 |
+| **P2** | ID 类型不一致 | 中 | 低 | ✅ 已完成 |
+| **P2** | 日期格式混乱 | 中 | 低 | ✅ 已完成 |
+| **P2** | 文件职责不清 | 中 | 中 | ✅ 已完成 |
+| **P3** | 图片依赖外部链接 | 低 | 中 | ⏳ 待处理 |
+| **P3** | 缺少类型定义 | 低 | 中 | ✅ 已改善 |
+| **P3** | 敏感数据暴露 | 低 | 低 | ⏳ 待处理 |
 
 ---
 
 ## 修复计划建议
 
-### 第一阶段（P1 - 高优先级）
-1. API 接入准备
-2. 完善国际化支持
+### 第一阶段（P1 - 高优先级）✅ 已完成
+1. ✅ 数据文件规范化
+2. ✅ 广告位数据分离
+3. ✅ 日志管理数据创建
+4. ✅ 完善国际化支持
 
-### 第二阶段（P2 - 中优先级）
-1. 统一 ID 类型
-2. 统一日期格式
-3. 优化文件组织结构
+### 第二阶段（P2 - 中优先级）⏳ 进行中
+1. ✅ 统一 ID 类型
+2. ✅ 统一日期格式
+3. ✅ 优化文件组织结构
+4. ⏳ API 接口开发
+5. ⏳ 数据迁移到数据库
 
-### 第三阶段（P3 - 长期优化）
-1. 添加类型定义
-2. 处理图片资源依赖
-3. 处理敏感数据
+### 第三阶段（P3 - 长期优化）⏳ 待处理
+1. ⏳ 添加类型定义
+2. ⏳ 处理图片资源依赖
+3. ⏳ 处理敏感数据
 
 ---
 
-**文档版本**: 2.0  
+**文档版本**: 3.0  
 **创建日期**: 2026-05-14  
-**最后更新**: 2026-05-15
+**最后更新**: 2026-05-20

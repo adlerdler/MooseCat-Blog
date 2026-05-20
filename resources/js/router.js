@@ -34,6 +34,7 @@ import VideoDetail from './Pages/Front/VideoDetail.vue';
 import Projects from './Pages/front/Projects.vue';
 import ProjectDetail from './Pages/front/ProjectDetail.vue';
 import Resources from './Pages/Front/Resources.vue';
+import MaintenanceMode from './Pages/front/MaintenanceMode.vue';
 import ErrorPage from './components/ErrorPage.vue';
 import Index from './Pages/admin/Index.vue';
 import Login from './Pages/admin/Login.vue';
@@ -59,6 +60,9 @@ import AdminFrontMenu from './Pages/admin/FrontMenu.vue';
 import AdminEmailTemplates from './Pages/admin/EmailTemplates.vue';
 import AdminUserLevels from './Pages/admin/UserLevels.vue';
 import AdminMailConfig from './Pages/admin/MailConfig.vue';
+import AdminJournals from './Pages/admin/Journals.vue';
+import AdminSubscribers from './Pages/admin/Subscribers.vue';
+import { isMaintenanceMode } from './data/site_config';
 
 const routes = [
   {
@@ -164,6 +168,18 @@ const routes = [
     meta: { title: 'ADMIN // User Levels', requiresAuth: true, layout: 'admin' },
   },
   {
+    path: '/admin/journals',
+    name: 'admin-journals',
+    component: AdminJournals,
+    meta: { title: 'ADMIN // Journals', requiresAuth: true, layout: 'admin' },
+  },
+  {
+    path: '/admin/subscribers',
+    name: 'admin-subscribers',
+    component: AdminSubscribers,
+    meta: { title: 'ADMIN // Subscribers', requiresAuth: true, layout: 'admin' },
+  },
+  {
     path: '/admin/settings',
     name: 'admin-settings',
     component: AdminSettings,
@@ -251,12 +267,18 @@ const routes = [
     path: '/admin/social-links',
     name: 'admin-social-links',
     component: SocialLinks,
-    meta: { title: 'ADMIN // Social Links', requiresAuth: true, layout: 'admin' },
+    meta: { title: 'ADMIN // Footer Manager', requiresAuth: true, layout: 'admin' },
   },
   {
     path: '/admin',
     name: 'admin',
     redirect: '/admin/index',
+  },
+  {
+    path: '/maintenance',
+    name: 'maintenance',
+    component: MaintenanceMode,
+    meta: { title: 'MAINTENANCE // System Upgrade' },
   },
   {
     path: '/author/:id?',
@@ -303,6 +325,10 @@ router.beforeEach((to, from, next) => {
     next('/admin/login');
   } else if (to.path === '/admin/login' && isLoggedIn()) {
     next('/admin/index');
+  } else if (isMaintenanceMode() && !to.path.startsWith('/admin') && to.path !== '/maintenance') {
+    next('/maintenance');
+  } else if (!isMaintenanceMode() && to.path === '/maintenance') {
+    next('/');
   } else {
     next();
   }

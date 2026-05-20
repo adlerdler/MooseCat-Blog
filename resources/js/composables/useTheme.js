@@ -9,22 +9,17 @@
  * - 提供便捷的主题相关工具函数
  */
 import { ref, computed, watch } from 'vue';
+import { getActiveThemes, getDefaultTheme } from '../data/themes';
 
 // 深色/浅色模式（仅后台使用）
 const isDarkMode = ref(true);
 
-// Accent Color 主题列表（前台后台共享）
-const themes = ref([
-  { name: 'construct-red', label: '建筑红', color: '#CF202E' },
-  { name: 'ocean-blue', label: '海洋蓝', color: '#0066FF' },
-  { name: 'forest-green', label: '森林绿', color: '#228B22' },
-  { name: 'sunset-orange', label: '日落橙', color: '#FF8C00' },
-  { name: 'purple-haze', label: '紫雾', color: '#8B5CF6' },
-  { name: 'pink-05', label: '粉色', color: '#FF007A' },
-]);
+// Accent Color 主题列表（前台后台共享，从 themes.js 读取）
+const themes = ref(getActiveThemes());
 
 // 当前 Accent Color 主题（前台后台共享）
-const currentTheme = ref(themes.value[0]);
+const defaultTheme = getDefaultTheme();
+const currentTheme = ref(defaultTheme);
 
 export function useTheme() {
   // 更新 Accent Color CSS 变量
