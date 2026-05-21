@@ -53,15 +53,3 @@ export const emailTemplates = [
     updated_at: '2024-01-01T00:00:00Z'
   }
 ];
-
-/**
- * 所有可用的模板变量及其说明
- */
-export const templateVariables = [
-  { name: 'user_name', desc: '收件人的全名' },
-  { name: 'site_name', desc: '博客/网站名称' },
-  { name: 'reset_link', desc: '密码重置的唯一链接' },
-  { name: 'comment_content', desc: '评论内容' },
-  { name: 'replier_name', desc: '回复者的名称' },
-  { name: 'post_url', desc: '文章/评论所在页面的链接' }
-];

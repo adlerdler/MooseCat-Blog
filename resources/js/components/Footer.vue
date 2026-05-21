@@ -23,7 +23,7 @@ import { Github, Twitter, Linkedin, Globe, MessageCircle, Palette, Youtube, Face
 import { useFooterData } from '../composables/useFooterData';
 import { useSiteConfig } from '../composables/useSiteConfig';
 
-const { getFooterSocialLinks, getFooterNavLinks, footerConfig } = useFooterData();
+const { getFooterSocialLinks, getFooterNavLinks } = useFooterData();
 const { t } = useI18n();
 
 const socialLinks = getFooterSocialLinks();
@@ -61,9 +61,14 @@ const getIconComponent = (iconName) => {
   return iconMap[iconName] || Globe;
 }
 
-const getLinkStyle = (style) => {
-  if (!style) return 'bg-construct-black text-white hover:bg-construct-red hover:text-white hover:border-construct-red';
-  return `${style.bg} ${style.text} ${style.hover_bg} ${style.hover_text} border-2 ${style.border} ${style.hover_border}`;
+const getLinkStyle = (index) => {
+  const styles = [
+    'bg-white text-construct-black hover:bg-construct-black hover:text-white border-2 border-black hover:border-construct-black',
+    'bg-white text-construct-black hover:bg-construct-black hover:text-white border-2 border-black hover:border-construct-black',
+    'bg-construct-red text-white hover:bg-construct-black hover:text-white border-2 border-construct-red hover:border-construct-black',
+    'bg-construct-black text-white hover:bg-construct-red hover:text-white border-2 border-black hover:border-construct-red'
+  ];
+  return styles[index] || styles[0];
 }
 </script>
 
@@ -84,14 +89,14 @@ const getLinkStyle = (style) => {
       </p>
       <div class="flex gap-4 mt-8">
         <a
-          v-for="link in socialLinks"
+          v-for="(link, index) in socialLinks"
           :key="link.id"
           :href="link.url"
           target="_blank"
           rel="noopener noreferrer"
           :class="[
             'p-2 transition-colors w-10 h-10 flex items-center justify-center',
-            getLinkStyle(link.style)
+            getLinkStyle(index)
           ]"
           :aria-label="link.label"
         >
@@ -101,7 +106,7 @@ const getLinkStyle = (style) => {
     </div>
     <div>
       <h4 class="font-display mb-6 tracking-widest text-sm uppercase bg-black text-white inline-block px-3 py-1">
-        {{ t(footerConfig.section_titles.categories_key) || footerConfig.section_titles.categories_default }}
+        {{ t('footer_categories') }}
       </h4>
       <ul class="text-xs space-y-3 font-bold tracking-widest uppercase">
         <li v-for="link in categoryLinks" :key="link.id">
@@ -113,7 +118,7 @@ const getLinkStyle = (style) => {
     </div>
     <div>
       <h4 class="font-display mb-6 tracking-widest text-sm uppercase bg-black text-white inline-block px-3 py-1">
-        {{ t(footerConfig.section_titles.data_key) || footerConfig.section_titles.data_default }}
+        {{ t('footer_data') }}
       </h4>
       <ul class="text-xs space-y-3 font-bold tracking-widest uppercase">
         <li v-for="link in dataLinks" :key="link.id">

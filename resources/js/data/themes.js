@@ -18,7 +18,13 @@
  */
 
 export const themes = [
-  { id: 1, name: 'construct-red', label: '建筑红', color: '#CF202E', sort_order: 1, is_active: true, is_default: false },
+  { id: 1, 
+    name: 'construct-red', 
+    label: '建筑红', 
+    color: '#CF202E', 
+    sort_order: 1, 
+    is_active: true, 
+    is_default: false },
   { id: 2, name: 'ocean-blue', label: '海洋蓝', color: '#0066FF', sort_order: 2, is_active: true, is_default: true },
   { id: 3, name: 'forest-green', label: '森林绿', color: '#228B22', sort_order: 3, is_active: true, is_default: false },
   { id: 4, name: 'sunset-orange', label: '日落橙', color: '#FF8C00', sort_order: 4, is_active: true, is_default: false },

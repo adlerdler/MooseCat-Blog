@@ -1,34 +1,33 @@
 <script setup>
 /**
  * CommentSection.vue - 评论区组件
- * 
+ *
  * 功能说明：
  * - 展示文章评论列表
  * - 提供评论提交表单
  * - 支持评论点赞功能
  * - 用户头像使用 AbstractAvatar 组件生成
- * 
+ *
  * 时间显示规则：
  * - 1分钟内：显示 "just now"
  * - 1小时内：显示 "Xm ago"
  * - 24小时内：显示 "Xh ago"
  * - 2天内：显示 "Xd ago"
  * - 超过2天：显示完整日期
- * 
+ *
  * 使用示例：
- * <CommentSection :initial-comments="comments" @comment-submitted="handleComment" />
+ * <CommentSection :comments="comments" :interactions="interactions" @comment-submitted="handleComment" />
  */
 import { ref } from 'vue';
 import { ChevronRight, Send, Heart } from 'lucide-vue-next';
 import AbstractAvatar from './AbstractAvatar.vue';
-import { commentsData } from '../data/comments';
-import { interactions } from '../data/interactions';
-import { useInteractionData } from '../composables/useInteractionData';
-
-const { hasUserLiked, getLikesByTarget } = useInteractionData();
 
 const props = defineProps({
-  initialComments: {
+  comments: {
+    type: Array,
+    default: () => []
+  },
+  interactions: {
     type: Array,
     default: () => []
   },
@@ -44,16 +43,9 @@ const isCommentFormOpen = ref(false);
 const isSubmitting = ref(false);
 const submitSuccess = ref(false);
 const errorMessage = ref('');
-const localInteractions = ref([...interactions]);
+const localInteractions = ref([...props.interactions]);
 
-const getApprovedComments = () => {
-  return commentsData.filter(comment => comment.is_approved);
-};
-
-const comments = ref([
-  ...getApprovedComments(),
-  ...props.initialComments
-]);
+const localComments = ref([...props.comments]);
 
 const getLikeCount = (commentId) => {
   return localInteractions.value.filter(
@@ -174,7 +166,7 @@ const handleSubmit = async (e) => {
     updated_at: now
   };
 
-  comments.value = [newComment, ...comments.value];
+  localComments.value = [newComment, ...localComments.value];
   formData.value = { name: '', email: '', body: '' };
   isSubmitting.value = false;
   submitSuccess.value = true;
@@ -285,13 +277,13 @@ const handleSubmit = async (e) => {
 
     <!-- Comment List -->
     <div class="space-y-8">
-      <div v-if="comments.length === 0" class="py-12 border-2 border-dashed border-construct-black/20 text-center">
+      <div v-if="localComments.length === 0" class="py-12 border-2 border-dashed border-construct-black/20 text-center">
         <span class="text-[10px] font-black tracking-[0.3em] uppercase opacity-30 italic">
           NO TRANSMISSIONS FOUND IN THIS SECTOR //
         </span>
       </div>
       <div
-        v-for="(comment, index) in comments"
+        v-for="(comment, index) in localComments"
         :key="comment.id"
         class="relative pl-12 border-l-4 border-construct-black group animate-fade-in"
         :style="{ animationDelay: `${index * 0.1}s` }"

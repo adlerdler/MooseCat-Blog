@@ -395,6 +395,9 @@
   "admin_seconds": "seconds",
   "admin_minification": "Minification",
   "admin_lazy_load_images": "Lazy Load Images",
+  "admin_enable_cdn": "Enable CDN",
+  "admin_cdn_url": "CDN URL",
+  "admin_cdn_url_placeholder": "e.g. https://cdn.example.com",
   "admin_categories": "CATEGORIES",
   "admin_categories_subtitle": "Manage content categories",
   "admin_search_categories": "Search categories...",
@@ -541,5 +544,7 @@
   "admin_menu_help_text": "Menu labels use translation keys from language files. Ensure the",
   "admin_menu_help_text_2": "you enter exists in",
   "admin_menu_help_text_3": "etc. to display correct multi-language text.",
-  "admin_error_empty_fields": "Please fill in all required fields"
+  "admin_error_empty_fields": "Please fill in all required fields",
+  "admin_i18n_manager": "I18N MANAGER",
+  "admin_i18n_manager_subtitle": "Manage supported languages and translation data"
 }

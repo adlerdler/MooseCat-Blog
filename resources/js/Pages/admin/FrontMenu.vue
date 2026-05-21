@@ -109,18 +109,7 @@ const filteredFrontMenu = computed(() => {
 
 const isSaving = ref(false);
 const showSaveConfirm = ref(false);
-const isEditing = ref(false);
 const deleteConfirm = ref({ visible: false, item: null });
-
-const startEditing = () => {
-  isEditing.value = true;
-};
-
-const cancelEditing = () => {
-  frontMenuList.value = [...frontMenuItems];
-  adminMenuList.value = [...adminMenuItems];
-  isEditing.value = false;
-};
 
 const handleAdd = () => {
   const targetList = currentTab.value === 'front' ? frontMenuList : adminMenuList;
@@ -200,7 +189,6 @@ const confirmSave = () => {
     console.log('Saved Front Menu:', frontMenuList.value);
     console.log('Saved Admin Menu:', adminMenuList.value);
     isSaving.value = false;
-    isEditing.value = false;
     success(t('admin_save') + ' ' + t('confirm'));
   }, 800);
 };
@@ -312,29 +300,19 @@ const handleFilterChange = ({ key, value }) => {
       </div>
       
       <div class="flex gap-3">
-        <template v-if="!isEditing">
-          <button 
-            @click="startEditing"
-            class="flex items-center gap-2 px-8 py-3 bg-construct-red text-white font-bold tracking-widest uppercase text-sm hover:bg-red-700 transition-colors rounded shadow-sm"
-          >
-            <Edit3 size="16" class="!text-white" /> {{ t('admin_edit') }}
-          </button>
-        </template>
-        <template v-else>
-          <button 
-            @click="cancelEditing"
-            :class="['px-6 py-3 border flex items-center gap-2 font-bold text-xs tracking-wider uppercase transition-colors rounded', isDarkMode ? 'border-gray-700 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-100']"
-          >
-            <X size="16" /> {{ t('admin_cancel') }}
-          </button>
-          <button 
-            @click="handleSave"
-            :disabled="isSaving"
-            class="flex items-center gap-2 px-8 py-3 bg-construct-red text-white font-bold tracking-widest uppercase text-sm hover:bg-red-700 transition-colors rounded shadow-sm disabled:opacity-50"
-          >
-            <Save size="16" class="!text-white" /> {{ isSaving ? t('admin_save') + '...' : t('admin_save') }}
-          </button>
-        </template>
+        <button 
+          @click="handleReset"
+          :class="['px-6 py-3 border flex items-center gap-2 font-bold text-xs tracking-wider uppercase transition-colors rounded', isDarkMode ? 'border-gray-700 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-100']"
+        >
+          <RotateCcw size="16" /> {{ t('admin_reset') }}
+        </button>
+        <button 
+          @click="handleSave"
+          :disabled="isSaving"
+          class="flex items-center gap-2 px-8 py-3 bg-construct-red text-white font-bold tracking-widest uppercase text-sm hover:bg-red-700 transition-colors rounded shadow-sm disabled:opacity-50"
+        >
+          <Save size="16" class="!text-white" /> {{ isSaving ? t('admin_save') + '...' : t('admin_save') }}
+        </button>
       </div>
     </div>
 
@@ -342,26 +320,22 @@ const handleFilterChange = ({ key, value }) => {
     <div class="mb-6 flex gap-2 p-1 border rounded-lg w-fit" :class="isDarkMode ? 'border-gray-700 bg-gray-900/50' : 'border-gray-200 bg-gray-100'">
       <button 
         @click="currentTab = 'front'"
-        :disabled="isEditing"
         :class="[
           'px-6 py-2 rounded-md text-xs font-black tracking-widest uppercase transition-all flex items-center gap-2',
           currentTab === 'front' 
             ? 'bg-construct-red text-white shadow-lg' 
-            : (isDarkMode ? 'text-gray-500 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'),
-          isEditing ? 'opacity-50 cursor-not-allowed' : ''
+            : (isDarkMode ? 'text-gray-500 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700')
         ]"
       >
         <Monitor size="14" /> {{ t('admin_front_menu_tab') || '前台菜单' }}
       </button>
       <button 
         @click="currentTab = 'admin'"
-        :disabled="isEditing"
         :class="[
           'px-6 py-2 rounded-md text-xs font-black tracking-widest uppercase transition-all flex items-center gap-2',
           currentTab === 'admin' 
             ? 'bg-construct-red text-white shadow-lg' 
-            : (isDarkMode ? 'text-gray-500 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'),
-          isEditing ? 'opacity-50 cursor-not-allowed' : ''
+            : (isDarkMode ? 'text-gray-500 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700')
         ]"
       >
         <LayoutDashboard size="14" /> {{ t('admin_backend_menu_tab') || '后台菜单' }}
@@ -414,10 +388,10 @@ const handleFilterChange = ({ key, value }) => {
                 <div class="flex items-center justify-center gap-1">
                   <button 
                     @click="moveItem(index, 'up')"
-                    :disabled="!isEditing || index === 0"
+                    :disabled="index === 0"
                     :class="[
                       'p-1 rounded transition-colors',
-                      isEditing && index > 0 
+                      index > 0 
                         ? (isDarkMode ? 'text-gray-400 hover:text-white hover:bg-gray-600' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100')
                         : 'opacity-20 cursor-not-allowed'
                     ]"
@@ -427,10 +401,10 @@ const handleFilterChange = ({ key, value }) => {
                   <span class="text-xs font-bold w-4 text-center">{{ index + 1 }}</span>
                   <button 
                     @click="moveItem(index, 'down')"
-                    :disabled="!isEditing || index === filteredFrontMenu.length - 1"
+                    :disabled="index === filteredFrontMenu.length - 1"
                     :class="[
                       'p-1 rounded transition-colors',
-                      isEditing && index < filteredFrontMenu.length - 1 
+                      index < filteredFrontMenu.length - 1 
                         ? (isDarkMode ? 'text-gray-400 hover:text-white hover:bg-gray-600' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100')
                         : 'opacity-20 cursor-not-allowed'
                     ]"
@@ -442,13 +416,11 @@ const handleFilterChange = ({ key, value }) => {
               <td class="px-4 py-3 text-center">
                 <button 
                   @click="toggleActive(item)"
-                  :disabled="!isEditing"
                   :class="[
-                    'p-2 rounded-lg transition-colors',
+                    'p-2 rounded-lg transition-colors hover:scale-110',
                     item.is_active 
                       ? (isDarkMode ? 'bg-green-500/20 text-green-400' : 'bg-green-50 text-green-600')
-                      : (isDarkMode ? 'bg-red-500/20 text-red-400' : 'bg-red-50 text-red-600'),
-                    !isEditing ? 'cursor-not-allowed opacity-50' : 'hover:scale-110'
+                      : (isDarkMode ? 'bg-red-500/20 text-red-400' : 'bg-red-50 text-red-600')
                   ]"
                 >
                   <Eye v-if="item.is_active" size="14" />
@@ -459,11 +431,9 @@ const handleFilterChange = ({ key, value }) => {
                 <input 
                   v-model="item.label_key"
                   type="text"
-                  :disabled="!isEditing"
                   :class="[
                     'w-full px-3 py-2 border rounded font-mono text-xs focus:border-construct-red focus:outline-none transition-all',
-                    isDarkMode ? 'bg-gray-900 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900',
-                    !isEditing ? 'opacity-50 cursor-not-allowed' : ''
+                    isDarkMode ? 'bg-gray-900 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'
                   ]"
                   :placeholder="t('admin_label_key_placeholder') || 'e.g. nav_home'"
                 />
@@ -478,11 +448,9 @@ const handleFilterChange = ({ key, value }) => {
                   <input 
                     v-model="item.path"
                     type="text"
-                    :disabled="!isEditing"
                     :class="[
                       'flex-1 px-3 py-2 border rounded font-mono text-xs focus:border-construct-red focus:outline-none transition-all',
-                      isDarkMode ? 'bg-gray-900 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900',
-                      !isEditing ? 'opacity-50 cursor-not-allowed' : ''
+                      isDarkMode ? 'bg-gray-900 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'
                     ]"
                     placeholder="/"
                   />
@@ -493,8 +461,7 @@ const handleFilterChange = ({ key, value }) => {
                 <div class="flex items-center justify-end gap-1">
                   <button 
                     @click="handleDelete(item)"
-                    :disabled="!isEditing"
-                    class="p-2 text-gray-400 hover:text-red-500 transition-colors rounded hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-20 disabled:cursor-not-allowed"
+                    class="p-2 text-gray-400 hover:text-red-500 transition-colors rounded hover:bg-red-50 dark:hover:bg-red-900/20"
                   >
                     <Trash2 size="16" />
                   </button>
@@ -516,10 +483,10 @@ const handleFilterChange = ({ key, value }) => {
                 <div class="flex items-center justify-center gap-1">
                   <button 
                     @click="moveItem(index, 'up')"
-                    :disabled="!isEditing || index === 0"
+                    :disabled="index === 0"
                     :class="[
                       'p-1 rounded transition-colors',
-                      isEditing && index > 0 
+                      index > 0 
                         ? (isDarkMode ? 'text-gray-400 hover:text-white hover:bg-gray-600' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100')
                         : 'opacity-20 cursor-not-allowed'
                     ]"
@@ -529,10 +496,10 @@ const handleFilterChange = ({ key, value }) => {
                   <span class="text-xs font-bold w-4 text-center">{{ index + 1 }}</span>
                   <button 
                     @click="moveItem(index, 'down')"
-                    :disabled="!isEditing || index === flattenedAdminMenu.length - 1"
+                    :disabled="index === flattenedAdminMenu.length - 1"
                     :class="[
                       'p-1 rounded transition-colors',
-                      isEditing && index < flattenedAdminMenu.length - 1 
+                      index < flattenedAdminMenu.length - 1 
                         ? (isDarkMode ? 'text-gray-400 hover:text-white hover:bg-gray-600' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100')
                         : 'opacity-20 cursor-not-allowed'
                     ]"
@@ -544,13 +511,11 @@ const handleFilterChange = ({ key, value }) => {
               <td class="px-4 py-3 text-center">
                 <button 
                   @click="toggleActive(item)"
-                  :disabled="!isEditing"
                   :class="[
-                    'p-2 rounded-lg transition-colors',
+                    'p-2 rounded-lg transition-colors hover:scale-110',
                     item.is_active 
                       ? (isDarkMode ? 'bg-green-500/20 text-green-400' : 'bg-green-50 text-green-600')
-                      : (isDarkMode ? 'bg-red-500/20 text-red-400' : 'bg-red-50 text-red-600'),
-                    !isEditing ? 'cursor-not-allowed opacity-50' : 'hover:scale-110'
+                      : (isDarkMode ? 'bg-red-500/20 text-red-400' : 'bg-red-50 text-red-600')
                   ]"
                 >
                   <Eye v-if="item.is_active" size="14" />
@@ -563,11 +528,9 @@ const handleFilterChange = ({ key, value }) => {
                   <input 
                     v-model="item.label_key"
                     type="text"
-                    :disabled="!isEditing"
                     :class="[
                       'flex-1 px-3 py-2 border rounded font-mono text-xs focus:border-construct-red focus:outline-none transition-all',
-                      isDarkMode ? 'bg-gray-900 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900',
-                      !isEditing ? 'opacity-50 cursor-not-allowed' : ''
+                      isDarkMode ? 'bg-gray-900 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'
                     ]"
                     :placeholder="t('admin_label_key_placeholder') || 'e.g. admin_dashboard'"
                   />
@@ -583,11 +546,9 @@ const handleFilterChange = ({ key, value }) => {
                   <input 
                     v-model="item.path"
                     type="text"
-                    :disabled="!isEditing"
                     :class="[
                       'flex-1 px-3 py-2 border rounded font-mono text-xs focus:border-construct-red focus:outline-none transition-all',
-                      isDarkMode ? 'bg-gray-900 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900',
-                      !isEditing ? 'opacity-50 cursor-not-allowed' : ''
+                      isDarkMode ? 'bg-gray-900 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'
                     ]"
                     placeholder="/admin/"
                   />
@@ -597,11 +558,9 @@ const handleFilterChange = ({ key, value }) => {
               <td class="px-4 py-3">
                 <select 
                   v-model="item.icon_name"
-                  :disabled="!isEditing"
                   :class="[
                     'w-full px-3 py-2 border rounded font-mono text-xs focus:border-construct-red focus:outline-none transition-all appearance-none',
-                    isDarkMode ? 'bg-gray-900 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900',
-                    !isEditing ? 'opacity-50 cursor-not-allowed' : ''
+                    isDarkMode ? 'bg-gray-900 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'
                   ]"
                 >
                   <option value="" disabled>{{ t('admin_select_icon') || '选择图标' }}</option>
@@ -611,11 +570,9 @@ const handleFilterChange = ({ key, value }) => {
               <td class="px-4 py-3">
                 <select 
                   v-model="item.parent_id"
-                  :disabled="!isEditing"
                   :class="[
                     'w-full px-3 py-2 border rounded text-xs focus:border-construct-red focus:outline-none transition-all appearance-none',
-                    isDarkMode ? 'bg-gray-900 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900',
-                    !isEditing ? 'opacity-50 cursor-not-allowed' : ''
+                    isDarkMode ? 'bg-gray-900 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'
                   ]"
                 >
                   <option :value="null">{{ t('admin_no_parent') || '无父级' }}</option>
@@ -626,8 +583,7 @@ const handleFilterChange = ({ key, value }) => {
                 <div class="flex items-center justify-end gap-1">
                   <button 
                     @click="handleDelete(item)"
-                    :disabled="!isEditing"
-                    class="p-2 text-gray-400 hover:text-red-500 transition-colors rounded hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-20 disabled:cursor-not-allowed"
+                    class="p-2 text-gray-400 hover:text-red-500 transition-colors rounded hover:bg-red-50 dark:hover:bg-red-900/20"
                   >
                     <Trash2 size="16" />
                   </button>
@@ -647,12 +603,12 @@ const handleFilterChange = ({ key, value }) => {
           {{ t('admin_no_menu_items') || 'No menu items found' }}
         </p>
         <p class="text-sm mt-2 opacity-70">
-          {{ isEditing ? t('admin_click_add') || 'Click add to create a new menu item' : t('admin_click_edit') || 'Click edit to unlock management' }}
+          {{ t('admin_click_add') || 'Click add to create a new menu item' }}
         </p>
       </div>
 
       <!-- Add Row -->
-      <div v-if="isEditing" :class="['p-4 border-t border-dashed transition-all', isDarkMode ? 'bg-gray-900/30 border-gray-700' : 'bg-gray-50/30 border-gray-200']">
+      <div :class="['p-4 border-t border-dashed transition-all', isDarkMode ? 'bg-gray-900/30 border-gray-700' : 'bg-gray-50/30 border-gray-200']">
         <button 
           @click="handleAdd"
           :class="['w-full py-3 border-2 border-dashed rounded-lg flex items-center justify-center gap-2 text-sm font-bold transition-all group',
@@ -699,10 +655,7 @@ const handleFilterChange = ({ key, value }) => {
     <!-- Delete Confirm Dialog -->
     <ConfirmDialog
       :visible="deleteConfirm.visible"
-      :title="t('admin_confirm_delete') || 'Confirm Delete'"
-      :content="t('admin_delete_warning') || '确定要删除吗？此操作不可撤销。'"
-      :confirm-text="t('admin_delete') || 'Delete'"
-      confirm-variant="danger"
+      :type="'delete'"
       @confirm="confirmDelete"
       @cancel="deleteConfirm = { visible: false, item: null }"
     />

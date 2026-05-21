@@ -1,12 +1,12 @@
 <script setup>
 /**
  * ToastContainer.vue - Toast 容器组件
- * 
+ *
  * 放置在 App.vue 或布局组件中使用
  * <ToastContainer />
  */
 import { useToast } from '../composables/useToast';
-import ToastNotification from './ToastNotification.vue';
+import ToastNotification from './admin/ToastNotification.vue';
 
 const { toasts, removeToast } = useToast();
 </script>
@@ -16,11 +16,13 @@ const { toasts, removeToast } = useToast();
     <ToastNotification
       v-for="toast in toasts"
       :key="toast.id"
+      :visible="true"
       :type="toast.type"
       :title="toast.title"
       :message="toast.message"
       :duration="toast.duration"
       :closable="toast.closable"
+      :position="toast.position || 'bottom-right'"
       @close="removeToast(toast.id)"
     />
   </div>

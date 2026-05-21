@@ -341,6 +341,7 @@ const clearFilters = () => {
 
     <ConfirmDialog
       :visible="showDeleteConfirm"
+      type="delete"
       title="确认删除"
       content="删除后将无法恢复，确定要删除此日志吗？"
       confirm-text="删除"

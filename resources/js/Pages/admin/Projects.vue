@@ -24,7 +24,7 @@ import {
 import { PROJECTS } from '../../data/projects';
 import { useTheme } from '../../composables/useTheme';
 import { formatToShort } from '../../utils/dateUtils';
-import ContentForm from '../../components/admin/ContentForm.vue';
+import ProjectForm from '../../components/admin/ProjectForm.vue';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import AdminPagination from '../../components/admin/AdminPagination.vue';
 import AdminSearchFilter from '../../components/admin/AdminSearchFilter.vue';
@@ -46,11 +46,12 @@ const isFormVisible = ref(false);
 const editingProject = ref(null);
 const showDeleteConfirm = ref(false);
 const deletingProjectId = ref(null);
+const projects = ref([...PROJECTS]);
 
 const statuses = ['all', PROJECT_STATUS.COMPLETED, PROJECT_STATUS.IN_PROGRESS, PROJECT_STATUS.PLANNING];
 
 const filteredProjects = computed(() => {
-  let result = [...PROJECTS];
+  let result = [...projects.value];
   
   if (selectedStatus.value !== 'all') {
     result = result.filter(project => project.status === selectedStatus.value);
@@ -94,7 +95,7 @@ const handleDelete = (id) => {
 
 const confirmDelete = () => {
   if (deletingProjectId.value !== null) {
-    console.log('Delete project:', deletingProjectId.value);
+    projects.value = projects.value.filter(p => p.id !== deletingProjectId.value);
     deletingProjectId.value = null;
   }
   showDeleteConfirm.value = false;
@@ -281,8 +282,7 @@ const handleFilterChange = ({ key, value }) => {
     />
 
     <!-- Content Form Modal -->
-    <ContentForm
-      content-type="project"
+    <ProjectForm
       :edit-data="editingProject"
       :visible="isFormVisible"
       @save="handleSave"

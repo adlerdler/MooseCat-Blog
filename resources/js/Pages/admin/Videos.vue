@@ -24,7 +24,7 @@ import {
 import { VIDEOS } from '../../data/videos';
 import { useTheme } from '../../composables/useTheme';
 import { formatToRelative } from '../../utils/dateUtils';
-import ContentForm from '../../components/admin/ContentForm.vue';
+import VideoForm from '../../components/admin/VideoForm.vue';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import AdminPagination from '../../components/admin/AdminPagination.vue';
 import AdminSearchFilter from '../../components/admin/AdminSearchFilter.vue';
@@ -40,6 +40,7 @@ const isFormVisible = ref(false);
 const editingVideo = ref(null);
 const showDeleteConfirm = ref(false);
 const deletingVideoId = ref(null);
+const videos = ref([...VIDEOS]);
 
 const platforms = ['all', 'YouTube', 'Vimeo', 'Bilibili'];
 
@@ -53,7 +54,7 @@ const getPlatformIcon = (platform) => {
 };
 
 const filteredVideos = computed(() => {
-  let result = [...VIDEOS];
+  let result = [...videos.value];
   
   if (selectedPlatform.value !== 'all') {
     result = result.filter(video => video.platform === selectedPlatform.value);
@@ -87,7 +88,7 @@ const handleDelete = (id) => {
 
 const confirmDelete = () => {
   if (deletingVideoId.value !== null) {
-    console.log('Delete video:', deletingVideoId.value);
+    videos.value = videos.value.filter(v => v.id !== deletingVideoId.value);
     deletingVideoId.value = null;
   }
   showDeleteConfirm.value = false;
@@ -257,8 +258,7 @@ const handleFilterChange = ({ key, value }) => {
     />
 
     <!-- Content Form Modal -->
-    <ContentForm
-      content-type="video"
+    <VideoForm
       :edit-data="editingVideo"
       :visible="isFormVisible"
       @save="handleSave"

@@ -41,7 +41,7 @@ import AdminSearchFilter from '../../components/admin/AdminSearchFilter.vue';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
-const { getFooterSocialLinks, getFooterNavLinks, getFooterBrand, footerConfig } = useFooterData();
+const { getFooterSocialLinks, getFooterNavLinks, footerConfig } = useFooterData();
 
 const activeTab = ref('social');
 
@@ -56,6 +56,8 @@ const itemsPerPage = ref(6);
 const showDeleteConfirm = ref(false);
 const deletingItemId = ref(null);
 const deletingItemType = ref('');
+
+const showSaveConfirm = ref(false);
 
 const showAddLinkModal = ref(false);
 const newLinkPlatform = ref('');
@@ -240,9 +242,14 @@ const moveDown = (link, list) => {
 };
 
 const handleSaveAll = () => {
-  footerConfig.social_links = socialLinksList.value;
-  footerConfig.nav_links.categories = categoryLinksList.value;
-  footerConfig.nav_links.data = dataLinksList.value;
+  showSaveConfirm.value = true;
+};
+
+const confirmSave = () => {
+  showSaveConfirm.value = false;
+  console.log('Social links saved:', socialLinksList.value);
+  console.log('Category links saved:', categoryLinksList.value);
+  console.log('Data links saved:', dataLinksList.value);
   alert('页脚配置已保存');
 };
 
@@ -568,10 +575,23 @@ const getPlatformGradient = (platform) => {
     <!-- Delete Confirmation -->
     <ConfirmDialog
       v-model:visible="showDeleteConfirm"
+      type="delete"
       :title="t('admin_confirm_delete')"
-      :message="t('admin_delete_warning')"
+      :content="t('admin_delete_warning')"
       @confirm="confirmDelete"
       @cancel="showDeleteConfirm = false"
+    />
+
+    <!-- Save Confirmation Dialog -->
+    <ConfirmDialog
+      v-model:visible="showSaveConfirm"
+      :title="t('admin_save_confirm_title')"
+      :content="t('admin_save_confirm_content')"
+      :confirm-text="t('admin_save')"
+      :cancel-text="t('admin_cancel')"
+      confirm-variant="primary"
+      @confirm="confirmSave"
+      @cancel="showSaveConfirm = false"
     />
   </div>
 </template>

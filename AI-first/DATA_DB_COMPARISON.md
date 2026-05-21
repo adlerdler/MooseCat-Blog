@@ -159,6 +159,7 @@
 ├── 页面SEO管理 ← page_seo.js（⚠️ 缺迁移）
 ├── 全局SEO配置 ← seo_config.js（⚠️ 缺迁移）
 └── 站点配置 ← site_config.js（⚠️ 缺迁移）
+├── 多语言管理 ← i18n.js（⚠️ 缺迁移）
 
 第三阶段（高级）⏳ 待开发
 ├── 站内通知系统 ← notifications.js

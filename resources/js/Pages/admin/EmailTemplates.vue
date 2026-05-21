@@ -24,13 +24,23 @@ import {
   AlertCircle,
   FileCode,
   Layout,
+  ConfirmDialog,
   useToast
 } from '../../composables/useAdminImports';
-import { emailTemplates, templateVariables } from '../../data/email_templates';
+import { emailTemplates } from '../../data/email_templates';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
 const { success } = useToast();
+
+const variables = [
+  { name: 'user_name', desc: '收件人的全名' },
+  { name: 'site_name', desc: '博客/网站名称' },
+  { name: 'reset_link', desc: '密码重置的唯一链接' },
+  { name: 'comment_content', desc: '评论内容' },
+  { name: 'replier_name', desc: '回复者的名称' },
+  { name: 'post_url', desc: '文章/评论所在页面的链接' }
+];
 
 const templates = ref(emailTemplates.map(t => ({
   id: t.name,  // Using name as the id to maintain compatibility
@@ -44,20 +54,24 @@ const templates = ref(emailTemplates.map(t => ({
 const selectedTemplate = ref({...templates.value[0]});
 const activeMode = ref('visual'); // visual | code
 const isSaving = ref(false);
+const showSaveConfirm = ref(false);
 
 const selectTemplate = (template) => {
   selectedTemplate.value = { ...template, content: template.content || template.body };
 };
 
 const saveTemplate = () => {
+  showSaveConfirm.value = true;
+};
+
+const confirmSave = () => {
+  showSaveConfirm.value = false;
   isSaving.value = true;
   setTimeout(() => {
     isSaving.value = false;
     success(t('admin_save') + ' ' + t('confirm'));
   }, 1000);
 };
-
-const variables = templateVariables;
 </script>
 
 <template>
@@ -189,6 +203,18 @@ const variables = templateVariables;
         </div>
       </div>
     </div>
+
+    <!-- Save Confirmation Dialog -->
+    <ConfirmDialog
+      v-model:visible="showSaveConfirm"
+      :title="t('admin_save_confirm_title')"
+      :content="t('admin_save_confirm_content')"
+      :confirm-text="t('admin_save')"
+      :cancel-text="t('admin_cancel')"
+      confirm-variant="primary"
+      @confirm="confirmSave"
+      @cancel="showSaveConfirm = false"
+    />
   </div>
 </template>
 

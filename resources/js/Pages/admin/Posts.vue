@@ -25,7 +25,7 @@ import {
   ChevronRight,
   Filter,
   ConfirmDialog,
-  ContentForm,
+  PostForm,
   AdminPagination,
   AdminSearchFilter
 } from '../../composables/useAdminImports';
@@ -50,6 +50,7 @@ const isFormVisible = ref(false);
 const editingPost = ref(null);
 const showDeleteConfirm = ref(false);
 const deletingPostId = ref(null);
+const posts = ref([...POSTS]);
 
 const categoryOptions = computed(() => {
   return ['all', ...categories.map(cat => cat.name)];
@@ -68,7 +69,7 @@ const getCategoryColor = (category) => {
 };
 
 const filteredPosts = computed(() => {
-  let result = [...POSTS];
+  let result = [...posts.value];
 
   result.sort((a, b) => new Date(b.published_at) - new Date(a.published_at));
 
@@ -112,7 +113,7 @@ const handleDelete = (id) => {
 
 const confirmDelete = () => {
   if (deletingPostId.value !== null) {
-    console.log('Delete post:', deletingPostId.value);
+    posts.value = posts.value.filter(p => p.id !== deletingPostId.value);
     deletingPostId.value = null;
   }
   showDeleteConfirm.value = false;
@@ -275,8 +276,7 @@ const handleFilterChange = ({ key, value }) => {
     />
 
     <!-- Content Form Modal -->
-    <ContentForm
-      content-type="post"
+    <PostForm
       :edit-data="editingPost"
       :visible="isFormVisible"
       @save="handleSave"
@@ -286,8 +286,9 @@ const handleFilterChange = ({ key, value }) => {
     <!-- Delete Confirm Dialog -->
     <ConfirmDialog
       :visible="showDeleteConfirm"
+      type="delete"
       :title="t('admin_delete_post')"
-      :message="t('admin_delete_post_confirm')"
+      :content="t('admin_delete_post_confirm')"
       @confirm="confirmDelete"
       @cancel="showDeleteConfirm = false"
     />

@@ -28,7 +28,7 @@ import {
 import { useTheme } from '../../composables/useTheme';
 import { formatToRelative } from '../../utils/dateUtils';
 import { resourcesData, resourceTypes } from '../../data/resources';
-import ContentForm from '../../components/admin/ContentForm.vue';
+import ResourceForm from '../../components/admin/ResourceForm.vue';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import AdminPagination from '../../components/admin/AdminPagination.vue';
 import AdminSearchFilter from '../../components/admin/AdminSearchFilter.vue';
@@ -111,7 +111,7 @@ const handleDelete = (id) => {
 
 const confirmDelete = () => {
   if (deletingResourceId.value !== null) {
-    console.log('Delete resource:', deletingResourceId.value);
+    resources.value = resources.value.filter(r => r.id !== deletingResourceId.value);
     deletingResourceId.value = null;
   }
   showDeleteConfirm.value = false;
@@ -282,8 +282,7 @@ const handleFilterChange = ({ key, value }) => {
     />
 
     <!-- Content Form Modal -->
-    <ContentForm
-      content-type="resource"
+    <ResourceForm
       :edit-data="editingResource"
       :visible="isFormVisible"
       @save="handleSave"

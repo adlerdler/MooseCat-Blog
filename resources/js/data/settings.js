@@ -14,13 +14,6 @@ export const defaultSettings = {
     newUserAlert: true,
     weeklyReport: false,
     digestFrequency: 'weekly'
-  },
-  performance: {
-    enableCache: true,
-    cacheDuration: 3600,
-    enableMinification: true,
-    lazyLoadImages: true,
-    enableCDN: false
   }
 };
 

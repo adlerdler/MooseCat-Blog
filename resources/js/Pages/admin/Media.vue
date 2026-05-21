@@ -33,13 +33,16 @@ import {
   AdminPagination,
   MediaPreviewModal,
   MediaUploadModal,
-  AdminSearchFilter
+  AdminSearchFilter,
+  ConfirmDialog,
+  useToast
 } from '../../composables/useAdminImports';
 import { adminMedia } from '../../data/media';
 import { Motion, AnimatePresence } from 'motion-v';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
+const { success } = useToast();
 
 const searchQuery = ref('');
 const typeFilter = ref('all');
@@ -49,6 +52,8 @@ const itemsPerPage = ref(12);
 const showPreview = ref(false);
 const previewFile = ref(null);
 const showUpload = ref(false);
+const showDeleteConfirm = ref(false);
+const deletingFile = ref(null);
 
 const handlePreview = (file) => {
   previewFile.value = file;
@@ -110,6 +115,19 @@ const handleFilterChange = ({ key, value }) => {
     typeFilter.value = value;
   }
   currentPage.value = 1;
+};
+
+const handleDelete = (file) => {
+  deletingFile.value = file;
+  showDeleteConfirm.value = true;
+};
+
+const confirmDelete = () => {
+  if (!deletingFile.value) return;
+  mediaFiles.value = mediaFiles.value.filter(f => f.id !== deletingFile.value.id);
+  showDeleteConfirm.value = false;
+  deletingFile.value = null;
+  success(t('admin_delete') + ' ' + t('confirm'));
 };
 </script>
 
@@ -206,6 +224,12 @@ const handleFilterChange = ({ key, value }) => {
                   <button class="p-2 bg-white text-gray-900 rounded-full hover:bg-construct-red hover:text-white transition-colors">
                     <Download size="16" />
                   </button>
+                  <button 
+                    @click.stop="handleDelete(file)"
+                    class="p-2 bg-white text-gray-900 rounded-full hover:bg-red-500 hover:text-white transition-colors"
+                  >
+                    <Trash2 size="16" />
+                  </button>
                 </div>
               </div>
 
@@ -259,7 +283,12 @@ const handleFilterChange = ({ key, value }) => {
                       <Eye size="14" />
                     </button>
                     <button class="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors"><Download size="14" /></button>
-                    <button class="p-2 hover:bg-red-100 text-red-500 rounded transition-colors"><Trash2 size="14" /></button>
+                    <button 
+                      @click.stop="handleDelete(file)"
+                      class="p-2 hover:bg-red-100 text-red-500 rounded transition-colors"
+                    >
+                      <Trash2 size="14" />
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -285,7 +314,7 @@ const handleFilterChange = ({ key, value }) => {
       :visible="showPreview"
       :file="previewFile"
       @close="showPreview = false"
-      @delete="(file) => console.log('Delete file:', file)"
+      @delete="(file) => handleDelete(file)"
       @download="(file) => console.log('Download file:', file)"
     />
 
@@ -294,6 +323,15 @@ const handleFilterChange = ({ key, value }) => {
       :visible="showUpload"
       @close="showUpload = false"
       @uploaded="handleUploadSuccess"
+    />
+
+    <!-- Delete Confirmation Dialog -->
+    <ConfirmDialog
+      v-model:visible="showDeleteConfirm"
+      type="delete"
+      :confirm-text="t('admin_delete')"
+      @confirm="confirmDelete"
+      @cancel="showDeleteConfirm = false"
     />
   </div>
 </template>

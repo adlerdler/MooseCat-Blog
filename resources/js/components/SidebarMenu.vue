@@ -23,8 +23,17 @@ import SettingsPanel from './SettingsPanel.vue';
 import SearchOverlay from './SearchOverlay.vue';
 import { useI18n } from 'vue-i18n';
 import { useSiteConfig } from '../composables/useSiteConfig';
+import { POSTS } from '../data/posts';
 
 const { getSiteName, getSiteCopyright } = useSiteConfig();
+
+const searchPosts = computed(() => {
+  return POSTS.map(post => ({
+    id: post.id,
+    title: post.title,
+    excerpt: post.excerpt
+  }))
+});
 
 import { useMenuItems } from '../composables/useMenuItems';
 
@@ -247,7 +256,7 @@ const showSidebar = computed(() => true);
     </Transition>
 
     <!-- Search Overlay -->
-    <SearchOverlay :is-open="isSearchOpen" @close="closeSearch" />
+    <SearchOverlay :is-open="isSearchOpen" :posts="searchPosts" @close="closeSearch" />
   </Teleport>
 </template>
 

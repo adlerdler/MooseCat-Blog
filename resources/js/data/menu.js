@@ -43,8 +43,9 @@ export const menus = [
   { id: 213, type: 'admin', parent_id: 21, label_key: 'admin_basic_settings', icon_name: 'Settings', path: '/admin/settings', sort_order: 1, is_active: true, component_name: 'AdminSettings' },
   { id: 211, type: 'admin', parent_id: 21, label_key: 'admin_footer_manager', icon_name: 'LayoutPanelLeft', path: '/admin/social-links', sort_order: 2, is_active: true, component_name: 'SocialLinks' },
   { id: 215, type: 'admin', parent_id: 21, label_key: 'admin_seo_manager', icon_name: 'FileText', path: '/admin/seo', sort_order: 3, is_active: true, component_name: 'SeoManager' },
-  { id: 212, type: 'admin', parent_id: 21, label_key: 'admin_media', icon_name: 'HardDrive', path: '/admin/media', sort_order: 4, is_active: true, component_name: 'AdminMedia' },
-  { id: 214, type: 'admin', parent_id: 21, label_key: 'admin_email_templates', icon_name: 'Mail', path: '/admin/email-templates', sort_order: 5, is_active: true, component_name: 'AdminEmailTemplates' },
+  { id: 216, type: 'admin', parent_id: 21, label_key: 'admin_i18n_manager', icon_name: 'Languages', path: '/admin/i18n', sort_order: 4, is_active: true, component_name: 'I18nManager' },
+  { id: 212, type: 'admin', parent_id: 21, label_key: 'admin_media', icon_name: 'HardDrive', path: '/admin/media', sort_order: 5, is_active: true, component_name: 'AdminMedia' },
+  { id: 214, type: 'admin', parent_id: 21, label_key: 'admin_email_templates', icon_name: 'Mail', path: '/admin/email-templates', sort_order: 6, is_active: true, component_name: 'AdminEmailTemplates' },
 
   // 后台菜单 - 二级（内容管理）
   { id: 111, type: 'admin', parent_id: 11, label_key: 'admin_blogs', icon_name: 'Book', path: '/admin/posts', sort_order: 1, is_active: true, component_name: 'AdminPosts' },

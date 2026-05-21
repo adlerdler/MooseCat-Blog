@@ -44,6 +44,11 @@ export default {
                     '50%': { transform: 'translateY(-20px)' },
                 },
             },
+            zIndex: {
+                '100': '100',
+                '110': '110',
+                '120': '120',
+            },
         },
     },
     plugins: [

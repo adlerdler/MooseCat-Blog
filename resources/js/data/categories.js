@@ -102,26 +102,3 @@ export const categories = [
     updated_at: '2024-01-01T00:00:00Z'
   },
 ];
-
-/**
- * 分类数据数组（前台展示使用，包含label字段）
- */
-export const categoriesWithLabels = categories.map(cat => ({
-  ...cat,
-  label: getCategoryLabel(cat.name),
-}));
-
-/**
- * 获取分类标签（中文）
- */
-function getCategoryLabel(name) {
-  const labels = {
-    'THEORY': '理论',
-    'DESIGN': '设计',
-    'CULTURE': '文化',
-    'SYSTEM-DESIGN': '系统设计',
-    'ENGINEERING': '工程',
-    'HISTORY': '历史',
-  };
-  return labels[name] || name;
-}

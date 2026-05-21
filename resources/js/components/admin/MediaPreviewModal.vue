@@ -13,6 +13,7 @@ import { useI18n } from 'vue-i18n';
 import { Motion, AnimatePresence } from 'motion-v';
 import VuePdfEmbed from 'vue-pdf-embed';
 import { renderAsync } from 'docx-preview';
+import ConfirmDialog from './ConfirmDialog.vue';
 import { ref, watch, computed, nextTick } from 'vue';
 
 const props = defineProps({
@@ -33,6 +34,7 @@ const { t } = useI18n();
 
 const docxContainer = ref(null);
 const isLoadingDoc = ref(false);
+const showDeleteConfirm = ref(false);
 
 const isPdf = computed(() => props.file?.type === 'document' && props.file?.url?.toLowerCase().endsWith('.pdf'));
 const isDocx = computed(() => props.file?.type === 'document' && props.file?.url?.toLowerCase().endsWith('.docx'));
@@ -46,7 +48,12 @@ const handleDownload = () => {
 };
 
 const handleDelete = () => {
+  showDeleteConfirm.value = true;
+};
+
+const confirmDelete = () => {
   emit('delete', props.file);
+  showDeleteConfirm.value = false;
 };
 
 const loadDocx = async () => {
@@ -244,6 +251,14 @@ watch([() => props.file, () => props.visible], () => {
       </Motion>
     </div>
   </AnimatePresence>
+
+  <ConfirmDialog
+    :visible="showDeleteConfirm"
+    type="delete"
+    :confirm-text="t('admin_delete')"
+    @confirm="confirmDelete"
+    @cancel="showDeleteConfirm = false"
+  />
 </template>
 
 <style scoped>

@@ -49,7 +49,8 @@ import {
   Link,
   Crown,
   Mail,
-  LayoutPanelLeft
+  LayoutPanelLeft,
+  Languages
 } from 'lucide-vue-next';
 import ThemeToggle from '../../components/ThemeToggle.vue';
 import ToastContainer from '../../components/ToastContainer.vue';
@@ -169,7 +170,8 @@ const iconMap = {
   Menu,
   Crown,
   Mail,
-  LayoutPanelLeft
+  LayoutPanelLeft,
+  Languages
 };
 
 const menuItems = computed(() => {
@@ -235,6 +237,13 @@ const handleMouseLeave = (menuId) => {
     }, 150);
   }
 };
+
+const clearCache = () => {
+  localStorage.removeItem('accent_theme');
+  localStorage.removeItem('admin_theme');
+  sessionStorage.clear();
+  location.reload();
+};
 </script>
 
 <template>
@@ -271,6 +280,18 @@ const handleMouseLeave = (menuId) => {
           <ExternalLink size="20" class="group-hover:scale-110 transition-transform" />
         </a>
 
+        <!-- Theme Toggle -->
+        <ThemeToggle />
+
+        <!-- Clear Cache -->
+        <button
+          @click="clearCache"
+          :class="['p-2 rounded-lg transition-colors group', isDarkMode ? 'text-gray-400 hover:text-white hover:bg-gray-700' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100']"
+          :title="'清理缓存'"
+        >
+          <Zap size="20" class="group-hover:scale-110 transition-transform" />
+        </button>
+
         <button
           @click="toggleUserMenu"
           class="flex items-center gap-3 transition-colors rounded-lg px-2 py-1"
@@ -298,13 +319,6 @@ const handleMouseLeave = (menuId) => {
               <p :class="['text-xs mt-1', isDarkMode ? 'text-gray-400' : 'text-gray-500']">Administrator</p>
             </div>
             <div class="p-2">
-              <!-- Theme Toggle in Menu -->
-              <div :class="['flex items-center justify-between px-3 py-2 rounded-lg', isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100']">
-                <span :class="['text-sm', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
-                  {{ isDarkMode ? t('theme_dark') : t('theme_light') }}
-                </span>
-                <ThemeToggle />
-              </div>
               <!-- Logout Button -->
               <button
                 @click="handleLogout"

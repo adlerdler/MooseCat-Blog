@@ -1,5 +1,10 @@
 /* Admin Global Styles */
 
+/* Default (Dark Mode) Variables */
+:root {
+    --accent: #CF202E;
+}
+
 /* Admin Light Mode Styles */
 .light {
     --bg-primary: #ffffff;
@@ -10,6 +15,7 @@
     --text-secondary: #475569;
     --text-muted: #64748b;
     --accent-color: #CF202E;
+    --accent: #CF202E;
     --hover-bg: #e2e8f0;
 }
 

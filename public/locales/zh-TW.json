@@ -392,6 +392,9 @@
   "admin_seconds": "秒",
   "admin_minification": "壓縮",
   "admin_lazy_load_images": "圖片延遲載入",
+  "admin_enable_cdn": "啟用 CDN",
+  "admin_cdn_url": "CDN 網址",
+  "admin_cdn_url_placeholder": "例如：https://cdn.example.com",
   "admin_categories": "分類管理",
   "admin_categories_subtitle": "管理內容分類",
   "admin_search_categories": "搜尋分類...",
@@ -538,5 +541,7 @@
   "admin_menu_help_text": "選單標籤使用語言檔中的翻譯key。確保您輸入的",
   "admin_menu_help_text_2": "存在於",
   "admin_menu_help_text_3": "等檔案中，以顯示正確的多語言文字。",
-  "admin_error_empty_fields": "請填寫所有必填欄位"
+  "admin_error_empty_fields": "請填寫所有必填欄位",
+  "admin_i18n_manager": "多語言管理",
+  "admin_i18n_manager_subtitle": "管理系統支援的語言和翻譯資料"
 }

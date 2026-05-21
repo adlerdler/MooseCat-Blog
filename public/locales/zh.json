@@ -409,6 +409,9 @@
   "admin_seconds": "秒",
   "admin_minification": "压缩",
   "admin_lazy_load_images": "图片懒加载",
+  "admin_enable_cdn": "启用 CDN",
+  "admin_cdn_url": "CDN 地址",
+  "admin_cdn_url_placeholder": "例如：https://cdn.example.com",
   "admin_categories": "分类管理",
   "admin_categories_subtitle": "管理内容分类",
   "admin_search_categories": "搜索分类...",
@@ -555,5 +558,7 @@
   "admin_menu_help_text": "菜单标签使用语言文件中的翻译key。确保您输入的",
   "admin_menu_help_text_2": "存在于",
   "admin_menu_help_text_3": "等文件中，以显示正确的多语言文本。",
-  "admin_error_empty_fields": "请填写所有必填字段"
+  "admin_error_empty_fields": "请填写所有必填字段",
+  "admin_i18n_manager": "多语言管理",
+  "admin_i18n_manager_subtitle": "管理系统支持的语言和翻译数据"
 }

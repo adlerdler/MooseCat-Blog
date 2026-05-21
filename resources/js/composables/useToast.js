@@ -1,14 +1,14 @@
 /**
  * useToast.js - Toast 通知管理
- * 
+ *
  * 使用方式：
  * const { showToast, success, error, warning, info } = useToast()
- * 
+ *
  * success('操作成功')
  * error('操作失败', '错误标题')
  * warning('请注意', '警告信息')
  * info('提示信息')
- * 
+ *
  * // 自定义配置
  * showToast({
  *   type: 'success',
@@ -31,15 +31,11 @@ export function useToast() {
       title: options.title || '',
       message: options.message,
       duration: options.duration ?? 3000,
-      closable: options.closable ?? true
+      closable: options.closable ?? true,
+      position: options.position || 'bottom-right'
     };
 
     toasts.value.push(toast);
-
-    // 自动清理
-    setTimeout(() => {
-      removeToast(id);
-    }, toast.duration + 500);
 
     return id;
   };

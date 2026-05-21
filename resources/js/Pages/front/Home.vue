@@ -59,6 +59,14 @@ const featuredPosts = computed(() => {
   }))
 })
 
+const searchPosts = computed(() => {
+  return POSTS.map(post => ({
+    id: post.id,
+    title: post.title,
+    excerpt: post.excerpt
+  }))
+})
+
 onMounted(() => {
   initAccentTheme()
   
@@ -356,7 +364,7 @@ const activeCategory = ref('ALL')
     <Footer v-model="isFooterVisible" />
 
     <!-- Search Overlay -->
-    <SearchOverlay :is-open="isSearchOpen" @close="closeSearch" />
+    <SearchOverlay :is-open="isSearchOpen" :posts="searchPosts" @close="closeSearch" />
 
     </div><!-- End of ml-16 wrapper -->
 

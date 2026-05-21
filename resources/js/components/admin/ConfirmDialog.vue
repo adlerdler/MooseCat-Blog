@@ -32,7 +32,8 @@ const props = defineProps({
   // 'delete', 'save', 'logout', etc.
   type: {
     type: String,
-    default: 'custom'
+    default: 'custom',
+    validator: (value) => ['delete', 'save', 'logout', 'custom'].includes(value)
   },
   title: {
     type: String,
@@ -95,7 +96,12 @@ const config = computed(() => {
 const displayTitle = computed(() => props.title || config.value.title);
 const displayContent = computed(() => props.content || config.value.content);
 const displayConfirmText = computed(() => props.confirmText || config.value.confirmText);
-const displayVariant = computed(() => props.confirmVariant || config.value.variant);
+const displayVariant = computed(() => {
+  if (props.confirmVariant && props.confirmVariant !== '') {
+    return props.confirmVariant;
+  }
+  return config.value.variant;
+});
 
 const handleConfirm = () => {
   emit('confirm');
@@ -107,14 +113,13 @@ const handleCancel = () => {
 
 const getConfirmButtonClasses = () => {
   const baseClasses = 'flex-1 flex items-center justify-center gap-2 px-6 py-3 font-bold tracking-widest uppercase text-sm transition-colors rounded';
-  
+
   switch (displayVariant.value) {
     case 'danger':
       return `${baseClasses} bg-construct-red text-white hover:bg-red-700`;
     case 'warning':
       return `${baseClasses} bg-yellow-500 text-white hover:bg-yellow-600`;
     case 'primary':
-      return `${baseClasses} bg-construct-red text-white hover:bg-red-700`;
     default:
       return `${baseClasses} bg-construct-red text-white hover:bg-red-700`;
   }
@@ -139,11 +144,11 @@ const getConfirmButtonClasses = () => {
           <div class="flex items-center gap-3">
             <div :class="[
               'w-10 h-10 rounded-full flex items-center justify-center',
-              displayVariant === 'danger' ? 'bg-red-500/20' : (displayVariant === 'warning' ? 'bg-yellow-500/20' : 'bg-construct-red/20')
+              displayVariant === 'danger' ? 'bg-red-500/20' : (displayVariant === 'warning' ? 'bg-yellow-500/20' : 'bg-[#CF202E]/20')
             ]">
               <AlertTriangle :class="[
                 'w-5 h-5',
-                displayVariant === 'danger' ? 'text-red-500' : (displayVariant === 'warning' ? 'text-yellow-500' : 'text-construct-red')
+                displayVariant === 'danger' ? 'text-red-500' : (displayVariant === 'warning' ? 'text-yellow-500' : 'text-[#CF202E]')
               ]" />
             </div>
             <h3 :class="['text-lg font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">

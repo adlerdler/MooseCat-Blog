@@ -142,6 +142,11 @@ export { adminLogs } from '../data/logs';
 // 组件
 export { default as ConfirmDialog } from '../components/admin/ConfirmDialog.vue';
 export { default as ContentForm } from '../components/admin/ContentForm.vue';
+export { default as PostForm } from '../components/admin/PostForm.vue';
+export { default as VideoForm } from '../components/admin/VideoForm.vue';
+export { default as ProjectForm } from '../components/admin/ProjectForm.vue';
+export { default as ResourceForm } from '../components/admin/ResourceForm.vue';
+export { default as SocialLinkForm } from '../components/admin/SocialLinkForm.vue';
 export { default as RoleForm } from '../components/admin/RoleForm.vue';
 export { default as UserForm } from '../components/admin/UserForm.vue';
 export { default as UserLevelForm } from '../components/admin/UserLevelForm.vue';

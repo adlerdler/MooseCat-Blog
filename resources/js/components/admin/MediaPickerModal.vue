@@ -1,12 +1,15 @@
 <script setup>
 /**
  * MediaPickerModal.vue - 媒体选择器弹窗
- * 
+ *
  * 功能说明：
  * - 从媒体库中选择文件
  * - 支持网格和列表视图
  * - 搜索和筛选功能
  * - 选择后返回文件URL
+ *
+ * 使用示例：
+ * <MediaPickerModal :visible="showPicker" :media="mediaFiles" @select="handleSelect" @close="closePicker" />
  */
 import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -22,12 +25,15 @@ import {
   List,
   Check
 } from 'lucide-vue-next';
-import { adminMedia } from '../../data/media';
 
 const props = defineProps({
   visible: {
     type: Boolean,
     default: false
+  },
+  media: {
+    type: Array,
+    default: () => []
   }
 });
 
@@ -41,10 +47,8 @@ const typeFilter = ref('all');
 const viewMode = ref('grid');
 const selectedId = ref(null);
 
-const mediaFiles = ref([...adminMedia]);
-
 const filteredMedia = computed(() => {
-  return mediaFiles.value.filter(file => {
+  return props.media.filter(file => {
     const matchesSearch = file.name.toLowerCase().includes(searchQuery.value.toLowerCase());
     const matchesType = typeFilter.value === 'all' || file.type === typeFilter.value;
     return matchesSearch && matchesType;

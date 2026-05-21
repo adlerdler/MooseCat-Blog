@@ -38,6 +38,7 @@ const emit = defineEmits(['update:modelValue']);
 
 const { isDarkMode } = useTheme();
 const inputValue = ref('');
+const inputRef = ref(null);
 
 const tags = computed({
   get: () => {
@@ -92,7 +93,7 @@ const handleKeydown = (e) => {
           ? 'bg-gray-700 border-gray-600' 
           : 'bg-white border-gray-300'
       ]"
-      @click="$refs.input.focus()"
+      @click="inputRef.focus()"
     >
       <span
         v-for="(tag, index) in tags"
@@ -120,7 +121,7 @@ const handleKeydown = (e) => {
       </span>
       
       <input
-        ref="input"
+        ref="inputRef"
         v-model="inputValue"
         type="text"
         :placeholder="tags.length === 0 ? placeholder : ''"

@@ -25,6 +25,7 @@ import { formatToEnglish } from '../../utils/dateUtils';
 import { findById, formatId } from '../../utils/typeConvert';
 import { getCategoryNameById } from '../../utils/categoryUtils';
 import { interactions } from '../../data/interactions';
+import { commentsData } from '../../data/comments';
 import { useInteractionData } from '../../composables/useInteractionData';
 import { useSiteConfig } from '../../composables/useSiteConfig';
 import { usePageSeo } from '../../composables/usePageSeo';
@@ -40,6 +41,10 @@ const localInteractions = ref([...interactions]);
 const { isCommentsVisible, isAuthorBioVisible } = useSiteConfig();
 const showComments = computed(() => isCommentsVisible());
 const showAuthorBio = computed(() => isAuthorBioVisible());
+
+const postComments = computed(() => {
+  return commentsData.filter(comment => comment.is_approved && comment.post_id === post.value?.id);
+});
 
 const getAuthorName = (authorId) => {
   const user = adminUsers.find(u => u.id === authorId);
@@ -339,8 +344,10 @@ onUnmounted(() => {
         </div>
 
         <!-- Comment Section -->
-        <CommentSection 
+        <CommentSection
           v-if="showComments"
+          :comments="postComments"
+          :interactions="localInteractions"
           :current-user-id="1" 
           @comment-submitted="handleCommentSubmitted" 
         />
