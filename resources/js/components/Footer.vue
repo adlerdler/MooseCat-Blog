@@ -22,6 +22,7 @@ import { useI18n } from 'vue-i18n';
 import { Github, Twitter, Linkedin, Globe, MessageCircle, Palette, Youtube, Facebook, Video } from 'lucide-vue-next';
 import { useFooterData } from '../composables/useFooterData';
 import { useSiteConfig } from '../composables/useSiteConfig';
+import AdSlot from './front/AdSlot.vue';
 
 const { getFooterSocialLinks, getFooterNavLinks } = useFooterData();
 const { t } = useI18n();
@@ -73,8 +74,10 @@ const getLinkStyle = (index) => {
 </script>
 
 <template>
-  <footer
-    v-if="props.modelValue"
+  <div>
+    <AdSlot position="footer" />
+    <footer
+      v-if="props.modelValue"
     class="p-8 md:p-16 bg-construct-paper border-t-8 border-black grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-12 sm:gap-8 md:gap-12"
   >
     <div class="sm:col-span-2">
@@ -132,6 +135,7 @@ const getLinkStyle = (index) => {
       </ul>
     </div>
   </footer>
+  </div>
 </template>
 
 <style lang="scss" scoped>

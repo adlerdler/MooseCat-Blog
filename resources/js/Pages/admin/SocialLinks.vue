@@ -36,8 +36,8 @@ import {
 import { useTheme } from '../../composables/useTheme';
 import { useFooterData } from '../../composables/useFooterData';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
-import AdminPagination from '../../components/admin/AdminPagination.vue';
-import AdminSearchFilter from '../../components/admin/AdminSearchFilter.vue';
+import Pagination from '../../components/admin/Pagination.vue';
+import SearchFilterModal from '../../components/admin/SearchFilterModal.vue';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
@@ -338,7 +338,7 @@ const getPlatformGradient = (platform) => {
     </div>
 
     <!-- Search and Filter -->
-    <AdminSearchFilter
+    <SearchFilterModal
       v-model:search-query="searchQuery"
       :search-placeholder="t('admin_search_placeholder')"
     />
@@ -447,7 +447,7 @@ const getPlatformGradient = (platform) => {
     </div>
 
     <!-- Pagination -->
-    <AdminPagination
+    <Pagination
       v-model:current-page="currentPage"
       :total-items="filteredList.length"
       :items-per-page="itemsPerPage"

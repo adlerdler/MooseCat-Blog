@@ -1,29 +1,50 @@
 /**
  * useRolePermissions.js - 角色权限管理
- * 
+ *
+ * 基于 Spatie/laravel-permission 方案 + 扩展字段。
+ *
  * 功能说明：
  * - 统一管理角色和权限的相关操作函数
  * - 提供角色信息获取、权限检查等功能
+ * - 支持 Spatie 标准字段 (name, guard_name)
+ * - 支持扩展字段 (color, label, program_id)
  */
 import { roles } from '../data/roles';
 import { permissions } from '../data/permissions';
 import { rolePermissions } from '../data/role_permissions';
 
 export const useRolePermissions = () => {
-  // 角色相关函数
+  const COLOR_MAP = {
+    red: { bg: 'bg-red-600', text: 'text-white', border: 'border-red-500' },
+    blue: { bg: 'bg-blue-600', text: 'text-white', border: 'border-blue-500' },
+    green: { bg: 'bg-green-600', text: 'text-white', border: 'border-green-500' },
+    purple: { bg: 'bg-purple-600', text: 'text-white', border: 'border-purple-500' },
+    gray: { bg: 'bg-gray-600', text: 'text-white', border: 'border-gray-500' },
+    yellow: { bg: 'bg-yellow-500', text: 'text-gray-900', border: 'border-yellow-400' },
+    cyan: { bg: 'bg-cyan-600', text: 'text-white', border: 'border-cyan-500' },
+    orange: { bg: 'bg-orange-600', text: 'text-white', border: 'border-orange-500' },
+    pink: { bg: 'bg-pink-600', text: 'text-white', border: 'border-pink-500' }
+  };
+
+  const GUARD_LABELS = {
+    web: 'Web',
+    api: 'API',
+    admin: 'Admin'
+  };
+
   const getRoleById = (roleId) => {
     return roles.find(r => r.id === roleId);
   };
 
-  const getRoleByValue = (value) => {
-    return roles.find(r => r.value === value);
+  const getRoleByName = (name) => {
+    return roles.find(r => r.name === name);
   };
 
   const getRole = (roleIdentifier) => {
     if (typeof roleIdentifier === 'number') {
       return roles.find(r => r.id === roleIdentifier);
     } else {
-      return roles.find(r => r.value === roleIdentifier);
+      return roles.find(r => r.name === roleIdentifier);
     }
   };
 
@@ -37,68 +58,104 @@ export const useRolePermissions = () => {
     return role ? role.color : 'gray';
   };
 
+  const getRoleGuardName = (roleIdentifier) => {
+    const role = getRole(roleIdentifier);
+    return role ? role.guard_name : 'web';
+  };
+
   const getRoleDescription = (roleIdentifier) => {
     const role = getRole(roleIdentifier);
     return role ? role.description : '未知角色';
   };
 
   const getRoleStyle = (roleIdentifier) => {
-    const colorMap = {
-      admin: 'bg-red-600 text-white border-red-500',
-      editor: 'bg-blue-600 text-white border-blue-500',
-      author: 'bg-green-600 text-white border-green-500',
-      moderator: 'bg-purple-600 text-white border-purple-500',
-      subscriber: 'bg-gray-600 text-white border-gray-500',
-      api: 'bg-yellow-500 text-gray-900 border-yellow-400',
-      guest: 'bg-cyan-600 text-white border-cyan-500'
-    };
-    
     const role = getRole(roleIdentifier);
-    const value = role ? role.value : 'guest';
-    return colorMap[value] || 'bg-gray-600 text-white border-gray-500';
+    const color = role ? role.color : 'gray';
+    const colorConfig = COLOR_MAP[color] || COLOR_MAP.gray;
+    return `${colorConfig.bg} ${colorConfig.text} ${colorConfig.border}`;
   };
 
-  // 权限相关函数
-  const availablePermissions = permissions.map(p => p.label);
+  const getRoleColorConfig = (roleIdentifier) => {
+    const role = getRole(roleIdentifier);
+    const color = role ? role.color : 'gray';
+    return COLOR_MAP[color] || COLOR_MAP.gray;
+  };
+
+  const availablePermissions = permissions.map(p => ({
+    id: p.id,
+    name: p.name,
+    label: p.label,
+    guard_name: p.guard_name,
+    program_id: p.program_id
+  }));
+
+  const getPermissionById = (permissionId) => {
+    return permissions.find(p => p.id === permissionId);
+  };
+
+  const getPermissionByName = (name) => {
+    return permissions.find(p => p.name === name);
+  };
 
   const getPermissionIdsByRoleId = (roleId) => {
     return rolePermissions
-      .filter(rp => rp.roleId === roleId)
-      .map(rp => rp.permissionId);
+      .filter(rp => rp.role_id === roleId)
+      .map(rp => rp.permission_id);
   };
 
   const getRoleIdsByPermissionId = (permissionId) => {
     return rolePermissions
-      .filter(rp => rp.permissionId === permissionId)
-      .map(rp => rp.roleId);
+      .filter(rp => rp.permission_id === permissionId)
+      .map(rp => rp.role_id);
   };
 
   const hasPermission = (roleId, permissionId) => {
-    return rolePermissions.some(rp => rp.roleId === roleId && rp.permissionId === permissionId);
+    return rolePermissions.some(rp => rp.role_id === roleId && rp.permission_id === permissionId);
   };
 
-  // 便捷导出
+  const hasPermissionByName = (roleId, permissionName) => {
+    const permission = getPermissionByName(permissionName);
+    if (!permission) return false;
+    return hasPermission(roleId, permission.id);
+  };
+
+  const getPermissionsByGuard = (guardName) => {
+    return permissions.filter(p => p.guard_name === guardName);
+  };
+
+  const getRolesByGuard = (guardName) => {
+    return roles.filter(r => r.guard_name === guardName);
+  };
+
   const adminRoles = roles;
 
   return {
-    // 角色相关
     roles,
     adminRoles,
-    getRoleById,
-    getRoleByValue,
-    getRoleLabel,
-    getRoleColor,
-    getRoleDescription,
-    getRoleStyle,
-    
-    // 权限相关
     permissions,
     availablePermissions,
-    
-    // 角色权限关联
     rolePermissions,
+    COLOR_MAP,
+    GUARD_LABELS,
+
+    getRoleById,
+    getRoleByName,
+    getRole,
+    getRoleLabel,
+    getRoleColor,
+    getRoleGuardName,
+    getRoleDescription,
+    getRoleStyle,
+    getRoleColorConfig,
+
+    getPermissionById,
+    getPermissionByName,
+    getPermissionsByGuard,
+    getRolesByGuard,
+
     getPermissionIdsByRoleId,
     getRoleIdsByPermissionId,
-    hasPermission
+    hasPermission,
+    hasPermissionByName
   };
 };

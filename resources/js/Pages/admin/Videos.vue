@@ -15,7 +15,6 @@ import {
   Search,
   Edit3,
   Trash2,
-  Eye,
   Clock,
   Filter,
   Youtube,
@@ -26,8 +25,8 @@ import { useTheme } from '../../composables/useTheme';
 import { formatToRelative } from '../../utils/dateUtils';
 import VideoForm from '../../components/admin/VideoForm.vue';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
-import AdminPagination from '../../components/admin/AdminPagination.vue';
-import AdminSearchFilter from '../../components/admin/AdminSearchFilter.vue';
+import Pagination from '../../components/admin/Pagination.vue';
+import SearchFilterModal from '../../components/admin/SearchFilterModal.vue';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
@@ -159,7 +158,7 @@ const handleFilterChange = ({ key, value }) => {
     </div>
 
     <!-- Toolbar -->
-    <AdminSearchFilter
+    <SearchFilterModal
       v-model:search-query="searchQuery"
       :search-placeholder="t('admin_search_placeholder')"
       :filters="[
@@ -224,15 +223,6 @@ const handleFilterChange = ({ key, value }) => {
                 <Edit3 size="14" />
               </button>
               <button
-                :class="[
-                  'p-2 transition-colors',
-                  isDarkMode ? 'text-gray-400 hover:text-green-400 hover:bg-gray-700' : 'text-gray-500 hover:text-green-500 hover:bg-gray-100'
-                ]"
-                :title="t('admin_view')"
-              >
-                <Eye size="14" />
-              </button>
-              <button
                 @click="handleDelete(video.id)"
                 :class="[
                   'p-2 transition-colors',
@@ -249,7 +239,7 @@ const handleFilterChange = ({ key, value }) => {
     </div>
 
     <!-- Pagination -->
-    <AdminPagination
+    <Pagination
       :current-page="currentPage"
       :total-pages="totalPages"
       :total-items="filteredVideos.length"
@@ -271,7 +261,6 @@ const handleFilterChange = ({ key, value }) => {
       title="确认删除"
       content="确定要删除这个视频吗？此操作不可撤销。"
       confirm-text="删除"
-      confirm-variant="danger"
       @confirm="confirmDelete"
       @cancel="showDeleteConfirm = false"
     />

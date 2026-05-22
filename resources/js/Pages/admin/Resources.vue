@@ -30,8 +30,8 @@ import { formatToRelative } from '../../utils/dateUtils';
 import { resourcesData, resourceTypes } from '../../data/resources';
 import ResourceForm from '../../components/admin/ResourceForm.vue';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
-import AdminPagination from '../../components/admin/AdminPagination.vue';
-import AdminSearchFilter from '../../components/admin/AdminSearchFilter.vue';
+import Pagination from '../../components/admin/Pagination.vue';
+import SearchFilterModal from '../../components/admin/SearchFilterModal.vue';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
@@ -181,7 +181,7 @@ const handleFilterChange = ({ key, value }) => {
     </div>
 
     <!-- Toolbar -->
-    <AdminSearchFilter
+    <SearchFilterModal
       v-model:search-query="searchQuery"
       :search-placeholder="t('admin_search_placeholder')"
       :filters="[
@@ -273,7 +273,7 @@ const handleFilterChange = ({ key, value }) => {
     </div>
 
     <!-- Pagination -->
-    <AdminPagination
+    <Pagination
       :current-page="currentPage"
       :total-pages="totalPages"
       :total-items="filteredResources.length"

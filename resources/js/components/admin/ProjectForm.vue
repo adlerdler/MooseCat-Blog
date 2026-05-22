@@ -271,10 +271,6 @@ const handleCancel = () => {
 
       <div class="grid grid-cols-2 gap-4">
         <div>
-          <TagInput v-model="formData.tags" :label="t('admin_post_form_tags')" placeholder="输入标签，按回车或逗号添加" />
-        </div>
-
-        <div>
           <TagInput v-model="formData.technologies" :label="t('admin_project_form_tech')" placeholder="输入技术，按回车或逗号添加" />
         </div>
       </div>

@@ -4,7 +4,8 @@
  *
  * 功能说明：
  * - 全屏搜索界面
- * - 实时搜索文章标题和摘要
+ * - 实时搜索文章、视频、项目、资源等内容
+ * - 根据内容类型跳转到正确的路由
  * - 键盘导航支持
  *
  * 技术实现：
@@ -113,14 +114,14 @@ const closeSearch = () => {
             <template v-if="filteredPosts.length > 0">
               <RouterLink
                 v-for="post in filteredPosts"
-                :key="post.id"
-                :to="`/posts/${post.id}`"
+                :key="`${post.type}-${post.id}`"
+                :to="post.route || `/blog/${post.id}`"
                 @click="closeSearch"
                 class="group flex justify-between items-center p-3 md:p-4 border-2 border-transparent hover:border-black hover:bg-construct-paper transition-all"
               >
                 <div>
                   <span class="text-[10px] font-bold tracking-widest text-accent block uppercase mb-1">
-                    {{ post.category }}
+                    {{ post.category || post.type }}
                   </span>
                   <h4 class="font-display text-lg md:text-xl tracking-tight leading-none">
                     {{ post.title }}

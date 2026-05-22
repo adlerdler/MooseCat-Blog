@@ -34,7 +34,6 @@ import {
   MediaPickerModal,
   useToast
 } from '../../composables/useAdminImports';
-import { defaultSettings, tabsConfig } from '../../data/settings';
 import { siteConfig } from '../../data/site_config';
 import { themes } from '../../data/themes';
 import { seoConfig as defaultSeoConfig } from '../../data/seo_config';
@@ -49,7 +48,22 @@ const getThemes = () => [...themes];
 const getDefaultTheme = () => themes.find(t => t.is_default) || themes[0];
 const { success } = useToast();
 
-const settings = ref({ ...defaultSettings });
+const tabsConfig = [
+  { id: 'site', label_key: 'admin_settings_site', icon_key: 'globe' },
+  { id: 'appearance', label_key: 'admin_settings_appearance', icon_key: 'palette' },
+  { id: 'notifications', label_key: 'admin_settings_notifications', icon_key: 'bell' },
+  { id: 'seo', label_key: 'admin_settings_seo', icon_key: 'search' },
+  { id: 'performance', label_key: 'admin_settings_performance', icon_key: 'zap' }
+];
+
+const userNotifications = ref({
+  email_notifications: true,
+  comment_approval_alert: true,
+  new_user_alert: true,
+  weekly_report: false,
+  digest_email: true,
+  digest_frequency: 'weekly'
+});
 const site = ref({ ...siteConfig });
 const seo = ref({ ...defaultSeoConfig });
 const activeTab = ref('site');
@@ -60,6 +74,13 @@ const mediaFiles = ref([...adminMedia]);
 
 const availableLanguages = computed(() => {
   return i18nLanguages.filter(lang => lang.is_active);
+});
+
+const allowedFileTypesInput = computed({
+  get: () => site.value.allowedFileTypes.join(', '),
+  set: (value) => {
+    site.value.allowedFileTypes = value.split(',').map(t => t.trim()).filter(t => t);
+  }
 });
 
 const handleMediaSelect = (file) => {
@@ -356,6 +377,78 @@ const resetSettings = () => {
                 />
               </label>
             </div>
+
+            <!-- Feature Toggles -->
+            <div class="md:col-span-2">
+              <h4 :class="['text-sm font-bold tracking-widest uppercase mb-4 pt-4 border-t', isDarkMode ? 'text-gray-400 border-gray-700' : 'text-gray-500 border-gray-200']">{{ t('admin_feature_toggles') }}</h4>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label :class="['flex items-center gap-3 cursor-pointer']">
+                    <div :class="['w-12 h-6 rounded-full relative transition-colors', site.allowRegistration ? 'bg-construct-red' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-400')]">
+                      <div :class="['absolute top-1 w-4 h-4 rounded-full bg-white transition-transform', site.allowRegistration ? 'left-7' : 'left-1']"></div>
+                    </div>
+                    <span :class="['font-bold tracking-wider', isDarkMode ? 'text-gray-300' : 'text-gray-700']">{{ t('admin_allow_registration') }}</span>
+                    <input
+                      v-model="site.allowRegistration"
+                      type="checkbox"
+                      class="hidden"
+                    />
+                  </label>
+                </div>
+                <div>
+                  <label :class="['flex items-center gap-3 cursor-pointer']">
+                    <div :class="['w-12 h-6 rounded-full relative transition-colors', site.requireCommentApproval ? 'bg-construct-red' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-400')]">
+                      <div :class="['absolute top-1 w-4 h-4 rounded-full bg-white transition-transform', site.requireCommentApproval ? 'left-7' : 'left-1']"></div>
+                    </div>
+                    <span :class="['font-bold tracking-wider', isDarkMode ? 'text-gray-300' : 'text-gray-700']">{{ t('admin_require_comment_approval') }}</span>
+                    <input
+                      v-model="site.requireCommentApproval"
+                      type="checkbox"
+                      class="hidden"
+                    />
+                  </label>
+                </div>
+                <div>
+                  <label :class="['flex items-center gap-3 cursor-pointer']">
+                    <div :class="['w-12 h-6 rounded-full relative transition-colors', site.enableNewsletter ? 'bg-construct-red' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-400')]">
+                      <div :class="['absolute top-1 w-4 h-4 rounded-full bg-white transition-transform', site.enableNewsletter ? 'left-7' : 'left-1']"></div>
+                    </div>
+                    <span :class="['font-bold tracking-wider', isDarkMode ? 'text-gray-300' : 'text-gray-700']">{{ t('admin_enable_newsletter') }}</span>
+                    <input
+                      v-model="site.enableNewsletter"
+                      type="checkbox"
+                      class="hidden"
+                    />
+                  </label>
+                </div>
+                <div>
+                  <label :class="['flex items-center gap-3 cursor-pointer']">
+                    <div :class="['w-12 h-6 rounded-full relative transition-colors', site.enableSocialLogin ? 'bg-construct-red' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-400')]">
+                      <div :class="['absolute top-1 w-4 h-4 rounded-full bg-white transition-transform', site.enableSocialLogin ? 'left-7' : 'left-1']"></div>
+                    </div>
+                    <span :class="['font-bold tracking-wider', isDarkMode ? 'text-gray-300' : 'text-gray-700']">{{ t('admin_enable_social_login') }}</span>
+                    <input
+                      v-model="site.enableSocialLogin"
+                      type="checkbox"
+                      class="hidden"
+                    />
+                  </label>
+                </div>
+                <div>
+                  <label :class="['flex items-center gap-3 cursor-pointer']">
+                    <div :class="['w-12 h-6 rounded-full relative transition-colors', site.enableSearch ? 'bg-construct-red' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-400')]">
+                      <div :class="['absolute top-1 w-4 h-4 rounded-full bg-white transition-transform', site.enableSearch ? 'left-7' : 'left-1']"></div>
+                    </div>
+                    <span :class="['font-bold tracking-wider', isDarkMode ? 'text-gray-300' : 'text-gray-700']">{{ t('admin_enable_search') }}</span>
+                    <input
+                      v-model="site.enableSearch"
+                      type="checkbox"
+                      class="hidden"
+                    />
+                  </label>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -446,12 +539,12 @@ const resetSettings = () => {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
               <label :class="['flex items-center gap-3 cursor-pointer']">
-                <div :class="['w-12 h-6 rounded-full relative transition-colors', settings.notifications.emailNotifications ? 'bg-construct-red' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-400')]">
-                  <div :class="['absolute top-1 w-4 h-4 rounded-full bg-white transition-transform', settings.notifications.emailNotifications ? 'left-7' : 'left-1']"></div>
+                <div :class="['w-12 h-6 rounded-full relative transition-colors', userNotifications.email_notifications ? 'bg-construct-red' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-400')]">
+                  <div :class="['absolute top-1 w-4 h-4 rounded-full bg-white transition-transform', userNotifications.email_notifications ? 'left-7' : 'left-1']"></div>
                 </div>
                 <span :class="['font-bold tracking-wider', isDarkMode ? 'text-gray-300' : 'text-gray-700']">{{ t('admin_email_notifications') }}</span>
                 <input
-                  v-model="settings.notifications.emailNotifications"
+                  v-model="userNotifications.email_notifications"
                   type="checkbox"
                   class="hidden"
                 />
@@ -459,12 +552,12 @@ const resetSettings = () => {
             </div>
             <div>
               <label :class="['flex items-center gap-3 cursor-pointer']">
-                <div :class="['w-12 h-6 rounded-full relative transition-colors', settings.notifications.commentApproval ? 'bg-construct-red' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-400')]">
-                  <div :class="['absolute top-1 w-4 h-4 rounded-full bg-white transition-transform', settings.notifications.commentApproval ? 'left-7' : 'left-1']"></div>
+                <div :class="['w-12 h-6 rounded-full relative transition-colors', userNotifications.comment_approval_alert ? 'bg-construct-red' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-400')]">
+                  <div :class="['absolute top-1 w-4 h-4 rounded-full bg-white transition-transform', userNotifications.comment_approval_alert ? 'left-7' : 'left-1']"></div>
                 </div>
                 <span :class="['font-bold tracking-wider', isDarkMode ? 'text-gray-300' : 'text-gray-700']">{{ t('admin_comment_approval') }}</span>
                 <input
-                  v-model="settings.notifications.commentApproval"
+                  v-model="userNotifications.comment_approval_alert"
                   type="checkbox"
                   class="hidden"
                 />
@@ -472,12 +565,12 @@ const resetSettings = () => {
             </div>
             <div>
               <label :class="['flex items-center gap-3 cursor-pointer']">
-                <div :class="['w-12 h-6 rounded-full relative transition-colors', settings.notifications.newUserAlert ? 'bg-construct-red' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-400')]">
-                  <div :class="['absolute top-1 w-4 h-4 rounded-full bg-white transition-transform', settings.notifications.newUserAlert ? 'left-7' : 'left-1']"></div>
+                <div :class="['w-12 h-6 rounded-full relative transition-colors', userNotifications.new_user_alert ? 'bg-construct-red' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-400')]">
+                  <div :class="['absolute top-1 w-4 h-4 rounded-full bg-white transition-transform', userNotifications.new_user_alert ? 'left-7' : 'left-1']"></div>
                 </div>
                 <span :class="['font-bold tracking-wider', isDarkMode ? 'text-gray-300' : 'text-gray-700']">{{ t('admin_new_user_alert') }}</span>
                 <input
-                  v-model="settings.notifications.newUserAlert"
+                  v-model="userNotifications.new_user_alert"
                   type="checkbox"
                   class="hidden"
                 />
@@ -485,21 +578,46 @@ const resetSettings = () => {
             </div>
             <div>
               <label :class="['flex items-center gap-3 cursor-pointer']">
-                <div :class="['w-12 h-6 rounded-full relative transition-colors', settings.notifications.weeklyReport ? 'bg-construct-red' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-400')]">
-                  <div :class="['absolute top-1 w-4 h-4 rounded-full bg-white transition-transform', settings.notifications.weeklyReport ? 'left-7' : 'left-1']"></div>
+                <div :class="['w-12 h-6 rounded-full relative transition-colors', userNotifications.weekly_report ? 'bg-construct-red' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-400')]">
+                  <div :class="['absolute top-1 w-4 h-4 rounded-full bg-white transition-transform', userNotifications.weekly_report ? 'left-7' : 'left-1']"></div>
                 </div>
                 <span :class="['font-bold tracking-wider', isDarkMode ? 'text-gray-300' : 'text-gray-700']">{{ t('admin_weekly_report') }}</span>
                 <input
-                  v-model="settings.notifications.weeklyReport"
+                  v-model="userNotifications.weekly_report"
                   type="checkbox"
                   class="hidden"
                 />
               </label>
             </div>
+            <div>
+              <label :class="['flex items-center gap-3 cursor-pointer']">
+                <div :class="['w-12 h-6 rounded-full relative transition-colors', userNotifications.digest_email ? 'bg-construct-red' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-400')]">
+                  <div :class="['absolute top-1 w-4 h-4 rounded-full bg-white transition-transform', userNotifications.digest_email ? 'left-7' : 'left-1']"></div>
+                </div>
+                <span :class="['font-bold tracking-wider', isDarkMode ? 'text-gray-300' : 'text-gray-700']">{{ t('admin_digest_email') }}</span>
+                <input
+                  v-model="userNotifications.digest_email"
+                  type="checkbox"
+                  class="hidden"
+                />
+              </label>
+            </div>
+            <div v-if="userNotifications.digest_email">
+              <label :class="['block text-sm font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_digest_frequency') }}</label>
+              <select
+                v-model="userNotifications.digest_frequency"
+                :class="[
+                  'w-full px-4 py-3 border focus:border-construct-red focus:outline-none transition-all',
+                  isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'
+                ]"
+              >
+                <option value="daily">{{ t('admin_frequency_daily') }}</option>
+                <option value="weekly">{{ t('admin_frequency_weekly') }}</option>
+                <option value="monthly">{{ t('admin_frequency_monthly') }}</option>
+              </select>
+            </div>
           </div>
         </div>
-
-        <!-- SEO Settings -->
         <div v-if="activeTab === 'seo'">
           <h3 class="font-display text-2xl tracking-tighter mb-6 flex items-center gap-3">
             <Search size="24" class="text-construct-red" />
@@ -752,6 +870,39 @@ const resetSettings = () => {
                       isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
                     ]"
                   />
+                </div>
+              </div>
+            </div>
+
+            <!-- Upload Settings -->
+            <div :class="['border rounded-lg p-6', isDarkMode ? 'border-gray-700 bg-gray-700/30' : 'border-gray-200 bg-gray-50']">
+              <h4 :class="['text-sm font-bold tracking-widest uppercase mb-4', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_upload_settings') }}</h4>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label :class="['block text-sm font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_max_upload_size') }} (MB)</label>
+                  <input
+                    v-model.number="site.maxUploadSize"
+                    type="number"
+                    min="1"
+                    max="100"
+                    :class="[
+                      'w-full px-4 py-3 border focus:border-construct-red focus:outline-none transition-all',
+                      isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'
+                    ]"
+                  />
+                </div>
+                <div>
+                  <label :class="['block text-sm font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_allowed_file_types') }}</label>
+                  <input
+                    v-model="allowedFileTypesInput"
+                    type="text"
+                    :placeholder="t('admin_allowed_file_types_placeholder')"
+                    :class="[
+                      'w-full px-4 py-3 border focus:border-construct-red focus:outline-none transition-all',
+                      isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
+                    ]"
+                  />
+                  <p :class="['text-xs mt-2', isDarkMode ? 'text-gray-500' : 'text-gray-400']">{{ t('admin_allowed_file_types_hint') }}</p>
                 </div>
               </div>
             </div>

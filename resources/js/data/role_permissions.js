@@ -1,47 +1,54 @@
 /**
  * role_permissions.js - 角色权限关联表
- * 
- * 通过关联字段链接角色与权限，模拟数据库中的多对多关系。
- * roleId: 角色ID
- * permissionId: 权限ID（对应 permissions.js 中的 id）
+ *
+ * 基于 Spatie/laravel-permission 方案的多对多关联表。
+ * Spatie 使用 pivot 表 `role_has_permissions` 来管理角色与权限的关系。
+ *
+ * 字段说明：
+ * - permission_id: 权限 ID (对应 permissions.js 中的 id)
+ * - role_id: 角色 ID (对应 roles.js 中的 id)
  */
 
 export const rolePermissions = [
-  // admin (id: 1) - 系统管理员
-  { roleId: 1, permissionId: 1 },   // posts
-  { roleId: 1, permissionId: 2 },   // videos
-  { roleId: 1, permissionId: 3 },   // projects
-  { roleId: 1, permissionId: 4 },   // resources
-  { roleId: 1, permissionId: 5 },   // comments
-  { roleId: 1, permissionId: 6 },   // users
-  { roleId: 1, permissionId: 7 },   // categories
-  { roleId: 1, permissionId: 8 },   // tags
-  { roleId: 1, permissionId: 9 },   // roles
-  { roleId: 1, permissionId: 10 },  // settings
-  { roleId: 1, permissionId: 11 },  // api_access
-  { roleId: 1, permissionId: 12 },  // analytics
+  // admin (id: 1) - 系统管理员 - 拥有所有权限
+  { role_id: 1, permission_id: 1 },   // manage_posts
+  { role_id: 1, permission_id: 2 },   // manage_videos
+  { role_id: 1, permission_id: 3 },   // manage_projects
+  { role_id: 1, permission_id: 4 },   // manage_resources
+  { role_id: 1, permission_id: 5 },   // manage_comments
+  { role_id: 1, permission_id: 6 },   // manage_users
+  { role_id: 1, permission_id: 7 },   // manage_categories
+  { role_id: 1, permission_id: 8 },   // manage_tags
+  { role_id: 1, permission_id: 9 },   // manage_roles
+  { role_id: 1, permission_id: 10 },  // manage_settings
+  { role_id: 1, permission_id: 11 },  // api_access
+  { role_id: 1, permission_id: 12 },  // view_analytics
+  { role_id: 1, permission_id: 13 },  // manage_media
+  { role_id: 1, permission_id: 14 },  // manage_subscribers
+  { role_id: 1, permission_id: 15 },  // manage_journals
+  { role_id: 1, permission_id: 16 },  // manage_ads
 
   // editor (id: 2) - 内容编辑
-  { roleId: 2, permissionId: 1 },   // posts
-  { roleId: 2, permissionId: 5 },   // comments
-  { roleId: 2, permissionId: 7 },   // categories
-  { roleId: 2, permissionId: 8 },   // tags
+  { role_id: 2, permission_id: 1 },   // manage_posts
+  { role_id: 2, permission_id: 5 },   // manage_comments
+  { role_id: 2, permission_id: 7 },   // manage_categories
+  { role_id: 2, permission_id: 8 },   // manage_tags
+  { role_id: 2, permission_id: 15 },  // manage_journals
 
   // author (id: 3) - 文章作者
-  { roleId: 3, permissionId: 1 },   // posts
+  { role_id: 3, permission_id: 1 },   // manage_posts
 
   // moderator (id: 4) - 社区版主
-  { roleId: 4, permissionId: 5 },   // comments
-  { roleId: 4, permissionId: 6 },   // users
+  { role_id: 4, permission_id: 5 },   // manage_comments
+  { role_id: 4, permission_id: 6 },   // manage_users
+  { role_id: 4, permission_id: 14 },  // manage_subscribers
 
   // subscriber (id: 5) - 订阅用户
-  // 无权限
+  // 无特殊权限
 
   // api (id: 6) - API用户
-  { roleId: 6, permissionId: 11 },  // api_access
+  { role_id: 6, permission_id: 11 },  // api_access
 
   // guest (id: 7) - 访客用户
   // 无权限
 ];
-
-// 角色权限关联函数已迁移到 useRolePermissions composable

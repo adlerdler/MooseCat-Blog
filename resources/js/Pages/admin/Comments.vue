@@ -26,8 +26,8 @@ import {
   ShieldCheck,
   AlertCircle,
   ConfirmDialog,
-  AdminPagination,
-  AdminSearchFilter
+  Pagination,
+  SearchFilterModal
 } from '../../composables/useAdminImports';
 import { useTheme } from '../../composables/useTheme';
 import { commentsData } from '../../data/comments';
@@ -167,7 +167,7 @@ const handleFilterChange = ({ key, value }) => {
     </div>
 
     <!-- Search and Filter -->
-    <AdminSearchFilter
+    <SearchFilterModal
       v-model:search-query="searchQuery"
       :search-placeholder="t('admin_search_comments')"
       :filters="[
@@ -326,7 +326,7 @@ const handleFilterChange = ({ key, value }) => {
 
     <!-- Pagination -->
     <div class="mt-8">
-      <AdminPagination
+      <Pagination
         :current-page="currentPage"
         :total-pages="totalPages"
         :total-items="filteredComments.length"

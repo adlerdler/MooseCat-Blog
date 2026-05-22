@@ -6,14 +6,14 @@
  * <ToastContainer />
  */
 import { useToast } from '../composables/useToast';
-import ToastNotification from './admin/ToastNotification.vue';
+import ToastMessage from './admin/ToastMessage.vue';
 
 const { toasts, removeToast } = useToast();
 </script>
 
 <template>
   <div class="fixed top-4 right-4 z-50 space-y-2">
-    <ToastNotification
+    <ToastMessage
       v-for="toast in toasts"
       :key="toast.id"
       :visible="true"
@@ -22,7 +22,6 @@ const { toasts, removeToast } = useToast();
       :message="toast.message"
       :duration="toast.duration"
       :closable="toast.closable"
-      :position="toast.position || 'bottom-right'"
       @close="removeToast(toast.id)"
     />
   </div>

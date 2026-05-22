@@ -19,7 +19,7 @@ import {
   ExternalLink,
   Save,
   RotateCcw,
-  AdminPagination,
+  Pagination,
   ConfirmDialog,
   Info,
   useToast,
@@ -34,7 +34,7 @@ import {
   Search,
   Filter,
   Folder,
-  AdminSearchFilter
+  SearchFilterModal
 } from '../../composables/useAdminImports';
 import { useMenuItems } from '../../composables/useMenuItems';
 
@@ -343,7 +343,7 @@ const handleFilterChange = ({ key, value }) => {
     </div>
 
     <!-- Search & Filter Bar -->
-    <AdminSearchFilter
+    <SearchFilterModal
       v-model:search-query="searchQuery"
       :search-placeholder="t('admin_search_menu') || '搜索菜单...'"
       :filters="[

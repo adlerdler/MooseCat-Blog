@@ -1,0 +1,189 @@
+<script setup>
+/**
+ * NotificationBell.vue - 通知铃铛组件
+ *
+ * 功能说明：
+ * - 显示通知铃铛图标和未读数量
+ * - 点击展开通知列表
+ * - 支持标记已读/全部已读
+ * - 通知类型区分（info/warning/error/success）
+ */
+import { ref, computed } from 'vue';
+import { Bell, Check, CheckCheck, Trash2, Info, AlertTriangle, AlertCircle, CheckCircle } from 'lucide-vue-next';
+import { NOTIFICATIONS } from '../data/notifications';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
+
+const notifications = ref(NOTIFICATIONS.map(n => ({ ...n })));
+const isOpen = ref(false);
+
+const unreadCount = computed(() => notifications.value.filter(n => !n.read).length);
+
+const typeConfig = {
+  info: { icon: Info, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20' },
+  warning: { icon: AlertTriangle, color: 'text-yellow-500', bg: 'bg-yellow-50 dark:bg-yellow-900/20' },
+  error: { icon: AlertCircle, color: 'text-red-500', bg: 'bg-red-50 dark:bg-red-900/20' },
+  success: { icon: CheckCircle, color: 'text-green-500', bg: 'bg-green-50 dark:bg-green-900/20' }
+};
+
+const toggleDropdown = () => {
+  isOpen.value = !isOpen.value;
+};
+
+const markAsRead = (id) => {
+  const notification = notifications.value.find(n => n.id === id);
+  if (notification) {
+    notification.read = true;
+  }
+};
+
+const markAllAsRead = () => {
+  notifications.value.forEach(n => {
+    n.read = true;
+  });
+};
+
+const deleteNotification = (id) => {
+  notifications.value = notifications.value.filter(n => n.id !== id);
+};
+
+const formatTime = (dateStr) => {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diff = now - date;
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+
+  if (minutes < 1) return t('admin_just_now');
+  if (minutes < 60) return `${minutes}${t('admin_minutes_ago')}`;
+  if (hours < 24) return `${hours}${t('admin_hours_ago')}`;
+  return `${days}${t('admin_days_ago')}`;
+};
+</script>
+
+<template>
+  <div class="relative">
+    <button
+      @click="toggleDropdown"
+      class="relative p-2 rounded-lg transition-colors group"
+      :class="[
+        isOpen
+          ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white'
+          : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-700'
+      ]"
+    >
+      <Bell size="20" class="group-hover:scale-110 transition-transform" />
+      <span
+        v-if="unreadCount > 0"
+        class="absolute -top-1 -right-1 w-5 h-5 bg-construct-red text-white text-xs font-bold rounded-full flex items-center justify-center"
+      >
+        {{ unreadCount > 9 ? '9+' : unreadCount }}
+      </span>
+    </button>
+
+    <Transition name="notification-dropdown">
+      <div
+        v-if="isOpen"
+        class="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden"
+      >
+        <!-- Header -->
+        <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+          <h3 class="font-display text-sm font-bold tracking-tight">
+            {{ t('admin_notifications_title') || 'Notifications' }}
+          </h3>
+          <button
+            v-if="unreadCount > 0"
+            @click="markAllAsRead"
+            class="text-xs font-bold tracking-widest text-construct-red hover:underline uppercase"
+          >
+            {{ t('admin_mark_all_read') || 'Mark All Read' }}
+          </button>
+        </div>
+
+        <!-- Notification List -->
+        <div class="max-h-96 overflow-y-auto">
+          <div v-if="notifications.length === 0" class="p-8 text-center text-gray-400 dark:text-gray-500">
+            <Bell size="32" class="mx-auto mb-3 opacity-30" />
+            <p class="text-xs font-bold tracking-widest uppercase">
+              {{ t('admin_no_notifications') || 'No Notifications' }}
+            </p>
+          </div>
+
+          <div
+            v-for="notification in notifications"
+            :key="notification.id"
+            @click="markAsRead(notification.id)"
+            class="group flex gap-3 px-4 py-3 border-b border-gray-100 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer"
+            :class="{ 'bg-gray-50/50 dark:bg-gray-700/30': !notification.read }"
+          >
+            <!-- Icon -->
+            <div
+              class="shrink-0 w-8 h-8 rounded-full flex items-center justify-center"
+              :class="typeConfig[notification.type]?.bg || typeConfig.info.bg"
+            >
+              <component
+                :is="typeConfig[notification.type]?.icon || typeConfig.info.icon"
+                :class="['w-4 h-4', typeConfig[notification.type]?.color || typeConfig.info.color]"
+              />
+            </div>
+
+            <!-- Content -->
+            <div class="flex-1 min-w-0">
+              <div class="flex items-start justify-between gap-2">
+                <h4 class="text-sm font-bold truncate" :class="notification.read ? 'text-gray-600 dark:text-gray-400' : 'text-gray-900 dark:text-white'">
+                  {{ notification.title }}
+                </h4>
+                <span
+                  v-if="!notification.read"
+                  class="shrink-0 w-2 h-2 bg-construct-red rounded-full mt-1.5"
+                />
+              </div>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
+                {{ notification.message }}
+              </p>
+              <div class="flex items-center justify-between mt-2">
+                <span class="text-[10px] font-bold tracking-widest text-gray-400 dark:text-gray-500 uppercase">
+                  {{ formatTime(notification.created_at) }}
+                </span>
+                <button
+                  @click.stop="deleteNotification(notification.id)"
+                  class="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-all"
+                >
+                  <Trash2 size="12" class="text-gray-400 hover:text-red-500" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="px-4 py-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+          <router-link
+            to="/admin/notifications"
+            @click="isOpen = false"
+            class="text-xs font-bold tracking-widest text-construct-red hover:underline uppercase text-center block"
+          >
+            {{ t('admin_view_all_notifications') || 'View All Notifications' }}
+          </router-link>
+        </div>
+      </div>
+    </Transition>
+  </div>
+</template>
+
+<style lang="scss" scoped>
+.notification-dropdown {
+  &-enter-active,
+  &-leave-active {
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+
+  &-enter-from,
+  &-leave-to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+</style>

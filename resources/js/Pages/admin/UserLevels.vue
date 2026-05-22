@@ -25,8 +25,8 @@ import {
   ChevronDown,
   UserLevelForm,
   ConfirmDialog,
-  AdminPagination,
-  AdminSearchFilter
+  Pagination,
+  SearchFilterModal
 } from '../../composables/useAdminImports';
 import { userLevels } from '../../data/user_levels';
 
@@ -162,7 +162,7 @@ const handleFilterChange = ({ key, value }) => {
       </div>
     </div>
 
-    <AdminSearchFilter
+    <SearchFilterModal
       v-model:search-query="searchQuery"
       :search-placeholder="t('admin_search_levels')"
       :filters="[
@@ -275,7 +275,7 @@ const handleFilterChange = ({ key, value }) => {
       </table>
     </div>
 
-    <AdminPagination
+    <Pagination
       :current-page="currentPage"
       :total-pages="totalPages"
       :total-items="filteredLevels.length"

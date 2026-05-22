@@ -29,8 +29,11 @@ import { commentsData } from '../../data/comments';
 import { useInteractionData } from '../../composables/useInteractionData';
 import { useSiteConfig } from '../../composables/useSiteConfig';
 import { usePageSeo } from '../../composables/usePageSeo';
+import { useAdSlot } from '../../composables/useAdSlot';
+import AdSlot from '../../components/front/AdSlot.vue';
 
 const { hasUserLiked, getLikesByTarget } = useInteractionData();
+const { getSingleAd } = useAdSlot();
 
 const { t } = useI18n();
 const route = useRoute();
@@ -54,6 +57,10 @@ const getAuthorName = (authorId) => {
 const post = computed(() => {
   const foundPost = findById(POSTS, route.params.id);
   return foundPost || POSTS[0];
+});
+
+const inContentAd = computed(() => {
+  return getSingleAd('in_content');
 });
 
 usePageSeo({
@@ -313,7 +320,7 @@ onUnmounted(() => {
       <!-- 中间：文章内容 -->
       <div class="md:col-span-8 max-w-4xl order-2">
         <div class="prose prose-lg font-medium text-lg md:text-xl leading-relaxed text-construct-black space-y-8">
-          <MarkdownRenderer :content="post.content" />
+          <MarkdownRenderer :content="post.content" :in-content-ad="inContentAd" />
         </div>
 
         <div class="mt-24 pt-16 border-t-4 border-construct-black">
@@ -355,6 +362,9 @@ onUnmounted(() => {
 
       <!-- 右侧：文章元数据 -->
       <aside class="md:col-span-2 space-y-8 md:space-y-12 order-3">
+        <!-- Sidebar Ad -->
+        <AdSlot position="sidebar" class="mb-8" />
+
         <div class="relative md:sticky md:top-24">
           <div class="mb-4">
             <button

@@ -5,6 +5,7 @@
  * - 存储网站基本配置信息
  * - 包含站点名称、描述、URL、图标、语言、时区等设置
  * - 包含性能优化和CDN配置
+ * - 包含功能开关配置
  * 
  * 配置项说明：
  * - name: 网站名称
@@ -23,6 +24,13 @@
  * - lazyLoadImages: 是否启用图片懒加载
  * - enableCDN: 是否启用CDN加速
  * - cdnUrl: CDN加速URL（如 https://cdn.example.com）
+ * - allowRegistration: 是否允许用户注册
+ * - requireCommentApproval: 评论是否需要审核
+ * - maxUploadSize: 文件上传限制（MB）
+ * - allowedFileTypes: 允许上传的文件类型
+ * - enableNewsletter: 是否启用邮件订阅功能
+ * - enableSocialLogin: 是否启用社交登录
+ * - enableSearch: 是否启用搜索功能
  */
 
 export const siteConfig = {
@@ -41,5 +49,16 @@ export const siteConfig = {
   enableMinification: true,
   lazyLoadImages: true,
   enableCDN: false,
-  cdnUrl: ''
+  cdnUrl: '',
+  
+  // 功能开关
+  allowRegistration: true,
+  requireCommentApproval: false,
+  enableNewsletter: true,
+  enableSocialLogin: false,
+  enableSearch: true,
+  
+  // 文件上传限制
+  maxUploadSize: 10,
+  allowedFileTypes: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf', 'doc', 'docx']
 };

@@ -37,11 +37,10 @@ import {
   BarChart3,
   Check,
   ConfirmDialog,
-  AdminPagination
+  Pagination
 } from '../../composables/useAdminImports';
 import { Motion, AnimatePresence } from 'motion-v';
 import { formatToShort } from '../../utils/dateUtils';
-import { adPositions } from '../../data/ad_positions';
 import { sampleAdvertisements } from '../../data/advertisements';
 
 const { t } = useI18n();
@@ -63,7 +62,7 @@ const filteredAds = computed(() => {
   return ads.value.filter(ad => {
     const matchesSearch = ad.title.toLowerCase().includes(searchQuery.value.toLowerCase());
     const matchesPosition = positionFilter.value === 'all' || ad.position === positionFilter.value;
-    const matchesStatus = statusFilter.value === 'all' || 
+    const matchesStatus = statusFilter.value === 'all' ||
       (statusFilter.value === 'active' && ad.is_active) ||
       (statusFilter.value === 'inactive' && !ad.is_active);
     return matchesSearch && matchesPosition && matchesStatus;
@@ -89,8 +88,14 @@ const getPositionIcon = (position) => {
 };
 
 const getPositionLabel = (position) => {
-  const pos = adPositions.find(p => p.value === position);
-  return pos ? t(pos.label_key) : position;
+  const labels = {
+    header: t('admin_ad_position_header'),
+    sidebar: t('admin_ad_position_sidebar'),
+    footer: t('admin_ad_position_footer'),
+    between_posts: t('admin_ad_position_between_posts'),
+    popup: t('admin_ad_position_popup')
+  };
+  return labels[position] || position;
 };
 
 const toggleStatus = (ad) => {
@@ -373,7 +378,7 @@ const getCtr = (ad) => {
 
     <!-- Pagination -->
     <div class="mt-10">
-      <AdminPagination
+      <Pagination
         :current-page="currentPage"
         :total-pages="totalPages"
         :total-items="filteredAds.length"

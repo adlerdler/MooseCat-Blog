@@ -50,11 +50,13 @@ import {
   Crown,
   Mail,
   LayoutPanelLeft,
-  Languages
+  Languages,
+  Bell
 } from 'lucide-vue-next';
 import ThemeToggle from '../../components/ThemeToggle.vue';
 import ToastContainer from '../../components/ToastContainer.vue';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
+import NotificationBell from '../../components/NotificationBell.vue';
 import { useTheme } from '../../composables/useTheme';
 import { useMenuItems } from '../../composables/useMenuItems';
 
@@ -135,6 +137,10 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize);
+  if (leaveTimeout) {
+    clearTimeout(leaveTimeout);
+    leaveTimeout = null;
+  }
 });
 
 const toggleSidebarCollapse = () => {
@@ -171,7 +177,8 @@ const iconMap = {
   Crown,
   Mail,
   LayoutPanelLeft,
-  Languages
+  Languages,
+  Bell
 };
 
 const menuItems = computed(() => {
@@ -282,6 +289,9 @@ const clearCache = () => {
 
         <!-- Theme Toggle -->
         <ThemeToggle />
+
+        <!-- Notification Bell -->
+        <NotificationBell />
 
         <!-- Clear Cache -->
         <button

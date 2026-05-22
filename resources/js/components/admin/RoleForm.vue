@@ -1,22 +1,24 @@
 <script setup>
 /**
  * RoleForm.vue - 角色管理表单组件
- * 
+ *
+ * 基于 Spatie/laravel-permission 方案 + 扩展字段。
+ *
  * 功能说明：
  * - 支持角色的新增/编辑
- * - 包含角色名称、描述、权限字段
- * - 权限支持多选
- * 
+ * - 包含角色名称(name)、标签(label)、描述(description)、颜色(color)、守卫(guard_name)字段
+ * - 权限支持多选，按守卫分组显示
+ *
  * 使用示例：
  * <RoleForm :edit-data="editingRole" :visible="isFormVisible" @save="handleSave" @cancel="handleCancel" />
  */
 import { ref, computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { X, Save, Check } from 'lucide-vue-next';
+import { X, Save, Check, Palette } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
 import { useRolePermissions } from '../../composables/useRolePermissions';
 
-const { availablePermissions, permissions, getPermissionIdsByRoleId } = useRolePermissions();
+const { availablePermissions, permissions, getPermissionIdsByRoleId, GUARD_LABELS, COLOR_MAP } = useRolePermissions();
 
 const { t } = useI18n();
 
@@ -43,25 +45,45 @@ const formTitle = computed(() => {
 
 const formData = ref({});
 
+const colorOptions = [
+  { value: 'red', label: 'Red', class: 'bg-red-600 border-red-500' },
+  { value: 'blue', label: 'Blue', class: 'bg-blue-600 border-blue-500' },
+  { value: 'green', label: 'Green', class: 'bg-green-600 border-green-500' },
+  { value: 'purple', label: 'Purple', class: 'bg-purple-600 border-purple-500' },
+  { value: 'gray', label: 'Gray', class: 'bg-gray-600 border-gray-500' },
+  { value: 'yellow', label: 'Yellow', class: 'bg-yellow-500 border-yellow-400' },
+  { value: 'cyan', label: 'Cyan', class: 'bg-cyan-600 border-cyan-500' },
+  { value: 'orange', label: 'Orange', class: 'bg-orange-600 border-orange-500' },
+  { value: 'pink', label: 'Pink', class: 'bg-pink-600 border-pink-500' }
+];
+
+const guardOptions = ['web', 'api', 'admin'];
+
 const initFormData = () => {
   formData.value = {
     name: '',
+    label: '',
     description: '',
+    color: 'blue',
+    guard_name: 'web',
     permissions: []
   };
 };
 
-/**
- * 根据角色ID获取角色的权限名称列表
- * @param {number} roleId - 角色ID
- * @returns {string[]} 权限名称数组
- */
+const getRolePermissionIds = (roleId) => {
+  return getPermissionIdsByRoleId(roleId);
+};
+
 const getRolePermissionNames = (roleId) => {
-  const permissionIds = getPermissionIdsByRoleId(roleId);
+  const permissionIds = getRolePermissionIds(roleId);
   return permissionIds.map(id => {
     const permission = permissions.find(p => p.id === id);
-    return permission ? permission.label : '';
+    return permission ? permission.name : '';
   }).filter(Boolean);
+};
+
+const getPermissionsByGuard = (guardName) => {
+  return availablePermissions.filter(p => p.guard_name === guardName);
 };
 
 watch(() => props.visible, (newVal) => {
@@ -93,7 +115,7 @@ const handleSubmit = () => {
   if (!formData.value.name.trim() || !formData.value.description.trim()) {
     return;
   }
-  
+
   emit('save', { ...formData.value });
 };
 
@@ -105,17 +127,14 @@ const handleCancel = () => {
 <template>
   <Transition name="modal">
     <div v-if="visible" class="fixed inset-0 z-[100] flex items-center justify-center">
-      <!-- Backdrop -->
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="handleCancel" />
 
-      <!-- Modal -->
       <div
         :class="[
-          'relative w-full max-w-2xl mx-4 rounded-xl shadow-2xl overflow-hidden',
+          'relative w-full max-w-2xl mx-4 rounded-xl shadow-2xl overflow-hidden max-h-[90vh]',
           isDarkMode ? 'bg-gray-800' : 'bg-white'
         ]"
       >
-        <!-- Header -->
         <div
           :class="[
             'flex items-center justify-between p-6 border-b',
@@ -136,76 +155,147 @@ const handleCancel = () => {
           </button>
         </div>
 
-        <!-- Body -->
-        <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
-          <!-- Role Name -->
-          <div>
-            <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
-              {{ t('admin_role_form_name') }} *
-            </label>
-            <input
-              v-model="formData.name"
-              type="text"
-              :class="[
-                'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
-                isDarkMode 
-                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-              ]"
-              placeholder="输入角色名称..."
-            />
+        <div class="p-6 space-y-4 max-h-[calc(90vh-140px)] overflow-y-auto">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
+                {{ t('admin_role_form_name') }} *
+              </label>
+              <input
+                v-model="formData.name"
+                type="text"
+                :class="[
+                  'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
+                  isDarkMode
+                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                ]"
+                placeholder="e.g., admin, editor"
+              />
+              <p :class="['text-xs mt-1', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
+                Unique identifier, use lowercase
+              </p>
+            </div>
+
+            <div>
+              <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
+                {{ t('admin_role_form_label') }}
+              </label>
+              <input
+                v-model="formData.label"
+                type="text"
+                :class="[
+                  'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red uppercase',
+                  isDarkMode
+                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                ]"
+                placeholder="e.g., ADMIN, EDITOR"
+              />
+              <p :class="['text-xs mt-1', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
+                For i18n display
+              </p>
+            </div>
           </div>
 
-          <!-- Description -->
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
+                <Palette class="inline w-4 h-4 mr-1" />
+                {{ t('admin_role_form_color') }}
+              </label>
+              <div class="flex flex-wrap gap-2">
+                <button
+                  v-for="color in colorOptions"
+                  :key="color.value"
+                  type="button"
+                  @click="formData.color = color.value"
+                  :class="[
+                    'w-8 h-8 rounded-full border-2 transition-all',
+                    formData.color === color.value ? 'border-gray-900 scale-110' : 'border-transparent hover:scale-105',
+                    color.class
+                  ]"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
+                {{ t('admin_role_form_guard') }}
+              </label>
+              <select
+                v-model="formData.guard_name"
+                :class="[
+                  'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
+                  isDarkMode
+                    ? 'bg-gray-700 border-gray-600 text-white'
+                    : 'bg-white border-gray-300 text-gray-900'
+                ]"
+              >
+                <option v-for="guard in guardOptions" :key="guard" :value="guard">
+                  {{ GUARD_LABELS[guard] || guard }}
+                </option>
+              </select>
+              <p :class="['text-xs mt-1', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
+                Controls which guard this role applies to
+              </p>
+            </div>
+          </div>
+
           <div>
             <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
               {{ t('admin_role_form_description') }} *
             </label>
             <textarea
               v-model="formData.description"
-              rows="3"
+              rows="2"
               :class="[
                 'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red resize-none',
-                isDarkMode 
-                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                isDarkMode
+                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
                   : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
               ]"
-              placeholder="输入角色描述..."
+              placeholder="Describe this role's purpose..."
             ></textarea>
           </div>
 
-          <!-- Permissions -->
           <div>
             <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
               {{ t('admin_role_form_permissions') }}
             </label>
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-              <button
-                v-for="permission in availablePermissions"
-                :key="permission"
-                type="button"
-                @click="togglePermission(permission)"
-                :class="[
-                  'flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-bold transition-colors',
-                  hasPermission(permission)
-                    ? 'bg-construct-red border-construct-red text-white'
-                    : isDarkMode 
-                      ? 'bg-gray-700 border-gray-600 text-gray-300 hover:border-gray-500' 
-                      : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
-                ]"
-              >
-                <Check v-if="hasPermission(permission)" class="w-4 h-4" />
-                <div v-else class="w-4 h-4" />
-                {{ t('admin_permission_' + permission.toLowerCase().replace(' ', '_')) }}
-              </button>
+
+            <div v-for="guard in guardOptions" :key="guard" class="mb-4">
+              <div :class="['text-xs font-bold uppercase tracking-wider mb-2', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
+                {{ GUARD_LABELS[guard] || guard }} Permissions
+              </div>
+              <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
+                <button
+                  v-for="permission in getPermissionsByGuard(guard)"
+                  :key="permission.name"
+                  type="button"
+                  @click="togglePermission(permission.name)"
+                  :class="[
+                    'flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium transition-colors',
+                    hasPermission(permission.name)
+                      ? 'bg-construct-red border-construct-red text-white'
+                      : isDarkMode
+                        ? 'bg-gray-700 border-gray-600 text-gray-300 hover:border-gray-500'
+                        : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
+                  ]"
+                >
+                  <Check v-if="hasPermission(permission.name)" class="w-4 h-4 flex-shrink-0" />
+                  <div v-else class="w-4 h-4 flex-shrink-0" />
+                  <span class="truncate">{{ permission.label }}</span>
+                </button>
+              </div>
             </div>
+
             <p :class="['text-xs mt-2', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
-              {{ t('admin_role_form_selected') }} {{ formData.permissions.length }}
+              {{ t('admin_role_form_selected') }}: {{ formData.permissions.length }}
             </p>
           </div>
         </div>
 
-        <!-- Footer -->
         <div
           :class="[
             'flex gap-3 p-6 border-t',
@@ -216,8 +306,8 @@ const handleCancel = () => {
             @click="handleCancel"
             :class="[
               'flex-1 px-6 py-3 font-bold tracking-widest uppercase text-sm transition-colors rounded border',
-              isDarkMode 
-                ? 'border-gray-600 text-gray-300 hover:bg-gray-700' 
+              isDarkMode
+                ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
                 : 'border-gray-300 text-gray-700 hover:bg-gray-100'
             ]"
           >

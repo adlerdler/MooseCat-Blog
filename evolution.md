@@ -633,6 +633,63 @@
   - 调整为正确的 GitHub 用户名。
   - 修复 `fetchGitHubData` 错误处理逻辑，提供更清晰的错误提示。
 
+### 2026-05-22: 多语言与组件系统全面重构 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 完成多语言管理模块建设，重构 Toast 通知系统，拆分 ContentForm 为独立业务组件。
+- **Rationale:**
+  - 需要统一的多语言管理界面，支持动态添加和编辑翻译键值。
+  - Toast 通知系统需要统一的全局管理，避免各页面重复实现。
+  - ContentForm 违反单一职责原则，需要拆分为独立的表单组件。
+- **Status:**
+  - 新增 `I18nManager.vue` 多语言管理页面，支持 EN/ZH/ZH-TW 三语管理。
+  - 重构 Toast 通知系统，创建 `useToast.js` composable 统一管理全局提示。
+  - 拆分 `ContentForm.vue` 为 5 个独立组件：`PostForm.vue`、`VideoForm.vue`、`ProjectForm.vue`、`ResourceForm.vue`、`SocialLinkForm.vue`。
+  - 创建 `ContentFormModal.vue` 作为统一的模态框容器。
+  - 移除各组件中的硬编码数据，统一通过 props 传递。
+  - 修复 `TagInput.vue`、`ConfirmDialog.vue` 等组件的代码问题。
+  - 补充 CDN 与性能配置页面，优化站点配置结构。
+  - 更新 49 个文件，新增 3295 行代码，删除 815 行代码。
+
+### 2026-05-22: ContentForm.vue 拆分重构 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 将原 `ContentForm.vue` 拆分为独立的表单组件，创建统一的 `ContentFormModal.vue` 作为模态框容器。
+- **Rationale:**
+  - 原 `ContentForm.vue` 同时处理 5 种内容类型（文章、视频、项目、资源、社交链接），文件过大（>1000行），难以维护。
+  - 字段定义混乱，新增内容类型需要修改核心代码，违反单一职责原则。
+- **Status:**
+  - 创建 5 个独立表单组件：`PostForm.vue`、`VideoForm.vue`、`ProjectForm.vue`、`ResourceForm.vue`、`SocialLinkForm.vue`。
+  - 创建 `ContentFormModal.vue` 作为统一的模态框容器，提供保存/取消交互。
+  - 各表单组件专注于自身字段逻辑，结构清晰，易于维护。
+
+### 2026-05-22: 组件命名规范统一 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 统一管理后台组件命名规范，采用后缀式命名。
+- **Rationale:**
+  - 原组件命名风格不一致：`ToastNotification`（完整式）、`AdminPagination`（前缀式）、`TagInput`（简洁式）。
+  - 推荐使用 `XxxModal`、`XxxForm`、`XxxList` 等后缀式命名，提高代码可读性和可维护性。
+- **Status:**
+  - `AdminSearchFilter.vue` → `SearchFilterModal.vue`
+  - `AdminPagination.vue` → `Pagination.vue`
+  - `ToastNotification.vue` → `ToastMessage.vue`
+  - 更新 `useAdminImports.js` 导出名称。
+  - 更新 12 个管理后台页面的组件引用（Restore.vue、Posts.vue、Media.vue、FrontMenu.vue、Tags.vue、Comments.vue、Roles.vue、Users.vue、Advertisements.vue、Categories.vue、Logs.vue、UserLevels.vue）。
+
+### 2026-05-21: 代码结构重构与数据逻辑统一 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 重构代码结构，统一提取数据逻辑到组合式函数（Composables）。
+- **Rationale:**
+  - 各数据文件中存在重复的工具函数，需要统一提取到对应的 composable。
+  - 前台页面使用硬编码的 title 和 meta 标签，需要改为动态 SEO 管理。
+  - `settings.js` 中存在未使用的 `appearance` 配置，需要清理。
+- **Status:**
+  - 新增 `usePageSeo.js`、`usePageSeoData.js` 等多个组合式函数统一管理 SEO 逻辑。
+  - 重构前台页面移除硬编码的 title 和 meta 标签，改用动态 SEO 管理。
+  - 新增 `useFooterData.js`、`useInteractionData.js`、`useJournalData.js`、`useSiteConfig.js` 等 composables。
+  - 清理 `settings.js` 中未使用的 `appearance` 配置。
+  - 移除各数据文件中的剩余工具函数，统一提取到对应 composable。
+  - 更新多语言文件新增 SEO 管理菜单。
+  - 更新 59 个文件，新增 1503 行代码，删除 1925 行代码。
+
 ### 2026-05-21: 管理后台搜索与筛选组件统一改造 (by Trae)
 - **Developer:** Trae (AI)
 - **Decision:** 为所有管理后台页面统一引入 `AdminSearchFilter` 公共搜索组件，并改造为表格布局。
@@ -644,3 +701,24 @@
   - `Advertisements.vue`：集成 AdminSearchFilter，改造为表格布局，包含标题、位置、状态、展示次数、操作列。
   - 搜索和分页完美配合，搜索时自动重置页码。
   - 构建验证通过，无编译错误。
+
+### 2026-05-20: 静态数据管理重构与配置分离 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 重构静态数据管理，将配置分离到独立文件，优化数据结构。
+- **Rationale:**
+  - 首页数据分散在多个文件中，需要内联到 `Home.vue` 统一管理。
+  - 主题配置需要抽离到独立文件，便于维护。
+  - 需要统一的网站基础配置和 SEO 优化配置管理。
+  - 业务数据（广告位、订阅者、日记等）需要独立文件管理。
+- **Status:**
+  - 将首页数据内联到 `Home.vue`，删除剩余的 `home.js`。
+  - 将主题配置抽离到 `themes.js`，重构 `useTheme` 组合式函数。
+  - 新增 `site_config.js` 统一管理网站基础配置。
+  - 新增 `seo_config.js` 管理 SEO 优化配置。
+  - 新增 `ad_positions.js`、`subscribers.js`、`journals.js` 等业务数据文件。
+  - 重构作者数据模型，抽离社交链接、技能数据关联逻辑。
+  - 调整菜单排序和后台菜单项，新增日记、订阅者管理菜单。
+  - 新增 `MaintenanceMode.vue` 维护模式页面和路由守卫逻辑。
+  - 重构评论组件，添加点赞互动功能。
+  - 更新多语言文件，补充后台管理页面的新功能翻译。
+  - 更新 43 个文件，新增 5028 行代码，删除 1068 行代码。

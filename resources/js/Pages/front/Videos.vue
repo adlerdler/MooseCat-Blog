@@ -12,7 +12,7 @@
  * - Hover 动画效果
  * - 点击跳转到视频详情页
  */
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { RouterLink } from 'vue-router';
 import { Motion, AnimatePresence } from 'motion-v';
 import { useTheme } from '../../composables/useTheme';
@@ -20,6 +20,7 @@ import { usePageSeo } from '../../composables/usePageSeo';
 import { usePageSeoData } from '../../composables/usePageSeoData';
 import { VIDEOS } from '../../data/videos';
 import { useI18n } from 'vue-i18n';
+import { useAdSlot } from '../../composables/useAdSlot';
 
 const { getSeoByRoute } = usePageSeoData();
 const pageSeo = getSeoByRoute('videos')
@@ -35,6 +36,26 @@ usePageSeo({
 const { t } = useI18n();
 const { initAccentTheme } = useTheme();
 const isFooterVisible = ref(true);
+
+const { getActiveAds } = useAdSlot();
+const AD_INTERVAL = 3;
+
+const mixedVideosWithAds = computed(() => {
+  const result = [];
+  let adIndex = 0;
+  const ads = getActiveAds('between_posts');
+
+  VIDEOS.forEach((video, index) => {
+    result.push({ type: 'content', data: video, originalIndex: index });
+
+    if ((index + 1) % AD_INTERVAL === 0 && index < VIDEOS.length - 1 && ads[adIndex]) {
+      result.push({ type: 'ad', data: ads[adIndex], adIndex: adIndex });
+      adIndex++;
+    }
+  });
+
+  return result;
+});
 
 onMounted(() => {
   initAccentTheme();
@@ -56,6 +77,11 @@ onMounted(() => {
 
     <!-- Main Content with left margin for sidebar -->
     <div class="ml-16">
+     
+ <!-- Header Banner Ad -->
+      <section class="bg-construct-black">
+        <AdSlot position="header" />
+      </section>
       <div class="container mx-auto px-4 md:px-8 py-16">
         <header class="mb-16">
           <h1 class="font-display text-6xl md:text-6xl lg:text-8xl tracking-tighter leading-none mb-6">
@@ -67,30 +93,60 @@ onMounted(() => {
         </header>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <Motion
-            v-for="(video, idx) in VIDEOS"
-            :key="video.id"
-            :initial="{ opacity: 0, y: 20 }"
-            :animate="{ opacity: 1, y: 0 }"
-            :transition="{ delay: idx * 0.1 }"
-            class="group block border-4 border-construct-black hover:border-construct-red transition-colors"
-          >
-            <RouterLink :to="`/videos/${video.id}`">
-              <img
-                :src="video.thumbnail"
-                :alt="video.title"
-                class="w-full h-48 object-cover"
-              />
-              <div class="p-6">
-                <h3 class="font-display text-xl tracking-tighter mb-2 group-hover:text-construct-red transition-colors">
-                  {{ video.title }}
-                </h3>
-                <p class="text-xs opacity-60 font-medium">
-                  {{ video.published_at }} // {{ video.platform.toUpperCase() }}
-                </p>
-              </div>
-            </RouterLink>
-          </Motion>
+          <template v-for="item in mixedVideosWithAds" :key="item.type === 'ad' ? `ad-${item.adIndex}` : item.data.id">
+            <!-- Ad Card -->
+            <Motion
+              v-if="item.type === 'ad'"
+              :initial="{ opacity: 0, y: 20 }"
+              :animate="{ opacity: 1, y: 0 }"
+              class="group block border-4 border-construct-black hover:border-construct-red transition-colors"
+            >
+              <a :href="item.data.link_url" target="_blank" rel="noopener noreferrer">
+                <div class="aspect-video bg-construct-black relative overflow-hidden">
+                  <img
+                    :src="item.data.image_url"
+                    :alt="item.data.title"
+                    class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                  />
+                  <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+                  <div class="absolute bottom-4 left-4 right-4">
+                    <span class="text-[10px] font-black tracking-widest text-construct-red uppercase">SPONSORED</span>
+                    <h3 class="font-display text-lg tracking-tight text-white mt-2 leading-tight">
+                      {{ item.data.title }}
+                    </h3>
+                    <span class="text-[10px] font-bold tracking-widest text-white/60 uppercase mt-2 block">
+                      Learn More →
+                    </span>
+                  </div>
+                </div>
+              </a>
+            </Motion>
+
+            <!-- Content Card -->
+            <Motion
+              v-else
+              :initial="{ opacity: 0, y: 20 }"
+              :animate="{ opacity: 1, y: 0 }"
+              :transition="{ delay: item.originalIndex * 0.1 }"
+              class="group block border-4 border-construct-black hover:border-construct-red transition-colors"
+            >
+              <RouterLink :to="`/videos/${item.data.id}`">
+                <img
+                  :src="item.data.thumbnail"
+                  :alt="item.data.title"
+                  class="w-full h-48 object-cover"
+                />
+                <div class="p-6">
+                  <h3 class="font-display text-xl tracking-tighter mb-2 group-hover:text-construct-red transition-colors">
+                    {{ item.data.title }}
+                  </h3>
+                  <p class="text-xs opacity-60 font-medium">
+                    {{ item.data.published_at }} // {{ item.data.platform.toUpperCase() }}
+                  </p>
+                </div>
+              </RouterLink>
+            </Motion>
+          </template>
         </div>
       </div>
 

@@ -26,8 +26,8 @@ import { useTheme } from '../../composables/useTheme';
 import { formatToShort } from '../../utils/dateUtils';
 import ProjectForm from '../../components/admin/ProjectForm.vue';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
-import AdminPagination from '../../components/admin/AdminPagination.vue';
-import AdminSearchFilter from '../../components/admin/AdminSearchFilter.vue';
+import Pagination from '../../components/admin/Pagination.vue';
+import SearchFilterModal from '../../components/admin/SearchFilterModal.vue';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
@@ -170,7 +170,7 @@ const handleFilterChange = ({ key, value }) => {
     </div>
 
     <!-- Toolbar -->
-    <AdminSearchFilter
+    <SearchFilterModal
       v-model:search-query="searchQuery"
       :search-placeholder="t('admin_search_placeholder')"
       :filters="[
@@ -221,16 +221,6 @@ const handleFilterChange = ({ key, value }) => {
           <h3 :class="['font-bold mb-2 line-clamp-2', isDarkMode ? 'text-white' : 'text-gray-900']">{{ project.title }}</h3>
           <p :class="['text-sm mb-4 line-clamp-3', isDarkMode ? 'text-gray-400' : 'text-gray-600']">{{ project.description }}</p>
           
-          <div class="flex flex-wrap gap-1 mb-4">
-            <span
-              v-for="tech in (project.technologies || []).slice(0, 3)"
-              :key="tech"
-              :class="['text-[10px] px-2 py-0.5 uppercase', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600']"
-            >
-              #{{ tech }}
-            </span>
-          </div>
-          
           <div :class="['flex items-center justify-between pt-3 border-t', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
             <div :class="['flex items-center gap-2 text-xs', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
               <Clock size="14" />
@@ -238,20 +228,26 @@ const handleFilterChange = ({ key, value }) => {
             </div>
             
             <div class="flex gap-2">
-              <button
+              <a
                 v-if="project.github_url"
+                :href="project.github_url"
+                target="_blank"
+                rel="noopener noreferrer"
                 :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:text-white hover:bg-gray-700' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100']"
                 :title="'GitHub'"
               >
                 <Github size="16" />
-              </button>
-              <button
+              </a>
+              <a
                 v-if="project.url"
+                :href="project.url"
+                target="_blank"
+                rel="noopener noreferrer"
                 :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:text-white hover:bg-gray-700' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100']"
                 :title="'Live Demo'"
               >
                 <ExternalLink size="16" />
-              </button>
+              </a>
               <button
                 @click="handleEdit(project)"
                 :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:text-blue-400 hover:bg-gray-700' : 'text-gray-500 hover:text-blue-500 hover:bg-gray-100']"
@@ -273,7 +269,7 @@ const handleFilterChange = ({ key, value }) => {
     </div>
 
     <!-- Pagination -->
-    <AdminPagination
+    <Pagination
       :current-page="currentPage"
       :total-pages="totalPages"
       :total-items="filteredProjects.length"

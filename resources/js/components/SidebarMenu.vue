@@ -1,18 +1,18 @@
 <script setup>
 /**
  * SidebarMenu.vue - 侧边栏菜单组件
- * 
+ *
  * 功能说明：
  * - 网站主导航侧边栏
  * - 响应式设计，移动端可折叠
  * - 集成设置面板和搜索功能
- * 
+ *
  * 功能模块：
  * - 主导航链接（首页/博客/视频/项目/资源/关于）
  * - 设置面板（主题/语言）
  * - 搜索覆盖层
  * - Footer 显示控制
- * 
+ *
  * 使用示例：
  * <SidebarMenu v-model:is-footer-visible="isFooterVisible" />
  */
@@ -24,15 +24,56 @@ import SearchOverlay from './SearchOverlay.vue';
 import { useI18n } from 'vue-i18n';
 import { useSiteConfig } from '../composables/useSiteConfig';
 import { POSTS } from '../data/posts';
+import { VIDEOS } from '../data/videos';
+import { PROJECTS } from '../data/projects';
+import { resourcesData } from '../data/resources';
 
 const { getSiteName, getSiteCopyright } = useSiteConfig();
 
 const searchPosts = computed(() => {
-  return POSTS.map(post => ({
-    id: post.id,
-    title: post.title,
-    excerpt: post.excerpt
-  }))
+  const allContent = [];
+
+  POSTS.forEach(post => {
+    allContent.push({
+      id: post.id,
+      type: 'post',
+      title: post.title,
+      excerpt: post.excerpt,
+      route: `/blog/${post.slug}`
+    });
+  });
+
+  VIDEOS.forEach(video => {
+    allContent.push({
+      id: video.id,
+      type: 'video',
+      title: video.title,
+      excerpt: video.description,
+      route: `/videos/${video.id}`
+    });
+  });
+
+  PROJECTS.forEach(project => {
+    allContent.push({
+      id: project.id,
+      type: 'project',
+      title: project.title,
+      excerpt: project.description,
+      route: `/projects/${project.id}`
+    });
+  });
+
+  resourcesData.forEach(resource => {
+    allContent.push({
+      id: resource.id,
+      type: 'resource',
+      title: resource.title,
+      excerpt: resource.description,
+      route: '/resources'
+    });
+  });
+
+  return allContent;
 });
 
 import { useMenuItems } from '../composables/useMenuItems';

@@ -32,7 +32,7 @@ import { adminUsers } from '../../data/users';
 import { findById, findIndexById } from '../../utils/typeConvert';
 import JournalForm from '../../components/admin/JournalForm.vue';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
-import AdminSearchFilter from '../../components/admin/AdminSearchFilter.vue';
+import SearchFilterModal from '../../components/admin/SearchFilterModal.vue';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
@@ -207,7 +207,7 @@ const clearFilters = () => {
       <span class="font-medium">保存成功！</span>
     </div>
 
-    <AdminSearchFilter
+    <SearchFilterModal
       v-model:search-query="searchQuery"
       :search-placeholder="'搜索日志标题或内容...'"
       :filters="[

@@ -18,15 +18,19 @@ import { Motion, AnimatePresence } from 'motion-v';
 import { useTheme } from '../../composables/useTheme';
 import { usePageSeo } from '../../composables/usePageSeo';
 import { PROJECTS } from '../../data/projects';
-import { findById, formatId } from '../../utils/typeConvert';
+import { formatId } from '../../utils/typeConvert';
 import { ExternalLink, Github, ArrowLeft, ArrowUp, Terminal, Cpu, Layers, Globe, Code } from 'lucide-vue-next';
+import AdSlot from '../../components/front/AdSlot.vue';
 
 const { initAccentTheme } = useTheme();
 const route = useRoute();
 const router = useRouter();
 
 const project = computed(() => {
-  return findById(PROJECTS, route.params.id);
+  const id = Number(route.params.id);
+  const p = PROJECTS.find(proj => proj.id === id);
+  console.log('Project lookup:', { id, routeId: route.params.id, found: !!p, url: p?.url });
+  return p;
 });
 
 usePageSeo({
@@ -55,6 +59,8 @@ watch(project, () => {
   updatePageTitle();
 }, { immediate: true });
 
+const iframeError = ref(false);
+const iframeLoading = ref(true);
 const showBackToTop = ref(false);
 
 const handleScroll = () => {
@@ -67,6 +73,14 @@ onMounted(() => {
   document.documentElement.classList.remove('light');
   updatePageTitle();
   window.addEventListener('scroll', handleScroll);
+
+  // 超时检测：如果 iframe 5 秒后还在 loading，认为加载失败
+  setTimeout(() => {
+    if (iframeLoading.value) {
+      iframeError.value = true;
+      iframeLoading.value = false;
+    }
+  }, 5000);
 });
 
 onUnmounted(() => {
@@ -74,7 +88,7 @@ onUnmounted(() => {
 });
 
 const goBack = () => {
-  router.back();
+  router.push('/projects');
 };
 
 const scrollToTop = () => {
@@ -220,7 +234,7 @@ const scrollToTop = () => {
           <Motion
             v-if="project.url"
             :initial="{ opacity: 0 }"
-            :visible-once="{ opacity: 1 }"
+            :animate="{ opacity: 1 }"
             class="mb-24"
           >
             <div class="bg-construct-black text-white p-4 flex items-center justify-between border-x-4 border-t-4 border-construct-black">
@@ -234,12 +248,36 @@ const scrollToTop = () => {
                 <div class="w-2 h-2 rounded-full bg-construct-red" />
               </div>
             </div>
-            <div class="w-full aspect-video border-4 border-construct-black bg-white shadow-2xl relative">
+            <div class="w-full aspect-video border-4 border-construct-black bg-white shadow-2xl relative overflow-hidden">
+              <div v-if="iframeLoading && !iframeError" class="absolute inset-0 flex items-center justify-center bg-gray-100 z-10">
+                <div class="text-center">
+                  <div class="w-8 h-8 border-4 border-construct-black border-t-construct-red animate-spin mx-auto mb-4"></div>
+                  <p class="text-xs font-bold tracking-widest uppercase opacity-60">Loading...</p>
+                </div>
+              </div>
               <iframe
+                v-if="!iframeError"
                 :src="project.url"
                 class="w-full h-full"
                 :title="project.title"
+                @load="iframeLoading = false"
+                @error="iframeError = true"
+                sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"
               />
+              <div v-if="iframeError" class="w-full h-full flex flex-col items-center justify-center bg-gray-900 text-white">
+                <Globe size="48" class="mb-4 opacity-40" />
+                <p class="text-sm font-bold tracking-widest uppercase mb-2">Preview Blocked</p>
+                <p class="text-xs opacity-60 mb-4">This site prevents iframe embedding</p>
+                <a
+                  :href="project.url"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="flex items-center gap-2 bg-construct-red text-white px-4 py-2 text-xs font-bold tracking-widest uppercase hover:bg-white hover:text-construct-black transition-colors"
+                >
+                  <ExternalLink size="14" />
+                  Open in New Tab
+                </a>
+              </div>
               <div class="absolute bottom-4 right-4 pointer-events-none">
                 <div class="bg-construct-red text-white text-[8px] font-black tracking-widest px-2 py-1 flex items-center gap-2">
                   <Terminal size="10" /> LINKED_IFRAME_PROTOCOL
@@ -251,6 +289,9 @@ const scrollToTop = () => {
 
         <!-- 右列：技术规格 / 固定 -->
         <aside class="lg:col-span-4 lg:sticky lg:top-24 xl:top-32 lg:h-fit">
+          <!-- Sidebar Ad -->
+          <AdSlot position="sidebar" class="mb-8" />
+
           <Motion
             :initial="{ opacity: 0, y: 30 }"
             :visible="{ opacity: 1, y: 0 }"

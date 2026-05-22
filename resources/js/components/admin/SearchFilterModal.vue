@@ -1,6 +1,6 @@
 <script setup>
 /**
- * AdminSearchFilter.vue - 管理后台通用搜索筛选组件
+ * SearchFilterModal.vue - 管理后台通用搜索筛选组件
  *
  * 功能说明：
  * - 提供搜索输入框和筛选下拉框
@@ -18,7 +18,7 @@
  * - filter-change: 筛选条件变化 { key, value }
  *
  * 使用示例：
- * <AdminSearchFilter
+ * <SearchFilterModal
  *   v-model:search-query="searchQuery"
  *   :search-placeholder="t('admin_search_users')"
  *   :filters="[
@@ -128,7 +128,7 @@ onBeforeUnmount(() => {
         <!-- Checkbox type filter -->
         <div v-if="filter.type === 'checkbox'" class="flex items-center gap-2">
           <label :class="['flex items-center gap-2 px-4 py-3 rounded-lg cursor-pointer transition-colors', isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100']">
-            <input 
+            <input
               :checked="filterValues[filter.key]"
               @change="handleCheckboxChange(filter.key, filterValues[filter.key])"
               type="checkbox"
@@ -146,8 +146,8 @@ onBeforeUnmount(() => {
             @click.stop="toggleDropdown(filter.key)"
             :class="[
               'pl-12 pr-4 py-4 border focus:border-construct-red focus:outline-none transition-all rounded-2xl font-bold text-sm min-w-[160px] cursor-pointer flex items-center gap-2',
-              isDarkMode 
-                ? 'bg-gray-800 border-gray-700 text-white shadow-inner hover:border-gray-600' 
+              isDarkMode
+                ? 'bg-gray-800 border-gray-700 text-white shadow-inner hover:border-gray-600'
                 : 'bg-white border-gray-200 text-gray-900 shadow-sm hover:border-gray-300'
             ]"
           >
@@ -160,8 +160,8 @@ onBeforeUnmount(() => {
             v-show="openDropdowns[filter.key]"
             :class="[
               'absolute z-50 mt-2 w-full overflow-hidden rounded-2xl border shadow-xl',
-              isDarkMode 
-                ? 'bg-gray-800 border-gray-700 shadow-black/30' 
+              isDarkMode
+                ? 'bg-gray-800 border-gray-700 shadow-black/30'
                 : 'bg-white border-gray-200 shadow-gray-200/50'
             ]"
           >

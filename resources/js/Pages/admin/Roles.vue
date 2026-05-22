@@ -1,10 +1,12 @@
 <script setup>
 /**
  * AdminRoles.vue - 角色管理页面
- * 
+ *
+ * 基于 Spatie/laravel-permission 方案 + 扩展字段。
+ *
  * 功能说明：
  * - 管理系统角色和权限
- * - 角色列表展示（名称、描述、用户数、权限）
+ * - 角色列表展示（名称、标签、颜色、守卫、用户数、权限）
  * - 角色搜索
  * - 添加、编辑、删除角色
  * - 权限配置
@@ -19,29 +21,39 @@ import {
   Search,
   Edit3,
   Trash2,
-  Users,
   Check,
   X,
+  ShieldCheck,
+  Palette,
   RoleForm,
   ConfirmDialog,
-  AdminPagination,
-  AdminSearchFilter
+  Pagination,
+  SearchFilterModal
 } from '../../composables/useAdminImports';
 import { useRolePermissions } from '../../composables/useRolePermissions';
 
-const { adminRoles, permissions, getPermissionIdsByRoleId } = useRolePermissions();
+const { adminRoles, permissions, getPermissionIdsByRoleId, getRoleGuardName, GUARD_LABELS, getRoleColorConfig } = useRolePermissions();
 
-/**
- * 获取角色的权限列表
- * @param {number} roleId - 角色ID
- * @returns {string[]} 权限名称数组
- */
 const getRolePermissions = (roleId) => {
   const permissionIds = getPermissionIdsByRoleId(roleId);
   return permissionIds.map(id => {
     const permission = permissions.find(p => p.id === id);
     return permission ? permission.label : 'Unknown';
   });
+};
+
+const getRolePermissionsByGuard = (roleId) => {
+  const permissionIds = getPermissionIdsByRoleId(roleId);
+  const grouped = { web: [], api: [], admin: [] };
+
+  permissionIds.forEach(id => {
+    const permission = permissions.find(p => p.id === id);
+    if (permission && grouped[permission.guard_name]) {
+      grouped[permission.guard_name].push(permission.label);
+    }
+  });
+
+  return grouped;
 };
 
 const { t } = useI18n();
@@ -60,7 +72,8 @@ const roles = ref([...adminRoles]);
 const filteredRoles = computed(() => {
   return roles.value.filter(role => {
     return role.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-           role.description.toLowerCase().includes(searchQuery.value.toLowerCase());
+           role.description.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+           role.label.toLowerCase().includes(searchQuery.value.toLowerCase());
   });
 });
 
@@ -116,11 +129,18 @@ const confirmDelete = () => {
   }
   showDeleteConfirm.value = false;
 };
+
+const getColorStyle = (role) => {
+  const config = getRoleColorConfig(role.name);
+  return {
+    backgroundColor: config.bg.replace('bg-', 'var(--color-'),
+    borderColor: config.border.replace('border-', 'var(--color-')
+  };
+};
 </script>
 
 <template>
   <div class="p-8">
-    <!-- Page Header -->
     <div class="mb-10">
       <div class="flex items-center justify-between">
         <div>
@@ -136,27 +156,39 @@ const confirmDelete = () => {
       </div>
     </div>
 
-    <!-- Search -->
-    <AdminSearchFilter
+    <SearchFilterModal
       v-model:search-query="searchQuery"
       :search-placeholder="t('admin_search_roles')"
       :filters="[]"
       :filter-values="{}"
     />
 
-    <!-- Roles Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div 
-        v-for="role in paginatedRoles" 
+      <div
+        v-for="role in paginatedRoles"
         :key="role.id"
         :class="[
-          'border p-6 hover:border-construct-red transition-colors',
+          'border p-6 hover:border-construct-red transition-all hover:shadow-lg',
           isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
         ]"
       >
         <div class="flex items-start justify-between mb-4">
-          <div :class="['w-12 h-12 rounded-lg flex items-center justify-center', isDarkMode ? 'bg-gray-700' : 'bg-gray-100']">
-            <Shield :class="['size-24', isDarkMode ? 'text-gray-400' : 'text-gray-600']" />
+          <div class="flex items-center gap-3">
+            <div
+              :class="[
+                'w-12 h-12 rounded-lg flex items-center justify-center',
+                role.color === 'yellow' ? 'bg-yellow-500 text-gray-900' : `bg-${role.color}-600 text-white`
+              ]"
+              :style="{ backgroundColor: role.color === 'yellow' ? '#eab308' : role.color === 'red' ? '#dc2626' : role.color === 'blue' ? '#2563eb' : role.color === 'green' ? '#16a34a' : role.color === 'purple' ? '#9333ea' : role.color === 'gray' ? '#4b5563' : role.color === 'cyan' ? '#0891b2' : '#6b7280' }"
+            >
+              <ShieldCheck class="size-6" />
+            </div>
+            <div>
+              <h3 :class="['font-display text-xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">{{ role.name }}</h3>
+              <span :class="['text-xs font-bold uppercase tracking-wider', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
+                {{ role.label }}
+              </span>
+            </div>
           </div>
           <div class="flex items-center gap-2">
             <button @click="handleEdit(role)" :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-500 hover:bg-gray-100']">
@@ -167,32 +199,50 @@ const confirmDelete = () => {
             </button>
           </div>
         </div>
-        
-        <h3 :class="['font-display text-xl tracking-tighter mb-2', isDarkMode ? 'text-white' : 'text-gray-900']">{{ role.name }}</h3>
-        <p :class="['text-sm mb-4', isDarkMode ? 'text-gray-400' : 'text-gray-600']">{{ role.description }}</p>
-        
-        <div :class="['flex items-center gap-2 mb-4 text-sm', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
-          <Users size="14" />
-          <span>{{ role.userCount }} {{ t('admin_users') }}</span>
+
+        <div class="flex items-center gap-3 mb-3">
+          <span
+            :class="[
+              'px-2 py-1 text-xs font-bold rounded',
+              isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'
+            ]"
+          >
+            <Palette class="inline w-3 h-3 mr-1" />
+            {{ role.color }}
+          </span>
+          <span
+            :class="[
+              'px-2 py-1 text-xs font-bold rounded',
+              role.guard_name === 'api' ? (isDarkMode ? 'bg-yellow-500/20 text-yellow-400' : 'bg-yellow-100 text-yellow-700') :
+              role.guard_name === 'admin' ? (isDarkMode ? 'bg-purple-500/20 text-purple-400' : 'bg-purple-100 text-purple-700') :
+              (isDarkMode ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-700')
+            ]"
+          >
+            Guard: {{ GUARD_LABELS[role.guard_name] || role.guard_name }}
+          </span>
         </div>
-        
+
+        <p :class="['text-sm mb-4', isDarkMode ? 'text-gray-400' : 'text-gray-600']">{{ role.description }}</p>
+
         <div :class="['pt-4 border-t', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
           <div :class="['text-xs font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_permissions') }}</div>
-          <div class="flex flex-wrap gap-2">
-            <span 
-              v-for="(permission, index) in getRolePermissions(role.id)" 
+          <div class="flex flex-wrap gap-1">
+            <span
+              v-for="(permission, index) in getRolePermissions(role.id)"
               :key="index"
-              :class="['px-2 py-1 text-xs rounded', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600']"
+              :class="['px-2 py-0.5 text-xs rounded', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600']"
             >
               {{ permission }}
+            </span>
+            <span v-if="getRolePermissions(role.id).length === 0" :class="['text-xs italic', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
+              No permissions
             </span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Pagination -->
-    <AdminPagination
+    <Pagination
       :current-page="currentPage"
       :total-pages="totalPages"
       :total-items="filteredRoles.length"
@@ -200,7 +250,6 @@ const confirmDelete = () => {
       @update:current-page="(page) => currentPage = page"
     />
 
-    <!-- Role Form Modal -->
     <RoleForm
       :edit-data="editingRole"
       :visible="isFormVisible"
@@ -208,7 +257,6 @@ const confirmDelete = () => {
       @cancel="handleCancel"
     />
 
-    <!-- Delete Confirm Dialog -->
     <ConfirmDialog
       :visible="showDeleteConfirm"
       title="确认删除"

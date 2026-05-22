@@ -55,6 +55,10 @@ const props = defineProps({
   addHeadingIds: {
     type: Boolean,
     default: true
+  },
+  inContentAd: {
+    type: Object,
+    default: null
   }
 });
 
@@ -88,6 +92,31 @@ const renderedContent = computed(() => {
     });
   }
 
+  // 在文章中间插入广告
+  if (props.inContentAd) {
+    const paragraphs = html.split('</p>');
+    const middleIndex = Math.floor(paragraphs.length / 2);
+    
+    if (paragraphs.length > 2) {
+      const adHtml = `
+        </p>
+        <div class="in-content-ad-wrapper">
+          <div class="in-content-ad">
+            <span class="ad-label">SPONSORED</span>
+            <a href="${props.inContentAd.link_url}" target="_blank" rel="noopener noreferrer" class="ad-content">
+              <img src="${props.inContentAd.image_url}" alt="${props.inContentAd.title}" class="ad-image">
+              <h4 class="ad-title">${props.inContentAd.title}</h4>
+              <span class="ad-cta">Learn More →</span>
+            </a>
+          </div>
+        </div>
+      `;
+      
+      paragraphs.splice(middleIndex, 0, adHtml);
+      html = paragraphs.join('</p>');
+    }
+  }
+
   return html;
 });
 
@@ -112,6 +141,68 @@ onMounted(async () => {
 
 <style lang="scss" scoped>
 .markdown-body {
+  :deep(.in-content-ad-wrapper) {
+    margin: 2.5rem 0;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+    border: 3px solid #000;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  :deep(.in-content-ad) {
+    position: relative;
+    z-index: 1;
+  }
+  
+  :deep(.ad-label) {
+    display: inline-block;
+    font-size: 0.625rem;
+    font-weight: 900;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: #ef4444;
+    margin-bottom: 0.75rem;
+  }
+  
+  :deep(.ad-content) {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.3s ease;
+  }
+  
+  :deep(.ad-content:hover) {
+    transform: translateX(0.5rem);
+  }
+  
+  :deep(.ad-image) {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+  }
+  
+  :deep(.ad-title) {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+  }
+  
+  :deep(.ad-cta) {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
   :deep(h1), :deep(h2), :deep(h3), :deep(h4), :deep(h5), :deep(h6) {
     font-family: 'Space Grotesk', system-ui, sans-serif;
     font-weight: 900;

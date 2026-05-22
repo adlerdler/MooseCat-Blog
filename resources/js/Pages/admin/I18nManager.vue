@@ -20,18 +20,30 @@ import {
   Download,
   Upload,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  AlertCircle
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
 import { languages as languagesConfig } from '../../data/i18n_config';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
-import AdminSearchFilter from '../../components/admin/AdminSearchFilter.vue';
-import AdminPagination from '../../components/admin/AdminPagination.vue';
+import SearchFilterModal from '../../components/admin/SearchFilterModal.vue';
+import Pagination from '../../components/admin/Pagination.vue';
 import { useToast } from '../../composables/useToast';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
 const { success, error, warning } = useToast();
+
+const showTopError = ref(false);
+const topErrorMessage = ref('');
+
+const showTopErrorToast = (message) => {
+  topErrorMessage.value = message;
+  showTopError.value = true;
+  setTimeout(() => {
+    showTopError.value = false;
+  }, 3000);
+};
 
 const languages = ref([]);
 const translations = ref({});
@@ -151,7 +163,7 @@ const cancelEditLanguage = () => {
 
 const confirmEditLanguage = () => {
   if (!editingLanguageForm.value.name.trim()) {
-    error('请输入语言名称');
+    showTopErrorToast('请输入语言名称');
     return;
   }
 
@@ -183,18 +195,18 @@ const confirmEditLanguage = () => {
 
 const confirmAddLanguage = () => {
   if (!newLanguageForm.value.code.trim()) {
-    error('请输入语言代码');
+    showTopErrorToast('请输入语言代码');
     return;
   }
   if (!newLanguageForm.value.name.trim()) {
-    error('请输入语言名称');
+    showTopErrorToast('请输入语言名称');
     return;
   }
   
   const code = newLanguageForm.value.code.trim();
   const exists = languages.value.some(l => l.code === code);
   if (exists) {
-    error('该语言代码已存在');
+    showTopErrorToast('该语言代码已存在');
     return;
   }
   
@@ -231,7 +243,7 @@ const confirmDelete = () => {
   if (deletingItemType.value === 'language') {
     const lang = languages.value.find(l => l.code === deletingItemId.value);
     if (lang && lang.is_default) {
-      error('不能删除默认语言');
+      showTopErrorToast('不能删除默认语言');
       showDeleteConfirm.value = false;
       return;
     }
@@ -296,7 +308,7 @@ const cancelAddKey = () => {
 
 const confirmAddKey = () => {
   if (!newKeyForm.value.key.trim()) {
-    error('请输入键名');
+    showTopErrorToast('请输入键名');
     return;
   }
   Object.entries(newKeyForm.value.values).forEach(([code, value]) => {
@@ -482,7 +494,7 @@ const tabs = [
     <div v-if="activeTab === 'translations'">
       <!-- Search -->
       <div class="mb-6">
-        <AdminSearchFilter
+        <SearchFilterModal
           v-model:search-query="searchQuery"
           :search-placeholder="'搜索翻译键或值...'"
         />
@@ -530,7 +542,7 @@ const tabs = [
       </div>
 
       <!-- Pagination -->
-      <AdminPagination
+      <Pagination
         v-model:current-page="currentPage"
         :total-pages="totalPages"
         :total-items="filteredTranslationKeys.length"
@@ -826,6 +838,19 @@ const tabs = [
       @confirm="confirmDelete"
       @cancel="showDeleteConfirm = false"
     />
+
+    <!-- Top Center Error Toast -->
+    <Transition name="top-toast">
+      <div
+        v-if="showTopError"
+        class="fixed top-6 left-1/2 -translate-x-1/2 inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-full shadow-lg backdrop-blur-xl border-red-500 bg-red-500/15 cursor-pointer"
+        style="z-index: 1000;"
+        @click="showTopError = false"
+      >
+        <AlertCircle class="flex-shrink-0 text-red-500" size="16" />
+        <span class="text-sm font-medium text-center" :class="isDarkMode ? 'text-gray-200' : 'text-gray-800'">{{ topErrorMessage }}</span>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -838,5 +863,16 @@ const tabs = [
 .modal-enter-from,
 .modal-leave-to {
   opacity: 0;
+}
+
+.top-toast-enter-active,
+.top-toast-leave-active {
+  transition: all 0.3s ease;
+}
+
+.top-toast-enter-from,
+.top-toast-leave-to {
+  opacity: 0;
+  transform: translate(-50%, -20px);
 }
 </style>

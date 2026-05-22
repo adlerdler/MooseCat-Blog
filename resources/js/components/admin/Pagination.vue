@@ -1,7 +1,7 @@
 <script setup>
 /**
- * AdminPagination.vue - 后台通用分页组件
- * 
+ * Pagination.vue - 后台通用分页组件
+ *
  * 功能说明：
  * - 提供统一的分页导航功能
  * - 支持深色/浅色模式
@@ -97,44 +97,44 @@ const endItem = computed(() => {
 const visiblePages = computed(() => {
   const pages = [];
   const { currentPage, totalPages, maxVisiblePages } = props;
-  
+
   if (totalPages <= maxVisiblePages + 2) {
     for (let i = 1; i <= totalPages; i++) {
       pages.push(i);
     }
     return pages;
   }
-  
+
   const halfVisible = Math.floor(maxVisiblePages / 2);
   let start = Math.max(2, currentPage - halfVisible);
   let end = Math.min(totalPages - 1, currentPage + halfVisible);
-  
+
   if (currentPage - halfVisible <= 2) {
     end = maxVisiblePages;
   }
-  
+
   if (currentPage + halfVisible >= totalPages - 1) {
     start = totalPages - maxVisiblePages + 1;
   }
-  
+
   pages.push(1);
-  
+
   if (start > 2) {
     pages.push('...');
   }
-  
+
   for (let i = start; i <= end; i++) {
     pages.push(i);
   }
-  
+
   if (end < totalPages - 1) {
     pages.push('...');
   }
-  
+
   if (totalPages > 1) {
     pages.push(totalPages);
   }
-  
+
   return pages;
 });
 
@@ -191,7 +191,7 @@ watch(() => props.itemsPerPage, () => {
       <div :class="['text-sm', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
         {{ t('admin_showing') }} {{ startItem }} - {{ endItem }} {{ t('admin_of') }} {{ totalItems }} {{ t(`admin_${label}`) || label }}
       </div>
-      
+
       <div class="flex items-center gap-2">
         <span :class="['text-sm', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_per_page') }}:</span>
         <div ref="dropdownRef" class="relative">
@@ -199,23 +199,23 @@ watch(() => props.itemsPerPage, () => {
             @click="toggleDropdown"
             :class="[
               'flex items-center justify-between gap-2 min-w-[60px] px-3 py-1.5 text-sm border rounded-lg transition-all cursor-pointer',
-              isDropdownOpen 
-                ? 'border-construct-red ring-1 ring-construct-red' 
+              isDropdownOpen
+                ? 'border-construct-red ring-1 ring-construct-red'
                 : (isDarkMode ? 'border-gray-600 hover:border-gray-500' : 'border-gray-300 hover:border-gray-400'),
               isDarkMode ? 'bg-gray-700 text-white' : 'bg-white text-gray-900'
             ]"
           >
             <span>{{ itemsPerPage }}</span>
-            <ChevronDown 
-              :size="14" 
+            <ChevronDown
+              :size="14"
               :class="[
                 'transition-transform duration-200',
                 isDropdownOpen ? 'rotate-180' : '',
                 isDarkMode ? 'text-gray-400' : 'text-gray-500'
-              ]" 
+              ]"
             />
           </button>
-          
+
           <Transition
             enter-active-class="transition duration-150 ease-out"
             enter-from-class="opacity-0 -translate-y-1"
@@ -250,7 +250,7 @@ watch(() => props.itemsPerPage, () => {
         </div>
       </div>
     </div>
-    
+
     <div class="flex items-center gap-2">
       <button
         @click="goToFirst"
@@ -265,7 +265,7 @@ watch(() => props.itemsPerPage, () => {
       >
         <ChevronsLeft size="18" />
       </button>
-      
+
       <button
         @click="prevPage"
         :disabled="currentPage === 1"
@@ -279,7 +279,7 @@ watch(() => props.itemsPerPage, () => {
       >
         <ChevronLeft size="18" />
       </button>
-      
+
       <div class="flex items-center gap-1">
         <template v-for="(page, index) in visiblePages" :key="index">
           <span
@@ -302,7 +302,7 @@ watch(() => props.itemsPerPage, () => {
           </button>
         </template>
       </div>
-      
+
       <button
         @click="nextPage"
         :disabled="currentPage === totalPages"
@@ -316,7 +316,7 @@ watch(() => props.itemsPerPage, () => {
       >
         <ChevronRight size="18" />
       </button>
-      
+
       <button
         @click="goToLast"
         :disabled="currentPage === totalPages"
@@ -330,7 +330,7 @@ watch(() => props.itemsPerPage, () => {
       >
         <ChevronsRight size="18" />
       </button>
-      
+
       <div class="flex items-center gap-2 ml-2">
         <input
           v-model="jumpInput"
@@ -347,8 +347,8 @@ watch(() => props.itemsPerPage, () => {
           @click="handleJumpInput"
           :class="[
             'px-3 py-1.5 text-sm rounded-lg font-bold transition-colors',
-            isDarkMode 
-              ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
+            isDarkMode
+              ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
               : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
           ]"
         >

@@ -1,19 +1,19 @@
 <script setup>
 /**
  * Home.vue - 首页/主页
- * 
+ *
  * 功能说明：
  * - 展示网站首页，包含全屏欢迎区域和最新内容预览
  * - 集成启动画面（Splash Screen）效果，首次访问显示动画
  * - 提供全局搜索功能
  * - 响应式布局，适配各种屏幕尺寸
- * 
+ *
  * 主要交互：
  * - 点击跳转至博客列表、视频页面、项目页面等
  * - 键盘快捷键打开搜索（需安装 SearchOverlay）
  * - 底部 Footer 显示控制
  */
-import { ref, onMounted, watch, computed } from 'vue'
+import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import { Search, ArrowRight, Send, Mail } from 'lucide-vue-next'
 import { Motion, AnimatePresence } from 'motion-v'
@@ -22,10 +22,12 @@ import { useI18n } from 'vue-i18n'
 import { usePageSeo } from '../../composables/usePageSeo'
 import { seoConfig } from '../../data/seo_config'
 import { POSTS } from '../../data/posts'
+import { VIDEOS } from '../../data/videos'
+import { PROJECTS } from '../../data/projects'
+import { resourcesData } from '../../data/resources'
 import { categories as categoryList } from '../../data/categories'
 import { getCategoryLabel, getCategoryLabelById, getCategoryNameById } from '../../utils/categoryUtils'
 
-const categories = ['ALL', ...categoryList.map(c => c.name)]
 const marqueeText = 'ARCHYX VOL. 2026 // BUILDING SYSTEM // MINIMALISM //'
 const techStack = ['TYPESCRIPT', 'VUE', 'LARAVEL', 'TAILWIND', 'NODE.JS', 'POSTGRES']
 
@@ -47,6 +49,7 @@ const isFooterVisible = ref(true)
 const isSearchOpen = ref(false)
 const showSplash = ref(false)
 const showContent = ref(false)
+let splashTimer = null
 
 const featuredPosts = computed(() => {
   return POSTS.slice(0, 3).map(post => ({
@@ -60,16 +63,54 @@ const featuredPosts = computed(() => {
 })
 
 const searchPosts = computed(() => {
-  return POSTS.map(post => ({
-    id: post.id,
-    title: post.title,
-    excerpt: post.excerpt
-  }))
+  const allContent = []
+
+  POSTS.forEach(post => {
+    allContent.push({
+      id: post.id,
+      type: 'post',
+      title: post.title,
+      excerpt: post.excerpt,
+      route: `/blog/${post.slug}`
+    })
+  })
+
+  VIDEOS.forEach(video => {
+    allContent.push({
+      id: video.id,
+      type: 'video',
+      title: video.title,
+      excerpt: video.description,
+      route: `/videos/${video.id}`
+    })
+  })
+
+  PROJECTS.forEach(project => {
+    allContent.push({
+      id: project.id,
+      type: 'project',
+      title: project.title,
+      excerpt: project.description,
+      route: `/projects/${project.id}`
+    })
+  })
+
+  resourcesData.forEach(resource => {
+    allContent.push({
+      id: resource.id,
+      type: 'resource',
+      title: resource.title,
+      excerpt: resource.description,
+      route: '/resources'
+    })
+  })
+
+  return allContent
 })
 
 onMounted(() => {
   initAccentTheme()
-  
+
   // 前台页面不受后台主题设置影响，移除 light class
   document.documentElement.classList.remove('light')
 
@@ -93,8 +134,9 @@ watch(isFooterVisible, (newVal) => {
 const handleSplashComplete = () => {
   showSplash.value = false
   sessionStorage.setItem('splash_shown', 'true')
-  setTimeout(() => {
+  splashTimer = setTimeout(() => {
     showContent.value = true
+    splashTimer = null
   }, 100)
 }
 
@@ -106,8 +148,12 @@ const closeSearch = () => {
   isSearchOpen.value = false
 }
 
-const searchQuery = ref('')
-const activeCategory = ref('ALL')
+onUnmounted(() => {
+  if (splashTimer) {
+    clearTimeout(splashTimer)
+    splashTimer = null
+  }
+})
 </script>
 
 <template>
@@ -172,7 +218,7 @@ const activeCategory = ref('ALL')
             :animate="{ opacity: 1, y: 0 }"
             :transition="{ delay: 0.6 }"
           >
-            <div 
+            <div
               class="flex flex-col sm:flex-row items-stretch max-w-2xl group relative cursor-pointer"
               @click="openSearch"
             >
@@ -181,13 +227,13 @@ const activeCategory = ref('ALL')
                 <div
                   class="w-full bg-white border-4 border-construct-black px-12 py-4 text-sm font-bold tracking-widest transition-all cursor-pointer"
                 >
-                  {{ t('subscribe_input') }}
+                  {{ t('hero_search_placeholder') }}
                 </div>
               </div>
               <div
                 class="bg-construct-black text-white px-8 py-4 sm:py-0 flex items-center justify-center font-display tracking-widest text-sm font-bold hover:bg-construct-red cursor-pointer transition-colors active:translate-x-1 active:translate-y-1 whitespace-nowrap relative z-20"
               >
-                {{ t('subscribe_btn') }}
+                {{ t('hero_search_btn') }}
               </div>
             </div>
           </Motion>
@@ -213,15 +259,15 @@ const activeCategory = ref('ALL')
         <div class="flex flex-col md:flex-row justify-between items-end mb-24 gap-8">
           <div class="max-w-2xl">
             <h2 class="font-display text-5xl md:text-6xl lg:text-8xl tracking-tighter leading-none mb-8 whitespace-pre-line">
-              精选文章
+              {{ t('home_featured_posts') }}
             </h2>
             <div class="text-[10px] font-bold tracking-[0.4em] opacity-40 uppercase">
-              FEATURED ARTIFACTS // 最新发布的技术文章与研究
+              FEATURED ARTIFACTS // {{ t('home_featured_subtitle') }}
             </div>
           </div>
           <RouterLink to="/posts" class="group flex flex-col items-end gap-2">
             <div class="flex items-center gap-4 text-xs font-bold tracking-widest uppercase hover:text-construct-red transition-colors">
-              <span>访问全部归档</span>
+              <span>{{ t('home_view_all') }}</span>
               <ArrowRight class="w-4 h-4 transition-transform group-hover:translate-x-2" />
             </div>
           </RouterLink>
@@ -253,7 +299,7 @@ const activeCategory = ref('ALL')
                   :href="`/posts/${post.id}`"
                   class="inline-flex items-center gap-4 text-[10px] font-bold tracking-widest hover:translate-x-4 transition-transform duration-300 uppercase"
                 >
-                  查看详情
+                  VIEW DETAILS
                   <ArrowRight class="w-4 h-4" />
                 </a>
               </div>
@@ -282,13 +328,13 @@ const activeCategory = ref('ALL')
           </div>
           <div class="md:col-span-7 flex flex-col justify-center">
             <div class="inline-block bg-construct-red text-white px-3 py-1 text-[10px] font-black tracking-[0.3em] uppercase w-fit mb-8">
-              作者简介
+              {{ t('home_about_author') }}
             </div>
             <h4 class="font-display text-5xl md:text-6xl lg:text-7xl tracking-tighter mb-8 leading-none whitespace-pre-line text-construct-black">
-              结构诚实
+              {{ t('home_structural_honesty') }}
             </h4>
             <p class="text-xl md:text-2xl font-medium tracking-wide opacity-80 max-w-2xl leading-relaxed">
-              专注于探索建筑数字化与技术创新的边界，致力于将传统设计理念与现代计算方法相融合，创造更智能、更可持续的数字空间。
+              {{ t('home_author_desc') }}
             </p>
           </div>
         </div>
@@ -301,10 +347,10 @@ const activeCategory = ref('ALL')
         <div class="flex flex-col md:flex-row gap-16 items-start">
           <div class="md:w-1/3">
             <h2 class="font-display text-4xl md:text-5xl lg:text-6xl tracking-tighter leading-[0.85] mb-6 whitespace-pre-line">
-              技术栈
+              {{ t('home_tech_stack') }}
             </h2>
             <p class="text-sm font-medium tracking-widest uppercase opacity-60 max-w-xs leading-relaxed">
-              核心工具与技术选型
+              {{ t('home_tech_stack_subtitle') }}
             </p>
           </div>
           <div class="md:w-2/3 grid grid-cols-2 sm:grid-cols-3 gap-8">
@@ -344,7 +390,7 @@ const activeCategory = ref('ALL')
             <Mail class="w-5 h-5 text-construct-black/40 mr-4" />
             <input
               type="email"
-              placeholder="输入邮箱地址..."
+              :placeholder="t('home_email_placeholder')"
               class="w-full bg-transparent py-6 outline-none font-display font-medium text-lg uppercase tracking-widest placeholder:text-construct-black/20 text-construct-black"
               required
             />
@@ -353,7 +399,7 @@ const activeCategory = ref('ALL')
             type="submit"
             class="bg-construct-red text-white px-12 py-6 font-display font-black tracking-widest text-lg hover:bg-construct-black transition-colors duration-300 flex items-center justify-center gap-2"
           >
-            订阅
+            {{ t('home_subscribe_btn') }}
             <Send class="w-5 h-5" />
           </button>
         </form>

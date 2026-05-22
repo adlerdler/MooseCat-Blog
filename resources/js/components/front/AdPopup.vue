@@ -1,0 +1,134 @@
+<script setup>
+/**
+ * AdPopup.vue - 弹窗广告组件
+ * 
+ * 功能说明：
+ * - 首次访问显示弹窗广告
+ * - 带关闭按钮，关闭后不再显示
+ * - 使用 localStorage 记录用户关闭状态
+ * - 支持键盘 ESC 关闭
+ * 
+ * 使用方式：
+ * <AdPopup />
+ */
+import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { X } from 'lucide-vue-next';
+import { sampleAdvertisements } from '../../data/advertisements';
+
+const isVisible = ref(false);
+const isAdValid = (ad) => {
+  const now = new Date();
+  const start = new Date(ad.start_date);
+  const end = new Date(ad.end_date);
+  return now >= start && now <= end;
+};
+
+const popupAd = computed(() => {
+  return sampleAdvertisements.find(ad => {
+    if (ad.position !== 'popup' || !ad.is_active) return false;
+    return isAdValid(ad);
+  });
+});
+
+const hasSeenPopup = () => {
+  return localStorage.getItem('ad_popup_closed') === 'true';
+};
+
+const setSeenPopup = () => {
+  localStorage.setItem('ad_popup_closed', 'true');
+};
+
+const closePopup = () => {
+  isVisible.value = false;
+  setSeenPopup();
+};
+
+const handleKeydown = (e) => {
+  if (e.key === 'Escape' && isVisible.value) {
+    closePopup();
+  }
+};
+
+onMounted(() => {
+  if (!hasSeenPopup() && popupAd.value) {
+    setTimeout(() => {
+      isVisible.value = true;
+    }, 3000);
+  }
+  document.addEventListener('keydown', handleKeydown);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleKeydown);
+});
+</script>
+
+<template>
+  <Teleport to="body">
+    <Transition name="popup">
+      <div
+        v-if="isVisible && popupAd"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4"
+      >
+        <!-- 遮罩层 -->
+        <div
+          class="absolute inset-0 bg-black/70 backdrop-blur-sm"
+          @click="closePopup"
+        ></div>
+        
+        <!-- 弹窗内容 -->
+        <div class="relative bg-white border-8 border-construct-black shadow-2xl max-w-md w-full overflow-hidden">
+          <!-- 关闭按钮 -->
+          <button
+            @click="closePopup"
+            class="absolute top-4 right-4 z-10 w-10 h-10 flex items-center justify-center bg-black text-white hover:bg-construct-red transition-colors"
+            aria-label="Close ad popup"
+          >
+            <X class="w-5 h-5" />
+          </button>
+          
+          <!-- 广告内容 -->
+          <a
+            :href="popupAd.link_url"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="block"
+          >
+            <div class="aspect-[3/4] bg-construct-black overflow-hidden">
+              <img
+                :src="popupAd.image_url"
+                :alt="popupAd.title"
+                class="w-full h-full object-cover"
+              />
+            </div>
+            <div class="p-6 bg-construct-black">
+              <span class="text-[10px] font-black tracking-widest text-construct-red uppercase">
+                SPONSORED
+              </span>
+              <h3 class="font-display text-xl tracking-tight text-white mt-2">
+                {{ popupAd.title }}
+              </h3>
+            </div>
+          </a>
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
+</template>
+
+<style scoped>
+.popup-enter-active,
+.popup-leave-active {
+  transition: all 0.3s ease;
+}
+
+.popup-enter-from,
+.popup-leave-to {
+  opacity: 0;
+}
+
+.popup-enter-from .relative,
+.popup-leave-to .relative {
+  transform: scale(0.9);
+}
+</style>

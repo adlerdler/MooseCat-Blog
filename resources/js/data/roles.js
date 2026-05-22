@@ -1,70 +1,73 @@
 /**
  * roles.js - 角色数据定义
- * 
- * 统一管理系统中的角色定义，避免硬编码重复。
- * 角色权限通过 role_permissions.js 关联表管理。
+ *
+ * 基于 Spatie/laravel-permission 方案 + 扩展字段。
+ *
+ * 扩展字段：
+ * - color: 角色颜色 (用于 UI 显示)
+ * - label: 角色标签 (用于 i18n)
+ *
+ * Spatie 标准字段：
+ * - guard_name: 守卫名称 (默认 'web')
  */
 
 export const roles = [
-  { 
-    id: 1, 
-    value: 'admin', 
-    label: 'ADMIN', 
-    name: 'Admin',
-    color: 'red', 
+  {
+    id: 1,
+    name: 'admin',
+    label: 'ADMIN',
+    guard_name: 'web',
+    color: 'red',
     description: '系统管理员 - 拥有所有权限'
   },
-  { 
-    id: 2, 
-    value: 'editor', 
-    label: 'EDITOR', 
-    name: 'Editor',
-    color: 'blue', 
+  {
+    id: 2,
+    name: 'editor',
+    label: 'EDITOR',
+    guard_name: 'web',
+    color: 'blue',
     description: '内容编辑 - 可以管理文章和评论'
   },
-  { 
-    id: 3, 
-    value: 'author', 
-    label: 'AUTHOR', 
-    name: 'Author',
-    color: 'green', 
+  {
+    id: 3,
+    name: 'author',
+    label: 'AUTHOR',
+    guard_name: 'web',
+    color: 'green',
     description: '文章作者 - 可以创建和编辑自己的文章'
   },
-  { 
-    id: 4, 
-    value: 'moderator', 
-    label: 'MODERATOR', 
-    name: 'Moderator',
-    color: 'purple', 
+  {
+    id: 4,
+    name: 'moderator',
+    label: 'MODERATOR',
+    guard_name: 'web',
+    color: 'purple',
     description: '社区版主 - 可以管理评论和用户'
   },
-  { 
-    id: 5, 
-    value: 'subscriber', 
-    label: 'SUBSCRIBER', 
-    name: 'Subscriber',
-    color: 'gray', 
+  {
+    id: 5,
+    name: 'subscriber',
+    label: 'SUBSCRIBER',
+    guard_name: 'web',
+    color: 'gray',
     description: '订阅用户 - 可以阅读和评论'
   },
-  { 
-    id: 6, 
-    value: 'api', 
-    label: 'API', 
-    name: 'API',
-    color: 'yellow', 
+  {
+    id: 6,
+    name: 'api',
+    label: 'API',
+    guard_name: 'api',
+    color: 'yellow',
     description: 'API用户 - 用于程序访问'
   },
-  { 
-    id: 7, 
-    value: 'guest', 
-    label: 'GUEST', 
-    name: 'Guest',
-    color: 'cyan', 
+  {
+    id: 7,
+    name: 'guest',
+    label: 'GUEST',
+    guard_name: 'web',
+    color: 'cyan',
     description: '访客用户'
   }
 ];
 
-// 角色相关工具函数已迁移到 useRolePermissions composable
-
-// 向后兼容：adminRoles 别名（保留现有引用）
 export const adminRoles = roles;

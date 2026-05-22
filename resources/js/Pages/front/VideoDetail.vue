@@ -15,10 +15,13 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { Motion, AnimatePresence } from 'motion-v';
 import { useTheme } from '../../composables/useTheme';
+import { useAdSlot } from '../../composables/useAdSlot';
+import AdSlot from '../../components/front/AdSlot.vue';
 import { VIDEOS } from '../../data/videos';
 import { ArrowLeft, ArrowUp } from 'lucide-vue-next';
 
 const { initAccentTheme } = useTheme();
+const { hasActiveAd } = useAdSlot();
 const route = useRoute();
 const router = useRouter();
 const showBackToTop = ref(false);
@@ -100,6 +103,11 @@ const scrollToTop = () => {
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowfullscreen
             ></iframe>
+          </div>
+
+          <!-- 视频下方广告位 -->
+          <div class="mt-8">
+            <AdSlot position="video_bottom" />
           </div>
 
           <div class="mt-8 p-8 border-2 border-construct-black">

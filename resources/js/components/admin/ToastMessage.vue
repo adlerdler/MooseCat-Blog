@@ -1,21 +1,19 @@
 <script setup>
 /**
- * ToastNotification.vue - 磨砂透明反馈通知组件
+ * ToastMessage.vue - 磨砂透明反馈通知组件
  *
  * 功能说明：
  * - 支持四种类型：success、error、warning、info
  * - 磨砂透明背景，带主题颜色边框
  * - 底部进度条显示倒计时
  * - 可手动关闭
- * - 支持 6 种位置配置
  * - 鼠标悬停暂停计时
  *
  * 使用示例：
- * <ToastNotification
+ * <ToastMessage
  *   :visible="showToast"
  *   message="操作成功"
  *   type="success"
- *   position="bottom-right"
  *   :closable="true"
  *   @close="showToast = false"
  * />
@@ -48,11 +46,6 @@ const props = defineProps({
     type: Number,
     default: 3000
   },
-  position: {
-    type: String,
-    default: 'bottom-right',
-    validator: (value) => ['top-left', 'top-center', 'top-right', 'bottom-left', 'bottom-center', 'bottom-right'].includes(value)
-  },
   closable: {
     type: Boolean,
     default: true
@@ -66,15 +59,6 @@ let timer = null;
 let progressTimer = null;
 let isPaused = false;
 
-const positionClasses = {
-  'top-left': 'top-6 left-6',
-  'top-center': 'top-6 left-1/2 -translate-x-1/2',
-  'top-right': 'top-6 right-6',
-  'bottom-left': 'bottom-6 left-6',
-  'bottom-center': 'bottom-6 left-1/2 -translate-x-1/2',
-  'bottom-right': 'bottom-6 right-6'
-};
-
 const toastConfig = {
   success: { icon: Check, color: 'text-green-500', border: 'border-green-500', bg: 'bg-green-500/10', glassBg: 'bg-green-500/15', progressColor: 'bg-green-500' },
   error: { icon: AlertCircle, color: 'text-red-500', border: 'border-red-500', bg: 'bg-red-500/10', glassBg: 'bg-red-500/15', progressColor: 'bg-red-500' },
@@ -83,7 +67,6 @@ const toastConfig = {
 };
 
 const currentConfig = computed(() => toastConfig[props.type] || toastConfig.success);
-const currentPosition = computed(() => positionClasses[props.position] || positionClasses['bottom-right']);
 
 const startTimer = () => {
   if (props.duration <= 0 || isPaused) return;
@@ -157,9 +140,8 @@ watch(() => props.visible, (newVal) => {
   <Transition name="toast">
     <div
       v-if="visible"
-      class="fixed z-[100] w-80 rounded-xl shadow-2xl overflow-hidden backdrop-blur-xl border-l-4"
+      class="fixed bottom-6 right-6 z-[100] w-80 rounded-xl shadow-2xl overflow-hidden backdrop-blur-xl border-l-4"
       :class="[
-        currentPosition,
         currentConfig.border,
         currentConfig.glassBg
       ]"

@@ -22,6 +22,7 @@ import { categories } from '../../data/categories';
 import { getCategoryNameById } from '../../utils/categoryUtils';
 import { Download, HardDrive } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
+import { useAdSlot } from '../../composables/useAdSlot';
 
 const { getSeoByRoute } = usePageSeoData();
 const pageSeo = getSeoByRoute('resources')
@@ -95,6 +96,26 @@ const selectResource = (resource) => {
 const closeModal = () => {
  selectedResource.value = null;
 };
+
+const { getActiveAds } = useAdSlot();
+const AD_INTERVAL = 3;
+
+const mixedResourcesWithAds = computed(() => {
+  const result = [];
+  let adIndex = 0;
+  const ads = getActiveAds('between_posts');
+
+  filteredResources.value.forEach((resource, index) => {
+    result.push({ type: 'content', data: resource, originalIndex: index });
+
+    if ((index + 1) % AD_INTERVAL === 0 && index < filteredResources.value.length - 1 && ads[adIndex]) {
+      result.push({ type: 'ad', data: ads[adIndex], adIndex: adIndex });
+      adIndex++;
+    }
+  });
+
+  return result;
+});
 </script>
 
 <template>
@@ -104,6 +125,11 @@ const closeModal = () => {
 
     <!-- Main Content with left margin for sidebar -->
     <div class="ml-16">
+      
+<!-- Header Banner Ad -->
+      <section class="bg-construct-black">
+        <AdSlot position="header" />
+      </section>
       <div class="container flex-1 mx-auto px-4 md:px-8 py-16">
         <header class="mb-16">
           <h1 class="font-display text-6xl md:text-6xl lg:text-8xl tracking-tighter leading-none mb-6">
@@ -133,49 +159,82 @@ const closeModal = () => {
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           <TransitionGroup name="resource-list">
-            <Motion
-              v-for="(resource, idx) in filteredResources"
-              :key="resource.id"
-              :initial="{ opacity: 0, y: 20 }"
-              :animate="{ opacity: 1, y: 0 }"
-              :transition="{ duration: 0.3 }"
-              @click="selectResource(resource)"
-              class="group cursor-pointer flex flex-col"
-            >
-              <div class="aspect-[4/3] bg-construct-black mb-4 relative overflow-hidden">
-                <img
-                  :src="resource.image"
-                  :alt="resource.title"
-                  class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-80 group-hover:opacity-100"
-                />
-                <div class="absolute inset-x-0 bottom-0 p-4 flex justify-between items-end">
-                  <div class="bg-construct-black text-white px-3 py-1 text-[10px] font-bold tracking-widest uppercase">
-                    {{ resource.format }}
-                  </div>
-                  <div class="bg-white text-construct-black px-3 py-1 text-[10px] font-bold tracking-widest uppercase">
-                    {{ resource.file_size }}
+            <template v-for="item in mixedResourcesWithAds" :key="item.type === 'ad' ? `ad-${item.adIndex}` : item.data.id">
+              <!-- Ad Card -->
+              <Motion
+                v-if="item.type === 'ad'"
+                :initial="{ opacity: 0, y: 20 }"
+                :animate="{ opacity: 1, y: 0 }"
+                :transition="{ duration: 0.3 }"
+                class="group cursor-pointer flex flex-col"
+              >
+                <div class="aspect-[4/3] bg-construct-black mb-4 relative overflow-hidden border-4 border-construct-black hover:border-construct-red transition-colors">
+                  <a :href="item.data.link_url" target="_blank" rel="noopener noreferrer" class="absolute inset-0 z-20"></a>
+                  <img
+                    :src="item.data.image_url"
+                    :alt="item.data.title"
+                    class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-80 group-hover:opacity-100"
+                  />
+                  <div class="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+                    <span class="text-[10px] font-black tracking-widest text-construct-red uppercase">SPONSORED</span>
                   </div>
                 </div>
-              </div>
-              <div class="flex justify-between items-start">
-                <div>
-                  <div class="text-[10px] font-bold tracking-widest opacity-40 uppercase mb-2">[{{ getResourceCategoryName(resource.category_id) }}]</div>
-                  <h3 class="font-display text-2xl tracking-tight mb-2 group-hover:text-construct-red transition-colors">
-                    {{ resource.title }}
-                  </h3>
-                  <div class="flex gap-2">
-                    <span
-                      v-for="d in resource.drives"
-                      :key="d.type"
-                      class="text-[10px] font-bold tracking-widest opacity-40 uppercase"
-                    >
-                      {{ d.type }}
+                <div class="flex justify-between items-start">
+                  <div>
+                    <h3 class="font-display text-2xl tracking-tight mb-2 text-white group-hover:text-construct-red transition-colors">
+                      {{ item.data.title }}
+                    </h3>
+                    <span class="text-[10px] font-bold tracking-widest text-white/60 uppercase">
+                      Learn More →
                     </span>
                   </div>
                 </div>
-                <Download class="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity text-construct-red mt-6" />
-              </div>
-            </Motion>
+              </Motion>
+
+              <!-- Content Card -->
+              <Motion
+                v-else
+                :initial="{ opacity: 0, y: 20 }"
+                :animate="{ opacity: 1, y: 0 }"
+                :transition="{ duration: 0.3 }"
+                @click="selectResource(item.data)"
+                class="group cursor-pointer flex flex-col"
+              >
+                <div class="aspect-[4/3] bg-construct-black mb-4 relative overflow-hidden">
+                  <img
+                    :src="item.data.image"
+                    :alt="item.data.title"
+                    class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-80 group-hover:opacity-100"
+                  />
+                  <div class="absolute inset-x-0 bottom-0 p-4 flex justify-between items-end">
+                    <div class="bg-construct-black text-white px-3 py-1 text-[10px] font-bold tracking-widest uppercase">
+                      {{ item.data.format }}
+                    </div>
+                    <div class="bg-white text-construct-black px-3 py-1 text-[10px] font-bold tracking-widest uppercase">
+                      {{ item.data.file_size }}
+                    </div>
+                  </div>
+                </div>
+                <div class="flex justify-between items-start">
+                  <div>
+                    <div class="text-[10px] font-bold tracking-widest opacity-40 uppercase mb-2">[{{ getResourceCategoryName(item.data.category_id) }}]</div>
+                    <h3 class="font-display text-2xl tracking-tight mb-2 group-hover:text-construct-red transition-colors">
+                      {{ item.data.title }}
+                    </h3>
+                    <div class="flex gap-2">
+                      <span
+                        v-for="d in item.data.drives"
+                        :key="d.type"
+                        class="text-[10px] font-bold tracking-widest opacity-40 uppercase"
+                      >
+                        {{ d.type }}
+                      </span>
+                    </div>
+                  </div>
+                  <Download class="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity text-construct-red mt-6" />
+                </div>
+              </Motion>
+            </template>
           </TransitionGroup>
         </div>
       </div>

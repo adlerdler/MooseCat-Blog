@@ -24,8 +24,8 @@ import {
   adminCategories,
   MetaForm,
   ConfirmDialog,
-  AdminPagination,
-  AdminSearchFilter
+  Pagination,
+  SearchFilterModal
 } from '../../composables/useAdminImports';
 
 const { t } = useI18n();
@@ -135,7 +135,7 @@ const handleFilterChange = ({ key, value }) => {
     </div>
 
     <!-- Search and Filter -->
-    <AdminSearchFilter
+    <SearchFilterModal
       v-model:search-query="searchQuery"
       :search-placeholder="t('admin_search_categories')"
       :filters="[
@@ -232,7 +232,7 @@ const handleFilterChange = ({ key, value }) => {
     </div>
 
     <!-- Pagination -->
-    <AdminPagination
+    <Pagination
       :current-page="currentPage"
       :total-pages="totalPages"
       :total-items="filteredCategories.length"

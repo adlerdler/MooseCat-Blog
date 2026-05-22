@@ -24,8 +24,8 @@ import {
   X,
   Zap,
   adminLogs,
-  AdminPagination,
-  AdminSearchFilter
+  Pagination,
+  SearchFilterModal
 } from '../../composables/useAdminImports';
 
 const { t } = useI18n();
@@ -156,7 +156,7 @@ const handleFilterChange = ({ key, value }) => {
     </div>
 
     <!-- Search and Filter -->
-    <AdminSearchFilter
+    <SearchFilterModal
       v-model:search-query="searchQuery"
       :search-placeholder="t('admin_search_logs')"
       :filters="[
@@ -206,7 +206,7 @@ const handleFilterChange = ({ key, value }) => {
               </div>
               <div class="flex items-center gap-2">
                 <Clock :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'" size="16" />
-                <span :class="['text-sm', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ formatToShort(log.createdAt) }}</span>
+                <span :class="['text-sm', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ formatToShort(log.created_at) }}</span>
               </div>
             </div>
             <p :class="['mb-3', isDarkMode ? 'text-gray-300' : 'text-gray-700']">{{ log.details }}</p>
@@ -235,7 +235,7 @@ const handleFilterChange = ({ key, value }) => {
     </div>
 
     <!-- Pagination -->
-    <AdminPagination
+    <Pagination
       :current-page="currentPage"
       :total-pages="totalPages"
       :total-items="filteredLogs.length"

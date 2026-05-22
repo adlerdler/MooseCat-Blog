@@ -30,10 +30,10 @@ import {
   LayoutGrid,
   List,
   X,
-  AdminPagination,
+  Pagination,
   MediaPreviewModal,
   MediaUploadModal,
-  AdminSearchFilter,
+  SearchFilterModal,
   ConfirmDialog,
   useToast
 } from '../../composables/useAdminImports';
@@ -172,7 +172,7 @@ const confirmDelete = () => {
         </div>
 
         <!-- Search and Filter -->
-        <AdminSearchFilter
+        <SearchFilterModal
           v-model:search-query="searchQuery"
           :search-placeholder="t('admin_search_media')"
           :filters="[
@@ -298,7 +298,7 @@ const confirmDelete = () => {
 
         <!-- Pagination -->
         <div class="mt-8">
-          <AdminPagination
+          <Pagination
             :current-page="currentPage"
             :total-pages="totalPages"
             :total-items="filteredMedia.length"

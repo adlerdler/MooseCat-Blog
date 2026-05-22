@@ -25,8 +25,8 @@ import { useTheme } from '../../composables/useTheme';
 import { subscribers as subscribersData } from '../../data/subscribers';
 import { findById, findIndexById } from '../../utils/typeConvert';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
-import AdminSearchFilter from '../../components/admin/AdminSearchFilter.vue';
-import AdminPagination from '../../components/admin/AdminPagination.vue';
+import SearchFilterModal from '../../components/admin/SearchFilterModal.vue';
+import Pagination from '../../components/admin/Pagination.vue';
 import { formatToShort } from '../../utils/dateUtils';
 
 const { t } = useI18n();
@@ -189,7 +189,7 @@ const handleFilterChange = ({ key, value }) => {
     </div>
 
     <!-- Search and Filter -->
-    <AdminSearchFilter
+    <SearchFilterModal
       v-model:search-query="searchQuery"
       :search-placeholder="t('admin_search_subscribers')"
       :filters="[
@@ -282,7 +282,7 @@ const handleFilterChange = ({ key, value }) => {
     </div>
 
     <!-- Pagination -->
-    <AdminPagination
+    <Pagination
       :current-page="currentPage"
       :total-pages="totalPages"
       :total-items="filteredSubscribers.length"

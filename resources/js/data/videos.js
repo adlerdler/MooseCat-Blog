@@ -38,7 +38,7 @@ export const VIDEOS = [
     id: 2,
     title: 'DYNAMIC EQUILIBRIUM - BILI',
     description: 'Understanding the balance between structural integrity and dynamic architectural forms in modern construction.',
-    video_id: 'BV1xx411c7mZ',
+    video_id: 'BV1XG411s76m',
     platform: 'bilibili',
     thumbnail: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=800&h=450&fit=crop',
     duration: '18:45',

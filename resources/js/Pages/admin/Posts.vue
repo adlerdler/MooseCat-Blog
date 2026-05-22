@@ -18,7 +18,6 @@ import {
   Search,
   Edit3,
   Trash2,
-  Eye,
   Clock,
   Tag,
   ChevronLeft,
@@ -26,8 +25,8 @@ import {
   Filter,
   ConfirmDialog,
   PostForm,
-  AdminPagination,
-  AdminSearchFilter
+  Pagination,
+  SearchFilterModal
 } from '../../composables/useAdminImports';
 import { POSTS } from '../../data/posts';
 import { categories } from '../../data/categories';
@@ -160,7 +159,7 @@ const handleFilterChange = ({ key, value }) => {
     </div>
 
     <!-- Toolbar -->
-    <AdminSearchFilter
+    <SearchFilterModal
       v-model:search-query="searchQuery"
       :search-placeholder="t('admin_search_placeholder')"
       :filters="[
@@ -241,15 +240,6 @@ const handleFilterChange = ({ key, value }) => {
                 <Edit3 size="14" />
               </button>
               <button
-                :class="[
-                  'p-2 transition-colors',
-                  isDarkMode ? 'text-gray-400 hover:text-green-400 hover:bg-gray-700' : 'text-gray-500 hover:text-green-500 hover:bg-gray-100'
-                ]"
-                :title="t('admin_view')"
-              >
-                <Eye size="14" />
-              </button>
-              <button
                 @click="handleDelete(post.id)"
                 :class="[
                   'p-2 transition-colors',
@@ -266,7 +256,7 @@ const handleFilterChange = ({ key, value }) => {
     </div>
 
     <!-- Pagination -->
-    <AdminPagination
+    <Pagination
       :current-page="currentPage"
       :total-pages="totalPages"
       :total-items="filteredPosts.length"

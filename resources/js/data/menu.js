@@ -57,11 +57,12 @@ export const menus = [
   // 后台菜单 - 二级（系统管理）
   { id: 192, type: 'admin', parent_id: 19, label_key: 'admin_node_management', icon_name: 'Menu', path: '/admin/front-menu', sort_order: 1, is_active: true, component_name: 'AdminFrontMenu' },
   { id: 193, type: 'admin', parent_id: 19, label_key: 'admin_roles', icon_name: 'Shield', path: '/admin/roles', sort_order: 2, is_active: true, component_name: 'AdminRoles' },
-  { id: 198, type: 'admin', parent_id: 19, label_key: 'admin_mail_config', icon_name: 'Mail', path: '/admin/mail-config', sort_order: 3, is_active: true, component_name: 'AdminMailConfig' },
-  { id: 194, type: 'admin', parent_id: 19, label_key: 'admin_logs', icon_name: 'FileText', path: '/admin/logs', sort_order: 4, is_active: true, component_name: 'AdminLogs' },
-  { id: 195, type: 'admin', parent_id: 19, label_key: 'admin_backup', icon_name: 'Archive', path: '/admin/backup', sort_order: 5, is_active: true, component_name: 'AdminBackup' },
-  { id: 196, type: 'admin', parent_id: 19, label_key: 'admin_restore', icon_name: 'RotateCcw', path: '/admin/restore', sort_order: 6, is_active: true, component_name: 'AdminRestore' },
-  { id: 197, type: 'admin', parent_id: 19, label_key: 'admin_about', icon_name: 'Info', path: '/admin/about', sort_order: 7, is_active: true, component_name: 'AdminAbout' },
+  { id: 199, type: 'admin', parent_id: 19, label_key: 'admin_notifications', icon_name: 'Bell', path: '/admin/notifications', sort_order: 3, is_active: true, component_name: 'AdminNotifications' },
+  { id: 198, type: 'admin', parent_id: 19, label_key: 'admin_mail_config', icon_name: 'Mail', path: '/admin/mail-config', sort_order: 4, is_active: true, component_name: 'AdminMailConfig' },
+  { id: 194, type: 'admin', parent_id: 19, label_key: 'admin_logs', icon_name: 'FileText', path: '/admin/logs', sort_order: 5, is_active: true, component_name: 'AdminLogs' },
+  { id: 195, type: 'admin', parent_id: 19, label_key: 'admin_backup', icon_name: 'Archive', path: '/admin/backup', sort_order: 6, is_active: true, component_name: 'AdminBackup' },
+  { id: 196, type: 'admin', parent_id: 19, label_key: 'admin_restore', icon_name: 'RotateCcw', path: '/admin/restore', sort_order: 7, is_active: true, component_name: 'AdminRestore' },
+  { id: 197, type: 'admin', parent_id: 19, label_key: 'admin_about', icon_name: 'Info', path: '/admin/about', sort_order: 8, is_active: true, component_name: 'AdminAbout' },
 
   // 后台菜单 - 二级（用户管理）
   { id: 201, type: 'admin', parent_id: 20, label_key: 'admin_users', icon_name: 'Users', path: '/admin/users', sort_order: 1, is_active: true, component_name: 'AdminUsers' },

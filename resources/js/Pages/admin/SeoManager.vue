@@ -19,7 +19,7 @@ import {
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
 import { pageSeoList } from '../../data/page_seo';
-import AdminSearchFilter from '../../components/admin/AdminSearchFilter.vue';
+import SearchFilterModal from '../../components/admin/SearchFilterModal.vue';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
@@ -116,7 +116,7 @@ const getRouteColor = (routeName) => {
           </div>
           <p :class="['text-sm font-black tracking-[0.2em] uppercase opacity-50', isDarkMode ? 'text-gray-400' : 'text-gray-500']">管理各页面 SEO 配置</p>
         </div>
-        <AdminSearchFilter
+        <SearchFilterModal
           v-model:search-query="searchQuery"
           :search-placeholder="'搜索页面...'"
         />
