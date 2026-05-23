@@ -15,6 +15,7 @@
  */
 import { computed } from 'vue';
 import { sampleAdvertisements } from '../data/advertisements';
+import { adPositions, getAdPositionByName, getAdPositionById, getActiveAdPositions } from '../data/ad_positions';
 
 export function useAdSlot() {
   /**
@@ -31,13 +32,20 @@ export function useAdSlot() {
 
   /**
    * 获取指定位置且激活的广告
-   * @param {string} position - 广告位置 (header, sidebar, footer, between_posts, popup)
+   * @param {string|number} positionOrId - 广告位置名称或ID
    * @param {number} limit - 最大返回数量，默认不限制
    * @returns {Array} 符合条件的广告数组
    */
-  const getActiveAds = (position, limit = null) => {
+  const getActiveAds = (positionOrId, limit = null) => {
+    let targetPosition = positionOrId;
+
+    if (typeof positionOrId === 'number') {
+      const posConfig = getAdPositionById(positionOrId);
+      targetPosition = posConfig ? posConfig.name : positionOrId;
+    }
+
     let ads = sampleAdvertisements.filter(ad => {
-      if (ad.position !== position || !ad.is_active) return false;
+      if (ad.position !== targetPosition || !ad.is_active) return false;
       return isAdValid(ad);
     });
 
@@ -53,12 +61,11 @@ export function useAdSlot() {
    * @returns {Object} 以位置为键的广告数组对象
    */
   const adsByPosition = computed(() => {
-    const positions = ['header', 'sidebar', 'footer', 'between_posts', 'popup', 'in_content', 'video_bottom'];
     const result = {};
 
-    positions.forEach(pos => {
-      result[pos] = sampleAdvertisements.filter(ad => {
-        if (ad.position !== pos || !ad.is_active) return false;
+    adPositions.forEach(pos => {
+      result[pos.name] = sampleAdvertisements.filter(ad => {
+        if (ad.position !== pos.name || !ad.is_active) return false;
         return isAdValid(ad);
       });
     });
@@ -68,21 +75,51 @@ export function useAdSlot() {
 
   /**
    * 检查指定位置是否有可用广告
-   * @param {string} position - 广告位置
+   * @param {string|number} positionOrId - 广告位置名称或ID
    * @returns {boolean}
    */
-  const hasActiveAd = (position) => {
-    return getActiveAds(position).length > 0;
+  const hasActiveAd = (positionOrId) => {
+    return getActiveAds(positionOrId).length > 0;
   };
 
   /**
    * 获取单个广告（用于需要展示单个广告的场景）
-   * @param {string} position - 广告位置
+   * @param {string|number} positionOrId - 广告位置名称或ID
    * @returns {Object|null} 广告对象或null
    */
-  const getSingleAd = (position) => {
-    const ads = getActiveAds(position, 1);
+  const getSingleAd = (positionOrId) => {
+    const ads = getActiveAds(positionOrId, 1);
     return ads.length > 0 ? ads[0] : null;
+  };
+
+  /**
+   * 获取广告位配置信息
+   * @param {string|number} positionOrId - 广告位置名称或ID
+   * @returns {Object|null} 广告位配置对象
+   */
+  const getPositionConfig = (positionOrId) => {
+    if (typeof positionOrId === 'number') {
+      return getAdPositionById(positionOrId);
+    }
+    return getAdPositionByName(positionOrId);
+  };
+
+  /**
+   * 获取所有启用的广告位列表
+   * @returns {Array} 广告位配置数组
+   */
+  const getAvailablePositions = () => {
+    return getActiveAdPositions();
+  };
+
+  /**
+   * 获取广告位的默认尺寸
+   * @param {string|number} positionOrId - 广告位置名称或ID
+   * @returns {Object} 包含 width 和 height 的对象
+   */
+  const getPositionSize = (positionOrId) => {
+    const config = getPositionConfig(positionOrId);
+    return config ? { width: config.default_width, height: config.default_height } : { width: 0, height: 0 };
   };
 
   return {
@@ -90,6 +127,10 @@ export function useAdSlot() {
     adsByPosition,
     hasActiveAd,
     getSingleAd,
-    isAdValid
+    getPositionConfig,
+    getAvailablePositions,
+    getPositionSize,
+    isAdValid,
+    adPositions
   };
 }

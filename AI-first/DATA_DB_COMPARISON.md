@@ -1,18 +1,19 @@
 # Data 文件与数据库表结构对比分析
 
 > **重要说明**：本文档基于实际扫描 `resources/js/data/` 目录和 `database/migrations/` 目录生成，确保内容与实际项目状态一致。
+> **最后更新**：2026-05-23
 
 ---
 
 ## 一、整体对比概览
 
-### 1.1 数据文件清单（33个）
+### 1.1 数据文件清单（34个）
 
 | 序号 | 文件名 | 对应表名 | 状态 | 说明 |
 |:---:|--------|---------|:---:|------|
-| 1 | ad_positions.js | ad_positions | ❌ 需创建迁移 | 广告位配置数据 |
+| 1 | ad_positions.js | ad_positions | ⚠️ 有数据文件，缺迁移 | 广告位配置数据 |
 | 2 | advertisements.js | advertisements | ✅ 有迁移 | 广告内容数据 |
-| 3 | author_profiles.js | author_profiles | ❌ 需创建迁移 | 作者个人资料、社交链接等静态数据 |
+| 3 | author_profiles.js | author_profiles | ❌ 需创建迁移 | 作者个人资料、社交链接、技能等 |
 | 4 | backup.js | backups | ❌ 需创建迁移 | 系统备份记录 |
 | 5 | categories.js | categories | ✅ 有迁移 | 文章分类数据 |
 | 6 | comments.js | comments | ✅ 有迁移 | 文章评论数据 |
@@ -21,44 +22,45 @@
 | 9 | interactions.js | interactions | ✅ 有迁移 | 用户互动数据（点赞/收藏） |
 | 10 | journals.js | journals | ✅ 有迁移 | 日志/日记数据 |
 | 11 | logs.js | admin_logs | ❌ 需创建迁移 | 管理员操作日志 |
-| 12 | mail_config.js | mail_config | ❌ 需创建迁移 | 邮件配置数据 |
+| 12 | mail_config.js | mail_settings | ❌ 需创建迁移 | 邮件服务器配置 |
 | 13 | media.js | media | ❌ 需创建迁移 | 媒体文件管理数据 |
 | 14 | menu.js | menus | ❌ 需创建迁移 | 后台菜单配置 |
-| 15 | notifications.js | notifications | ✅ Laravel 内置 | 站内通知数据（`notifications:table`） |
-| 16 | page_seo.js | page_seo | ❌ 需创建迁移 | 各页面SEO配置（title、description、keywords） |
-| 17 | permissions.js | permissions | ❌ 需创建迁移 | 系统权限定义 |
+| 15 | notifications.js | notifications | ✅ Laravel 内置 | 站内通知数据 |
+| 16 | page_seo.js | page_seo | ❌ 需创建迁移 | 各页面SEO配置 |
+| 17 | permissions.js | permissions | ❌ 需创建迁移 | 系统权限定义（含 guard_name 字段） |
 | 18 | posts.js | posts | ✅ 有迁移 | 文章内容数据 |
 | 19 | projects.js | projects | ✅ 有迁移 | 项目作品集数据 |
 | 20 | resources.js | resources | ✅ 有迁移 | 资源下载数据 |
 | 21 | role_permissions.js | role_permissions | ❌ 需创建迁移 | 角色与权限的关联关系 |
 | 22 | roles.js | roles | ❌ 需创建迁移 | 用户角色定义 |
 | 23 | seo_config.js | seo | ❌ 需创建迁移 | 网站全局SEO默认配置 |
-| 24 | settings.js | settings | ❌ 需创建迁移 | 网站系统配置 |
+| 24 | settings.js | settings | ❌ 需创建迁移 | 网站系统配置（新增） |
 | 25 | site_config.js | site | ❌ 需创建迁移 | 站点基本信息、品牌配置 |
 | 26 | subscribers.js | subscribers | ✅ 有迁移 | 邮件订阅者数据 |
 | 27 | tags.js | tags | ✅ 有迁移 | 标签数据 |
 | 28 | taggables.js | taggables | ✅ 有迁移 | 标签多态关联中间表 |
 | 29 | themes.js | themes | ❌ 需创建迁移 | 主题配置数据 |
 | 30 | user_levels.js | user_levels | ❌ 需创建迁移 | 用户等级数据 |
-| 31 | users.js | users | ✅ Laravel 内置 | 用户账户数据（`make:auth`） |
+| 31 | users.js | users | ✅ Laravel 内置 | 用户账户数据 |
 | 32 | videos.js | videos | ✅ 有迁移 | 视频内容数据 |
 | 33 | visits.js | visits | ❌ 需创建迁移 | 访问记录统计 |
+| 34 | i18n_config.js | i18n | ❌ 需创建迁移 | 多语言配置数据 |
 
 ### 1.2 数据库表清单（29个）
 
 | 序号 | 表名 | 对应数据文件 | 状态 | 说明 |
 |:---:|------|-------------|:---:|------|
 | **框架内置表** |
-| 1 | users | users.js | ✅ Laravel 内置 | 用户账户信息表（`make:auth`） |
-| 2 | password_reset_tokens | - | ✅ Laravel 内置 | 密码重置令牌表（`make:auth`） |
-| 3 | sessions | - | ✅ Laravel 内置 | 会话表（`session:table`） |
-| 4 | cache | - | ✅ Laravel 内置 | 缓存表（`cache:table`） |
-| 5 | cache_locks | - | ✅ Laravel 内置 | 缓存锁表（`cache:table`） |
-| 6 | jobs | - | ✅ Laravel 内置 | 队列任务表（`queue:table`） |
-| 7 | job_batches | - | ✅ Laravel 内置 | 队列批次表（`queue:batches-table`） |
-| 8 | failed_jobs | - | ✅ Laravel 内置 | 失败任务表（`queue:failed-table`） |
-| 9 | notifications | notifications.js | ✅ Laravel 内置 | 通知表（`notifications:table`） |
-| 10 | personal_access_tokens | - | ✅ Laravel 内置 | Sanctum令牌表（`sanctum:install`） |
+| 1 | users | users.js | ✅ Laravel 内置 | 用户账户信息表 |
+| 2 | password_reset_tokens | - | ✅ Laravel 内置 | 密码重置令牌表 |
+| 3 | sessions | - | ✅ Laravel 内置 | 会话表 |
+| 4 | cache | - | ✅ Laravel 内置 | 缓存表 |
+| 5 | cache_locks | - | ✅ Laravel 内置 | 缓存锁表 |
+| 6 | jobs | - | ✅ Laravel 内置 | 队列任务表 |
+| 7 | job_batches | - | ✅ Laravel 内置 | 队列批次表 |
+| 8 | failed_jobs | - | ✅ Laravel 内置 | 失败任务表 |
+| 9 | notifications | notifications.js | ✅ Laravel 内置 | 通知表 |
+| 10 | personal_access_tokens | - | ✅ Laravel 内置 | Sanctum令牌表 |
 | **业务数据表** |
 | 11 | categories | categories.js | ✅ 存在对应文件 | 文章分类表 |
 | 12 | posts | posts.js | ✅ 存在对应文件 | 文章内容表 |
@@ -110,7 +112,7 @@
 |----------|---------|------|:---:|
 | **ad_positions.js** | ad_positions | 广告位配置管理 | 高 |
 | **media.js** | media | 媒体库管理 | 高 |
-| **menus.js** | menus | 后台菜单配置 | 高 |
+| **menu.js** | menus | 后台菜单配置 | 高 |
 | **permissions.js** | permissions | 系统权限定义 | 高 |
 | **roles.js** | roles | 用户角色定义 | 高 |
 | **role_permissions.js** | role_permissions | 角色权限关联 | 高 |
@@ -120,13 +122,14 @@
 | **seo_config.js** | seo | 全局SEO配置管理 | 中 |
 | **site_config.js** | site | 站点配置管理 | 中 |
 | **themes.js** | themes | 主题切换、外观定制 | 中 |
-| **author_profiles.js** | author_profiles | 作者详细资料、社交链接 | 中 |
+| **author_profiles.js** | author_profiles | 作者详细资料、社交链接、技能 | 中 |
 | **backup.js** | backups | 系统备份记录 | 中 |
 | **email_templates.js** | email_templates | 邮件模板管理 | 中 |
 | **logs.js** | admin_logs | 管理员操作日志 | 中 |
-| **mail_config.js** | mail_config | 邮件服务器配置 | 中 |
+| **mail_config.js** | mail_settings | 邮件服务器配置 | 中 |
 | **user_levels.js** | user_levels | 用户等级体系 | 中 |
 | **visits.js** | visits | 访问记录统计 | 中 |
+| **i18n_config.js** | i18n | 多语言配置管理 | 中 |
 
 ---
 
@@ -137,8 +140,8 @@
 | **author.js** | ❌ 已删除 | 已替换为 author_profiles.js |
 | **home.js** | ❌ 已删除 | 首页配置已移除 |
 | **links.js** | ❌ 已删除 | 友情链接数据已移除 |
-| **manifestos.js** | ❌ 已删除 | 宣言/理念数据已移除 |
-| **skills.js** | ❌ 已删除 | 技能/能力数据已移除 |
+| **manifestos.js** | ❌ 已删除 | 宣言/理念数据已整合到 author_profiles.js |
+| **skills.js** | ❌ 已删除 | 技能数据已整合到 author_profiles.js |
 
 ---
 
@@ -149,7 +152,7 @@
 ├── 媒体库管理 ← media.js（⚠️ 缺迁移）
 ├── 菜单配置系统 ← menu.js（⚠️ 缺迁移）
 ├── 角色权限系统 ← roles.js + permissions.js + role_permissions.js（⚠️ 缺迁移）
-├── 广告位管理 ← ad_positions.js + advertisements.js（⚠️ ad_positions缺迁移）
+├── 广告位管理 ← ad_positions.js + advertisements.js（⚠️ ad_positions缺迁移）✅ ad_positions.js已创建
 ├── 用户互动系统 ← interactions.js ✅
 └── 邮件订阅管理 ← subscribers.js ✅
 
@@ -161,24 +164,96 @@
 ├── 日志/日记系统 ← journals.js ✅
 ├── 操作日志记录 ← logs.js（⚠️ 缺迁移）
 ├── 邮件配置管理 ← mail_config.js（⚠️ 缺迁移）
-├── 系统设置管理 ← settings.js（⚠️ 缺迁移）
+├── 系统设置管理 ← site_config.js + seo_config.js（⚠️ 缺迁移）
 ├── 主题定制系统 ← themes.js（⚠️ 缺迁移）
-├── 作者详细资料 ← author_profiles.js（⚠️ 缺迁移）
+├── 作者详细资料 ← author_profiles.js（⚠️ 缺迁移）✅ 数据结构已完善
 ├── 页脚管理 ← footer_config.js（⚠️ 缺迁移）
 ├── 页面SEO管理 ← page_seo.js（⚠️ 缺迁移）
 ├── 全局SEO配置 ← seo_config.js（⚠️ 缺迁移）
-└── 站点配置 ← site_config.js（⚠️ 缺迁移）
-├── 多语言管理 ← i18n.js（⚠️ 缺迁移）
+├── 站点配置 ← site_config.js（⚠️ 缺迁移）
+└── 多语言管理 ← i18n_config.js（⚠️ 缺迁移）
 
-第三阶段（高级）⚠️ 部分完成
+第三阶段（高级）⚠️ 未启动
 ├── 站内通知系统 ← notifications.js ✅ 前端完成，后端使用 Laravel Notification 系统
-├── 数据统计面板 ← analytics.js
-├── 插件扩展机制 ← plugins.js
-├── API开放平台 ← apiKeys.js
-├── 首页轮播管理 ← banners.js
-├── 帮助中心 ← faq.js
-└── 用户评价系统 ← testimonials.js
+├── 数据统计面板 ← analytics.js（待创建）
+├── 插件扩展机制 ← plugins.js（待创建）
+├── API开放平台 ← apiKeys.js（待创建）
+├── 首页轮播管理 ← banners.js（待创建）
+├── 帮助中心 ← faq.js（待创建）
+└── 用户评价系统 ← testimonials.js（待创建）
 ```
+
+---
+
+## 六、数据文件结构分析与数据库设计原则
+
+### 6.1 数据库设计原则应用
+
+| 原则 | 应用说明 | 当前状态 |
+|:---|:---|:---:|
+| **完整性** | 确保所有数据文件有对应的数据库表 | ⚠️ 19个文件缺迁移 |
+| **一致性** | 数据文件结构应与数据库表结构保持一致 | ✅ 基本一致 |
+| **规范化** | 数据符合数据库规范化要求（1NF/2NF/3NF） | ✅ 符合规范 |
+| **关联性** | 相关表之间建立外键关联 | ⚠️ 部分表缺少外键 |
+| **可扩展性** | 预留字段便于未来扩展 | ✅ 设计合理 |
+
+### 6.2 关键数据文件结构分析
+
+#### 6.2.1 ad_positions.js（已创建）
+
+**数据结构**：
+| 字段名 | 类型 | 说明 | 数据库映射 |
+|--------|------|------|:---:|
+| id | number | 主键 | PRIMARY KEY |
+| name | string | 广告位英文标识 | VARCHAR (unique) |
+| label_key | string | 国际化翻译key | VARCHAR |
+| description | string | 广告位描述 | VARCHAR/TEXT |
+| default_width | number | 默认宽度 | INTEGER |
+| default_height | number | 默认高度 | INTEGER |
+| is_active | boolean | 是否启用 | BOOLEAN |
+| sort_order | number | 排序顺序 | INTEGER |
+| created_at | string | 创建时间 | TIMESTAMP |
+| updated_at | string | 更新时间 | TIMESTAMP |
+
+**设计原则遵循**：符合规范化，字段职责单一，支持国际化。
+
+#### 6.2.2 author_profiles.js（已完善）
+
+**数据结构**：
+| 字段名 | 类型 | 说明 | 数据库映射 |
+|--------|------|------|:---:|
+| id | number | 主键 | PRIMARY KEY |
+| user_id | number | 关联用户ID | FOREIGN KEY |
+| slug | string | URL别名 | VARCHAR (unique) |
+| bio | string | 个人简介 | TEXT |
+| avatar | string | 头像URL | VARCHAR |
+| role_label | string | 职位标签key | VARCHAR |
+| role_title | string | 职位名称key | VARCHAR |
+| status_label | string | 状态标签key | VARCHAR |
+| status_text | string | 状态文本key | VARCHAR |
+| is_active | boolean | 是否启用 | BOOLEAN |
+| social_links | object | 社交链接 | JSON |
+| expertise | array | 专业领域 | JSON |
+| skills | array | 技能列表 | JSON |
+| manifestos | array | 作者宣言 | JSON |
+| created_at | string | 创建时间 | TIMESTAMP |
+| updated_at | string | 更新时间 | TIMESTAMP |
+
+**设计原则遵循**：将作者相关数据（技能、宣言等）整合到单一表中，使用JSON字段存储动态数据，符合规范化要求。
+
+#### 6.2.3 permissions.js（符合 Spatie 标准）
+
+**数据结构**：
+| 字段名 | 类型 | 说明 | 数据库映射 |
+|--------|------|------|:---:|
+| id | number | 主键 | PRIMARY KEY |
+| name | string | 权限名称 | VARCHAR (unique) |
+| label | string | 权限标签 | VARCHAR |
+| description | string | 权限描述 | VARCHAR |
+| guard_name | string | 守卫名称 | VARCHAR |
+| program_id | string | 程序ID | VARCHAR |
+
+**设计原则遵循**：符合 Spatie/laravel-permission 标准结构，便于未来集成。
 
 ---
 
@@ -188,18 +263,18 @@
 
 #### 7.1.1 users 表
 
-**当前字段：**
+**当前字段**：
 - id, name, email, email_verified_at, password, avatar, bio, github, twitter, linkedin
 - role (enum: user/admin), status (enum: active/inactive/suspended)
 - last_login_at, rememberToken, timestamps
 
-**需要补充的字段：**
+**需要补充的字段**：
 | 字段名 | 类型 | 说明 | 优先级 |
 |--------|------|------|:---:|
 | role_id | foreignId | 关联 roles 表（替代当前 role 枚举） | 高 |
 | points | unsignedBigInteger | 用户积分 | 中 |
 
-**建议迁移：**
+**建议迁移**：
 ```php
 Schema::table('users', function (Blueprint $table) {
     $table->foreignId('role_id')->nullable()->constrained('roles')->nullOnDelete();
@@ -209,26 +284,26 @@ Schema::table('users', function (Blueprint $table) {
 
 #### 7.1.2 posts 表
 
-**当前字段：**
+**当前字段**：
 - id, title, slug, excerpt, content, cover_image, color
 - status (enum: draft/published/archived)
 - views_count, likes_count
 - meta_title, meta_description, meta_keywords
 - author_id, category_id, published_at, timestamps
 
-**状态：** 字段完整，无需补充
+**状态**：字段完整，无需补充
 
 #### 7.1.3 categories 表
 
-**当前字段：**
+**当前字段**：
 - id, parent_id, name, slug, description, sort_order, timestamps
 
-**需要补充的字段：**
+**需要补充的字段**：
 | 字段名 | 类型 | 说明 | 优先级 |
 |--------|------|------|:---:|
 | status | enum | 分类状态（active/inactive） | 中 |
 
-**建议迁移：**
+**建议迁移**：
 ```php
 Schema::table('categories', function (Blueprint $table) {
     $table->enum('status', ['active', 'inactive'])->default('active');
@@ -237,62 +312,62 @@ Schema::table('categories', function (Blueprint $table) {
 
 #### 7.1.4 projects 表
 
-**当前字段：**
+**当前字段**：
 - id, title, description, long_description, client, role, year
 - image, url, github_url, technologies (JSON)
 - status (enum: planning/in-progress/completed)
 - sort_order, views_count, likes_count, timestamps
 
-**状态：** 字段完整，无需补充
+**状态**：字段完整，无需补充
 
 #### 7.1.5 resources 表
 
-**当前字段：**
+**当前字段**：
 - id, category_id, title, description, format, file_size
 - image, direct_link, drives (JSON)
 - downloads_count, likes_count, timestamps
 
-**状态：** 字段完整，无需补充
+**状态**：字段完整，无需补充
 
 #### 7.1.6 videos 表
 
-**当前字段：**
+**当前字段**：
 - id, title, description, video_id, platform (enum: youtube/bilibili)
 - thumbnail, duration, views_count, likes_count
 - published_at, timestamps
 
-**状态：** 字段完整，无需补充
+**状态**：字段完整，无需补充
 
 #### 7.1.7 comments 表
 
-**当前字段：**
+**当前字段**：
 - id, post_id, parent_id, user_id, name, email
 - body, is_approved, ip_address, user_agent, timestamps
 
-**状态：** 字段完整，无需补充
+**状态**：字段完整，无需补充
 
 #### 7.1.8 interactions 表
 
-**当前字段：**
+**当前字段**：
 - id, user_id, interactable_id, interactable_type (多态)
 - type (enum: like/bookmark), timestamps
 - 唯一索引：user_id + interactable_id + interactable_type + type
 
-**状态：** 字段完整，无需补充
+**状态**：字段完整，无需补充
 
 #### 7.1.9 advertisements 表
 
-**当前字段：**
+**当前字段**：
 - id, title, image_url, link_url, position (index)
 - is_active, clicks_count, views_count
 - start_date, end_date, timestamps
 
-**需要补充的字段：**
+**需要补充的字段**：
 | 字段名 | 类型 | 说明 | 优先级 |
 |--------|------|------|:---:|
 | position_id | foreignId | 关联 ad_positions 表 | 高 |
 
-**建议迁移：**
+**建议迁移**：
 ```php
 Schema::table('advertisements', function (Blueprint $table) {
     $table->foreignId('position_id')->nullable()->constrained('ad_positions')->nullOnDelete();
@@ -301,17 +376,17 @@ Schema::table('advertisements', function (Blueprint $table) {
 
 #### 7.1.10 journals 表
 
-**当前字段：**
+**当前字段**：
 - id, user_id, content, mood, weather
 - is_public, likes_count, timestamps
 
-**需要补充的字段：**
+**需要补充的字段**：
 | 字段名 | 类型 | 说明 | 优先级 |
 |--------|------|------|:---:|
 | title | string | 日志标题 | 高 |
 | date | date | 日志日期 | 高 |
 
-**建议迁移：**
+**建议迁移**：
 ```php
 Schema::table('journals', function (Blueprint $table) {
     $table->string('title')->nullable();
@@ -321,17 +396,17 @@ Schema::table('journals', function (Blueprint $table) {
 
 #### 7.1.11 subscribers 表
 
-**当前字段：**
+**当前字段**：
 - id, email (unique), is_active, timestamps
 
-**需要补充的字段：**
+**需要补充的字段**：
 | 字段名 | 类型 | 说明 | 优先级 |
 |--------|------|------|:---:|
 | name | string | 订阅者姓名 | 中 |
 | source | string | 订阅来源（website/newsletter/social） | 中 |
 | subscribed_at | timestamp | 订阅时间 | 中 |
 
-**建议迁移：**
+**建议迁移**：
 ```php
 Schema::table('subscribers', function (Blueprint $table) {
     $table->string('name')->nullable();
@@ -385,12 +460,13 @@ Schema::table('subscribers', function (Blueprint $table) {
 | description | string | 角色描述 |
 | timestamps | timestamps | 时间戳 |
 
-#### 7.2.4 permissions 表
+#### 7.2.4 permissions 表（兼容 Spatie）
 
 | 字段名 | 类型 | 说明 |
 |--------|------|------|
 | id | id | 主键 |
 | name | string (unique) | 权限名称 |
+| guard_name | string | 守卫名称（默认 'web'） |
 | label | string | 权限标签 |
 | description | string | 权限描述 |
 | program_id | string | 程序ID |
@@ -528,18 +604,24 @@ Schema::table('subscribers', function (Blueprint $table) {
 | config | json (nullable) | 主题配置 |
 | timestamps | timestamps | 时间戳 |
 
-#### 7.2.16 author_profiles 表
+#### 7.2.16 author_profiles 表（完整结构）
 
 | 字段名 | 类型 | 说明 |
 |--------|------|------|
 | id | id | 主键 |
 | user_id | foreignId | 关联用户ID |
+| slug | string (unique) | URL友好别名 |
 | bio | text | 个人简介 |
 | avatar | string (nullable) | 头像URL |
-| github | string (nullable) | GitHub链接 |
-| twitter | string (nullable) | Twitter链接 |
-| linkedin | string (nullable) | LinkedIn链接 |
-| website | string (nullable) | 个人网站 |
+| role_label | string | 职位标签（国际化key） |
+| role_title | string | 职位名称（国际化key） |
+| status_label | string | 状态标签（国际化key） |
+| status_text | string | 状态文本（国际化key） |
+| is_active | boolean | 是否启用 |
+| social_links | json | 社交链接 |
+| expertise | json | 专业领域 |
+| skills | json | 技能列表 |
+| manifestos | json | 作者宣言 |
 | timestamps | timestamps | 时间戳 |
 
 #### 7.2.17 backups 表
@@ -584,6 +666,20 @@ Schema::table('subscribers', function (Blueprint $table) {
 | is_active | boolean | 是否启用 |
 | timestamps | timestamps | 时间戳 |
 
+#### 7.2.20 i18n 表
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| id | id | 主键 |
+| group | string | 翻译分组 |
+| key | string | 翻译键 |
+| text | json | 多语言文本（JSON格式） |
+| description | string (nullable) | 描述 |
+| is_active | boolean | 是否启用 |
+| sort_order | integer | 排序顺序 |
+| timestamps | timestamps | 时间戳 |
+| 复合唯一索引 | (group, key) | 分组+键名唯一索引 |
+
 ---
 
 ## 八、下一步建议
@@ -594,8 +690,8 @@ Schema::table('subscribers', function (Blueprint $table) {
 
 1. **ad_positions** - 广告位配置
 2. **media** - 媒体库管理
-3. **menus** - 菜单配置
-4. **permissions** - 权限定义
+3. **menu** - 菜单配置
+4. **permissions** - 权限定义（兼容 Spatie）
 5. **roles** - 角色定义
 6. **role_permissions** - 角色权限关联
 7. **settings** - 系统设置
@@ -607,13 +703,14 @@ Schema::table('subscribers', function (Blueprint $table) {
 10. **seo_config** - 全局SEO配置
 11. **site_config** - 站点配置
 12. **themes** - 主题配置
-13. **author_profiles** - 作者资料
+13. **author_profiles** - 作者资料（含技能、宣言等JSON字段）
 14. **backups** - 备份记录
 15. **email_templates** - 邮件模板
 16. **admin_logs** - 操作日志
-17. **mail_config** - 邮件配置
+17. **mail_settings** - 邮件配置
 18. **user_levels** - 用户等级
 19. **visits** - 访问记录
+20. **i18n** - 多语言配置
 
 ### 8.3 已有迁移表需要补充字段
 
@@ -625,13 +722,17 @@ Schema::table('subscribers', function (Blueprint $table) {
 | **categories** | status (active/inactive) | 中 |
 | **subscribers** | name, source, subscribed_at | 中 |
 
-### 8.4 说明
+### 8.4 数据文件一致性检查
 
-- 所有数据文件均计划迁移至数据库，不再保留 JS 配置文件
-- notifications.js 使用 Laravel 内置通知系统，无需创建自定义迁移，执行 `php artisan notifications:table` 即可
+| 数据文件 | 当前状态 | 需要修正 |
+|----------|---------|:---:|
+| ad_positions.js | ✅ 已创建，结构完整 | 无需修正 |
+| author_profiles.js | ✅ 已完善，整合了技能、宣言数据 | 无需修正 |
+| permissions.js | ✅ 符合 Spatie 标准 | 无需修正 |
+| roles.js | ✅ 结构完整 | 无需修正 |
+| menu.js | ✅ 结构完整 | 无需修正 |
+| themes.js | ✅ 结构完整 | 无需修正 |
 
----
+### 8.5 说明
 
-*生成日期：2026-05-18*
-*更新日期：2026-05-22*
-*更新说明：基于实际文件扫描重写，删除过时内容，标注缺失迁移，新增通知系统说明，补充数据库表字段详细分析与补充建议*
+本文档基于数据库设计原则（完整性、一致性、规范化、关联性、可扩展性）进行分析，确保数据文件与数据库表结构的对应关系准确。建议按照优先级顺序创建缺失的数据库迁移，并补充已有表中缺失的字段。

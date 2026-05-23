@@ -16,17 +16,37 @@
 import { computed } from 'vue';
 import { ArrowUpRight } from 'lucide-vue-next';
 import { sampleAdvertisements } from '../../data/advertisements';
+import { getAdPositionByName, getAdPositionById } from '../../data/ad_positions';
 
 const props = defineProps({
   position: {
-    type: String,
+    type: [String, Number],
     required: true,
-    validator: (value) => ['header', 'sidebar', 'footer', 'between_posts', 'popup', 'in_content', 'video_bottom'].includes(value)
+    validator: (value) => {
+      if (typeof value === 'number') {
+        return value >= 1 && value <= 7;
+      }
+      return ['header', 'sidebar', 'footer', 'between_posts', 'popup', 'in_content', 'video_bottom'].includes(value);
+    }
   },
   limit: {
     type: Number,
     default: 1
   }
+});
+
+const positionConfig = computed(() => {
+  if (typeof props.position === 'number') {
+    return getAdPositionById(props.position);
+  }
+  return getAdPositionByName(props.position);
+});
+
+const targetPosition = computed(() => {
+  if (typeof props.position === 'string') {
+    return props.position;
+  }
+  return positionConfig.value?.name || props.position;
 });
 
 const isAdValid = (ad) => {
@@ -39,13 +59,20 @@ const isAdValid = (ad) => {
 const activeAds = computed(() => {
   return sampleAdvertisements
     .filter(ad => {
-      if (ad.position !== props.position || !ad.is_active) return false;
+      if (ad.position !== targetPosition.value || !ad.is_active) return false;
       return isAdValid(ad);
     })
     .slice(0, props.limit);
 });
 
 const getContainerClasses = () => {
+  const width = positionConfig.value?.default_width || 0;
+  const height = positionConfig.value?.default_height || 0;
+
+  if (width && height) {
+    return `w-full max-w-[${width}px] mx-auto`;
+  }
+
   switch (props.position) {
     case 'header':
     case 'footer':
@@ -62,7 +89,7 @@ const getContainerClasses = () => {
 };
 
 const getAdClasses = () => {
-  switch (props.position) {
+  switch (targetPosition.value) {
     case 'header':
       return 'border-t-8 border-construct-black bg-construct-black';
     case 'footer':
@@ -80,7 +107,7 @@ const getAdClasses = () => {
 };
 
 const getContentClasses = () => {
-  switch (props.position) {
+  switch (targetPosition.value) {
     case 'header':
     case 'footer':
       return 'flex items-center justify-between px-8 md:px-16 py-6';
@@ -90,7 +117,14 @@ const getContentClasses = () => {
 };
 
 const getImageClasses = () => {
-  switch (props.position) {
+  const width = positionConfig.value?.default_width || 0;
+  const height = positionConfig.value?.default_height || 0;
+
+  if (width && height) {
+    return `w-full h-full object-cover aspect-[${width}/${height}]`;
+  }
+
+  switch (targetPosition.value) {
     case 'header':
     case 'footer':
       return 'w-32 h-16 md:w-48 md:h-20 object-cover';
@@ -115,7 +149,7 @@ const getImageClasses = () => {
         :class="getAdClasses()"
       >
         <!-- Video Bottom Ad: Keep original size, only optimize style -->
-        <template v-if="position === 'video_bottom'">
+        <template v-if="targetPosition === 'video_bottom'">
           <div :class="getContentClasses()">
             <div class="flex items-center gap-4 md:gap-8">
               <div class="flex items-center gap-2">
@@ -140,7 +174,7 @@ const getImageClasses = () => {
         </template>
 
         <!-- Sidebar Ad: Image + Info layout -->
-        <template v-else-if="position === 'sidebar'">
+        <template v-else-if="targetPosition === 'sidebar'">
           <div class="aspect-[4/3] bg-construct-black overflow-hidden">
             <img
               :src="ad.image_url"

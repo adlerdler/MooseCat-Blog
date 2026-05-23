@@ -8,28 +8,47 @@
  * - 支持标记已读/全部已读
  * - 通知类型区分（info/warning/error/success）
  */
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { Bell, Check, CheckCheck, Trash2, Info, AlertTriangle, AlertCircle, CheckCircle } from 'lucide-vue-next';
 import { NOTIFICATIONS } from '../data/notifications';
 import { useI18n } from 'vue-i18n';
+import { useTheme } from '../composables/useTheme';
 
 const { t } = useI18n();
+const { isDarkMode } = useTheme();
 
 const notifications = ref(NOTIFICATIONS.map(n => ({ ...n })));
 const isOpen = ref(false);
+const dropdownRef = ref(null);
 
 const unreadCount = computed(() => notifications.value.filter(n => !n.read).length);
 
 const typeConfig = {
-  info: { icon: Info, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20' },
-  warning: { icon: AlertTriangle, color: 'text-yellow-500', bg: 'bg-yellow-50 dark:bg-yellow-900/20' },
-  error: { icon: AlertCircle, color: 'text-red-500', bg: 'bg-red-50 dark:bg-red-900/20' },
-  success: { icon: CheckCircle, color: 'text-green-500', bg: 'bg-green-50 dark:bg-green-900/20' }
+  info: { icon: Info, color: 'text-blue-500', bg: computed(() => isDarkMode ? 'bg-blue-900/20' : 'bg-blue-50') },
+  warning: { icon: AlertTriangle, color: 'text-yellow-500', bg: computed(() => isDarkMode ? 'bg-yellow-900/20' : 'bg-yellow-50') },
+  error: { icon: AlertCircle, color: 'text-red-500', bg: computed(() => isDarkMode ? 'bg-red-900/20' : 'bg-red-50') },
+  success: { icon: CheckCircle, color: 'text-green-500', bg: computed(() => isDarkMode ? 'bg-green-900/20' : 'bg-green-50') }
 };
 
-const toggleDropdown = () => {
+const toggleDropdown = (e) => {
+  // 阻止事件冒泡，避免立即触发点击外部检测
+  if (e) e.stopPropagation();
   isOpen.value = !isOpen.value;
 };
+
+const handleClickOutside = (e) => {
+  if (dropdownRef.value && !dropdownRef.value.contains(e.target)) {
+    isOpen.value = false;
+  }
+};
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside);
+});
 
 const markAsRead = (id) => {
   const notification = notifications.value.find(n => n.id === id);
@@ -64,14 +83,14 @@ const formatTime = (dateStr) => {
 </script>
 
 <template>
-  <div class="relative">
+  <div ref="dropdownRef" class="relative">
     <button
-      @click="toggleDropdown"
+      @click.stop="toggleDropdown($event)"
       class="relative p-2 rounded-lg transition-colors group"
       :class="[
         isOpen
-          ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white'
-          : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-700'
+          ? isDarkMode ? 'bg-gray-700 text-white' : 'bg-gray-200 text-gray-900'
+          : isDarkMode ? 'text-gray-400 hover:text-white hover:bg-gray-700' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
       ]"
     >
       <Bell size="20" class="group-hover:scale-110 transition-transform" />
@@ -86,10 +105,12 @@ const formatTime = (dateStr) => {
     <Transition name="notification-dropdown">
       <div
         v-if="isOpen"
-        class="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden"
+        class="absolute right-0 top-full mt-2 w-80 sm:w-96 rounded-xl shadow-xl z-50 overflow-hidden"
+        :class="isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'"
       >
         <!-- Header -->
-        <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+        <div class="flex items-center justify-between px-4 py-3"
+          :class="isDarkMode ? 'border-b border-gray-700' : 'border-b border-gray-200'">
           <h3 class="font-display text-sm font-bold tracking-tight">
             {{ t('admin_notifications_title') || 'Notifications' }}
           </h3>
@@ -104,7 +125,8 @@ const formatTime = (dateStr) => {
 
         <!-- Notification List -->
         <div class="max-h-96 overflow-y-auto">
-          <div v-if="notifications.length === 0" class="p-8 text-center text-gray-400 dark:text-gray-500">
+          <div v-if="notifications.length === 0" class="p-8 text-center"
+            :class="isDarkMode ? 'text-gray-500' : 'text-gray-400'">
             <Bell size="32" class="mx-auto mb-3 opacity-30" />
             <p class="text-xs font-bold tracking-widest uppercase">
               {{ t('admin_no_notifications') || 'No Notifications' }}
@@ -115,13 +137,16 @@ const formatTime = (dateStr) => {
             v-for="notification in notifications"
             :key="notification.id"
             @click="markAsRead(notification.id)"
-            class="group flex gap-3 px-4 py-3 border-b border-gray-100 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer"
-            :class="{ 'bg-gray-50/50 dark:bg-gray-700/30': !notification.read }"
+            class="group flex gap-3 px-4 py-3 transition-colors cursor-pointer"
+            :class="[
+              isDarkMode ? 'border-b border-gray-700/50 hover:bg-gray-700/50' : 'border-b border-gray-100 hover:bg-gray-50',
+              !notification.read ? (isDarkMode ? 'bg-gray-700/30' : 'bg-gray-50/50') : ''
+            ]"
           >
             <!-- Icon -->
             <div
               class="shrink-0 w-8 h-8 rounded-full flex items-center justify-center"
-              :class="typeConfig[notification.type]?.bg || typeConfig.info.bg"
+              :class="typeConfig[notification.type]?.bg.value || typeConfig.info.bg.value"
             >
               <component
                 :is="typeConfig[notification.type]?.icon || typeConfig.info.icon"
@@ -132,7 +157,10 @@ const formatTime = (dateStr) => {
             <!-- Content -->
             <div class="flex-1 min-w-0">
               <div class="flex items-start justify-between gap-2">
-                <h4 class="text-sm font-bold truncate" :class="notification.read ? 'text-gray-600 dark:text-gray-400' : 'text-gray-900 dark:text-white'">
+                <h4 class="text-sm font-bold truncate"
+                  :class="notification.read 
+                    ? (isDarkMode ? 'text-gray-400' : 'text-gray-600')
+                    : (isDarkMode ? 'text-white' : 'text-gray-900')">
                   {{ notification.title }}
                 </h4>
                 <span
@@ -140,16 +168,19 @@ const formatTime = (dateStr) => {
                   class="shrink-0 w-2 h-2 bg-construct-red rounded-full mt-1.5"
                 />
               </div>
-              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
+              <p class="text-xs mt-1 line-clamp-2"
+                :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'">
                 {{ notification.message }}
               </p>
               <div class="flex items-center justify-between mt-2">
-                <span class="text-[10px] font-bold tracking-widest text-gray-400 dark:text-gray-500 uppercase">
+                <span class="text-[10px] font-bold tracking-widest uppercase"
+                  :class="isDarkMode ? 'text-gray-500' : 'text-gray-400'">
                   {{ formatTime(notification.created_at) }}
                 </span>
                 <button
                   @click.stop="deleteNotification(notification.id)"
-                  class="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-all"
+                  class="opacity-0 group-hover:opacity-100 p-1 rounded transition-all"
+                  :class="isDarkMode ? 'hover:bg-gray-600' : 'hover:bg-gray-200'"
                 >
                   <Trash2 size="12" class="text-gray-400 hover:text-red-500" />
                 </button>
@@ -159,7 +190,8 @@ const formatTime = (dateStr) => {
         </div>
 
         <!-- Footer -->
-        <div class="px-4 py-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+        <div class="px-4 py-3 border-t"
+          :class="isDarkMode ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'">
           <router-link
             to="/admin/notifications"
             @click="isOpen = false"

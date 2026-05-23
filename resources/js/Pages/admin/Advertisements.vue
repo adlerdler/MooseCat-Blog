@@ -42,6 +42,7 @@ import {
 import { Motion, AnimatePresence } from 'motion-v';
 import { formatToShort } from '../../utils/dateUtils';
 import { sampleAdvertisements } from '../../data/advertisements';
+import { adPositions, getAdPositionOptions, getAdPositionByName } from '../../data/ad_positions';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
@@ -57,6 +58,13 @@ const showDeleteConfirm = ref(false);
 const deletingAdId = ref(null);
 
 const ads = ref([...sampleAdvertisements]);
+
+const positionOptions = computed(() => {
+  return getAdPositionOptions().map(opt => ({
+    ...opt,
+    label: t(opt.label_key) || opt.name
+  }));
+});
 
 const filteredAds = computed(() => {
   return ads.value.filter(ad => {
@@ -88,14 +96,11 @@ const getPositionIcon = (position) => {
 };
 
 const getPositionLabel = (position) => {
-  const labels = {
-    header: t('admin_ad_position_header'),
-    sidebar: t('admin_ad_position_sidebar'),
-    footer: t('admin_ad_position_footer'),
-    between_posts: t('admin_ad_position_between_posts'),
-    popup: t('admin_ad_position_popup')
-  };
-  return labels[position] || position;
+  const posConfig = getAdPositionByName(position);
+  if (posConfig) {
+    return t(posConfig.label_key) || posConfig.name;
+  }
+  return position;
 };
 
 const toggleStatus = (ad) => {
@@ -210,11 +215,7 @@ const getCtr = (ad) => {
             ]"
           >
             <option value="all">{{ t('admin_all_positions') }}</option>
-            <option value="header">{{ t('admin_ad_position_header') }}</option>
-            <option value="sidebar">{{ t('admin_ad_position_sidebar') }}</option>
-            <option value="footer">{{ t('admin_ad_position_footer') }}</option>
-            <option value="between_posts">{{ t('admin_ad_position_between_posts') }}</option>
-            <option value="popup">{{ t('admin_ad_position_popup') }}</option>
+            <option v-for="pos in positionOptions" :key="pos.value" :value="pos.name">{{ pos.label }}</option>
           </select>
         </div>
         <select
@@ -467,11 +468,7 @@ const getCtr = (ad) => {
                     isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'
                   ]"
                 >
-                  <option value="header">{{ t('admin_ad_position_header') }}</option>
-                  <option value="sidebar">{{ t('admin_ad_position_sidebar') }}</option>
-                  <option value="footer">{{ t('admin_ad_position_footer') }}</option>
-                  <option value="between_posts">{{ t('admin_ad_position_between_posts') }}</option>
-                  <option value="popup">{{ t('admin_ad_position_popup') }}</option>
+                  <option v-for="pos in positionOptions" :key="pos.value" :value="pos.name">{{ pos.label }}</option>
                 </select>
               </div>
 

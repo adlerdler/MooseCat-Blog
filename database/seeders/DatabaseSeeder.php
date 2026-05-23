@@ -30,6 +30,24 @@ class DatabaseSeeder extends Seeder
 
         // 2. 按顺序调用子 Seeder
         $this->call([
+            // 基础数据
+            RoleSeeder::class,
+            AdPositionSeeder::class,
+            SettingSeeder::class,
+            MenuSeeder::class,
+            UserLevelSeeder::class,
+            LanguageSeeder::class,
+            SocialLinkSeeder::class,
+            FooterLinkSeeder::class,
+            ThemeSeeder::class,
+            SeoSeeder::class,
+            TranslationSeeder::class,
+            
+            // 用户相关
+            AuthorProfileSeeder::class,
+            VisitSeeder::class,
+            
+            // 原有数据
             CategorySeeder::class,
             TagSeeder::class,
             PostSeeder::class,
