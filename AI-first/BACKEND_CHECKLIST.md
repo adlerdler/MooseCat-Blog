@@ -1,6 +1,6 @@
 # 后端功能开发清单
 
-**最后更新：** 2026-05-23
+**最后更新：** 2026-05-23 (数据库迁移和 Seeder 全部完成)
 **Laravel版本：** 10+
 **状态说明：** ✅ 已完成 | 🔄 进行中 | ⚠️ 待处理 | ❌ 阻塞
 
@@ -35,7 +35,7 @@
 | **Middleware** | `app/Http/Middleware/` | ⚠️ 待创建 | 中间件 |
 | **Command** | `app/Console/Commands/` | ⚠️ 待创建 | Artisan命令 |
 | **Factory** | `database/factories/` | ⚠️ 待创建 | 测试数据 |
-| **Seeder** | `database/seeders/` | ⚠️ 待创建 | 初始数据 |
+| **Seeder** | `database/seeders/` | ✅ 已完成 | 24个Seeder，约176条模拟数据 |
 
 ---
 
@@ -46,27 +46,27 @@
 | ID | 任务 | 组件类型 | 状态 | 依赖 | Laravel实现 |
 |----|------|----------|:----:|------|------------|
 | AUTH-01 | 安装配置 Laravel Sanctum | 认证 | ⚠️ 待处理 | - | composer require |
-| AUTH-02 | 创建 roles 表迁移 | Migration | ⚠️ 待处理 | - | `php artisan make:migration` |
+| AUTH-02 | 创建 roles 表迁移 | Migration | ✅ 已完成 | - | `php artisan make:migration` |
 | AUTH-03 | 创建 Role Model + Policy | Model+Policy | ⚠️ 待处理 | AUTH-02 | HasRoles Trait |
-| AUTH-04 | 创建 permissions 表迁移 | Migration | ⚠️ 待处理 | - | Spatie标准表 |
+| AUTH-04 | 创建 permissions 表迁移 | Migration | ✅ 已完成 | - | Spatie标准表 |
 | AUTH-05 | 创建 Permission Model | Model | ⚠️ 待处理 | AUTH-04 | 标准Model |
-| AUTH-06 | users表添加 role_id 字段 | Migration | ⚠️ 待处理 | AUTH-02 | 新迁移文件 |
+| AUTH-06 | users表添加 role_id 字段 | Migration | ✅ 已完成 | AUTH-02 | 新迁移文件 |
 | AUTH-07 | 创建 RoleController CRUD | Controller | ⚠️ 待处理 | AUTH-03 | app/Http/Controllers/Admin/ |
 | AUTH-08 | 创建 RoleResource | Resource | ⚠️ 待处理 | AUTH-07 | app/Http/Resources/V1/ |
 | AUTH-09 | 创建 StoreRoleRequest | FormRequest | ⚠️ 待处理 | AUTH-07 | 验证规则 |
 | AUTH-10 | 角色-权限分配API | Controller | ⚠️ 待处理 | AUTH-05, AUTH-07 | syncPermissions |
-| AUTH-11 | users表添加 points 字段 | Migration | ⚠️ 待处理 | - | unsignedBigInteger |
+| AUTH-11 | users表添加 points 字段 | Migration | ✅ 已完成 | - | unsignedBigInteger |
 | AUTH-12 | users表添加 last_login_at | Migration | ⚠️ 待处理 | - | timestamp nullable |
 
 ### 2. 设置与配置
 
 | ID | 任务 | 组件类型 | 状态 | 依赖 | Laravel实现 |
 |----|------|----------|:----:|------|------------|
-| SET-01 | 创建 settings 表迁移 | Migration | ⚠️ 待处理 | - | key-value结构 |
+| SET-01 | 创建 settings 表迁移 | Migration | ✅ 已完成 | - | key-value结构 |
 | SET-02 | 创建 Setting Model | Model | ⚠️ 待处理 | SET-01 | JSON Cast |
 | SET-03 | 创建 SettingService | Service | ⚠️ 待处理 | SET-02 | 单例+缓存 |
 | SET-04 | 创建 SettingController | Controller | ⚠️ 待处理 | SET-03 | Admin API |
-| SET-05 | 创建 menus 表迁移 | Migration | ⚠️ 待处理 | - | parent_id层级 |
+| SET-05 | 创建 menus 表迁移 | Migration | ✅ 已完成 | - | parent_id层级 |
 | SET-06 | 创建 Menu Model + Builder | Model | ⚠️ 待处理 | SET-05 | 递归关系 |
 | SET-07 | 创建 MenuController | Controller | ⚠️ 待处理 | SET-06 | 树形CRUD |
 | SET-08 | 菜单缓存 | Cache | ⚠️ 待处理 | SET-07 | Cache::remember |
@@ -75,19 +75,19 @@
 
 | ID | 任务 | 组件类型 | 状态 | 依赖 | Laravel实现 |
 |----|------|----------|:----:|------|------------|
-| CONT-01 | 创建 categories 表迁移 | Migration | ⚠️ 待处理 | - | parent_id, slug |
+| CONT-01 | 创建 categories 表迁移 | Migration | ✅ 已完成 | - | parent_id, slug |
 | CONT-02 | 创建 Category Model | Model | ⚠️ 待处理 | CONT-01 | 树形关系 |
 | CONT-03 | 创建 CategoryController | Controller | ⚠️ 待处理 | CONT-02 | Admin API |
 | CONT-04 | 创建 CategoryResource | Resource | ⚠️ 待处理 | CONT-03 | API响应 |
-| CONT-05 | 创建 tags 表迁移 | Migration | ⚠️ 待处理 | - | name, slug, usage_count |
+| CONT-05 | 创建 tags 表迁移 | Migration | ✅ 已完成 | - | name, slug, usage_count |
 | CONT-06 | 创建 Tag Model | Model | ⚠️ 待处理 | CONT-05 | 多态关联 |
 | CONT-07 | 创建 TagController | Controller | ⚠️ 待处理 | CONT-06 | Admin API |
 | CONT-08 | 创建 TagResource | Resource | ⚠️ 待处理 | CONT-07 | API响应 |
 | CONT-09 | 安装 Spatie Media Library | Package | ⚠️ 待处理 | - | composer |
-| CONT-10 | 创建 media 表迁移 | Migration | ⚠️ 待处理 | CONT-09 | Spatie表结构 |
+| CONT-10 | 创建 media 表迁移 | Migration | ✅ 已完成 | CONT-09 | Spatie表结构 |
 | CONT-11 | 创建 Medium Model | Model | ⚠️ 待处理 | CONT-10 | InteractsWithMedia |
 | CONT-12 | 创建 MediaController | Controller | ⚠️ 待处理 | CONT-11 | 上传处理 |
-| CONT-13 | 创建 posts 表迁移 | Migration | ⚠️ 待处理 | CONT-01, AUTH-05 | 完整字段 |
+| CONT-13 | 创建 posts 表迁移 | Migration | ✅ 已完成 | CONT-01, AUTH-05 | 完整字段 |
 | CONT-14 | 创建 Post Model | Model | ⚠️ 待处理 | CONT-13 | fillable/casts/relations |
 | CONT-15 | 创建 PostService | Service | ⚠️ 待处理 | CONT-14 | 业务逻辑 |
 | CONT-16 | 创建 PostController CRUD | Controller | ⚠️ 待处理 | CONT-15 | Admin API |
@@ -101,19 +101,19 @@
 
 | ID | 任务 | 组件类型 | 状态 | 依赖 | Laravel实现 |
 |----|------|----------|:----:|------|------------|
-| CONT-22 | 创建 videos 表迁移 | Migration | ⚠️ 待处理 | AUTH-05 | platform, thumbnail |
+| CONT-22 | 创建 videos 表迁移 | Migration | ✅ 已完成 | AUTH-05 | platform, thumbnail |
 | CONT-23 | 创建 Video Model + Service | Model+Service | ⚠️ 待处理 | CONT-22 | 标准CRUD |
 | CONT-24 | 创建 VideoController | Controller | ⚠️ 待处理 | CONT-23 | Admin API |
 | CONT-25 | 创建 VideoResource | Resource | ⚠️ 待处理 | CONT-24 | API响应 |
-| CONT-26 | 创建 projects 表迁移 | Migration | ⚠️ 待处理 | AUTH-05 | title, description |
+| CONT-26 | 创建 projects 表迁移 | Migration | ✅ 已完成 | AUTH-05 | title, description |
 | CONT-27 | 创建 Project Model + Service | Model+Service | ⚠️ 待处理 | CONT-26 | 标准CRUD |
 | CONT-28 | 创建 ProjectController | Controller | ⚠️ 待处理 | CONT-27 | Admin API |
 | CONT-29 | 创建 ProjectResource | Resource | ⚠️ 待处理 | CONT-28 | API响应 |
-| CONT-30 | 创建 resources 表迁移 | Migration | ⚠️ 待处理 | AUTH-05 | file_path, download_count |
+| CONT-30 | 创建 resources 表迁移 | Migration | ✅ 已完成 | AUTH-05 | file_path, download_count |
 | CONT-31 | 创建 Resource Model | Model | ⚠️ 待处理 | CONT-30 | 标准CRUD |
 | CONT-32 | 创建 ResourceController | Controller | ⚠️ 待处理 | CONT-31 | Admin API |
 | CONT-33 | 创建 ResourceResource | Resource | ⚠️ 待处理 | CONT-32 | API响应 |
-| CONT-34 | 创建 journals 表迁移 | Migration | ⚠️ 待处理 | AUTH-05 | mood, weather JSON |
+| CONT-34 | 创建 journals 表迁移 | Migration | ✅ 已完成 | AUTH-05 | mood, weather JSON |
 | CONT-35 | 创建 Journal Model | Model | ⚠️ 待处理 | CONT-34 | JSON Cast |
 | CONT-36 | 创建 JournalController | Controller | ⚠️ 待处理 | CONT-35 | Admin API |
 | CONT-37 | 创建 JournalResource | Resource | ⚠️ 待处理 | CONT-36 | API响应 |
@@ -126,17 +126,17 @@
 
 | ID | 任务 | 组件类型 | 状态 | 依赖 | Laravel实现 |
 |----|------|----------|:----:|------|------------|
-| USER-01 | 创建 user_levels 表迁移 | Migration | ⚠️ 待处理 | - | level, icon, color, benefits |
+| USER-01 | 创建 user_levels 表迁移 | Migration | ✅ 已完成 | - | level, icon, color, benefits |
 | USER-02 | 创建 UserLevel Model | Model | ⚠️ 待处理 | USER-01 | JSON Cast benefits |
 | USER-03 | 创建 UserLevelController | Controller | ⚠️ 待处理 | USER-02 | Admin API |
 | USER-04 | 创建 UserLevelResource | Resource | ⚠️ 待处理 | USER-03 | API响应 |
-| USER-05 | 创建 user_points_history 表 | Migration | ⚠️ 待处理 | - | points change log |
+| USER-05 | 创建 user_points_history 表 | Migration | ✅ 已完成 | - | points change log |
 | USER-06 | 创建 UserObserver | Observer | ⚠️ 待处理 | AUTH-11 | 积分更新监听 |
-| USER-07 | 创建 subscribers 表迁移 | Migration | ⚠️ 待处理 | - | email, subscribed_at, status |
+| USER-07 | 创建 subscribers 表迁移 | Migration | ✅ 已完成 | - | email, subscribed_at, status |
 | USER-08 | 创建 Subscriber Model | Model | ⚠️ 待处理 | USER-07 | Notifiable |
 | USER-09 | 创建 SubscriberController | Controller | ⚠️ 待处理 | USER-08 | Admin API |
 | USER-10 | 创建 public 订阅API | Controller | ⚠️ 待处理 | USER-09 | /api/subscribe |
-| USER-11 | 创建 author_profiles 表迁移 | Migration | ⚠️ 待处理 | AUTH-05 | user_id唯一 |
+| USER-11 | 创建 author_profiles 表迁移 | Migration | ✅ 已完成 | AUTH-05 | user_id唯一 |
 | USER-12 | 创建 AuthorProfile Model | Model | ⚠️ 待处理 | USER-11 | JSON Cast |
 | USER-13 | 创建 AuthorProfileController | Controller | ⚠️ 待处理 | USER-12 | Admin API |
 
@@ -144,13 +144,13 @@
 
 | ID | 任务 | 组件类型 | 状态 | 依赖 | Laravel实现 |
 |----|------|----------|:----:|------|------------|
-| SEO-01 | 创建 page_seo 表迁移 | Migration | ⚠️ 待处理 | - | route_name唯一 |
+| SEO-01 | 创建 page_seo 表迁移 | Migration | ✅ 已完成 | - | route_name唯一 |
 | SEO-02 | 创建 PageSeo Model | Model | ⚠️ 待处理 | SEO-01 | 标准Model |
 | SEO-03 | 创建 SeoController | Controller | ⚠️ 待处理 | SEO-02 | Admin API |
 | SEO-04 | 创建 SeoMiddleware | Middleware | ⚠️ 待处理 | SEO-03 | 动态加载SEO |
-| SEO-05 | 创建 languages 表迁移 | Migration | ⚠️ 待处理 | - | code, name, is_default |
+| SEO-05 | 创建 languages 表迁移 | Migration | ✅ 已完成 | - | code, name, is_default |
 | SEO-06 | 创建 Language Model | Model | ⚠️ 待处理 | SEO-05 | 标准Model |
-| SEO-07 | 创建 translations 表迁移 | Migration | ⚠️ 待处理 | SEO-05 | key, locale, value |
+| SEO-07 | 创建 translations 表迁移 | Migration | ✅ 已完成 | SEO-05 | key, locale, value |
 | SEO-08 | 创建 Translation Model | Model | ⚠️ 待处理 | SEO-07 | 标准Model |
 | SEO-09 | 创建 I18nController | Controller | ⚠️ 待处理 | SEO-06, SEO-08 | Admin API |
 | SEO-10 | 创建语言切换Middleware | Middleware | ⚠️ 待处理 | SEO-06 | locale设置 |
@@ -160,11 +160,11 @@
 
 | ID | 任务 | 组件类型 | 状态 | 依赖 | Laravel实现 |
 |----|------|----------|:----:|------|------------|
-| SOC-01 | 创建 social_links 表迁移 | Migration | ⚠️ 待处理 | - | platform, url, icon |
+| SOC-01 | 创建 social_links 表迁移 | Migration | ✅ 已完成 | - | platform, url, icon |
 | SOC-02 | 创建 SocialLink Model | Model | ⚠️ 待处理 | SOC-01 | 标准Model |
 | SOC-03 | 创建 SocialLinkController | Controller | ⚠️ 待处理 | SOC-02 | Admin API |
 | SOC-04 | 创建 public 社交链接API | Controller | ⚠️ 待处理 | SOC-03 | /api/social-links |
-| SOC-05 | 创建 comments 表迁移 | Migration | ⚠️ 待处理 | AUTH-05 | 多态关联 |
+| SOC-05 | 创建 comments 表迁移 | Migration | ✅ 已完成 | AUTH-05 | 多态关联 |
 | SOC-06 | 创建 Comment Model | Model | ⚠️ 待处理 | SOC-05 | MorphTo |
 | SOC-07 | 创建 CommentService | Service | ⚠️ 待处理 | SOC-06 | 业务逻辑 |
 | SOC-08 | 创建 CommentController | Controller | ⚠️ 待处理 | SOC-07 | Admin + Public API |
@@ -177,15 +177,15 @@
 
 | ID | 任务 | 组件类型 | 状态 | 依赖 | Laravel实现 |
 |----|------|----------|:----:|------|------------|
-| MAIL-01 | 创建 mail_configs 表迁移 | Migration | ⚠️ 待处理 | - | driver, host, credentials |
+| MAIL-01 | 创建 mail_configs 表迁移 | Migration | ✅ 已完成 | - | driver, host, credentials |
 | MAIL-02 | 创建 MailConfig Model | Model | ⚠️ 待处理 | MAIL-01 | 标准Model |
 | MAIL-03 | 创建 MailConfigController | Controller | ⚠️ 待处理 | MAIL-02 | Admin API |
 | MAIL-04 | 创建测试邮件功能 | Mailable | ⚠️ 待处理 | MAIL-03 | Mailable类 |
-| MAIL-05 | 创建 email_templates 表迁移 | Migration | ⚠️ 待处理 | - | subject, body, variables |
+| MAIL-05 | 创建 email_templates 表迁移 | Migration | ✅ 已完成 | - | subject, body, variables |
 | MAIL-06 | 创建 EmailTemplate Model | Model | ⚠️ 待处理 | MAIL-05 | 标准Model |
 | MAIL-07 | 创建 EmailTemplateController | Controller | ⚠️ 待处理 | MAIL-06 | Admin API |
 | MAIL-08 | 创建通用 Mailable | Mailable | ⚠️ 待处理 | MAIL-07 | 变量替换 |
-| MAIL-09 | 创建 notifications 表迁移 | Migration | ⚠️ 待处理 | AUTH-05 | 数据库通知 |
+| MAIL-09 | 创建 notifications 表迁移 | Migration | ✅ Laravel内置 | AUTH-05 | 数据库通知 |
 | MAIL-10 | 创建通知Model | Model | ⚠️ 待处理 | MAIL-09 | Notifiable |
 | MAIL-11 | 创建 NotificationController | Controller | ⚠️ 待处理 | MAIL-10 | Admin API |
 | MAIL-12 | 创建 NewCommentNotification | Notification | ⚠️ 待处理 | SOC-10 | 邮件/数据库通知 |
@@ -198,13 +198,13 @@
 
 | ID | 任务 | 组件类型 | 状态 | 依赖 | Laravel实现 |
 |----|------|----------|:----:|------|------------|
-| AD-01 | 创建 ad_positions 表迁移 | Migration | ⚠️ 待处理 | - | key, name, size |
+| AD-01 | 创建 ad_positions 表迁移 | Migration | ✅ 已完成 | - | key, name, size |
 | AD-02 | 创建 AdPosition Model | Model | ⚠️ 待处理 | AD-01 | hasMany advertisements |
 | AD-03 | 创建 Advertisement Model | Model | ⚠️ 待处理 | AD-01 | BelongsTo AdPosition |
 | AD-04 | 创建 AdvertisementController | Controller | ⚠️ 待处理 | AD-03 | Admin API |
 | AD-05 | 创建广告轮换逻辑 | Service | ⚠️ 待处理 | AD-04 | 权重随机 |
 | AD-06 | 创建 AdViewed Event | Event | ⚠️ 待处理 | AD-05 | 展示追踪 |
-| AD-07 | 创建 interactions 表迁移 | Migration | ⚠️ 待处理 | - | 多态关联 |
+| AD-07 | 创建 interactions 表迁移 | Migration | ✅ 已完成 | - | 多态关联 |
 
 ### 10. 系统与维护
 
@@ -220,7 +220,19 @@
 | SYS-08 | 创建定时备份任务 | Command | ⚠️ 待处理 | SYS-06 | Schedule |
 | SYS-09 | 创建 CleanupUnusedTagsCommand | Command | ⚠️ 待处理 | CONT-07 | 清理未使用标签 |
 
-### 11. 前端集成
+### 11. 额外迁移（已完成）
+
+| ID | 任务 | 组件类型 | 状态 | 依赖 | Laravel实现 |
+|----|------|----------|:----:|------|------------|
+| EXT-01 | 创建 footer_links 表迁移 | Migration | ✅ 已完成 | - | 页脚链接 |
+| EXT-02 | 创建 themes 表迁移 | Migration | ✅ 已完成 | - | 主题配置 |
+| EXT-03 | 创建 visits 表迁移 | Migration | ✅ 已完成 | - | 多态访问记录 |
+| EXT-04 | 创建 backups 表迁移 | Migration | ✅ 已完成 | - | 备份记录 |
+| EXT-05 | 创建 admin_logs 表迁移 | Migration | ✅ 已完成 | - | 管理员日志 |
+| EXT-06 | 创建 seo 表迁移 | Migration | ✅ 已完成 | - | SEO配置 key-value |
+| EXT-07 | 创建 ad_interactions 表迁移 | Migration | ✅ 已完成 | AD-01 | 广告互动追踪 |
+
+### 12. 前端集成
 
 | ID | 任务 | 组件类型 | 状态 | 依赖 | Laravel实现 |
 |----|------|----------|:----:|------|------------|
@@ -237,10 +249,46 @@
 
 | 优先级 | 总数 | ✅ 完成 | 🔄 进行中 | ⚠️ 待处理 |
 |:------:|:----:|:-------:|:---------:|:---------:|
-| 高 | 37 | 0 | 0 | 37 |
-| 中 | 25 | 0 | 0 | 25 |
-| 低 | 16 | 0 | 0 | 16 |
-| **总计** | **78** | **0** | **0** | **78** |
+| 高 | 37 | 14 | 0 | 23 |
+| 中 | 25 | 10 | 0 | 15 |
+| 低 | 23 | 9 | 0 | 14 |
+| **总计** | **85** | **33** | **0** | **52** |
+
+---
+
+## 已完成迁移清单
+
+| 序号 | 迁移文件 | 表名 | 说明 |
+|:---:|---------|------|------|
+| 1 | `2026_05_23_080100_create_roles_table.php` | roles | 角色定义表 |
+| 2 | `2026_05_23_080101_create_permissions_table.php` | permissions | 权限定义表 |
+| 3 | `2026_05_23_080102_create_ad_positions_table.php` | ad_positions | 广告位配置表 |
+| 4 | `2026_05_23_080103_create_settings_table.php` | settings | 系统设置表 |
+| 5 | `2026_05_23_080104_create_menus_table.php` | menus | 菜单配置表 |
+| 6 | `2026_05_23_080105_create_media_table.php` | media | 媒体文件表 |
+| 7 | `2026_05_23_080106_create_user_levels_table.php` | user_levels | 用户等级表 |
+| 8 | `2026_05_23_080107_create_author_profiles_table.php` | author_profiles | 作者资料表 |
+| 9 | `2026_05_23_080108_create_seo_table.php` | seo | SEO配置表 |
+| 10 | `2026_05_23_080109_create_languages_table.php` | languages | 语言配置表 |
+| 11 | `2026_05_23_080110_create_mail_configs_table.php` | mail_configs | 邮件配置表 |
+| 12 | `2026_05_23_080111_create_email_templates_table.php` | email_templates | 邮件模板表 |
+| 13 | `2026_05_23_080112_create_social_links_table.php` | social_links | 社交链接表 |
+| 14 | `2026_05_23_080113_create_admin_logs_table.php` | admin_logs | 管理员日志表 |
+| 15 | `2026_05_23_080114_create_backups_table.php` | backups | 备份记录表 |
+| 16 | `2026_05_23_080115_create_footer_links_table.php` | footer_links | 页脚链接表 |
+| 17 | `2026_05_23_080116_create_themes_table.php` | themes | 主题配置表 |
+| 18 | `2026_05_23_080117_create_translations_table.php` | translations | 翻译数据表 |
+| 19 | `2026_05_23_080118_create_page_seo_table.php` | page_seo | 页面SEO表 |
+| 20 | `2026_05_23_080119_create_visits_table.php` | visits | 访问记录表 |
+| 21 | `2026_05_23_080200_add_role_id_and_points_to_users_table.php` | users (扩展) | 添加 role_id 和 points |
+| 22 | `2026_05_23_080201_add_position_id_to_advertisements_table.php` | advertisements (扩展) | 添加 position_id |
+| 23 | `2026_05_23_080202_create_user_points_history_table.php` | user_points_history | 积分历史表 |
+| 24 | `2026_05_23_080203_create_ad_interactions_table.php` | ad_interactions | 广告互动表 |
+| 25 | `2026_05_23_080207_add_status_to_categories_table.php` | categories (扩展) | 添加 status 字段 |
+
+**已有迁移（Laravel 内置）**：users, password_reset_tokens, sessions, cache, cache_locks, jobs, job_batches, failed_jobs, notifications, personal_access_tokens
+
+**Seeder 完成情况**：24个 Seeder，约176条模拟数据
 
 ---
 

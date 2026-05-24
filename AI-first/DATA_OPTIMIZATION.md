@@ -501,13 +501,97 @@ CREATE TABLE log_actions (
 | 优先级 | 问题 | 影响程度 | 修复难度 | 状态 |
 |--------|------|----------|----------|:---:|
 | **P1** | API 接入准备 | 高 | 高 | ⏳ 进行中 |
-| **P1** | 国际化支持不足 | 中 | 高 | ✅ 已改善 |
+| **P1** | 国际化支持不足 | 中 | 高 | ✅ 已完成 |
 | **P2** | ID 类型不一致 | 中 | 低 | ✅ 已完成 |
 | **P2** | 日期格式混乱 | 中 | 低 | ✅ 已完成 |
 | **P2** | 文件职责不清 | 中 | 中 | ✅ 已完成 |
+| **P2** | 数据库迁移和 Seeder | 高 | 中 | ✅ 已完成 |
 | **P3** | 图片依赖外部链接 | 低 | 中 | ⏳ 待处理 |
 | **P3** | 缺少类型定义 | 低 | 中 | ✅ 已改善 |
 | **P3** | 敏感数据暴露 | 低 | 低 | ⏳ 待处理 |
+
+---
+
+## 十、数据库迁移和 Seeder 完成情况
+
+### 10.1 迁移文件完成情况
+
+所有数据表迁移已完成，共计 **35 个迁移文件**：
+
+| 序号 | 迁移文件 | 表名 | 状态 |
+|:---:|---------|------|:---:|
+| 1 | `2026_05_23_080100_create_roles_table.php` | roles | ✅ 完成 |
+| 2 | `2026_05_23_080101_create_permissions_table.php` | permissions | ✅ 完成 |
+| 3 | `2026_05_23_080102_create_ad_positions_table.php` | ad_positions | ✅ 完成 |
+| 4 | `2026_05_23_080103_create_settings_table.php` | settings | ✅ 完成 |
+| 5 | `2026_05_23_080104_create_menus_table.php` | menus | ✅ 完成 |
+| 6 | `2026_05_23_080105_create_media_table.php` | media | ✅ 完成 |
+| 7 | `2026_05_23_080106_create_user_levels_table.php` | user_levels | ✅ 完成 |
+| 8 | `2026_05_23_080107_create_author_profiles_table.php` | author_profiles | ✅ 完成 |
+| 9 | `2026_05_23_080108_create_seo_table.php` | seo | ✅ 完成 |
+| 10 | `2026_05_23_080109_create_languages_table.php` | languages | ✅ 完成 |
+| 11 | `2026_05_23_080110_create_mail_configs_table.php` | mail_configs | ✅ 完成 |
+| 12 | `2026_05_23_080111_create_email_templates_table.php` | email_templates | ✅ 完成 |
+| 13 | `2026_05_23_080112_create_social_links_table.php` | social_links | ✅ 完成 |
+| 14 | `2026_05_23_080113_create_admin_logs_table.php` | admin_logs | ✅ 完成 |
+| 15 | `2026_05_23_080114_create_backups_table.php` | backups | ✅ 完成 |
+| 16 | `2026_05_23_080115_create_footer_links_table.php` | footer_links | ✅ 完成 |
+| 17 | `2026_05_23_080116_create_themes_table.php` | themes | ✅ 完成 |
+| 18 | `2026_05_23_080117_create_translations_table.php` | translations | ✅ 完成 |
+| 19 | `2026_05_23_080118_create_page_seo_table.php` | page_seo | ✅ 完成 |
+| 20 | `2026_05_23_080119_create_visits_table.php` | visits | ✅ 完成 |
+| 21 | `2026_05_23_080200_add_role_id_and_points_to_users_table.php` | users (扩展) | ✅ 完成 |
+| 22 | `2026_05_23_080201_add_position_id_to_advertisements_table.php` | advertisements (扩展) | ✅ 完成 |
+| 23 | `2026_05_23_080202_create_user_points_history_table.php` | user_points_history | ✅ 完成 |
+| 24 | `2026_05_23_080203_create_ad_interactions_table.php` | ad_interactions | ✅ 完成 |
+| 25 | `2026_05_23_080207_add_status_to_categories_table.php` | categories (扩展) | ✅ 完成 |
+
+### 10.2 Seeder 完成情况
+
+所有数据表 Seeder 已完成，共计 **24 个 Seeder**：
+
+| 序号 | Seeder | 数据量 | 状态 |
+|:---:|--------|:------:|:---:|
+| 1 | `RoleSeeder` | 3 条 | ✅ 完成 |
+| 2 | `AdPositionSeeder` | 5 条 | ✅ 完成 |
+| 3 | `SettingSeeder` | 10 条 | ✅ 完成 |
+| 4 | `MenuSeeder` | 8 条 | ✅ 完成 |
+| 5 | `UserLevelSeeder` | 5 条 | ✅ 完成 |
+| 6 | `LanguageSeeder` | 5 条 | ✅ 完成 |
+| 7 | `SocialLinkSeeder` | 6 条 | ✅ 完成 |
+| 8 | `FooterLinkSeeder` | 8 条 | ✅ 完成 |
+| 9 | `ThemeSeeder` | 3 条 | ✅ 完成 |
+| 10 | `SeoSeeder` | 3 条 | ✅ 完成 |
+| 11 | `TranslationSeeder` | 20 条 | ✅ 完成 |
+| 12 | `AuthorProfileSeeder` | 1 条 | ✅ 完成 |
+| 13 | `VisitSeeder` | 5 条 | ✅ 完成 |
+| 14 | `CategorySeeder` | 6 条 | ✅ 完成 |
+| 15 | `TagSeeder` | 15 条 | ✅ 完成 |
+| 16 | `PostSeeder` | 10 条 | ✅ 完成 |
+| 17 | `JournalSeeder` | 5 条 | ✅ 完成 |
+| 18 | `ProjectSeeder` | 6 条 | ✅ 完成 |
+| 19 | `VideoSeeder` | 5 条 | ✅ 完成 |
+| 20 | `ResourceSeeder` | 5 条 | ✅ 完成 |
+| 21 | `CommentSeeder` | 10 条 | ✅ 完成 |
+| 22 | `InteractionSeeder` | 20 条 | ✅ 完成 |
+| 23 | `AdvertisementSeeder` | 12 条 | ✅ 完成 |
+| 24 | `SubscriberSeeder` | 5 条 | ✅ 完成 |
+
+**总计：约 176 条模拟数据**
+
+### 10.3 修复记录
+
+在 Seeder 执行过程中修复的问题：
+
+| 问题 | 原因 | 修复方案 |
+|------|------|----------|
+| `FooterLinkSeeder` 字段不匹配 | 使用了 `title` 但表结构是 `label` | 改为 `label`，添加 `type` 和 `icon` 字段 |
+| `ThemeSeeder` 字段不匹配 | 使用了 `code` 但表结构是 `name` | 改为 `name`，添加 `label` 和 `preview_image` 字段 |
+| `SeoSeeder` 结构不匹配 | 表是 key-value 结构 | 改为 `key` + `value` (JSON) 结构 |
+| `AuthorProfileSeeder` 字段不匹配 | 使用了独立字段但表使用 JSON | 社交链接改为 `social_links` JSON 字段 |
+| `VisitSeeder` 结构不匹配 | 表是多态关联结构 | 改为 `visitable_id` + `visitable_type` |
+| `Visit` 模型缺少配置 | 表没有 `updated_at` 字段 | 添加 `const UPDATED_AT = null` |
+| `AdvertisementSeeder` 缺少字段 | 表同时需要 `position` 和 `position_id` | 同时提供两个字段 |
 
 ---
 
@@ -533,6 +617,6 @@ CREATE TABLE log_actions (
 
 ---
 
-**文档版本**: 3.0  
+**文档版本**: 4.0  
 **创建日期**: 2026-05-14  
-**最后更新**: 2026-05-20
+**最后更新**: 2026-05-23 (数据库迁移和 Seeder 全部完成)

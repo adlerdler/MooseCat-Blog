@@ -1,7 +1,7 @@
 # Data 文件与数据库表结构对比分析
 
 > **重要说明**：本文档基于实际扫描 `resources/js/data/` 目录和 `database/migrations/` 目录生成，确保内容与实际项目状态一致。
-> **最后更新**：2026-05-23
+> **最后更新**：2026-05-23 (已完成所有迁移和 Seeder)
 
 ---
 
@@ -11,42 +11,42 @@
 
 | 序号 | 文件名 | 对应表名 | 状态 | 说明 |
 |:---:|--------|---------|:---:|------|
-| 1 | ad_positions.js | ad_positions | ⚠️ 有数据文件，缺迁移 | 广告位配置数据 |
-| 2 | advertisements.js | advertisements | ✅ 有迁移 | 广告内容数据 |
-| 3 | author_profiles.js | author_profiles | ❌ 需创建迁移 | 作者个人资料、社交链接、技能等 |
-| 4 | backup.js | backups | ❌ 需创建迁移 | 系统备份记录 |
-| 5 | categories.js | categories | ✅ 有迁移 | 文章分类数据 |
-| 6 | comments.js | comments | ✅ 有迁移 | 文章评论数据 |
-| 7 | email_templates.js | email_templates | ❌ 需创建迁移 | 邮件模板数据 |
-| 8 | footer_config.js | footer_links | ❌ 需创建迁移 | 页脚社交链接、导航链接、品牌信息配置 |
-| 9 | interactions.js | interactions | ✅ 有迁移 | 用户互动数据（点赞/收藏） |
-| 10 | journals.js | journals | ✅ 有迁移 | 日志/日记数据 |
-| 11 | logs.js | admin_logs | ❌ 需创建迁移 | 管理员操作日志 |
-| 12 | mail_config.js | mail_settings | ❌ 需创建迁移 | 邮件服务器配置 |
-| 13 | media.js | media | ❌ 需创建迁移 | 媒体文件管理数据 |
-| 14 | menu.js | menus | ❌ 需创建迁移 | 后台菜单配置 |
+| 1 | ad_positions.js | ad_positions | ✅ 有迁移+Seeder | 广告位配置数据 |
+| 2 | advertisements.js | advertisements | ✅ 有迁移+Seeder | 广告内容数据 |
+| 3 | author_profiles.js | author_profiles | ✅ 有迁移+Seeder | 作者个人资料、社交链接、技能等 |
+| 4 | backup.js | backups | ✅ 有迁移 | 系统备份记录 |
+| 5 | categories.js | categories | ✅ 有迁移+Seeder | 文章分类数据 |
+| 6 | comments.js | comments | ✅ 有迁移+Seeder | 文章评论数据 |
+| 7 | email_templates.js | email_templates | ✅ 有迁移 | 邮件模板数据 |
+| 8 | footer_config.js | footer_links | ✅ 有迁移+Seeder | 页脚社交链接、导航链接、品牌信息配置 |
+| 9 | interactions.js | interactions | ✅ 有迁移+Seeder | 用户互动数据（点赞/收藏） |
+| 10 | journals.js | journals | ✅ 有迁移+Seeder | 日志/日记数据 |
+| 11 | logs.js | admin_logs | ✅ 有迁移 | 管理员操作日志 |
+| 12 | mail_config.js | mail_configs | ✅ 有迁移 | 邮件服务器配置 |
+| 13 | media.js | media | ✅ 有迁移 | 媒体文件管理数据 |
+| 14 | menu.js | menus | ✅ 有迁移+Seeder | 后台菜单配置 |
 | 15 | notifications.js | notifications | ✅ Laravel 内置 | 站内通知数据 |
-| 16 | page_seo.js | page_seo | ❌ 需创建迁移 | 各页面SEO配置 |
-| 17 | permissions.js | permissions | ❌ 需创建迁移 | 系统权限定义（含 guard_name 字段） |
-| 18 | posts.js | posts | ✅ 有迁移 | 文章内容数据 |
-| 19 | projects.js | projects | ✅ 有迁移 | 项目作品集数据 |
-| 20 | resources.js | resources | ✅ 有迁移 | 资源下载数据 |
-| 21 | role_permissions.js | role_permissions | ❌ 需创建迁移 | 角色与权限的关联关系 |
-| 22 | roles.js | roles | ❌ 需创建迁移 | 用户角色定义 |
-| 23 | seo_config.js | seo | ❌ 需创建迁移 | 网站全局SEO默认配置 |
-| 24 | settings.js | settings | ❌ 需创建迁移 | 网站系统配置（新增） |
-| 25 | site_config.js | site | ❌ 需创建迁移 | 站点基本信息、品牌配置 |
-| 26 | subscribers.js | subscribers | ✅ 有迁移 | 邮件订阅者数据 |
-| 27 | tags.js | tags | ✅ 有迁移 | 标签数据 |
+| 16 | page_seo.js | page_seo | ✅ 有迁移 | 各页面SEO配置 |
+| 17 | permissions.js | permissions | ✅ 有迁移 | 系统权限定义（含 guard_name 字段） |
+| 18 | posts.js | posts | ✅ 有迁移+Seeder | 文章内容数据 |
+| 19 | projects.js | projects | ✅ 有迁移+Seeder | 项目作品集数据 |
+| 20 | resources.js | resources | ✅ 有迁移+Seeder | 资源下载数据 |
+| 21 | role_permissions.js | role_permissions | ✅ Spatie 内置 | 角色与权限的关联关系 |
+| 22 | roles.js | roles | ✅ 有迁移+Seeder | 用户角色定义 |
+| 23 | seo_config.js | seo | ✅ 有迁移+Seeder | 网站全局SEO默认配置 |
+| 24 | settings.js | settings | ✅ 有迁移+Seeder | 网站系统配置（新增） |
+| 25 | site_config.js | settings | ✅ 已合并到 settings | 站点基本信息、品牌配置 |
+| 26 | subscribers.js | subscribers | ✅ 有迁移+Seeder | 邮件订阅者数据 |
+| 27 | tags.js | tags | ✅ 有迁移+Seeder | 标签数据 |
 | 28 | taggables.js | taggables | ✅ 有迁移 | 标签多态关联中间表 |
-| 29 | themes.js | themes | ❌ 需创建迁移 | 主题配置数据 |
-| 30 | user_levels.js | user_levels | ❌ 需创建迁移 | 用户等级数据 |
+| 29 | themes.js | themes | ✅ 有迁移+Seeder | 主题配置数据 |
+| 30 | user_levels.js | user_levels | ✅ 有迁移+Seeder | 用户等级数据 |
 | 31 | users.js | users | ✅ Laravel 内置 | 用户账户数据 |
-| 32 | videos.js | videos | ✅ 有迁移 | 视频内容数据 |
-| 33 | visits.js | visits | ❌ 需创建迁移 | 访问记录统计 |
-| 34 | i18n_config.js | i18n | ❌ 需创建迁移 | 多语言配置数据 |
+| 32 | videos.js | videos | ✅ 有迁移+Seeder | 视频内容数据 |
+| 33 | visits.js | visits | ✅ 有迁移+Seeder | 访问记录统计 |
+| 34 | i18n_config.js | languages + translations | ✅ 有迁移+Seeder | 多语言配置数据 |
 
-### 1.2 数据库表清单（29个）
+### 1.2 数据库表清单（33个）
 
 | 序号 | 表名 | 对应数据文件 | 状态 | 说明 |
 |:---:|------|-------------|:---:|------|
@@ -62,18 +62,41 @@
 | 9 | notifications | notifications.js | ✅ Laravel 内置 | 通知表 |
 | 10 | personal_access_tokens | - | ✅ Laravel 内置 | Sanctum令牌表 |
 | **业务数据表** |
-| 11 | categories | categories.js | ✅ 存在对应文件 | 文章分类表 |
-| 12 | posts | posts.js | ✅ 存在对应文件 | 文章内容表 |
-| 13 | tags | tags.js | ✅ 存在对应文件 | 标签表 |
-| 14 | taggables | taggables.js | ✅ 存在对应文件 | 标签多态关联中间表 |
-| 15 | comments | comments.js | ✅ 存在对应文件 | 评论表 |
-| 16 | projects | projects.js | ✅ 存在对应文件 | 项目表 |
-| 17 | resources | resources.js | ✅ 存在对应文件 | 资源下载表 |
-| 18 | videos | videos.js | ✅ 存在对应文件 | 视频表 |
-| 19 | interactions | interactions.js | ✅ 存在对应文件 | 用户互动表（点赞/收藏） |
-| 20 | advertisements | advertisements.js | ✅ 存在对应文件 | 广告表 |
-| 21 | journals | journals.js | ✅ 存在对应文件 | 日志/日记表 |
-| 22 | subscribers | subscribers.js | ✅ 存在对应文件 | 订阅者表 |
+| 11 | categories | categories.js | ✅ 有迁移+Seeder | 文章分类表 |
+| 12 | posts | posts.js | ✅ 有迁移+Seeder | 文章内容表 |
+| 13 | tags | tags.js | ✅ 有迁移+Seeder | 标签表 |
+| 14 | taggables | taggables.js | ✅ 有迁移 | 标签多态关联中间表 |
+| 15 | comments | comments.js | ✅ 有迁移+Seeder | 评论表 |
+| 16 | projects | projects.js | ✅ 有迁移+Seeder | 项目表 |
+| 17 | resources | resources.js | ✅ 有迁移+Seeder | 资源下载表 |
+| 18 | videos | videos.js | ✅ 有迁移+Seeder | 视频表 |
+| 19 | interactions | interactions.js | ✅ 有迁移+Seeder | 用户互动表（点赞/收藏） |
+| 20 | advertisements | advertisements.js | ✅ 有迁移+Seeder | 广告表 |
+| 21 | journals | journals.js | ✅ 有迁移+Seeder | 日志/日记表 |
+| 22 | subscribers | subscribers.js | ✅ 有迁移+Seeder | 订阅者表 |
+| 23 | ad_positions | ad_positions.js | ✅ 有迁移+Seeder | 广告位配置表 |
+| 24 | author_profiles | author_profiles.js | ✅ 有迁移+Seeder | 作者资料表 |
+| 25 | backups | backup.js | ✅ 有迁移 | 备份记录表 |
+| 26 | email_templates | email_templates.js | ✅ 有迁移 | 邮件模板表 |
+| 27 | footer_links | footer_config.js | ✅ 有迁移+Seeder | 页脚链接表 |
+| 28 | admin_logs | logs.js | ✅ 有迁移 | 管理员日志表 |
+| 29 | mail_configs | mail_config.js | ✅ 有迁移 | 邮件配置表 |
+| 30 | media | media.js | ✅ 有迁移 | 媒体文件表 |
+| 31 | menus | menu.js | ✅ 有迁移+Seeder | 菜单配置表 |
+| 32 | page_seo | page_seo.js | ✅ 有迁移 | 页面SEO表 |
+| 33 | permissions | permissions.js | ✅ 有迁移 | 权限定义表 |
+| 34 | roles | roles.js | ✅ 有迁移+Seeder | 角色定义表 |
+| 35 | role_permissions | role_permissions.js | ✅ Spatie 内置 | 角色权限关联表 |
+| 36 | seo | seo_config.js | ✅ 有迁移+Seeder | SEO配置表 |
+| 37 | settings | settings.js | ✅ 有迁移+Seeder | 系统设置表 |
+| 38 | themes | themes.js | ✅ 有迁移+Seeder | 主题配置表 |
+| 39 | user_levels | user_levels.js | ✅ 有迁移+Seeder | 用户等级表 |
+| 40 | languages | i18n_config.js | ✅ 有迁移+Seeder | 语言配置表 |
+| 41 | translations | i18n_config.js | ✅ 有迁移+Seeder | 翻译数据表 |
+| 42 | visits | visits.js | ✅ 有迁移+Seeder | 访问记录表 |
+| 43 | social_links | footer_config.js | ✅ 有迁移+Seeder | 社交链接表 |
+| 44 | user_points_history | - | ✅ 有迁移 | 积分历史表 |
+| 45 | ad_interactions | advertisements.js | ✅ 有迁移 | 广告互动表 |
 
 ---
 
@@ -106,30 +129,30 @@
 |----------|---------|-------------|------|
 | **notifications.js** | notifications | `notifications:table` | Laravel 通知系统，使用框架内置表 |
 
-### 3.2 业务配置表（需创建迁移）
+### 3.2 业务配置表（已完成迁移）
 
-| 数据文件 | 建议表名 | 用途 | 优先级 |
-|----------|---------|------|:---:|
-| **ad_positions.js** | ad_positions | 广告位配置管理 | 高 |
-| **media.js** | media | 媒体库管理 | 高 |
-| **menu.js** | menus | 后台菜单配置 | 高 |
-| **permissions.js** | permissions | 系统权限定义 | 高 |
-| **roles.js** | roles | 用户角色定义 | 高 |
-| **role_permissions.js** | role_permissions | 角色权限关联 | 高 |
-| **settings.js** | settings | 系统设置管理 | 高 |
-| **footer_config.js** | footer_links | 页脚配置管理 | 中 |
-| **page_seo.js** | page_seo | 页面SEO配置管理 | 中 |
-| **seo_config.js** | seo | 全局SEO配置管理 | 中 |
-| **site_config.js** | site | 站点配置管理 | 中 |
-| **themes.js** | themes | 主题切换、外观定制 | 中 |
-| **author_profiles.js** | author_profiles | 作者详细资料、社交链接、技能 | 中 |
-| **backup.js** | backups | 系统备份记录 | 中 |
-| **email_templates.js** | email_templates | 邮件模板管理 | 中 |
-| **logs.js** | admin_logs | 管理员操作日志 | 中 |
-| **mail_config.js** | mail_settings | 邮件服务器配置 | 中 |
-| **user_levels.js** | user_levels | 用户等级体系 | 中 |
-| **visits.js** | visits | 访问记录统计 | 中 |
-| **i18n_config.js** | i18n | 多语言配置管理 | 中 |
+| 数据文件 | 表名 | 用途 | 状态 |
+|----------|------|------|:---:|
+| **ad_positions.js** | ad_positions | 广告位配置管理 | ✅ 已完成 |
+| **media.js** | media | 媒体库管理 | ✅ 已完成 |
+| **menu.js** | menus | 后台菜单配置 | ✅ 已完成 |
+| **permissions.js** | permissions | 系统权限定义 | ✅ 已完成 |
+| **roles.js** | roles | 用户角色定义 | ✅ 已完成 |
+| **role_permissions.js** | role_permissions | 角色权限关联 | ✅ Spatie 内置 |
+| **settings.js** | settings | 系统设置管理 | ✅ 已完成 |
+| **footer_config.js** | footer_links | 页脚配置管理 | ✅ 已完成 |
+| **page_seo.js** | page_seo | 页面SEO配置管理 | ✅ 已完成 |
+| **seo_config.js** | seo | 全局SEO配置管理 | ✅ 已完成 |
+| **site_config.js** | settings | 站点配置管理 | ✅ 已合并到 settings |
+| **themes.js** | themes | 主题切换、外观定制 | ✅ 已完成 |
+| **author_profiles.js** | author_profiles | 作者详细资料、社交链接、技能 | ✅ 已完成 |
+| **backup.js** | backups | 系统备份记录 | ✅ 已完成 |
+| **email_templates.js** | email_templates | 邮件模板管理 | ✅ 已完成 |
+| **logs.js** | admin_logs | 管理员操作日志 | ✅ 已完成 |
+| **mail_config.js** | mail_configs | 邮件服务器配置 | ✅ 已完成 |
+| **user_levels.js** | user_levels | 用户等级体系 | ✅ 已完成 |
+| **visits.js** | visits | 访问记录统计 | ✅ 已完成 |
+| **i18n_config.js** | languages + translations | 多语言配置管理 | ✅ 已完成 |
 
 ---
 
@@ -149,29 +172,29 @@
 
 ```
 第一阶段（基础）✅ 已完成
-├── 媒体库管理 ← media.js（⚠️ 缺迁移）
-├── 菜单配置系统 ← menu.js（⚠️ 缺迁移）
-├── 角色权限系统 ← roles.js + permissions.js + role_permissions.js（⚠️ 缺迁移）
-├── 广告位管理 ← ad_positions.js + advertisements.js（⚠️ ad_positions缺迁移）✅ ad_positions.js已创建
-├── 用户互动系统 ← interactions.js ✅
-└── 邮件订阅管理 ← subscribers.js ✅
+├── 媒体库管理 ← media.js ✅ 迁移完成
+├── 菜单配置系统 ← menu.js ✅ 迁移+Seeder 完成
+├── 角色权限系统 ← roles.js + permissions.js + role_permissions.js ✅ 迁移+Seeder 完成
+├── 广告位管理 ← ad_positions.js + advertisements.js ✅ 迁移+Seeder 完成（12条广告数据）
+├── 用户互动系统 ← interactions.js ✅ 迁移+Seeder 完成
+└── 邮件订阅管理 ← subscribers.js ✅ 迁移+Seeder 完成
 
-第二阶段（增强）⚠️ 部分完成
-├── 用户等级体系 ← user_levels.js（⚠️ 缺迁移）
-├── 访问统计分析 ← visits.js（⚠️ 缺迁移）
-├── 邮件模板系统 ← email_templates.js（⚠️ 缺迁移）
-├── 数据备份功能 ← backup.js（⚠️ 缺迁移）
-├── 日志/日记系统 ← journals.js ✅
-├── 操作日志记录 ← logs.js（⚠️ 缺迁移）
-├── 邮件配置管理 ← mail_config.js（⚠️ 缺迁移）
-├── 系统设置管理 ← site_config.js + seo_config.js（⚠️ 缺迁移）
-├── 主题定制系统 ← themes.js（⚠️ 缺迁移）
-├── 作者详细资料 ← author_profiles.js（⚠️ 缺迁移）✅ 数据结构已完善
-├── 页脚管理 ← footer_config.js（⚠️ 缺迁移）
-├── 页面SEO管理 ← page_seo.js（⚠️ 缺迁移）
-├── 全局SEO配置 ← seo_config.js（⚠️ 缺迁移）
-├── 站点配置 ← site_config.js（⚠️ 缺迁移）
-└── 多语言管理 ← i18n_config.js（⚠️ 缺迁移）
+第二阶段（增强）✅ 已完成
+├── 用户等级体系 ← user_levels.js ✅ 迁移+Seeder 完成
+├── 访问统计分析 ← visits.js ✅ 迁移+Seeder 完成
+├── 邮件模板系统 ← email_templates.js ✅ 迁移完成
+├── 数据备份功能 ← backup.js ✅ 迁移完成
+├── 日志/日记系统 ← journals.js ✅ 迁移+Seeder 完成
+├── 操作日志记录 ← logs.js ✅ 迁移完成
+├── 邮件配置管理 ← mail_config.js ✅ 迁移完成
+├── 系统设置管理 ← settings.js ✅ 迁移+Seeder 完成
+├── 主题定制系统 ← themes.js ✅ 迁移+Seeder 完成
+├── 作者详细资料 ← author_profiles.js ✅ 迁移+Seeder 完成
+├── 页脚管理 ← footer_config.js ✅ 迁移+Seeder 完成
+├── 页面SEO管理 ← page_seo.js ✅ 迁移完成
+├── 全局SEO配置 ← seo_config.js ✅ 迁移+Seeder 完成
+├── 站点配置 ← settings.js ✅ 已合并到系统设置
+└── 多语言管理 ← i18n_config.js ✅ 迁移+Seeder 完成（languages + translations）
 
 第三阶段（高级）⚠️ 未启动
 ├── 站内通知系统 ← notifications.js ✅ 前端完成，后端使用 Laravel Notification 系统
@@ -191,10 +214,10 @@
 
 | 原则 | 应用说明 | 当前状态 |
 |:---|:---|:---:|
-| **完整性** | 确保所有数据文件有对应的数据库表 | ⚠️ 19个文件缺迁移 |
-| **一致性** | 数据文件结构应与数据库表结构保持一致 | ✅ 基本一致 |
+| **完整性** | 确保所有数据文件有对应的数据库表 | ✅ 全部完成 |
+| **一致性** | 数据文件结构应与数据库表结构保持一致 | ✅ 已修复所有 Seeder 字段匹配 |
 | **规范化** | 数据符合数据库规范化要求（1NF/2NF/3NF） | ✅ 符合规范 |
-| **关联性** | 相关表之间建立外键关联 | ⚠️ 部分表缺少外键 |
+| **关联性** | 相关表之间建立外键关联 | ✅ 已完善外键关系 |
 | **可扩展性** | 预留字段便于未来扩展 | ✅ 设计合理 |
 
 ### 6.2 关键数据文件结构分析

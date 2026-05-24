@@ -1,8 +1,8 @@
 # 后端功能开发路线图
 
 **项目名称：** ARCHYX - Laravel Vue.js 混合应用
-**最后更新：** 2026-05-23
-**版本：** 1.0
+**最后更新：** 2026-05-23 (数据库迁移和 Seeder 全部完成)
+**版本：** 2.0
 **Laravel版本：** 10+
 
 ---
@@ -69,7 +69,8 @@
 #### 2.1.1 文章 (Posts)
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
-| 迁移文件 & 模型 | 高 | ⚠️ 待处理 | posts表 | Model使用$fillable/$casts |
+| 迁移文件 & 模型 | 高 | ✅ 已完成 | posts表 | Model使用$fillable/$casts |
+| Seeder 模拟数据 | 高 | ✅ 已完成 | 10条文章数据 | 关联分类、标签、作者 |
 | API CRUD接口 (Admin) | 高 | ⚠️ 待处理 | /api/admin/posts | API V1版本控制 |
 | FormRequest验证 | 高 | ⚠️ 待处理 | StorePostRequest | 独立验证类 |
 | API Resource | 高 | ⚠️ 待处理 | PostResource | 统一响应格式 |
@@ -82,7 +83,8 @@
 #### 2.1.2 视频 (Videos)
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
-| 迁移文件 & 模型 | 高 | ⚠️ 待处理 | videos表 | 标准Eloquent模型 |
+| 迁移文件 & 模型 | 高 | ✅ 已完成 | videos表 | 标准Eloquent模型 |
+| Seeder 模拟数据 | 高 | ✅ 已完成 | 5条视频数据 | 包含YouTube/Bilibili |
 | API CRUD接口 | 高 | ⚠️ 待处理 | /api/admin/videos | Resource+Service模式 |
 | 平台集成 | 中 | ⚠️ 待处理 | YouTube/Bilibili | 自定义Service封装 |
 | 缩略图处理 | 中 | ⚠️ 待处理 | 自动获取/手动 | Intervention Image |
@@ -90,35 +92,40 @@
 #### 2.1.3 项目 (Projects)
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
-| 迁移文件 & 模型 | 高 | ⚠️ 待处理 | projects表 | 标准Model |
+| 迁移文件 & 模型 | 高 | ✅ 已完成 | projects表 | 标准Model |
+| Seeder 模拟数据 | 高 | ✅ 已完成 | 6条项目数据 | 包含技术栈、GitHub链接 |
 | API CRUD接口 | 高 | ⚠️ 待处理 | /api/admin/projects | Repository模式 |
 | 图片画廊 | 中 | ⚠️ 待处理 | 多图关联 | Spatie Media多集合 |
 
 #### 2.1.4 资源 (Resources)
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
-| 迁移文件 & 模型 | 高 | ⚠️ 待处理 | resources表 | download_count字段 |
+| 迁移文件 & 模型 | 高 | ✅ 已完成 | resources表 | download_count字段 |
+| Seeder 模拟数据 | 高 | ✅ 已完成 | 5条资源数据 | 包含下载链接、文件大小 |
 | API CRUD接口 | 高 | ⚠️ 待处理 | /api/admin/resources | 标准CRUD |
 | 下载统计 | 中 | ⚠️ 待处理 | 访问时递增 | 事件监听 |
 
 #### 2.1.5 日记 (Journals)
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
-| 迁移文件 & 模型 | 高 | ⚠️ 待处理 | journals表 | mood/weather JSON |
+| 迁移文件 & 模型 | 高 | ✅ 已完成 | journals表 | mood/weather JSON |
+| Seeder 模拟数据 | 高 | ✅ 已完成 | 5条日记数据 | 包含心情、天气 |
 | API CRUD接口 | 高 | ⚠️ 待处理 | /api/admin/journals | 标准CRUD |
 | 日记专属字段 | 中 | ⚠️ 待处理 | music_link等 | JSON Cast |
 
 #### 2.1.6 分类 (Categories)
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
-| 迁移文件 & 模型 | 高 | ⚠️ 待处理 | categories表 | 层级结构 |
+| 迁移文件 & 模型 | 高 | ✅ 已完成 | categories表 | 层级结构 |
+| Seeder 模拟数据 | 高 | ✅ 已完成 | 6条分类数据 | 包含父子关系 |
 | API CRUD接口 | 高 | ⚠️ 待处理 | /api/admin/categories | 树形构建器 |
 | 树形结构 | 中 | ⚠️ 待处理 | 递归关系 | NestedSetModel |
 
 #### 2.1.7 标签 (Tags)
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
-| 迁移文件 & 模型 | 高 | ⚠️ 待处理 | tags表 | usage_count |
+| 迁移文件 & 模型 | 高 | ✅ 已完成 | tags表 | usage_count |
+| Seeder 模拟数据 | 高 | ✅ 已完成 | 15条标签数据 | 包含使用计数 |
 | API CRUD接口 | 高 | ⚠️ 待处理 | /api/admin/tags | 标准CRUD |
 | 自动清理 | 低 | ⚠️ 待处理 | 未使用标签删除 | Artisan命令 |
 
@@ -129,7 +136,7 @@
 #### 2.2.1 用户管理
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
-| users表扩展 | 高 | ⚠️ 待处理 | role_id, points | 新迁移文件 |
+| users表扩展 | 高 | ✅ 已完成 | role_id, points | 新迁移文件 |
 | User Policy | 高 | ⚠️ 待处理 | 授权逻辑 | Policy类 |
 | 用户资料更新 | 高 | ⚠️ 待处理 | /api/admin/users/{id} | FormRequest验证 |
 | 密码重置 | 高 | ⚠️ 待处理 | Laravel内置 | 邮件通知 |
@@ -140,7 +147,8 @@
 #### 2.2.2 订阅者 (Newsletter)
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
-| 迁移文件 & 模型 | 高 | ⚠️ 待处理 | subscribers表 | email唯一性 |
+| 迁移文件 & 模型 | 高 | ✅ 已完成 | subscribers表 | email唯一性 |
+| Seeder 模拟数据 | 高 | ✅ 已完成 | 5条订阅数据 | 包含邮箱、状态 |
 | API CRUD接口 | 高 | ⚠️ 待处理 | /api/admin/subscribers | 标准CRUD |
 | 订阅控制器 | 中 | ⚠️ 待处理 | /api/subscribe | 邮件验证 |
 | CSV导出 | 低 | ⚠️ 待处理 | Excel导出 | Laravel Excel |
@@ -148,7 +156,8 @@
 #### 2.2.3 用户等级 (VIP)
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
-| 迁移文件 & 模型 | 高 | ⚠️ 待处理 | user_levels表 | benefits JSON |
+| 迁移文件 & 模型 | 高 | ✅ 已完成 | user_levels表 | benefits JSON |
+| Seeder 模拟数据 | 高 | ✅ 已完成 | 5条等级数据 | 包含权益描述 |
 | 等级分配逻辑 | 高 | ⚠️ 待处理 | 自动升级 | Observer/Job |
 | 等级权益API | 中 | ⚠️ 待处理 | 折扣计算 | 计算型Service |
 | 积分历史 | 中 | ⚠️ 待处理 | user_points_history | 流水记录 |
@@ -156,7 +165,8 @@
 #### 2.2.4 RBAC权限系统
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
-| Spatie Permission | 高 | ⚠️ 待处理 | 完整配置 | Trait + 中间件 |
+| Spatie Permission | 高 | ✅ 已完成 | 完整配置 | Trait + 中间件 |
+| Seeder 模拟数据 | 高 | ✅ 已完成 | 3角色+权限 | admin/editor/user |
 | Role Policy | 高 | ⚠️ 待处理 | 角色授权 | 自定义Gate |
 | Permission CRUD | 高 | ⚠️ 待处理 | /api/admin/permissions | 标准CRUD |
 | 角色-权限UI | 高 | ⚠️ 待处理 | 同步API | JS树形组件 |
@@ -168,7 +178,8 @@
 #### 2.3.1 网站设置
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
-| 迁移文件 & 模型 | 高 | ⚠️ 待处理 | settings表 | key-value |
+| 迁移文件 & 模型 | 高 | ✅ 已完成 | settings表 | key-value |
+| Seeder 模拟数据 | 高 | ✅ 已完成 | 10条配置数据 | 站点名称、品牌等 |
 | Setting Service | 高 | ⚠️ 待处理 | 配置获取 | 单例+缓存 |
 | 网站配置API | 高 | ⚠️ 待处理 | /api/admin/settings | 标准CRUD |
 | 功能开关 | 中 | ⚠️ 待处理 | feature_* | 配置缓存 |
@@ -176,7 +187,8 @@
 #### 2.3.2 SEO管理器
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
-| 迁移文件 & 模型 | 高 | ⚠️ 待处理 | page_seo表 | route_name唯一 |
+| 迁移文件 & 模型 | 高 | ✅ 已完成 | seo表 | key-value JSON |
+| Seeder 模拟数据 | 高 | ✅ 已完成 | 3条SEO数据 | 首页、博客、关于 |
 | SEO Controller | 高 | ⚠️ 待处理 | /api/admin/seo | 标准CRUD |
 | 动态SEO中间件 | 中 | ⚠️ 待处理 | 按路由加载 | Middleware |
 | Schema.org | 中 | ⚠️ 待处理 | JSON-LD | Seeder初始化 |
@@ -184,8 +196,8 @@
 #### 2.3.3 国际化 (I18n)
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
-| languages表 | 高 | ⚠️ 待处理 | 语言配置 |Seeder |
-| translations表 | 高 | ⚠️ 待处理 | 翻译存储 | (key, locale, value) |
+| languages表 | 高 | ✅ 已完成 | 语言配置 | Seeder 5条数据 |
+| translations表 | 高 | ✅ 已完成 | 翻译存储 | Seeder 20条数据 |
 | I18n Controller | 高 | ⚠️ 待处理 | /api/admin/i18n | 标准CRUD |
 | JSON导出 | 中 | ⚠️ 待处理 | vue-i18n同步 | Artisan命令 |
 | 语言切换中间件 | 中 | ⚠️ 待处理 | locale设置 | Middleware |
@@ -193,6 +205,8 @@
 #### 2.3.4 媒体库
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
+| 迁移文件 & 模型 | 高 | ✅ 已完成 | media表 | 标准结构 |
+| API CRUD接口 | 高 | ⚠️ 待处理 | /api/admin/media | 标准CRUD |
 | Spatie Media Library | 高 | ⚠️ 待处理 | 完整配置 | Trait |
 | 媒体上传API | 高 | ⚠️ 待处理 | /api/admin/media/upload | 异步处理 |
 | 图片优化 | 中 | ⚠️ 待处理 | 缩略图 | Imagecache |
@@ -201,14 +215,15 @@
 #### 2.3.5 邮件配置
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
-| mail_configs表 | 高 | ⚠️ 待处理 | 多配置 | is_default |
+| mail_configs表 | 高 | ✅ 已完成 | 多配置 | is_default |
 | Mailable类 | 中 | ⚠️ 待处理 | 邮件模板 | Mailable |
 | 测试邮件 | 中 | ⚠️ 待处理 | 发送测试 | Queue邮件 |
 
 #### 2.3.6 前台菜单
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
-| menus表 | 高 | ⚠️ 待处理 | 层级结构 | parent_id |
+| menus表 | 高 | ✅ 已完成 | 层级结构 | parent_id |
+| Seeder 模拟数据 | 高 | ✅ 已完成 | 8条菜单数据 | 包含父子关系 |
 | Menu Builder | 中 | ⚠️ 待处理 | 递归构建 | Cache缓存 |
 
 ---
@@ -218,7 +233,8 @@
 #### 2.4.1 评论
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
-| comments表 | 高 | ⚠️ 待处理 | 多态关联 | commentable |
+| comments表 | 高 | ✅ 已完成 | 多态关联 | commentable |
+| Seeder 模拟数据 | 高 | ✅ 已完成 | 10条评论数据 | 包含嵌套回复 |
 | Comment Service | 高 | ⚠️ 待处理 | 业务逻辑 | 独立Service |
 | 审核流程 | 中 | ⚠️ 待处理 | require_approval | 事件监听 |
 | 嵌套回复 | 低 | ⚠️ 待处理 | parent_id | 递归关系 |
@@ -226,34 +242,39 @@
 #### 2.4.2 广告管理
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
-| ad_positions表 | 高 | ⚠️ 待处理 | 广告位 | position_key唯一 |
-| advertisements表 | 高 | ⚠️ 待处理 | 广告内容 | position_id |
+| ad_positions表 | 高 | ✅ 已完成 | 广告位 | position_key唯一 |
+| Seeder 模拟数据 | 高 | ✅ 已完成 | 5条广告位数据 | 包含首页、侧边栏 |
+| advertisements表 | 高 | ✅ 已完成 | 广告内容 | position_id |
+| Seeder 模拟数据 | 高 | ✅ 已完成 | 12条广告数据 | 覆盖不同广告位 |
 | 广告轮换 | 中 | ⚠️ 待处理 | 权重选择 | Seeder |
 | 追踪事件 | 中 | ⚠️ 待处理 | view/click | Event |
 
 #### 2.4.3 通知
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
-| notifications表 | 高 | ⚠️ 待处理 | 数据库通知 | Notifiable |
+| notifications表 | 高 | ✅ Laravel内置 | 数据库通知 | Notifiable |
 | 通知Service | 中 | ⚠️ 待处理 | 发送逻辑 | Notification类 |
 | 批量操作 | 低 | ⚠️ 待处理 | 全部已读 | Chunk处理 |
 
 #### 2.4.4 社交链接
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
-| social_links表 | 高 | ⚠️ 待处理 | 平台配置 | platform唯一 |
+| social_links表 | 高 | ✅ 已完成 | 平台配置 | platform唯一 |
+| Seeder 模拟数据 | 高 | ✅ 已完成 | 6条社交链接 | GitHub、Twitter等 |
 | 公开API | 中 | ⚠️ 待处理 | /api/social-links | 缓存响应 |
 
 #### 2.4.5 作者资料
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
-| author_profiles表 | 高 | ⚠️ 待处理 | 用户扩展 | user_id唯一 |
+| author_profiles表 | 高 | ✅ 已完成 | 用户扩展 | user_id唯一 |
+| Seeder 模拟数据 | 高 | ✅ 已完成 | 1条作者数据 | 包含社交链接、技能 |
 | 技能JSON字段 | 中 | ⚠️ 待处理 | skills数组 | JSON Cast |
 
 #### 2.4.6 互动数据
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
-| interactions表 | 中 | ⚠️ 待处理 | 多态关联 | 聚合查询 |
+| interactions表 | 中 | ✅ 已完成 | 多态关联 | 聚合查询 |
+| Seeder 模拟数据 | 中 | ✅ 已完成 | 20条互动数据 | 点赞、收藏 |
 | 每日统计 | 低 | ⚠️ 待处理 | Aggregate Job | Schedule |
 
 ---
@@ -263,13 +284,15 @@
 #### 2.5.1 审计日志
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
-| Spatie Activitylog | 高 | ⚠️ 待处理 | 审计追踪 | Trait |
+| admin_logs表 | 高 | ✅ 已完成 | 审计追踪 | 迁移完成 |
+| Spatie Activitylog | 高 | ⚠️ 待处理 | 完整配置 | Trait |
 | 日志查询API | 中 | ⚠️ 待处理 | /api/admin/logs | 筛选+分页 |
 | 日志清理 | 低 | ⚠️ 待处理 | 删除旧日志 | Schedule |
 
 #### 2.5.2 备份与恢复
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
+| backups表 | 高 | ✅ 已完成 | 备份记录 | 迁移完成 |
 | Spatie Backup | 高 | ⚠️ 待处理 | 完整备份 | 配置 |
 | 备份命令 | 高 | ⚠️ 待处理 | /api/admin/backup | Artisan |
 | 恢复命令 | 高 | ⚠️ 待处理 | /api/admin/restore | 确认机制 |
@@ -278,9 +301,32 @@
 #### 2.5.3 邮件模板
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
-| email_templates表 | 高 | ⚠️ 待处理 | 模板存储 | Mailable |
+| email_templates表 | 高 | ✅ 已完成 | 模板存储 | 迁移完成 |
+| Mailable类 | 中 | ⚠️ 待处理 | 邮件模板 | Mailable |
 | 变量解析 | 中 | ⚠️ 待处理 | {{var}} | Str::replace |
 | 预览功能 | 低 | ⚠️ 待处理 | 渲染预览 | 临时数据 |
+
+#### 2.5.4 页脚链接
+| 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
+|------|:------:|:----:|----------|-----------------|
+| footer_links表 | 高 | ✅ 已完成 | 页脚配置 | 迁移完成 |
+| Seeder 模拟数据 | 高 | ✅ 已完成 | 8条链接数据 | 包含社交、法律等 |
+| 公开API | 中 | ⚠️ 待处理 | /api/footer-links | 缓存响应 |
+
+#### 2.5.5 主题配置
+| 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
+|------|:------:|:----:|----------|-----------------|
+| themes表 | 高 | ✅ 已完成 | 主题配置 | 迁移完成 |
+| Seeder 模拟数据 | 高 | ✅ 已完成 | 3条主题数据 | 包含预览图 |
+| 主题切换 | 中 | ⚠️ 待处理 | 动态切换 | SettingService |
+
+#### 2.5.6 访问统计
+| 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
+|------|:------:|:----:|----------|-----------------|
+| visits表 | 高 | ✅ 已完成 | 多态关联 | 迁移完成 |
+| Seeder 模拟数据 | 高 | ✅ 已完成 | 5条访问数据 | 包含IP、UA |
+| Visit Observer | 高 | ⚠️ 待处理 | 自动记录 | Observer |
+| 统计API | 中 | ⚠️ 待处理 | /api/admin/visits | 聚合查询 |
 
 ---
 
