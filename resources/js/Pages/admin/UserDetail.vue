@@ -9,6 +9,10 @@
  * - 显示社交链接（从 author_profiles.js）
  * - 显示作者宣言（从 author_profiles.js）
  * - 支持编辑所有关联数据
+ * 
+ * ⚠️ 角色管理说明（2026-05-24）：
+ * - role_id 已从数据库删除，改用 Spatie RBAC 管理角色
+ * - 页面中的角色显示仅用于前端展示，实际角色通过 Spatie 方法获取
  */
 import { ref, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';

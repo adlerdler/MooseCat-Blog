@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Advertisement extends Model
 {
@@ -10,7 +11,7 @@ class Advertisement extends Model
         'title',
         'image_url',
         'link_url',
-        'position',
+        'position_id',
         'is_active',
         'clicks_count',
         'views_count',
@@ -23,4 +24,38 @@ class Advertisement extends Model
         'start_date' => 'datetime',
         'end_date' => 'datetime',
     ];
+
+    /**
+     * Get the ad position that owns the advertisement.
+     */
+    public function adPosition(): BelongsTo
+    {
+        return $this->belongsTo(AdPosition::class, 'position_id');
+    }
+
+    /**
+     * Scope for active advertisements.
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true)
+            ->where('start_date', '<=', now())
+            ->where('end_date', '>=', now());
+    }
+
+    /**
+     * Increment views count.
+     */
+    public function incrementViews(): void
+    {
+        $this->increment('views_count');
+    }
+
+    /**
+     * Increment clicks count.
+     */
+    public function incrementClicks(): void
+    {
+        $this->increment('clicks_count');
+    }
 }

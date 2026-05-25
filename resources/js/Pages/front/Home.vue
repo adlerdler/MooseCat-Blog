@@ -35,11 +35,11 @@ const getSeoSettings = () => ({ ...seoConfig })
 const seoSettings = getSeoSettings()
 
 usePageSeo({
-  title: seoSettings.metaTitle,
-  description: seoSettings.metaDescription,
-  keywords: seoSettings.metaKeywords,
-  url: seoSettings.canonicalUrl,
-  type: seoSettings.ogType
+  title: seoSettings.meta_title,
+  description: seoSettings.meta_description,
+  keywords: seoSettings.meta_keywords,
+  url: seoSettings.canonical_url,
+  type: seoSettings.og_type
 })
 
 const { t } = useI18n()

@@ -13,13 +13,13 @@ return new class extends Migration
     {
         Schema::create('ad_positions', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->unique();
-            $table->string('label_key');
-            $table->text('description')->nullable();
-            $table->integer('default_width');
-            $table->integer('default_height');
-            $table->boolean('is_active')->default(true);
-            $table->integer('sort_order')->default(0);
+            $table->string('name')->unique()->comment('标识符');
+            $table->string('label_key')->comment('翻译键');
+            $table->text('description')->nullable()->comment('描述');
+            $table->integer('default_width')->comment('默认宽度');
+            $table->integer('default_height')->comment('默认高度');
+            $table->boolean('is_active')->default(true)->comment('启用');
+            $table->integer('sort_order')->default(0)->comment('排序');
             $table->timestamps();
         });
     }

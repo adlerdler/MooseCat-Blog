@@ -10,12 +10,14 @@ return new class extends Migration
     {
         Schema::create('footer_links', function (Blueprint $table) {
             $table->id();
-            $table->enum('type', ['social_link', 'nav_link', 'brand_info']);
-            $table->string('label');
-            $table->string('url', 500)->nullable();
-            $table->string('icon', 100)->nullable();
-            $table->integer('sort_order')->default(0);
-            $table->boolean('is_active')->default(true);
+            $table->enum('type', ['social_link', 'nav_link', 'brand_info'])->comment('类型');
+            $table->string('platform', 100)->nullable()->comment('平台');
+            $table->string('icon_name', 100)->nullable()->comment('图标');
+            $table->string('label')->comment('文本');
+            $table->string('url', 500)->nullable()->comment('链接');
+            $table->string('icon', 100)->nullable()->comment('图标类');
+            $table->integer('sort_order')->default(0)->comment('排序');
+            $table->boolean('is_active')->default(true)->comment('可见');
             $table->timestamps();
         });
     }

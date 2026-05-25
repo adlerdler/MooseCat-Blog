@@ -13,7 +13,7 @@ class PostSeeder extends Seeder
 {
     public function run(): void
     {
-        $admin = User::where('role', 'admin')->first();
+        $admin = User::role('Administrator')->first();
         $categories = Category::all();
         $tags = Tag::all();
 

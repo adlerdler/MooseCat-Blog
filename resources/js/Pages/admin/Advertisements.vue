@@ -42,7 +42,7 @@ import {
 import { Motion, AnimatePresence } from 'motion-v';
 import { formatToShort } from '../../utils/dateUtils';
 import { sampleAdvertisements } from '../../data/advertisements';
-import { adPositions, getAdPositionOptions, getAdPositionByName } from '../../data/ad_positions';
+import { adPositions, getAdPositionOptions, getAdPositionById } from '../../data/ad_positions';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
@@ -69,7 +69,8 @@ const positionOptions = computed(() => {
 const filteredAds = computed(() => {
   return ads.value.filter(ad => {
     const matchesSearch = ad.title.toLowerCase().includes(searchQuery.value.toLowerCase());
-    const matchesPosition = positionFilter.value === 'all' || ad.position === positionFilter.value;
+    const adPositionName = getAdPositionById(ad.position_id)?.name || '';
+    const matchesPosition = positionFilter.value === 'all' || adPositionName === positionFilter.value;
     const matchesStatus = statusFilter.value === 'all' ||
       (statusFilter.value === 'active' && ad.is_active) ||
       (statusFilter.value === 'inactive' && !ad.is_active);
@@ -84,23 +85,26 @@ const paginatedAds = computed(() => {
   return filteredAds.value.slice(start, start + itemsPerPage.value);
 });
 
-const getPositionIcon = (position) => {
+const getPositionIcon = (positionId) => {
+  const positionName = getAdPositionById(positionId)?.name || '';
   const icons = {
     header: Maximize,
     sidebar: Sidebar,
     footer: SkipForward,
     between_posts: LayoutGrid,
-    popup: AlertCircle
+    popup: AlertCircle,
+    in_content: LayoutGrid,
+    video_bottom: SkipForward
   };
-  return icons[position] || LayoutGrid;
+  return icons[positionName] || LayoutGrid;
 };
 
-const getPositionLabel = (position) => {
-  const posConfig = getAdPositionByName(position);
+const getPositionLabel = (positionId) => {
+  const posConfig = getAdPositionById(positionId);
   if (posConfig) {
     return t(posConfig.label_key) || posConfig.name;
   }
-  return position;
+  return '';
 };
 
 const toggleStatus = (ad) => {
@@ -117,7 +121,7 @@ const handleAdd = () => {
     title: '',
     image_url: '',
     link_url: '',
-    position: 'sidebar',
+    position_id: 2,
     is_active: true,
     start_date: new Date().toISOString().split('T')[0],
     end_date: ''
@@ -280,8 +284,8 @@ const getCtr = (ad) => {
                     </div>
                   </div>
                   <div :class="['flex items-center gap-2 text-xs font-bold uppercase tracking-wider', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
-                    <component :is="getPositionIcon(ad.position)" size="14" class="text-construct-red" />
-                    {{ getPositionLabel(ad.position) }}
+                    <component :is="getPositionIcon(ad.position_id)" size="14" class="text-construct-red" />
+                    {{ getPositionLabel(ad.position_id) }}
                   </div>
                 </div>
 
@@ -462,13 +466,13 @@ const getCtr = (ad) => {
                   {{ t('admin_ad_position') }} *
                 </label>
                 <select
-                  v-model="editingAd.position"
+                  v-model="editingAd.position_id"
                   :class="[
                     'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
                     isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'
                   ]"
                 >
-                  <option v-for="pos in positionOptions" :key="pos.value" :value="pos.name">{{ pos.label }}</option>
+                  <option v-for="pos in positionOptions" :key="pos.value" :value="pos.value">{{ pos.label }}</option>
                 </select>
               </div>
 

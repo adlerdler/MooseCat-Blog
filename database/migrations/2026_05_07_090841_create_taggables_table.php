@@ -9,8 +9,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('taggables', function (Blueprint $table) {
-            $table->foreignId('tag_id')->constrained()->cascadeOnDelete();
-            $table->morphs('taggable'); // Creates taggable_id and taggable_type
+            $table->foreignId('tag_id')->constrained()->cascadeOnDelete()->comment('标签ID');
+            $table->morphs('taggable'); // 创建 taggable_id 和 taggable_type 用于多态关联
             $table->primary(['tag_id', 'taggable_id', 'taggable_type']);
         });
     }

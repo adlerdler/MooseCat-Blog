@@ -1,17 +1,19 @@
 /**
  * advertisements.js - 广告数据
  *
+ * ⚠️ 字段变更备注（2026-05-24）：
+ * - position 字段已删除（已废弃，使用 position_id 替代）
+ *
  * 功能说明：
  * - 存储广告内容数据
- * - 通过 position 字段区分广告类型
+ * - 通过 position_id 关联广告位表
  *
  * 数据字段：
  * - id: 广告唯一标识
- * - position_id: 广告位ID
+ * - position_id: 广告位ID（关联 ad_positions 表）
  * - title: 广告标题
  * - image_url: 广告图片URL
  * - link_url: 跳转链接
- * - position: 广告位置 (header, sidebar, footer, between_posts, popup)
  * - is_active: 状态
  * - clicks_count: 点击次数
  * - views_count: 展示次数
@@ -29,7 +31,6 @@ export const sampleAdvertisements = [
     title: 'Minimalist Hosting',
     image_url: 'https://via.placeholder.com/300x250',
     link_url: 'https://example.com/hosting',
-    position: 'sidebar',
     is_active: false,
     clicks_count: 1250,
     views_count: 15680,
@@ -44,7 +45,6 @@ export const sampleAdvertisements = [
     title: 'Design Tools Pro',
     image_url: 'https://via.placeholder.com/728x90',
     link_url: 'https://example.com/design-tools',
-    position: 'header',
     is_active: false,
     clicks_count: 890,
     views_count: 12340,
@@ -59,7 +59,6 @@ export const sampleAdvertisements = [
     title: 'Creative Portfolio',
     image_url: 'https://via.placeholder.com/300x250',
     link_url: 'https://example.com/portfolio',
-    position: 'between_posts',
     is_active: false,
     clicks_count: 456,
     views_count: 8900,
@@ -74,7 +73,6 @@ export const sampleAdvertisements = [
     title: 'Digital Magazine',
     image_url: 'https://via.placeholder.com/728x90',
     link_url: 'https://example.com/magazine',
-    position: 'footer',
     is_active: false,
     clicks_count: 2100,
     views_count: 24500,
@@ -89,7 +87,6 @@ export const sampleAdvertisements = [
     title: 'Architecture Weekly',
     image_url: 'https://via.placeholder.com/300x600',
     link_url: 'https://example.com/arch-weekly',
-    position: 'sidebar',
     is_active: false,
     clicks_count: 670,
     views_count: 9800,
@@ -104,7 +101,6 @@ export const sampleAdvertisements = [
     title: 'Tech Conference 2026',
     image_url: 'https://via.placeholder.com/320x480',
     link_url: 'https://example.com/conference',
-    position: 'popup',
     is_active: false,
     clicks_count: 320,
     views_count: 5600,
@@ -123,7 +119,6 @@ export const sampleAdvertisements = [
     title: 'Premium Code Editor - Write Better Code Faster',
     image_url: 'https://via.placeholder.com/800x450',
     link_url: 'https://example.com/code-editor',
-    position: 'between_posts',
     is_active: false,
     clicks_count: 234,
     views_count: 5600,
@@ -138,7 +133,6 @@ export const sampleAdvertisements = [
     title: 'Learn UX Design - Free Trial',
     image_url: 'https://via.placeholder.com/800x450',
     link_url: 'https://example.com/ux-course',
-    position: 'between_posts',
     is_active: false,
     clicks_count: 189,
     views_count: 4200,
@@ -153,7 +147,6 @@ export const sampleAdvertisements = [
     title: 'Video Editing Suite - 50% Off Today',
     image_url: 'https://via.placeholder.com/640x360',
     link_url: 'https://example.com/video-editor',
-    position: 'between_posts',
     is_active: false,
     clicks_count: 567,
     views_count: 8900,
@@ -168,7 +161,6 @@ export const sampleAdvertisements = [
     title: 'Project Management Tool - Teams Love It',
     image_url: 'https://via.placeholder.com/800x500',
     link_url: 'https://example.com/project-tool',
-    position: 'between_posts',
     is_active: false,
     clicks_count: 432,
     views_count: 7800,
@@ -183,7 +175,6 @@ export const sampleAdvertisements = [
     title: 'Icon Pack Pro - 5000+ Icons',
     image_url: 'https://via.placeholder.com/640x360',
     link_url: 'https://example.com/icon-pack',
-    position: 'between_posts',
     is_active: false,
     clicks_count: 623,
     views_count: 11200,
@@ -201,7 +192,6 @@ export const sampleAdvertisements = [
     title: 'AI Writing Assistant - Write Faster, Better',
     image_url: 'https://via.placeholder.com/800x250',
     link_url: 'https://example.com/ai-writer',
-    position: 'in_content',
     is_active: false,
     clicks_count: 345,
     views_count: 6700,
@@ -216,7 +206,6 @@ export const sampleAdvertisements = [
     title: 'Code Generator - Auto Write Your Code',
     image_url: 'https://via.placeholder.com/800x250',
     link_url: 'https://example.com/code-gen',
-    position: 'in_content',
     is_active: false,
     clicks_count: 210,
     views_count: 4500,
@@ -225,16 +214,12 @@ export const sampleAdvertisements = [
     created_at: '2026-05-15T10:00:00',
     updated_at: '2026-05-15T10:00:00',
   },
-  // ============================================
-  // Video Bottom Ads (视频底部)
-  // ============================================
   {
     id: 14,
     position_id: 7,
     title: 'Video Editing Pro - Edit Like a Pro',
     image_url: 'https://via.placeholder.com/800x250',
     link_url: 'https://example.com/video-editor',
-    position: 'video_bottom',
     is_active: false,
     clicks_count: 180,
     views_count: 3800,

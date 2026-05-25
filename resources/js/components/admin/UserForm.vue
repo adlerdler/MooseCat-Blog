@@ -7,6 +7,11 @@
  * - 包含用户名、邮箱、密码、角色、状态字段
  * - 编辑时密码可选
  * 
+ * ⚠️ 角色管理说明（2026-05-24）：
+ * - role_id 已从数据库删除，改用 Spatie RBAC 管理角色
+ * - 表单中的角色选择仅用于前端展示，实际角色分配通过 Spatie 方法
+ * - 分配角色：$user->assignRole('admin')
+ * 
  * 使用示例：
  * <UserForm :edit-data="editingUser" :visible="isFormVisible" @save="handleSave" @cancel="handleCancel" />
  */

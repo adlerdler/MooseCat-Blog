@@ -10,11 +10,13 @@ return new class extends Migration
     {
         Schema::create('themes', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 100)->unique();
-            $table->string('label');
-            $table->string('preview_image')->nullable();
-            $table->boolean('is_active')->default(false);
-            $table->json('config')->nullable();
+            $table->string('name', 100)->unique()->comment('标识符');
+            $table->string('label')->comment('名称');
+            $table->string('color', 50)->comment('颜色');
+            $table->integer('sort_order')->default(0)->comment('排序');
+            $table->boolean('is_active')->default(false)->comment('可用');
+            $table->boolean('is_default')->default(false)->comment('默认');
+            $table->string('preview_image')->nullable()->comment('预览图');
             $table->timestamps();
         });
     }

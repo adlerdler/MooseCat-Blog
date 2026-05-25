@@ -10,15 +10,15 @@ return new class extends Migration
     {
         Schema::create('comments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('post_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('parent_id')->nullable()->constrained('comments')->cascadeOnDelete();
-            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->string('name')->nullable();
-            $table->string('email')->nullable();
-            $table->text('body');
-            $table->boolean('is_approved')->default(true);
-            $table->string('ip_address', 45)->nullable();
-            $table->string('user_agent')->nullable();
+            $table->foreignId('post_id')->constrained()->cascadeOnDelete()->comment('文章ID');
+            $table->foreignId('parent_id')->nullable()->constrained('comments')->cascadeOnDelete()->comment('父评论ID');
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete()->comment('用户ID');
+            $table->string('name')->nullable()->comment('名称');
+            $table->string('email')->nullable()->comment('邮箱');
+            $table->text('body')->comment('内容');
+            $table->boolean('is_approved')->default(true)->comment('已审核');
+            $table->string('ip_address', 45)->nullable()->comment('IP地址');
+            $table->string('user_agent')->nullable()->comment('User-Agent');
             $table->timestamps();
         });
     }

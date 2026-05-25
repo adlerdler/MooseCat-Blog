@@ -11,7 +11,10 @@ class SubscriberSeeder extends Seeder
     {
         Subscriber::create([
             'email' => 'adler@example.com',
+            'name' => 'Adler',
+            'source' => 'website',
             'is_active' => true,
+            'subscribed_at' => now(),
         ]);
     }
 }

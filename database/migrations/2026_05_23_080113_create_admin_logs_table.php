@@ -10,11 +10,11 @@ return new class extends Migration
     {
         Schema::create('admin_logs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->string('action');
-            $table->text('description');
-            $table->string('ip_address', 45);
-            $table->string('user_agent')->nullable();
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete()->comment('用户ID');
+            $table->string('action')->comment('操作');
+            $table->text('description')->comment('描述');
+            $table->string('ip_address', 45)->comment('IP');
+            $table->string('user_agent')->nullable()->comment('User-Agent');
             $table->timestamps();
         });
     }

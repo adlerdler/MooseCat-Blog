@@ -11,14 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // 创建 roles 表（Spatie Permission 兼容）
         Schema::create('roles', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->unique();
-            $table->string('value')->unique();
-            $table->string('guard_name')->default('web');
-            $table->string('label')->nullable();
-            $table->string('color', 50)->nullable();
-            $table->text('description')->nullable();
+            $table->string('name');
+            $table->string('guard_name');
             $table->timestamps();
         });
     }

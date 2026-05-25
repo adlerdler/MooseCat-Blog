@@ -12,7 +12,7 @@ class CommentSeeder extends Seeder
     public function run(): void
     {
         $posts = Post::all();
-        $user = User::where('role', 'user')->first();
+        $user = User::role('Subscriber')->first();
 
         foreach ($posts as $post) {
             Comment::create([
@@ -20,6 +20,8 @@ class CommentSeeder extends Seeder
                 'user_id' => $user->id,
                 'body' => '这是一篇非常有见地的文章，深受启发！',
                 'is_approved' => true,
+                'ip_address' => '127.0.0.1',
+                'user_agent' => 'Mozilla/5.0',
             ]);
 
             Comment::create([
@@ -28,6 +30,8 @@ class CommentSeeder extends Seeder
                 'email' => 'guest@example.com',
                 'body' => '非常喜欢这种极简的设计风格。',
                 'is_approved' => true,
+                'ip_address' => '127.0.0.1',
+                'user_agent' => 'Mozilla/5.0',
             ]);
         }
     }

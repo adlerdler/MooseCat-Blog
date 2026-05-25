@@ -6,5 +6,23 @@ use Illuminate\Database\Eloquent\Model;
 
 class SocialLink extends Model
 {
-    //
+    protected $fillable = [
+        'platform',
+        'url',
+        'icon',
+        'sort_order',
+        'is_active',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
+
+    /**
+     * Scope for active social links.
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true)->orderBy('sort_order');
+    }
 }

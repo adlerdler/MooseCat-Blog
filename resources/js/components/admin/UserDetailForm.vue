@@ -7,6 +7,10 @@
  * - 编辑作者信息（简介、宣言）
  * - 编辑技能列表
  * - 编辑社交链接（JSON对象）
+ * 
+ * ⚠️ 角色管理说明（2026-05-24）：
+ * - role_id 已从数据库删除，改用 Spatie RBAC 管理角色
+ * - 表单中的角色选择仅用于前端展示，实际角色分配通过 Spatie 方法
  */
 import { ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';

@@ -1,8 +1,10 @@
 # Database Design
 
-> **Last Updated**: 2026-05-23
+> **Last Updated**: 2026-05-24
 >
-> This document outlines the database table structure for the Laravel backend, utilizing standard Laravel conventions (plural table names, snake_case columns). This structure supports content management, tagging, multi-level categories, nesting comments, user interactions (likes/bookmarks), analytics, and Role-Based Access Control (RBAC).
+> This document outlines the database table structure for the Laravel backend, utilizing standard Laravel conventions (plural table names, snake_case columns). This structure supports content management, tagging, multi-level categories, nesting comments, user interactions (likes/bookmarks), analytics, gamification (user levels/points), internationalization (i18n), and Role-Based Access Control (RBAC) with Spatie/laravel-permission.
+>
+> **Total Tables**: 30 core tables + 5 Spatie RBAC pivot tables = **35 tables**
 
 ## Tables
 
@@ -22,16 +24,19 @@ Standard Laravel user table for authentication and administration.
 | `github` | varchar(255) | nullable | User's GitHub profile URL or username |
 | `twitter` | varchar(255) | nullable | User's Twitter/X profile URL or username |
 | `linkedin` | varchar(255) | nullable | User's LinkedIn profile URL |
-| `role` | enum | 'user','admin', default:'user' | User legacy role for basic access control - **Deprecated: Use Spatie roles via model_has_roles** |
-| `role_id` | bigint | fk->roles.id, nullable | **Planned**: Foreign key to Spatie roles table (replaces `role` enum) - **Pending Migration** |
 | `status` | enum | 'active','inactive','suspended', default:'active' | Account status for enabling/disabling access |
+| `role_id` | bigint | fk->roles.id, nullable | Foreign key to roles table for RBAC |
 | `points` | unsignedBigInteger | default:0 | User points for gamification and level system |
+| `email_notifications` | boolean | default:true | Enable/disable email notifications |
+| `comment_approval_alert` | boolean | default:true | Alert when comment needs approval |
+| `new_user_alert` | boolean | default:true | Alert when new user registers |
+| `weekly_report` | boolean | default:false | Enable weekly report emails |
+| `digest_email` | boolean | default:false | Enable digest emails |
+| `digest_frequency` | enum | 'daily','weekly','monthly', default:'weekly' | Digest email frequency |
 | `last_login_at` | timestamp | nullable | Timestamp of user's last successful login |
 | `remember_token` | varchar(100) | nullable | Token for "Remember Me" functionality |
 | `created_at` | timestamp | nullable | Record creation timestamp |
 | `updated_at` | timestamp | nullable | Record last modification timestamp |
-
-**Note:** User roles are managed via Spatie's `model_has_roles` pivot table, not a direct `role_id` foreign key.
 
 ---
 
@@ -45,7 +50,7 @@ Categories for organizing posts and resources with hierarchical support.
 | `parent_id` | bigint | fk->categories.id, nullable | Reference to parent category for hierarchical nesting (null for root categories) |
 | `name` | varchar(255) | unique, not null | Category display name shown in UI |
 | `slug` | varchar(255) | unique, not null | URL-friendly identifier for routing and SEO |
-| `description` | text | nullable | Detailed description of the category purpose |
+| `description` | varchar(255) | nullable | Detailed description of the category purpose |
 | `status` | enum | 'active','inactive', default:'active' | Category visibility status for content organization |
 | `sort_order` | int | default:0 | Display order for sorting categories in UI |
 | `created_at` | timestamp | nullable | Record creation timestamp |
@@ -292,6 +297,58 @@ Newsletter subscription management for email marketing.
 
 ---
 
+### `user_points_history` (User Points History)
+
+Track user points changes for gamification system.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| `id` | bigint | pk, auto-increment | Primary key, unique record identifier |
+| `user_id` | bigint | fk->users.id, not null | User who earned/lost points |
+| `points` | int | not null | Points amount (positive or negative) |
+| `type` | varchar(100) | not null | Points type/category |
+| `description` | text | nullable | Reason for points change |
+| `reference_id` | bigint | nullable | Related record ID |
+| `reference_type` | varchar(255) | nullable | Related model type |
+| `created_at` | timestamp | nullable | Record creation timestamp |
+| `updated_at` | timestamp | nullable | Record last modification timestamp |
+
+---
+
+### `ad_interactions` (Ad Interactions)
+
+Track ad clicks and views for analytics.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| `id` | bigint | pk, auto-increment | Primary key, unique interaction identifier |
+| `advertisement_id` | bigint | fk->advertisements.id, not null | Associated advertisement |
+| `user_id` | bigint | fk->users.id, nullable | User who interacted (null for guest) |
+| `type` | enum | 'click','view', not null | Interaction type |
+| `ip_address` | varchar(45) | not null | User IP address |
+| `user_agent` | varchar(255) | nullable | Browser user agent string |
+| `created_at` | timestamp | nullable | Record creation timestamp |
+| `updated_at` | timestamp | nullable | Record last modification timestamp |
+
+---
+
+### `social_links` (Social Links)
+
+Social media links configuration.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| `id` | bigint | pk, auto-increment | Primary key, unique link identifier |
+| `platform` | varchar(255) | not null | Platform name (e.g., 'github', 'twitter') |
+| `url` | varchar(255) | not null | Social media profile URL |
+| `icon` | varchar(255) | nullable | Icon class or path |
+| `sort_order` | int | default:0 | Display order |
+| `is_active` | boolean | default:true | Link visibility |
+| `created_at` | timestamp | nullable | Record creation timestamp |
+| `updated_at` | timestamp | nullable | Record last modification timestamp |
+
+---
+
 ### `media` (Media Library)
 
 Media file management for uploaded assets.
@@ -351,19 +408,34 @@ Page view analytics with polymorphic relationships.
 
 ### `settings` (System Settings)
 
-Key-value store for application configuration.
+System configuration with fixed fields for site settings.
 
 | Column | Type | Constraints | Description |
 |--------|------|-------------|-------------|
 | `id` | bigint | pk, auto-increment | Primary key, unique setting identifier |
-| `key` | varchar(255) | unique, not null | Setting key for retrieval (dot notation supported) |
-| `value` | json | not null | Setting value in JSON format |
-| `type` | enum | 'string','number','boolean','array','object', not null | Value type for type casting |
-| `group` | varchar(100) | not null | Settings group for organization |
-| `label` | varchar(255) | not null | Human-readable setting name |
-| `description` | varchar(500) | nullable | Setting description and usage notes |
-| `is_public` | boolean | default:false | Whether setting is exposed to frontend |
-| `sort_order` | int | default:0 | Display order in settings UI |
+| `name` | varchar(255) | default:'ARCHYX' | Site name |
+| `description` | text | nullable | Site description |
+| `site_url` | varchar(255) | nullable | Site URL |
+| `copyright` | varchar(255) | nullable | Copyright text |
+| `logo` | varchar(255) | nullable | Logo image path |
+| `favicon` | varchar(255) | nullable | Favicon image path |
+| `timezone` | varchar(255) | default:'Asia/Shanghai' | Site timezone |
+| `maintenance_mode` | boolean | default:false | Enable/disable maintenance mode |
+| `show_author_bio` | boolean | default:false | Show author bio on posts |
+| `show_comments` | boolean | default:true | Enable comments |
+| `allow_registration` | boolean | default:true | Allow user registration |
+| `require_comment_approval` | boolean | default:false | Require approval for comments |
+| `enable_newsletter` | boolean | default:true | Enable newsletter feature |
+| `enable_social_login` | boolean | default:false | Enable social login |
+| `enable_search` | boolean | default:true | Enable search functionality |
+| `enable_cache` | boolean | default:true | Enable caching |
+| `cache_duration` | int | default:3600 | Cache duration in seconds |
+| `enable_minification` | boolean | default:true | Enable CSS/JS minification |
+| `lazy_load_images` | boolean | default:true | Enable lazy loading for images |
+| `enable_cdn` | boolean | default:false | Enable CDN |
+| `cdn_url` | varchar(255) | nullable | CDN URL |
+| `max_upload_size` | int | default:10 | Max upload size in MB |
+| `allowed_file_types` | json | nullable | Allowed file types array |
 | `created_at` | timestamp | nullable | Record creation timestamp |
 | `updated_at` | timestamp | nullable | Record last modification timestamp |
 
@@ -445,8 +517,35 @@ Site-wide default SEO settings.
 | Column | Type | Constraints | Description |
 |--------|------|-------------|-------------|
 | `id` | bigint | pk, auto-increment | Primary key, unique config identifier |
-| `key` | varchar(255) | unique, not null | Configuration key (e.g., 'default_title') |
-| `value` | json | not null | Configuration value |
+| `meta_title` | varchar(255) | nullable | Global meta title |
+| `meta_description` | text | nullable | Global meta description |
+| `meta_keywords` | varchar(255) | nullable | Global meta keywords |
+| `google_analytics` | varchar(255) | nullable | Google Analytics tracking ID |
+| `baidu_analytics` | varchar(255) | nullable | Baidu Analytics tracking ID |
+| `enable_sitemap` | boolean | default:true | Enable sitemap generation |
+| `enable_robots` | boolean | default:true | Enable robots.txt |
+| `enable_llm_txt` | boolean | default:false | Enable llm.txt for AI crawlers |
+| `canonical_url` | varchar(255) | nullable | Canonical URL base |
+| `og_image` | varchar(255) | nullable | Default Open Graph image |
+| `og_type` | varchar(255) | default:'website' | Default OG type |
+| `twitter_card` | varchar(255) | default:'summary_large_image' | Default Twitter card type |
+| `created_at` | timestamp | nullable | Record creation timestamp |
+| `updated_at` | timestamp | nullable | Record last modification timestamp |
+
+---
+
+### `page_seo` (Page-level SEO)
+
+Per-page SEO configuration for individual routes.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| `id` | bigint | pk, auto-increment | Primary key, unique config identifier |
+| `page_key` | varchar(255) | unique, not null | Page identifier key |
+| `title` | varchar(255) | not null | Page-specific meta title |
+| `description` | varchar(500) | not null | Page-specific meta description |
+| `keywords` | varchar(500) | nullable | Page-specific keywords |
+| `og_image` | varchar(255) | nullable | Page-specific OG image |
 | `created_at` | timestamp | nullable | Record creation timestamp |
 | `updated_at` | timestamp | nullable | Record last modification timestamp |
 
@@ -475,9 +574,75 @@ Theme switching and customization settings.
 | `id` | bigint | pk, auto-increment | Primary key, unique theme identifier |
 | `name` | varchar(100) | unique, not null | Theme technical name for code reference |
 | `label` | varchar(255) | not null | Theme display name for UI selection |
-| `preview_image` | varchar(255) | nullable | Theme preview screenshot URL |
+| `color` | varchar(50) | not null | Theme color scheme identifier |
+| `sort_order` | int | default:0 | Display order in theme selection |
 | `is_active` | boolean | default:false | Currently active theme flag |
-| `config` | json | nullable | Theme-specific configuration options |
+| `is_default` | boolean | default:false | Default theme fallback flag |
+| `preview_image` | varchar(255) | nullable | Theme preview screenshot URL |
+| `created_at` | timestamp | nullable | Record creation timestamp |
+| `updated_at` | timestamp | nullable | Record last modification timestamp |
+
+---
+
+### `languages` (Language Configuration)
+
+Internationalization language management.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| `id` | bigint | pk, auto-increment | Primary key, unique language identifier |
+| `code` | varchar(10) | unique, not null | Language code (e.g., 'en', 'zh-CN') |
+| `name` | varchar(255) | not null | Language display name |
+| `native_name` | varchar(255) | not null | Language name in its own script |
+| `flag` | varchar(20) | nullable | Flag icon identifier |
+| `file_path` | varchar(200) | nullable | Translation file path |
+| `direction` | varchar(3) | default:'ltr' | Text direction (ltr/rtl) |
+| `is_active` | boolean | default:true | Language availability |
+| `is_default` | boolean | default:false | Default language flag |
+| `sort_order` | int | default:0 | Display order in language selector |
+| `created_at` | timestamp | nullable | Record creation timestamp |
+| `updated_at` | timestamp | nullable | Record last modification timestamp |
+
+---
+
+### `footer_links` (Footer Links)
+
+Footer navigation and social links management.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| `id` | bigint | pk, auto-increment | Primary key, unique link identifier |
+| `type` | enum | 'social_link','nav_link','brand_info', not null | Link type category |
+| `platform` | varchar(100) | nullable | Platform name (e.g., 'github', 'twitter') |
+| `icon_name` | varchar(100) | nullable | Icon identifier for display |
+| `label` | varchar(255) | not null | Link display text |
+| `url` | varchar(500) | nullable | Link target URL |
+| `icon` | varchar(100) | nullable | Icon class or path |
+| `sort_order` | int | default:0 | Display order in footer |
+| `is_active` | boolean | default:true | Link visibility |
+| `created_at` | timestamp | nullable | Record creation timestamp |
+| `updated_at` | timestamp | nullable | Record last modification timestamp |
+
+---
+
+### `user_levels` (User Levels)
+
+User gamification level system.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| `id` | bigint | pk, auto-increment | Primary key, unique level identifier |
+| `name` | varchar(100) | not null | Level display name |
+| `level` | int | not null | Level number/rank |
+| `min_points` | int | not null | Minimum points required |
+| `max_points` | int | nullable | Maximum points for this level |
+| `discount` | int | default:0 | Discount percentage for level |
+| `color` | varchar(50) | not null | Level badge color |
+| `icon` | varchar(100) | nullable | Level badge icon |
+| `description` | varchar(500) | nullable | Level description |
+| `benefits` | json | nullable | Array of level benefits |
+| `is_active` | boolean | default:true | Level availability |
+| `sort_order` | int | default:0 | Display order |
 | `created_at` | timestamp | nullable | Record creation timestamp |
 | `updated_at` | timestamp | nullable | Record last modification timestamp |
 
@@ -565,7 +730,7 @@ SMTP and mail service configuration.
 
 ---
 
-### `i18n` (Internationalization)
+### `translations` (Internationalization)
 
 Database-driven translation management.
 
@@ -573,7 +738,7 @@ Database-driven translation management.
 |--------|------|-------------|-------------|
 | `id` | bigint | pk, auto-increment | Primary key, unique translation identifier |
 | `group` | varchar(100) | not null | Translation group (e.g., 'messages', 'validation') |
-| `key` | varchar(255) | not null | Translation key within group |
+| `key` | varchar(150) | not null | Translation key within group |
 | `text` | json | not null | Translation values keyed by locale {en: '', zh: ''} |
 | `description` | varchar(500) | nullable | Translation context or notes |
 | `is_active` | boolean | default:true | Enable/disable this translation |
@@ -694,37 +859,40 @@ Reference mapping between frontend static data files and database tables.
 | `ad_positions.js` | `ad_positions` | ✅ Complete | Ad position configuration |
 | `advertisements.js` | `advertisements` | ✅ Complete | Ad content management |
 | `author_profiles.js` | `author_profiles` | ✅ Complete | Author profiles with i18n |
+| `backups.js` | `backups` | ✅ Complete | Backup records |
 | `categories.js` | `categories` | ✅ Complete | Content categories |
 | `comments.js` | `comments` | ✅ Complete | User comments |
-| `email_templates.js` | `email_templates` | ⚠️ Pending | Email templates (migration needed) |
-| `footer_config.js` | `footer_links` | ⚠️ Pending | Footer link configuration |
+| `email_templates.js` | `email_templates` | ✅ Complete | Email templates |
+| `footer_config.js` | `footer_links` | ✅ Complete | Footer link configuration |
 | `interactions.js` | `interactions` | ✅ Complete | Likes and bookmarks |
 | `journals.js` | `journals` | ✅ Complete | Development logs |
-| `logs.js` | `admin_logs` | ⚠️ Pending | Admin operation logs |
-| `mail_config.js` | `mail_settings` | ⚠️ Pending | Mail configuration |
-| `media.js` | `media` | ⚠️ Pending | Media library |
-| `menu.js` | `menus` | ⚠️ Pending | Menu configuration |
+| `languages.js` | `languages` | ✅ Complete | Language configuration |
+| `logs.js` | `admin_logs` | ✅ Complete | Admin operation logs |
+| `mail_config.js` | `mail_configs` | ✅ Complete | Mail configuration |
+| `media.js` | `media` | ✅ Complete | Media library |
+| `menu.js` | `menus` | ✅ Complete | Menu configuration |
 | `notifications.js` | `notifications` | ✅ Laravel Built-in | Laravel notifications |
-| `page_seo.js` | `page_seo` | ⚠️ Pending | Per-page SEO |
-| `permissions.js` | `permissions` | ⚠️ Pending | Permission definitions |
+| `page_seo.js` | `page_seo` | ✅ Complete | Per-page SEO |
+| `permissions.js` | `permissions` | ✅ Complete | Permission definitions |
 | `posts.js` | `posts` | ✅ Complete | Blog posts |
 | `projects.js` | `projects` | ✅ Complete | Portfolio projects |
 | `resources.js` | `resources` | ✅ Complete | Downloadable resources |
-| `role_permissions.js` | `role_permissions` | ⚠️ Pending | Role-permission mapping |
-| `roles.js` | `roles` | ⚠️ Pending | Role definitions |
-| `seo_config.js` | `seo` | ⚠️ Pending | Global SEO settings |
-| `settings.js` | `settings` | ⚠️ Pending | System settings |
-| `site_config.js` | `site` | ⚠️ Pending | Site configuration |
+| `role_permissions.js` | `role_has_permissions` | ✅ Complete | Role-permission mapping (Spatie) |
+| `roles.js` | `roles` | ✅ Complete | Role definitions (Spatie extended) |
+| `seo_config.js` | `seo` | ✅ Complete | Global SEO settings |
+| `settings.js` | `settings` | ✅ Complete | System settings |
+| `site_config.js` | `site` | ⚠️ Pending | Site configuration (may merge with settings) |
+| `social_links.js` | `social_links` | ✅ Complete | Social links |
 | `subscribers.js` | `subscribers` | ✅ Complete | Email subscribers |
 | `tags.js` | `tags` | ✅ Complete | Content tags |
 | `taggables.js` | `taggables` | ✅ Complete | Tag relationships |
-| `themes.js` | `themes` | ⚠️ Pending | Theme configuration |
-| `user_levels.js` | `user_levels` | ⚠️ Pending | User level system |
-| `users.js` | `users` | ✅ Laravel Built-in | User accounts |
+| `themes.js` | `themes` | ✅ Complete | Theme configuration |
+| `translations.js` | `translations` | ✅ Complete | Translation management |
+| `user_levels.js` | `user_levels` | ✅ Complete | User level system |
+| `user_points_history.js` | `user_points_history` | ✅ Complete | User points history |
+| `users.js` | `users` | ✅ Complete | User accounts |
 | `videos.js` | `videos` | ✅ Complete | Video content |
-| `visits.js` | `visits` | ⚠️ Pending | Visit analytics |
-| `i18n_config.js` | `i18n` | ⚠️ Pending | Translation management |
-| `backup.js` | `backups` | ⚠️ Pending | Backup records |
+| `visits.js` | `visits` | ✅ Complete | Visit analytics |
 
 ---
 
@@ -747,12 +915,13 @@ Historical record of deprecated data files.
 | Principle | Application | Status |
 |-----------|-------------|:------:|
 | **Normalization** | Data follows 1NF/2NF/3NF to reduce redundancy | ✅ |
-| **Consistency** | Data files and DB schema aligned | ✅ |
+| **Consistency** | Data files and DB schema aligned (100% match) | ✅ |
 | **Integrity** | Foreign keys and constraints enforce data validity | ✅ |
 | **Relationships** | Proper foreign key relationships between related entities | ✅ |
 | **Extensibility** | JSON fields allow flexible data storage | ✅ |
-| **i18n Support** | label_key fields enable internationalization | ✅ |
-| **Audit Trail** | admin_logs table tracks all administrative changes | ⚠️ Pending |
+| **i18n Support** | translations table + label_key fields enable internationalization | ✅ |
+| **Audit Trail** | admin_logs table tracks all administrative changes | ✅ |
+| **RBAC Integration** | Spatie/laravel-permission with extended custom fields | ✅ |
 | **Soft Deletes** | Not implemented - hard deletes used | ⚠️ Optional |
 
 ---
@@ -764,9 +933,11 @@ Performance indexes for frequently queried columns.
 | Table | Column(s) | Index Type | Purpose |
 |-------|-----------|------------|---------|
 | `users` | `email` | Unique | Login lookup |
+| `users` | `role_id` | Index | RBAC queries |
 | `posts` | `slug` | Unique | URL routing |
 | `posts` | `author_id`, `status`, `published_at` | Composite | Blog queries |
 | `categories` | `slug` | Unique | URL routing |
+| `categories` | `parent_id` | Index | Hierarchical queries |
 | `tags` | `slug` | Unique | URL routing |
 | `comments` | `post_id`, `is_approved` | Composite | Comment queries |
 | `interactions` | `user_id`, `type` | Composite | User activity |
@@ -774,3 +945,8 @@ Performance indexes for frequently queried columns.
 | `visits` | `visitable_id`, `visitable_type` | Composite | Analytics queries |
 | `advertisements` | `position_id`, `is_active` | Composite | Ad serving |
 | `subscribers` | `email` | Unique | Email uniqueness |
+| `menus` | `type`, `parent_id` | Composite | Menu tree queries |
+| `translations` | `group`, `key` | Unique | Translation lookup |
+| `page_seo` | `page_key` | Unique | Page SEO lookup |
+| `languages` | `code` | Unique | Language lookup |
+| `user_levels` | `min_points`, `max_points` | Range | Level calculation |

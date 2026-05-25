@@ -10,21 +10,21 @@ return new class extends Migration
     {
         Schema::create('posts', function (Blueprint $table) {
             $table->id();
-            $table->string('title');
-            $table->string('slug')->unique();
-            $table->text('excerpt');
-            $table->longText('content');
-            $table->string('cover_image')->nullable();
-            $table->string('color', 50)->default('black');
-            $table->enum('status', ['draft', 'published', 'archived'])->default('draft');
-            $table->unsignedBigInteger('views_count')->default(0);
-            $table->unsignedBigInteger('likes_count')->default(0);
-            $table->string('meta_title')->nullable();
-            $table->string('meta_description', 500)->nullable();
-            $table->string('meta_keywords')->nullable();
-            $table->foreignId('author_id')->constrained('users')->cascadeOnDelete();
-            $table->foreignId('category_id')->nullable()->constrained('categories')->nullOnDelete();
-            $table->timestamp('published_at')->nullable();
+            $table->string('title')->comment('标题');
+            $table->string('slug')->unique()->comment('URL标识符');
+            $table->text('excerpt')->comment('摘要');
+            $table->longText('content')->comment('内容');
+            $table->string('cover_image')->nullable()->comment('封面图');
+            $table->string('color', 50)->default('black')->comment('主题色');
+            $table->enum('status', ['draft', 'published', 'archived'])->default('draft')->comment('状态');
+            $table->unsignedBigInteger('views_count')->default(0)->comment('浏览数');
+            $table->unsignedBigInteger('likes_count')->default(0)->comment('点赞数');
+            $table->string('meta_title')->nullable()->comment('SEO标题');
+            $table->string('meta_description', 500)->nullable()->comment('SEO描述');
+            $table->string('meta_keywords')->nullable()->comment('SEO关键词');
+            $table->foreignId('author_id')->constrained('users')->cascadeOnDelete()->comment('作者ID');
+            $table->foreignId('category_id')->nullable()->constrained('categories')->nullOnDelete()->comment('分类ID');
+            $table->timestamp('published_at')->nullable()->comment('发布时间');
             $table->timestamps();
         });
     }

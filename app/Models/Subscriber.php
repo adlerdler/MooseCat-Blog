@@ -8,10 +8,14 @@ class Subscriber extends Model
 {
     protected $fillable = [
         'email',
+        'name',
+        'source',
         'is_active',
+        'subscribed_at',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'subscribed_at' => 'datetime',
     ];
 }

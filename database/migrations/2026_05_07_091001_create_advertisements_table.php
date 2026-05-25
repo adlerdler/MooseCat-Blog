@@ -10,15 +10,15 @@ return new class extends Migration
     {
         Schema::create('advertisements', function (Blueprint $table) {
             $table->id();
-            $table->string('title');
-            $table->string('image_url');
-            $table->string('link_url');
-            $table->string('position')->index();
-            $table->boolean('is_active')->default(true);
-            $table->unsignedBigInteger('clicks_count')->default(0);
-            $table->unsignedBigInteger('views_count')->default(0);
-            $table->timestamp('start_date')->nullable();
-            $table->timestamp('end_date')->nullable();
+            $table->string('title')->comment('标题');
+            $table->string('image_url')->comment('图片URL');
+            $table->string('link_url')->comment('链接URL');
+            $table->foreignId('position_id')->nullable()->constrained('ad_positions')->nullOnDelete()->comment('广告位ID');
+            $table->boolean('is_active')->default(true)->comment('启用');
+            $table->unsignedBigInteger('clicks_count')->default(0)->comment('点击数');
+            $table->unsignedBigInteger('views_count')->default(0)->comment('展示数');
+            $table->timestamp('start_date')->nullable()->comment('开始时间');
+            $table->timestamp('end_date')->nullable()->comment('结束时间');
             $table->timestamps();
         });
     }

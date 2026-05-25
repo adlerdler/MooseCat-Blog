@@ -1,16 +1,19 @@
 /**
  * users.js - 用户数据定义（以数据库为准）
  * 
+ * ⚠️ 字段变更备注（2026-05-24）：
+ * - email_notifications → notifications（精简字段名）
+ * - role_id 字段已删除（改用 Spatie RBAC 的 model_has_roles 中间表管理角色）
+ * 
  * 字段说明：
  * - id: 用户唯一标识
  * - name: 用户姓名
  * - email: 用户邮箱
  * - password: 加密密码
  * - avatar: 头像
- * - role_id: 角色ID
  * - status: 状态（active/inactive/suspended）
  * - points: 积分
- * - email_notifications: 邮件通知开关
+ * - notifications: 邮件通知开关（原 email_notifications）
  * - comment_approval_alert: 评论审核提醒
  * - new_user_alert: 新用户注册提醒
  * - weekly_report: 周报开关
@@ -19,6 +22,13 @@
  * - last_login_at: 最后登录时间
  * - created_at: 创建时间
  * - updated_at: 更新时间
+ * 
+ * ⚠️ 角色管理说明：
+ * - 已删除 role_id 字段，改用 Spatie/laravel-permission 管理角色
+ * - 分配角色：$user->assignRole('admin')
+ * - 检查角色：$user->hasRole('admin')
+ * - 获取角色：$user->getRoleNames()
+ * - 本文件中的 role_id 仅用于前端展示参考，实际数据存储在 model_has_roles 表中
  */
 
 export const adminUsers = [
@@ -28,6 +38,7 @@ export const adminUsers = [
     email: 'admin@archyx.com',
     password: 'admin123',
     avatar: null,
+    // role_id 已删除，此处仅用于前端展示参考
     role_id: 1,
     status: 'active',
     points: 1000,

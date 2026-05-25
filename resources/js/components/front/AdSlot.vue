@@ -2,6 +2,10 @@
 /**
  * AdSlot.vue - 通用广告组件（Banner 样式）
  *
+ * ⚠️ 字段变更备注（2026-05-24）：
+ * - 广告数据已删除 position 字段，改用 position_id 关联广告位
+ * - 通过 position_id 查找广告位名称进行匹配
+ *
  * 功能说明：
  * - 按位置筛选广告
  * - 支持广告数量限制
@@ -16,7 +20,7 @@
 import { computed } from 'vue';
 import { ArrowUpRight } from 'lucide-vue-next';
 import { sampleAdvertisements } from '../../data/advertisements';
-import { getAdPositionByName, getAdPositionById } from '../../data/ad_positions';
+import { getAdPositionByName, getAdPositionById, adPositions } from '../../data/ad_positions';
 
 const props = defineProps({
   position: {
@@ -42,11 +46,18 @@ const positionConfig = computed(() => {
   return getAdPositionByName(props.position);
 });
 
-const targetPosition = computed(() => {
+const targetPositionId = computed(() => {
+  if (typeof props.position === 'number') {
+    return props.position;
+  }
+  return positionConfig.value?.id || null;
+});
+
+const targetPositionName = computed(() => {
   if (typeof props.position === 'string') {
     return props.position;
   }
-  return positionConfig.value?.name || props.position;
+  return positionConfig.value?.name || '';
 });
 
 const isAdValid = (ad) => {
@@ -59,7 +70,7 @@ const isAdValid = (ad) => {
 const activeAds = computed(() => {
   return sampleAdvertisements
     .filter(ad => {
-      if (ad.position !== targetPosition.value || !ad.is_active) return false;
+      if (ad.position_id !== targetPositionId.value || !ad.is_active) return false;
       return isAdValid(ad);
     })
     .slice(0, props.limit);
@@ -89,7 +100,7 @@ const getContainerClasses = () => {
 };
 
 const getAdClasses = () => {
-  switch (targetPosition.value) {
+  switch (targetPositionName.value) {
     case 'header':
       return 'border-t-8 border-construct-black bg-construct-black';
     case 'footer':
@@ -107,7 +118,7 @@ const getAdClasses = () => {
 };
 
 const getContentClasses = () => {
-  switch (targetPosition.value) {
+  switch (targetPositionName.value) {
     case 'header':
     case 'footer':
       return 'flex items-center justify-between px-8 md:px-16 py-6';
@@ -124,7 +135,7 @@ const getImageClasses = () => {
     return `w-full h-full object-cover aspect-[${width}/${height}]`;
   }
 
-  switch (targetPosition.value) {
+  switch (targetPositionName.value) {
     case 'header':
     case 'footer':
       return 'w-32 h-16 md:w-48 md:h-20 object-cover';
@@ -149,7 +160,7 @@ const getImageClasses = () => {
         :class="getAdClasses()"
       >
         <!-- Video Bottom Ad: Keep original size, only optimize style -->
-        <template v-if="targetPosition === 'video_bottom'">
+        <template v-if="targetPositionName === 'video_bottom'">
           <div :class="getContentClasses()">
             <div class="flex items-center gap-4 md:gap-8">
               <div class="flex items-center gap-2">
@@ -174,7 +185,7 @@ const getImageClasses = () => {
         </template>
 
         <!-- Sidebar Ad: Image + Info layout -->
-        <template v-else-if="targetPosition === 'sidebar'">
+        <template v-else-if="targetPositionName === 'sidebar'">
           <div class="aspect-[4/3] bg-construct-black overflow-hidden">
             <img
               :src="ad.image_url"

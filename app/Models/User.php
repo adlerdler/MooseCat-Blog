@@ -2,15 +2,15 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -21,6 +21,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'points',
+        'last_login_at',
     ];
 
     /**
@@ -77,5 +79,29 @@ class User extends Authenticatable
     public function journals(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(Journal::class);
+    }
+
+    /**
+     * Get the author profile for the user.
+     */
+    public function authorProfile(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(AuthorProfile::class);
+    }
+
+    /**
+     * Get the user level for the user.
+     */
+    public function userLevel(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(UserLevel::class, 'level_id');
+    }
+
+    /**
+     * Get the points history for the user.
+     */
+    public function pointsHistory(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(UserPointsHistory::class);
     }
 }

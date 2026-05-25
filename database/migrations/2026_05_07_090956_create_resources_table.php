@@ -10,16 +10,16 @@ return new class extends Migration
     {
         Schema::create('resources', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('category_id')->nullable()->constrained('categories')->nullOnDelete();
-            $table->string('title');
-            $table->text('description');
-            $table->string('format', 50);
-            $table->string('file_size', 50);
-            $table->string('image')->nullable();
-            $table->string('direct_link')->nullable();
-            $table->json('drives')->nullable(); // JSON array for google drive, baidu pan links, passwords
-            $table->unsignedBigInteger('downloads_count')->default(0);
-            $table->unsignedBigInteger('likes_count')->default(0);
+            $table->foreignId('category_id')->nullable()->constrained('categories')->nullOnDelete()->comment('分类ID');
+            $table->string('title')->comment('标题');
+            $table->text('description')->comment('描述');
+            $table->string('format', 50)->comment('格式');
+            $table->string('file_size', 50)->comment('文件大小');
+            $table->string('image')->nullable()->comment('缩略图');
+            $table->string('direct_link')->nullable()->comment('下载链接');
+            $table->json('drives')->nullable()->comment('备用链接');
+            $table->unsignedBigInteger('downloads_count')->default(0)->comment('下载数');
+            $table->unsignedBigInteger('likes_count')->default(0)->comment('点赞数');
             $table->timestamps();
         });
     }

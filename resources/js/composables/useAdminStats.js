@@ -3,6 +3,10 @@
  * 
  * 从各个数据表中动态计算统计数据，替代 admin.js 中的硬编码数据。
  * 用于仪表盘统计、图表数据、趋势分析等场景。
+ * 
+ * ⚠️ 角色统计说明（2026-05-24）：
+ * - role_id 已从数据库删除，改用 Spatie RBAC 管理角色
+ * - getRoleDistribution() 函数仅用于前端展示参考，实际角色统计通过 Spatie 方法
  */
 
 import { POSTS } from '../data/posts';

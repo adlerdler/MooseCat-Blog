@@ -10,11 +10,11 @@ return new class extends Migration
     {
         Schema::create('email_templates', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->unique();
-            $table->string('subject');
-            $table->longText('content');
-            $table->json('variables')->nullable();
-            $table->boolean('is_active')->default(true);
+            $table->string('name')->unique()->comment('标识符');
+            $table->string('subject')->comment('主题');
+            $table->longText('content')->comment('内容');
+            $table->json('variables')->nullable()->comment('变量');
+            $table->boolean('is_active')->default(true)->comment('启用');
             $table->timestamps();
         });
     }

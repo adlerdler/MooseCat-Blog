@@ -10,12 +10,12 @@ return new class extends Migration
     {
         Schema::create('translations', function (Blueprint $table) {
             $table->id();
-            $table->string('group', 100);
-            $table->string('key', 150);
-            $table->json('text');
-            $table->string('description', 500)->nullable();
-            $table->boolean('is_active')->default(true);
-            $table->integer('sort_order')->default(0);
+            $table->string('group', 100)->comment('分组');
+            $table->string('key', 150)->comment('键名');
+            $table->json('text')->comment('翻译文本');
+            $table->string('description', 500)->nullable()->comment('说明');
+            $table->boolean('is_active')->default(true)->comment('启用');
+            $table->integer('sort_order')->default(0)->comment('排序');
             $table->timestamps();
             $table->unique(['group', 'key']);
         });

@@ -13,8 +13,17 @@ class Category extends Model
         'name',
         'slug',
         'description',
+        'status',
         'sort_order',
     ];
+
+    /**
+     * Scope for active categories.
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'active')->orderBy('sort_order');
+    }
 
     /**
      * Get the parent category.

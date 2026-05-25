@@ -10,11 +10,11 @@ return new class extends Migration
     {
         Schema::create('social_links', function (Blueprint $table) {
             $table->id();
-            $table->string('platform');
-            $table->string('url');
-            $table->string('icon')->nullable();
-            $table->integer('sort_order')->default(0);
-            $table->boolean('is_active')->default(true);
+            $table->string('platform')->comment('平台');
+            $table->string('url')->comment('链接');
+            $table->string('icon')->nullable()->comment('图标');
+            $table->integer('sort_order')->default(0)->comment('排序');
+            $table->boolean('is_active')->default(true)->comment('可见');
             $table->timestamps();
         });
     }

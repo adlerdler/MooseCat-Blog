@@ -9,15 +9,18 @@ class Journal extends Model
 {
     protected $fillable = [
         'user_id',
+        'title',
         'content',
         'mood',
         'weather',
+        'date',
         'is_public',
         'likes_count',
     ];
 
     protected $casts = [
         'is_public' => 'boolean',
+        'date' => 'date',
     ];
 
     /**

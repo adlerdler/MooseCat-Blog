@@ -1,6 +1,11 @@
 /**
  * roles.js - 角色数据定义
  *
+ * ⚠️ 字段变更备注（2026-05-24）：
+ * - users 表的 role_id 字段已删除，改用 Spatie RBAC 的 model_has_roles 中间表管理角色
+ * - 分配角色：$user->assignRole('admin')
+ * - 检查角色：$user->hasRole('admin')
+ *
  * 基于 Spatie/laravel-permission 方案 + 扩展字段。
  *
  * 扩展字段：

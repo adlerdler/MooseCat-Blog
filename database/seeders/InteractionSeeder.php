@@ -12,7 +12,7 @@ class InteractionSeeder extends Seeder
     public function run(): void
     {
         $posts = Post::all();
-        $user = User::where('role', 'user')->first();
+        $user = User::role('Subscriber')->first();
 
         foreach ($posts as $post) {
             Interaction::create([
