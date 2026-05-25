@@ -21,7 +21,19 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'avatar',
+        'bio',
+        'github',
+        'twitter',
+        'linkedin',
+        'status',
         'points',
+        'notifications',
+        'comment_approval_alert',
+        'new_user_alert',
+        'weekly_report',
+        'digest_email',
+        'digest_frequency',
         'last_login_at',
     ];
 
@@ -46,6 +58,11 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'last_login_at' => 'datetime',
+            'notifications' => 'boolean',
+            'comment_approval_alert' => 'boolean',
+            'new_user_alert' => 'boolean',
+            'weekly_report' => 'boolean',
+            'digest_email' => 'boolean',
         ];
     }
 

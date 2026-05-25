@@ -27,6 +27,20 @@ class DatabaseSeeder extends Seeder
         ]);
         $adminUser->assignRole('Administrator');
 
+        $editorUser = User::create([
+            'name' => 'Content Editor',
+            'email' => 'editor@archyx.com',
+            'password' => Hash::make('password'),
+        ]);
+        $editorUser->assignRole('Editor');
+
+        $authorUser = User::create([
+            'name' => 'Author Writer',
+            'email' => 'author@archyx.com',
+            'password' => Hash::make('password'),
+        ]);
+        $authorUser->assignRole('Author');
+
         $testUser = User::create([
             'name' => 'Test User',
             'email' => 'user@archyx.com',

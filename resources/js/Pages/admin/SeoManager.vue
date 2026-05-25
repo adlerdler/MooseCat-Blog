@@ -48,7 +48,7 @@ const filteredPages = computed(() => {
   if (!searchQuery.value) return pageSeoListRef.value;
   const query = searchQuery.value.toLowerCase();
   return pageSeoListRef.value.filter(
-    p => p.routeName.toLowerCase().includes(query) ||
+    p => p.pageKey.toLowerCase().includes(query) ||
          p.title.toLowerCase().includes(query) ||
          p.description.toLowerCase().includes(query)
   );
@@ -60,7 +60,7 @@ const openEditModal = (page) => {
     title: page.title,
     description: page.description,
     keywords: page.keywords,
-    schemaType: page.schemaType
+    ogImage: page.ogImage
   };
   showEditModal.value = true;
 };
@@ -86,12 +86,7 @@ const saveEdit = () => {
   closeEditModal();
 };
 
-const toggleActive = (page) => {
-  page.isActive = !page.isActive;
-  updatePageSeo(page.id, { isActive: page.isActive });
-};
-
-const getRouteColor = (routeName) => {
+const getRouteColor = (pageKey) => {
   const colorMap = {
     'home': isDarkMode ? 'from-amber-900/50 to-orange-900/50 text-amber-300' : 'from-amber-50 to-orange-50 text-amber-700',
     'blog': isDarkMode ? 'from-blue-900/50 to-indigo-900/50 text-blue-300' : 'from-blue-50 to-indigo-50 text-blue-700',
@@ -100,7 +95,7 @@ const getRouteColor = (routeName) => {
     'resources': isDarkMode ? 'from-green-900/50 to-emerald-900/50 text-green-300' : 'from-green-50 to-emerald-50 text-green-700',
     'author': isDarkMode ? 'from-cyan-900/50 to-teal-900/50 text-cyan-300' : 'from-cyan-50 to-teal-50 text-cyan-700'
   };
-  return colorMap[routeName] || (isDarkMode ? 'from-gray-700 to-gray-800 text-gray-300' : 'from-gray-100 to-gray-200 text-gray-600');
+  return colorMap[pageKey] || (isDarkMode ? 'from-gray-700 to-gray-800 text-gray-300' : 'from-gray-100 to-gray-200 text-gray-600');
 };
 </script>
 
@@ -140,21 +135,10 @@ const getRouteColor = (routeName) => {
           <div class="flex items-start justify-between mb-4">
             <div class="flex-1">
               <div class="flex items-center gap-2 mb-2">
-                <span :class="['text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider bg-gradient-to-r', getRouteColor(page.routeName)]">
-                  {{ page.routeName }}
-                </span>
-                <span
-                  :class="[
-                    'text-xs px-2 py-1 rounded-full font-bold',
-                    page.isActive
-                      ? 'bg-green-500/20 text-green-400'
-                      : 'bg-gray-500/20 text-gray-400'
-                  ]"
-                >
-                  {{ page.isActive ? '启用' : '禁用' }}
+                <span :class="['text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider bg-gradient-to-r', getRouteColor(page.pageKey)]">
+                  {{ page.pageKey }}
                 </span>
               </div>
-              <p :class="['text-xs', isDarkMode ? 'text-gray-500' : 'text-gray-400']">{{ page.path }}</p>
             </div>
           </div>
 
@@ -165,27 +149,15 @@ const getRouteColor = (routeName) => {
             <span class="font-bold">关键词：</span>{{ page.keywords }}
           </p>
           <p class="text-xs mt-2" :class="isDarkMode ? 'text-gray-600' : 'text-gray-400'">
-            <span class="font-bold">Schema：</span>{{ page.schemaType }}
+            <span class="font-bold">OG图片：</span>{{ page.ogImage || '无' }}
           </p>
 
           <!-- Actions -->
           <div :class="['flex items-center gap-2 mt-4 pt-4 border-t', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
             <button
-              @click="toggleActive(page)"
-              :class="[
-                'flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-bold transition-colors',
-                page.isActive
-                  ? 'bg-green-500/10 text-green-400 hover:bg-green-500/20'
-                  : 'bg-gray-500/10 text-gray-400 hover:bg-gray-500/20'
-              ]"
-            >
-              <component :is="page.isActive ? Eye : EyeOff" size="14" />
-              {{ page.isActive ? '已启用' : '已禁用' }}
-            </button>
-            <button
               @click="openEditModal(page)"
               :class="[
-                'flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-bold transition-colors',
+                'w-full flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-bold transition-colors',
                 isDarkMode ? 'bg-construct-red/10 text-construct-red hover:bg-construct-red/20' : 'bg-construct-red/10 text-construct-red hover:bg-construct-red/20'
               ]"
             >
@@ -203,8 +175,8 @@ const getRouteColor = (routeName) => {
         <div :class="['w-full max-w-lg mx-4 rounded-lg shadow-xl border', isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200']">
           <div :class="['flex justify-between items-center p-6 border-b', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
             <div class="flex items-center gap-3">
-              <span :class="['text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider bg-gradient-to-r', getRouteColor(editingPage?.routeName)]">
-                {{ editingPage?.routeName }}
+              <span :class="['text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider bg-gradient-to-r', getRouteColor(editingPage?.pageKey)]">
+                {{ editingPage?.pageKey }}
               </span>
               <h3 :class="['text-xl font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">编辑 SEO 配置</h3>
             </div>
@@ -241,11 +213,11 @@ const getRouteColor = (routeName) => {
             </div>
 
             <div>
-              <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">Schema 类型</label>
+              <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">OG 图片 URL</label>
               <input
-                v-model="editForm.schemaType"
+                v-model="editForm.ogImage"
                 :class="['w-full px-3 py-2 border rounded-lg text-sm', isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300']"
-                placeholder="如：Article, WebPage, BlogPosting"
+                placeholder="https://example.com/og-image.jpg"
               />
             </div>
           </div>

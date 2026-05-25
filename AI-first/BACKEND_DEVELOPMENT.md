@@ -1,8 +1,8 @@
 # 后端功能开发路线图
 
 **项目名称：** ARCHYX - Laravel Vue.js 混合应用
-**最后更新：** 2026-05-23 (数据库迁移和 Seeder 全部完成)
-**版本：** 2.0
+**最后更新：** 2026-05-25 (数据库迁移、Seeder优化、模型更新全部完成)
+**版本：** 2.1
 **Laravel版本：** 10+
 
 ---
@@ -70,7 +70,7 @@
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
 | 迁移文件 & 模型 | 高 | ✅ 已完成 | posts表 | Model使用$fillable/$casts |
-| Seeder 模拟数据 | 高 | ✅ 已完成 | 10条文章数据 | 关联分类、标签、作者 |
+| Seeder 模拟数据 | 高 | ✅ 已完成 | 5篇高质量文章（2026-05-25优化） | 完整Markdown、封面图、SEO、浏览量/点赞数 |
 | API CRUD接口 (Admin) | 高 | ⚠️ 待处理 | /api/admin/posts | API V1版本控制 |
 | FormRequest验证 | 高 | ⚠️ 待处理 | StorePostRequest | 独立验证类 |
 | API Resource | 高 | ⚠️ 待处理 | PostResource | 统一响应格式 |
@@ -109,7 +109,7 @@
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
 | 迁移文件 & 模型 | 高 | ✅ 已完成 | journals表 | mood/weather JSON |
-| Seeder 模拟数据 | 高 | ✅ 已完成 | 5条日记数据 | 包含心情、天气 |
+| Seeder 模拟数据 | 高 | ✅ 已完成 | 5条详细日志（2026-05-25优化） | 含title、date、likes_count字段 |
 | API CRUD接口 | 高 | ⚠️ 待处理 | /api/admin/journals | 标准CRUD |
 | 日记专属字段 | 中 | ⚠️ 待处理 | music_link等 | JSON Cast |
 
@@ -117,7 +117,7 @@
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
 | 迁移文件 & 模型 | 高 | ✅ 已完成 | categories表 | 层级结构 |
-| Seeder 模拟数据 | 高 | ✅ 已完成 | 6条分类数据 | 包含父子关系 |
+| Seeder 模拟数据 | 高 | ✅ 已完成 | 6条专业分类（2026-05-25优化） | THEORY, DESIGN, CULTURE等 |
 | API CRUD接口 | 高 | ⚠️ 待处理 | /api/admin/categories | 树形构建器 |
 | 树形结构 | 中 | ⚠️ 待处理 | 递归关系 | NestedSetModel |
 
@@ -125,7 +125,7 @@
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
 | 迁移文件 & 模型 | 高 | ✅ 已完成 | tags表 | usage_count |
-| Seeder 模拟数据 | 高 | ✅ 已完成 | 15条标签数据 | 包含使用计数 |
+| Seeder 模拟数据 | 高 | ✅ 已完成 | 15条专业标签（2026-05-25优化） | Architecture, Design等 |
 | API CRUD接口 | 高 | ⚠️ 待处理 | /api/admin/tags | 标准CRUD |
 | 自动清理 | 低 | ⚠️ 待处理 | 未使用标签删除 | Artisan命令 |
 
@@ -136,13 +136,14 @@
 #### 2.2.1 用户管理
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
-| users表扩展 | 高 | ✅ 已完成 | role_id, points | 新迁移文件 |
+| users表扩展 | 高 | ✅ 已完成 | 通过 model_has_roles 关联 | Spatie RBAC |
 | User Policy | 高 | ⚠️ 待处理 | 授权逻辑 | Policy类 |
 | 用户资料更新 | 高 | ⚠️ 待处理 | /api/admin/users/{id} | FormRequest验证 |
 | 密码重置 | 高 | ⚠️ 待处理 | Laravel内置 | 邮件通知 |
 | 头像上传 | 中 | ⚠️ 待处理 | Spatie Media | Avatar集合 |
 | 积分系统 | 中 | ⚠️ 待处理 | 积分API | Observer更新 |
 | 活动追踪 | 低 | ⚠️ 待处理 | last_login_at | LoginListener |
+| 测试用户数据 | 高 | ✅ 已完成 | 4个用户（2026-05-25） | Admin, Editor, Author, Subscriber |
 
 #### 2.2.2 订阅者 (Newsletter)
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
@@ -166,7 +167,7 @@
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
 | Spatie Permission | 高 | ✅ 已完成 | 完整配置 | Trait + 中间件 |
-| Seeder 模拟数据 | 高 | ✅ 已完成 | 3角色+权限 | admin/editor/user |
+| Seeder 模拟数据 | 高 | ✅ 已完成 | 7角色+权限（2026-05-25优化） | Administrator, Editor, Author等 |
 | Role Policy | 高 | ⚠️ 待处理 | 角色授权 | 自定义Gate |
 | Permission CRUD | 高 | ⚠️ 待处理 | /api/admin/permissions | 标准CRUD |
 | 角色-权限UI | 高 | ⚠️ 待处理 | 同步API | JS树形组件 |
@@ -234,7 +235,7 @@
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
 | comments表 | 高 | ✅ 已完成 | 多态关联 | commentable |
-| Seeder 模拟数据 | 高 | ✅ 已完成 | 10条评论数据 | 包含嵌套回复 |
+| Seeder 模拟数据 | 高 | ✅ 已完成 | 6条真实评论（2026-05-25优化） | 含嵌套回复parent_id |
 | Comment Service | 高 | ⚠️ 待处理 | 业务逻辑 | 独立Service |
 | 审核流程 | 中 | ⚠️ 待处理 | require_approval | 事件监听 |
 | 嵌套回复 | 低 | ⚠️ 待处理 | parent_id | 递归关系 |
@@ -721,3 +722,65 @@ feat(post): 添加文章Markdown支持
 fix(comment): 修复评论删除问题
 docs(api): 更新API文档
 ```
+
+---
+
+## 9. 开发进度总结
+
+### 9.1 已完成工作（截至 2026-05-25）
+
+| 模块 | 完成状态 | 说明 |
+|:---:|:---:|------|
+| **数据库迁移** | ✅ 100% | 25+ 迁移文件，覆盖所有业务表 |
+| **数据填充 (Seeder)** | ✅ 100% | 25个 Seeder，约200条高质量模拟数据 |
+| **模型文件 (Models)** | ✅ 100% | 所有模型与迁移文件字段一致 |
+| **前端数据文件** | ✅ 100% | data 目录数据完整 |
+| **字段备注优化** | ✅ 100% | 所有迁移文件字段添加中文备注 |
+| **数据库设计规范** | ✅ 100% | 字段命名规范化，删除冗余字段 |
+
+### 9.2 数据优化详情
+
+#### 角色与权限
+- **7个角色**：Administrator, Editor, Author, Moderator, Subscriber, API, Guest
+- **Spatie RBAC**：通过 `model_has_roles` 中间表管理角色关系
+- **删除冗余**：users 表已删除 `role_id` 字段
+
+#### 内容数据
+- **5篇高质量文章**：完整 Markdown 内容、封面图、SEO 数据、浏览量/点赞数
+- **6个专业分类**：THEORY, DESIGN, CULTURE, SYSTEM-DESIGN, ENGINEERING, HISTORY
+- **15个专业标签**：Architecture, Design, Technology 等
+- **6条真实评论**：含嵌套评论（parent_id）
+
+#### 用户数据
+- **4个测试用户**：Admin, Editor, Author, Subscriber
+- **角色分配**：通过 Spatie `assignRole()` 方法分配
+- **作者资料**：每个用户都有对应的 AuthorProfile
+
+#### 其他数据
+- **5条详细日志**：含 title、date、likes_count 字段
+- **系统设置**：站点名称、品牌、功能开关等
+- **SEO配置**：首页、博客、关于页面 SEO
+- **菜单数据**：8条菜单，含父子关系
+- **社交链接**：GitHub、Twitter、LinkedIn 等
+
+### 9.3 下一步开发建议
+
+根据 BACKEND_CHECKLIST.md，建议按以下优先级开发：
+
+1. **高优先级** - 核心功能
+   - 安装配置 Laravel Sanctum（认证系统）
+   - 创建各模块的 Model、Controller、Service
+   - 创建 FormRequest 验证类
+   - 创建 API Resource 响应格式化
+
+2. **中优先级** - 重要功能
+   - 创建 Policy 授权策略
+   - 创建 Observer 模型事件
+   - 创建 Event/Listener 事件驱动
+   - 创建 Notification 通知系统
+
+3. **低优先级** - 辅助功能
+   - 安装 spatie/laravel-activitylog
+   - 安装 spatie/laravel-backup
+   - 创建 Artisan 命令
+   - 创建中间件

@@ -27,15 +27,13 @@ import { formatId } from '../../utils/typeConvert';
 import { getCategoryNameById } from '../../utils/categoryUtils';
 import { useAdSlot } from '../../composables/useAdSlot';
 
-const { getSeoByRoute } = usePageSeoData();
-const pageSeo = getSeoByRoute('blog')
+const { getSeoByPageKey } = usePageSeoData();
+const pageSeo = getSeoByPageKey('blog')
 
 usePageSeo({
   title: pageSeo.title,
   description: pageSeo.description,
   keywords: pageSeo.keywords,
-  url: `${window.location.origin}${pageSeo.path}`,
-  type: pageSeo.schemaType
 })
 
 const { t } = useI18n();

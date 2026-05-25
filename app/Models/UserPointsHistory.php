@@ -12,6 +12,8 @@ class UserPointsHistory extends Model
         'points',
         'type',
         'description',
+        'reference_id',
+        'reference_type',
     ];
 
     /**

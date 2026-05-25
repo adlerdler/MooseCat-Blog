@@ -12,27 +12,84 @@ class CommentSeeder extends Seeder
     public function run(): void
     {
         $posts = Post::all();
-        $user = User::role('Subscriber')->first();
+        $users = User::all();
 
-        foreach ($posts as $post) {
-            Comment::create([
-                'post_id' => $post->id,
-                'user_id' => $user->id,
-                'body' => '这是一篇非常有见地的文章，深受启发！',
+        $comments = [
+            // 第一篇文章的评论
+            [
+                'post_id' => 1,
+                'parent_id' => null,
+                'user_id' => null,
+                'name' => 'John Doe',
+                'email' => 'john@example.com',
+                'body' => 'Great article! Very insightful analysis of constructivist principles.',
                 'is_approved' => true,
-                'ip_address' => '127.0.0.1',
-                'user_agent' => 'Mozilla/5.0',
-            ]);
+                'ip_address' => '192.168.1.1',
+                'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            ],
+            [
+                'post_id' => 1,
+                'parent_id' => 1,
+                'user_id' => null,
+                'name' => 'Alice Chen',
+                'email' => 'alice@example.com',
+                'body' => 'Can you elaborate on the sustainability aspect?',
+                'is_approved' => false,
+                'ip_address' => '192.168.1.4',
+                'user_agent' => 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X)',
+            ],
+            
+            // 第二篇文章的评论
+            [
+                'post_id' => 2,
+                'parent_id' => null,
+                'user_id' => null,
+                'name' => 'Jane Smith',
+                'email' => 'jane@example.com',
+                'body' => 'Would love to see more examples of parametric design.',
+                'is_approved' => false,
+                'ip_address' => '192.168.1.2',
+                'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
+            ],
+            [
+                'post_id' => 2,
+                'parent_id' => 3,
+                'user_id' => null,
+                'name' => 'Architect_X',
+                'email' => 'arch@example.com',
+                'body' => 'Great insights! Would love to see more about the intersection of traditional architecture principles with modern computational methods.',
+                'is_approved' => true,
+                'ip_address' => '192.168.1.10',
+                'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+            ],
+            
+            // 第三篇文章的评论
+            [
+                'post_id' => 3,
+                'parent_id' => null,
+                'user_id' => null,
+                'name' => 'Bob Wilson',
+                'email' => 'bob@example.com',
+                'body' => 'The code examples are very helpful. Thanks!',
+                'is_approved' => true,
+                'ip_address' => '192.168.1.3',
+                'user_agent' => 'Mozilla/5.0 (Linux; Android 10)',
+            ],
+            [
+                'post_id' => 3,
+                'parent_id' => null,
+                'user_id' => null,
+                'name' => 'Visitor',
+                'email' => 'visitor@example.com',
+                'body' => 'Interesting perspective on cognitive architecture! The grid analogy really resonates.',
+                'is_approved' => true,
+                'ip_address' => '192.168.1.9',
+                'user_agent' => 'Mozilla/5.0 (Linux; Android 12)',
+            ],
+        ];
 
-            Comment::create([
-                'post_id' => $post->id,
-                'name' => 'Guest User',
-                'email' => 'guest@example.com',
-                'body' => '非常喜欢这种极简的设计风格。',
-                'is_approved' => true,
-                'ip_address' => '127.0.0.1',
-                'user_agent' => 'Mozilla/5.0',
-            ]);
+        foreach ($comments as $commentData) {
+            Comment::create($commentData);
         }
     }
 }

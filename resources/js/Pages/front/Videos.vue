@@ -22,15 +22,13 @@ import { VIDEOS } from '../../data/videos';
 import { useI18n } from 'vue-i18n';
 import { useAdSlot } from '../../composables/useAdSlot';
 
-const { getSeoByRoute } = usePageSeoData();
-const pageSeo = getSeoByRoute('videos')
+const { getSeoByPageKey } = usePageSeoData();
+const pageSeo = getSeoByPageKey('videos')
 
 usePageSeo({
   title: pageSeo.title,
   description: pageSeo.description,
   keywords: pageSeo.keywords,
-  url: `${window.location.origin}${pageSeo.path}`,
-  type: pageSeo.schemaType
 })
 
 const { t } = useI18n();

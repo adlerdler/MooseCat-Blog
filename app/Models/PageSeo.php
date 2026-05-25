@@ -7,21 +7,18 @@ use Illuminate\Database\Eloquent\Model;
 class PageSeo extends Model
 {
     protected $fillable = [
-        'route_name',
+        'page_key',
         'title',
         'description',
         'keywords',
-        'og_title',
-        'og_description',
         'og_image',
-        'canonical_url',
     ];
 
     /**
-     * Get SEO data by route name.
+     * Get SEO data by page key.
      */
-    public static function getByRoute(string $routeName)
+    public static function getByPageKey(string $pageKey)
     {
-        return static::where('route_name', $routeName)->first();
+        return static::where('page_key', $pageKey)->first();
     }
 }

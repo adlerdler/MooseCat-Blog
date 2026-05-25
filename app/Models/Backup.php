@@ -7,12 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 class Backup extends Model
 {
     protected $fillable = [
-        'name',
-        'path',
+        'filename',
         'size',
         'status',
+        'type',
         'started_at',
         'completed_at',
+        'error_message',
     ];
 
     protected $casts = [

@@ -24,8 +24,8 @@ import Footer from '@/components/Footer.vue';
 import { authorProfiles } from '../../data/author_profiles';
 import { PROJECTS } from '../../data/projects';
 
-const { getSeoByRoute } = usePageSeoData();
-const pageSeo = getSeoByRoute('author')
+const { getSeoByPageKey } = usePageSeoData();
+const pageSeo = getSeoByPageKey('author')
 
 const getAuthorProfileByUserId = (userId) => {
   return authorProfiles.find(p => p.user_id === userId && p.is_active);
@@ -50,8 +50,6 @@ usePageSeo({
   title: pageSeo.title,
   description: pageSeo.description,
   keywords: pageSeo.keywords,
-  url: `${window.location.origin}${pageSeo.path}`,
-  type: pageSeo.schemaType
 })
 
 const author = getAuthorProfileByUserId(9);

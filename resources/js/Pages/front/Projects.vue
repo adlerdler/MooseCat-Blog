@@ -24,15 +24,13 @@ import SidebarMenu from '@/components/SidebarMenu.vue';
 import { useI18n } from 'vue-i18n';
 import { useAdSlot } from '../../composables/useAdSlot';
 
-const { getSeoByRoute } = usePageSeoData();
-const pageSeo = getSeoByRoute('projects')
+const { getSeoByPageKey } = usePageSeoData();
+const pageSeo = getSeoByPageKey('projects')
 
 usePageSeo({
   title: pageSeo.title,
   description: pageSeo.description,
   keywords: pageSeo.keywords,
-  url: `${window.location.origin}${pageSeo.path}`,
-  type: pageSeo.schemaType
 })
 
 const { t } = useI18n();

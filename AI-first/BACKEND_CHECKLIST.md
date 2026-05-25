@@ -1,6 +1,6 @@
 # 后端功能开发清单
 
-**最后更新：** 2026-05-23 (数据库迁移和 Seeder 全部完成)
+**最后更新：** 2026-05-25 (数据库迁移、Seeder优化、模型更新全部完成)
 **Laravel版本：** 10+
 **状态说明：** ✅ 已完成 | 🔄 进行中 | ⚠️ 待处理 | ❌ 阻塞
 
@@ -35,7 +35,7 @@
 | **Middleware** | `app/Http/Middleware/` | ⚠️ 待创建 | 中间件 |
 | **Command** | `app/Console/Commands/` | ⚠️ 待创建 | Artisan命令 |
 | **Factory** | `database/factories/` | ⚠️ 待创建 | 测试数据 |
-| **Seeder** | `database/seeders/` | ✅ 已完成 | 24个Seeder，约176条模拟数据 |
+| **Seeder** | `database/seeders/` | ✅ 已完成 | 25个Seeder，约200条高质量模拟数据（2026-05-25优化） |
 
 ---
 
@@ -50,7 +50,7 @@
 | AUTH-03 | 创建 Role Model + Policy | Model+Policy | ⚠️ 待处理 | AUTH-02 | HasRoles Trait |
 | AUTH-04 | 创建 permissions 表迁移 | Migration | ✅ 已完成 | - | Spatie标准表 |
 | AUTH-05 | 创建 Permission Model | Model | ⚠️ 待处理 | AUTH-04 | 标准Model |
-| AUTH-06 | users表添加 role_id 字段 | Migration | ✅ 已完成 | AUTH-02 | 新迁移文件 |
+| AUTH-06 | users表通过 model_has_roles 关联角色 | Migration | ✅ 已完成 | AUTH-02 | Spatie RBAC中间表 |
 | AUTH-07 | 创建 RoleController CRUD | Controller | ⚠️ 待处理 | AUTH-03 | app/Http/Controllers/Admin/ |
 | AUTH-08 | 创建 RoleResource | Resource | ⚠️ 待处理 | AUTH-07 | app/Http/Resources/V1/ |
 | AUTH-09 | 创建 StoreRoleRequest | FormRequest | ⚠️ 待处理 | AUTH-07 | 验证规则 |
@@ -254,6 +254,8 @@
 | 低 | 23 | 9 | 0 | 14 |
 | **总计** | **85** | **33** | **0** | **52** |
 
+> **注：** 截至 2026-05-25，所有数据库迁移已完成，25个 Seeder 已优化完毕，约200条高质量模拟数据已填充。模型文件已全部更新与迁移文件保持一致。
+
 ---
 
 ## 已完成迁移清单
@@ -288,7 +290,19 @@
 
 **已有迁移（Laravel 内置）**：users, password_reset_tokens, sessions, cache, cache_locks, jobs, job_batches, failed_jobs, notifications, personal_access_tokens
 
-**Seeder 完成情况**：24个 Seeder，约176条模拟数据
+**Seeder 完成情况**：25个 Seeder，约200条高质量模拟数据（2026-05-25优化完成）
+
+### 优化记录
+
+| 日期 | 优化内容 | 影响范围 |
+|:---:|---------|---------|
+| 2026-05-25 | RoleSeeder 添加 value 字段 | 修复迁移填充错误 |
+| 2026-05-25 | PostSeeder 优化为5篇高质量文章 | 完整Markdown、封面图、SEO数据 |
+| 2026-05-25 | JournalSeeder 补充 title、date、likes_count 字段 | 5条详细日志 |
+| 2026-05-25 | CategorySeeder 优化为6个专业分类 | THEORY, DESIGN, CULTURE等 |
+| 2026-05-25 | TagSeeder 优化为15个专业标签 | Architecture, Design等 |
+| 2026-05-25 | CommentSeeder 添加嵌套评论 | parent_id关联 |
+| 2026-05-25 | DatabaseSeeder 新增 Editor、Author 用户 | 4个测试用户 |
 
 ---
 

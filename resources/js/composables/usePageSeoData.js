@@ -8,15 +8,10 @@
 import { pageSeoList } from '../data/page_seo';
 
 export function usePageSeoData() {
-  const getSeoByRoute = (routeName) => {
-    const page = pageSeoList.find(p => p.routeName === routeName && p.isActive);
+  const getSeoByPageKey = (pageKey) => {
+    const page = pageSeoList.find(p => p.pageKey === pageKey);
     return page || null;
   };
 
-  const getSeoByPath = (path) => {
-    const page = pageSeoList.find(p => p.path === path && p.isActive);
-    return page || null;
-  };
-
-  return { getSeoByRoute, getSeoByPath };
+  return { getSeoByPageKey };
 }
