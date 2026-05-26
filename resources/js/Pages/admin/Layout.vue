@@ -15,7 +15,7 @@
  */
 import '../../../css/admin.css';
 import { ref, onMounted, computed, onUnmounted } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
+import { usePage, router as inertiaRouter } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import {
   LogOut,
@@ -62,9 +62,16 @@ import { useMenuItems } from '../../composables/useMenuItems';
 
 const { adminMenuItems } = useMenuItems();
 
-const { t } = useI18n();
-const router = useRouter();
-const route = useRoute();
+const { t: originalT } = useI18n();
+const t = (key, fallback = '') => {
+  if (!key) return fallback || '';
+  try {
+    return originalT(key) || fallback;
+  } catch (e) {
+    return fallback;
+  }
+};
+const page = usePage();
 const adminEmail = ref('');
 const isSidebarOpen = ref(true);
 const isSidebarCollapsed = ref(false);
@@ -104,7 +111,7 @@ const confirmLogout = () => {
   localStorage.removeItem('admin_email');
   localStorage.removeItem('admin_login_time');
   showLogoutConfirm.value = false;
-  router.push({ name: 'admin-login' });
+  inertiaRouter.visit('/admin/login');
 };
 
 const handleResize = () => {
@@ -185,13 +192,13 @@ const menuItems = computed(() => {
   return adminMenuItems.map(item => {
     const mappedItem = {
       ...item,
-      label: t(item.label_key),
+      label: (item.label_key ? t(item.label_key) : item.label_key) || String(item.label_key || item.id),
       icon: iconMap[item.icon_name]
     };
     if (item.children && item.children.length > 0) {
       mappedItem.children = item.children.map(child => ({
         ...child,
-        label: t(child.label_key),
+        label: (child.label_key ? t(child.label_key) : child.label_key) || String(child.label_key || child.id),
         icon: iconMap[child.icon_name]
       }));
     }
@@ -199,16 +206,14 @@ const menuItems = computed(() => {
   });
 });
 
-const currentRouteName = computed(() => route.name);
-
 const isActiveRoute = (item) => {
   if (!item.path) return false;
-  return route.path.startsWith(item.path);
+  return page.url.startsWith(item.path);
 };
 
 const navigateTo = (item) => {
   if (item.path) {
-    router.push(item.path);
+    inertiaRouter.visit(item.path);
   }
 };
 

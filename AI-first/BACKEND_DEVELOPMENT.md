@@ -11,8 +11,8 @@
 
 ### 1.1 技术架构
 - **后端框架：** Laravel 10+
-- **前台展示：** Laravel Blade 模板 + Vue 3 组件（服务端渲染）
-- **后台管理：** Laravel Blade 模板 + Vue 3 组件（服务端渲染）
+- **前台展示：** Inertia.js + Vue 3（SPA 体验，SEO友好）
+- **后台管理：** Inertia.js + Vue 3（SPA 体验，安全性高）
 - **数据库：** MySQL 8.0+ with Eloquent ORM
 - **认证系统：** Laravel Sanctum + Spatie Permission (RBAC)
 - **缓存系统：** Redis 性能优化
@@ -21,12 +21,12 @@
 
 | 端 | 渲染方式 | 数据获取方式 | 说明 |
 |----|----------|--------------|------|
-| **前台网站** | Laravel Blade 模板 | 直接查询数据库 | 服务端渲染，SEO友好 |
-| **后台管理** | Laravel Blade 模板 | 直接查询数据库 | 服务端渲染，安全性高 |
+| **前台网站** | Inertia.js + Vue 3 | 通过 Inertia props 注入 | SPA 体验，SEO友好 |
+| **后台管理** | Inertia.js + Vue 3 | 通过 Inertia props 注入 | SPA 体验，安全性高 |
 | **移动端 APP** | - | 通过 API 获取 | 外部客户端调用 `/api/v1/*` |
 | **第三方集成** | - | 通过 API 获取 | Webhook 和 REST API |
 
-> **重要说明：** 前台和后台均采用 Laravel 传统服务端渲染模式，使用 Blade 模板引擎，数据直接从数据库查询，**不使用 Inertia.js**。仅移动端 APP 和第三方系统通过 RESTful API 获取数据。
+> **重要说明：** 采用 **Inertia.js 现代单体架构**。前台和后台均使用 Inertia.js 将 Laravel 后端数据直接传递给 Vue 组件，保留 SPA 丝滑体验。API 路由独立保留供移动端 APP 和第三方系统使用。
 
 ### 1.3 Laravel 设计原则遵循
 
@@ -55,8 +55,8 @@
 
 | 路由类型 | 前缀 | 控制器目录 | 说明 |
 |----------|------|------------|------|
-| **前台路由** | `/` | `App\Http\Controllers\Frontend\` | Blade 模板渲染 |
-| **后台路由** | `/admin` | `App\Http\Controllers\Admin\` | Blade 模板渲染，需登录 |
+| **前台路由** | `/` | `App\Http\Controllers\Frontend\` | Inertia.js 渲染，返回 Vue 组件 |
+| **后台路由** | `/admin` | `App\Http\Controllers\Admin\` | Inertia.js 渲染，需登录，返回 Vue 组件 |
 | **API路由** | `/api/v1` | `App\Http\Controllers\Api\V1\` | JSON响应，供APP/第三方使用 |
 | **公开API** | `/api` | `App\Http\Controllers\Api\V1\` | 无需认证的公开接口 |
 
@@ -348,20 +348,21 @@ app/
 │   └── Handler.php
 ├── Http/
 │   ├── Controllers/
-│   │   ├── Admin/                   # 管理后台控制器 (现有)
+│   │   ├── Admin/                   # 管理后台控制器 (现有) - Inertia.js
 │   │   │   ├── PostController.php
 │   │   │   └── ...
 │   │   ├── Api/
 │   │   │   └── V1/                  # API V1版本控制器 (现有)
 │   │   │       ├── PostController.php
 │   │   │       └── ...
-│   │   └── Frontend/                # 前台页面控制器
+│   │   └── Frontend/                # 前台页面控制器 - Inertia.js
 │   │       ├── HomeController.php
 │   │       ├── BlogController.php
 │   │       └── ...
 │   ├── Middleware/
 │   │   ├── AdminMiddleware.php
-│   │   └── SeoMiddleware.php
+│   │   ├── SeoMiddleware.php
+│   │   └── HandleInertiaRequests.php # Inertia.js 中间件
 │   ├── Requests/
 │   │   ├── Admin/                   # Admin表单验证
 │   │   │   ├── StorePostRequest.php
@@ -398,35 +399,74 @@ app/
 
 resources/
 ├── views/
-│   ├── layouts/                    # 布局模板
-│   │   ├── frontend.blade.php      # 前台布局
-│   │   └── admin.blade.php         # 后台布局
-│   ├── frontend/                   # 前台视图
-│   │   ├── home.blade.php
-│   │   ├── blog/
-│   │   │   ├── index.blade.php
-│   │   │   └── show.blade.php
-│   │   └── ...
-│   └── admin/                      # 后台视图
-│       ├── dashboard.blade.php
-│       ├── posts/
-│       │   ├── index.blade.php
-│       │   ├── create.blade.php
-│       │   └── edit.blade.php
-│       └── ...
-└── js/                             # Vue 组件（用于增强交互）
-    ├── components/
-    └── app.js
+│   └── app.blade.php               # Inertia.js 根模板
+└── js/                             # Vue 应用（Inertia.js 页面组件）
+    ├── Pages/                      # Inertia.js 页面组件
+    │   ├── front/                  # 前台页面
+    │   │   ├── Home.vue
+    │   │   ├── Blog.vue
+    │   │   └── ...
+    │   └── admin/                  # 后台页面
+    │       ├── Layout.vue
+    │       ├── Posts.vue
+    │       └── ...
+    ├── components/                 # 共享组件
+    └── app.js                      # Inertia.js 应用入口
 ```
 
 > **架构说明：**
-> - **前台**和**后台**均使用 Laravel Blade 模板进行服务端渲染，数据通过 Controller 直接从数据库查询
+> - **前台**和**后台**均使用 **Inertia.js** 架构，Controller 通过 `Inertia::render()` 返回 Vue 组件和数据 props
 > - **API** 仅供移动端 APP 和第三方系统调用，使用 `Api/V1/` 目录下的控制器和 `Resources/V1/` 资源转换
-> - Vue 组件仅用于页面内的交互增强（如表单验证、动态加载等），不用于页面级渲染
+> - Vue 组件作为完整页面使用，通过 `defineProps()` 接收后端传递的数据
+> - 路由完全由 Laravel 的 `routes/web.php` 控制，无需 Vue Router
 
 ---
 
 ### 3.2 核心模式
+
+#### 3.2.0 Inertia.js Controller (页面控制器) ✅ 已采用
+
+```php
+// app/Http/Controllers/Frontend/HomeController.php
+use Inertia\Inertia;
+
+class HomeController extends Controller
+{
+    public function __construct(protected PostService $postService) {}
+
+    public function index(): Response
+    {
+        $posts = $this->postService->getRecentPosts(6);
+        $projects = Project::latest()->take(3)->get();
+        $videos = Video::latest()->take(3)->get();
+        
+        return Inertia::render('front/Home', [
+            'posts' => PostResource::collection($posts),
+            'projects' => ProjectResource::collection($projects),
+            'videos' => VideoResource::collection($videos),
+        ]);
+    }
+}
+```
+
+```vue
+<!-- resources/js/Pages/front/Home.vue -->
+<script setup>
+defineProps({
+  posts: { type: Array, default: () => [] },
+  projects: { type: Array, default: () => [] },
+  videos: { type: Array, default: () => [] },
+});
+</script>
+
+<template>
+  <div>
+    <PostList :posts="posts" />
+    <ProjectList :projects="projects" />
+    <VideoList :videos="videos" />
+  </div>
+</template>
+```
 
 #### 3.2.1 Service Layer (服务层) ✅ 已采用
 

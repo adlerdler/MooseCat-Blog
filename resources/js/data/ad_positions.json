@@ -1,0 +1,86 @@
+[
+  {
+    "id": 1,
+    "name": "header",
+    "label_key": "admin_ad_position_header",
+    "description": "页面顶部横幅广告位，显示在页面头部导航下方",
+    "default_width": 728,
+    "default_height": 90,
+    "is_active": true,
+    "sort_order": 1,
+    "created_at": "2026-05-01T10:00:00",
+    "updated_at": "2026-05-01T10:00:00"
+  },
+  {
+    "id": 2,
+    "name": "sidebar",
+    "label_key": "admin_ad_position_sidebar",
+    "description": "侧边栏广告位，显示在页面右侧边栏区域",
+    "default_width": 300,
+    "default_height": 250,
+    "is_active": true,
+    "sort_order": 2,
+    "created_at": "2026-05-01T10:00:00",
+    "updated_at": "2026-05-01T10:00:00"
+  },
+  {
+    "id": 3,
+    "name": "footer",
+    "label_key": "admin_ad_position_footer",
+    "description": "页面底部横幅广告位，显示在页脚上方",
+    "default_width": 728,
+    "default_height": 90,
+    "is_active": true,
+    "sort_order": 3,
+    "created_at": "2026-05-01T10:00:00",
+    "updated_at": "2026-05-01T10:00:00"
+  },
+  {
+    "id": 4,
+    "name": "between_posts",
+    "label_key": "admin_ad_position_between_posts",
+    "description": "文章列表中间插入广告位，每4篇文章插入一条",
+    "default_width": 800,
+    "default_height": 450,
+    "is_active": true,
+    "sort_order": 4,
+    "created_at": "2026-05-01T10:00:00",
+    "updated_at": "2026-05-01T10:00:00"
+  },
+  {
+    "id": 5,
+    "name": "popup",
+    "label_key": "admin_ad_position_popup",
+    "description": "弹窗广告位，用户首次访问时显示",
+    "default_width": 320,
+    "default_height": 480,
+    "is_active": true,
+    "sort_order": 5,
+    "created_at": "2026-05-01T10:00:00",
+    "updated_at": "2026-05-01T10:00:00"
+  },
+  {
+    "id": 6,
+    "name": "in_content",
+    "label_key": "admin_ad_position_in_content",
+    "description": "文章内容中间广告位，嵌入在正文段落之间",
+    "default_width": 800,
+    "default_height": 250,
+    "is_active": true,
+    "sort_order": 6,
+    "created_at": "2026-05-01T10:00:00",
+    "updated_at": "2026-05-01T10:00:00"
+  },
+  {
+    "id": 7,
+    "name": "video_bottom",
+    "label_key": "admin_ad_position_video_bottom",
+    "description": "视频下方广告位，显示在视频播放区域下方",
+    "default_width": 800,
+    "default_height": 250,
+    "is_active": true,
+    "sort_order": 7,
+    "created_at": "2026-05-01T10:00:00",
+    "updated_at": "2026-05-01T10:00:00"
+  }
+]

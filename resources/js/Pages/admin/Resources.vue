@@ -7,7 +7,7 @@
  * - 支持搜索和类型筛选功能
  * - 支持资源的增删改查操作
  */
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import {
   BookOpen,
@@ -27,13 +27,32 @@ import {
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
 import { formatToRelative } from '../../utils/dateUtils';
-import { resourcesData, resourceTypes } from '../../data/resources';
+import { resourceTypes } from '../../data/resources';
 import ResourceForm from '../../components/admin/ResourceForm.vue';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import Pagination from '../../components/admin/Pagination.vue';
 import SearchFilterModal from '../../components/admin/SearchFilterModal.vue';
 
-const { t } = useI18n();
+const props = defineProps({
+  resources: {
+    type: Array,
+    default: () => []
+  },
+  categories: {
+    type: Array,
+    default: () => []
+  }
+});
+
+const { t: originalT } = useI18n();
+const t = (key, fallback = '') => {
+  if (!key) return fallback || '';
+  try {
+    return originalT(key) || fallback;
+  } catch (e) {
+    return fallback;
+  }
+};
 const { isDarkMode } = useTheme();
 
 const searchQuery = ref('');
@@ -45,7 +64,11 @@ const editingResource = ref(null);
 const showDeleteConfirm = ref(false);
 const deletingResourceId = ref(null);
 
-const resources = ref([...resourcesData]);
+const localResources = ref([...props.resources]);
+
+watch(() => props.resources, (newResources) => {
+  localResources.value = [...newResources];
+}, { immediate: true });
 
 const getTypeIcon = (format) => {
   switch (format) {
@@ -78,7 +101,7 @@ const getTypeColor = (format) => {
 };
 
 const filteredResources = computed(() => {
-  let result = [...resources.value];
+  let result = [...localResources.value];
   
   if (selectedType.value !== 'all') {
     result = result.filter(resource => resource.format === selectedType.value);
@@ -111,7 +134,7 @@ const handleDelete = (id) => {
 
 const confirmDelete = () => {
   if (deletingResourceId.value !== null) {
-    resources.value = resources.value.filter(r => r.id !== deletingResourceId.value);
+    localResources.value = localResources.value.filter(r => r.id !== deletingResourceId.value);
     deletingResourceId.value = null;
   }
   showDeleteConfirm.value = false;

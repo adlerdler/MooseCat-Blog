@@ -15,69 +15,66 @@
  * - 评论区评论提交
  */
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
-import { useRoute, useRouter, RouterLink } from 'vue-router';
-import { ArrowLeft, Share2, Bookmark, Clock, User, BookOpen, ChevronRight, Heart } from 'lucide-vue-next';
-import { POSTS } from '../../data/posts';
-import { adminUsers } from '../../data/users';
-import { categories } from '../../data/categories';
+import { Link } from '@inertiajs/vue3';
+import { ArrowLeft, Share2, Bookmark, Clock, User, BookOpen, ChevronRight, Heart, ArrowRight } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
 import { formatToEnglish } from '../../utils/dateUtils';
 import { findById, formatId } from '../../utils/typeConvert';
 import { getCategoryNameById } from '../../utils/categoryUtils';
-import { interactions } from '../../data/interactions';
-import { commentsData } from '../../data/comments';
-import { useInteractionData } from '../../composables/useInteractionData';
 import { useSiteConfig } from '../../composables/useSiteConfig';
 import { usePageSeo } from '../../composables/usePageSeo';
 import { useAdSlot } from '../../composables/useAdSlot';
-import AdSlot from '../../components/front/AdSlot.vue';
+import AdSlot from '@/components/front/AdSlot.vue';
+import MarkdownRenderer from '@/components/MarkdownRenderer.vue';
+import CommentSection from '@/components/CommentSection.vue';
+import ShareModal from '@/components/ShareModal.vue';
 
-const { hasUserLiked, getLikesByTarget } = useInteractionData();
+const props = defineProps({
+  post: { type: Object, default: null },
+  categories: { type: Array, default: () => [] },
+  authors: { type: Array, default: () => [] },
+  comments: { type: Array, default: () => [] },
+  interactions: { type: Array, default: () => [] }
+});
+
 const { getSingleAd } = useAdSlot();
 
 const { t } = useI18n();
-const route = useRoute();
-const router = useRouter();
 const currentUserId = 1;
-const localInteractions = ref([...interactions]);
+const localInteractions = ref([...props.interactions]);
 
 const { isCommentsVisible, isAuthorBioVisible } = useSiteConfig();
 const showComments = computed(() => isCommentsVisible());
 const showAuthorBio = computed(() => isAuthorBioVisible());
 
 const postComments = computed(() => {
-  return commentsData.filter(comment => comment.is_approved && comment.post_id === post.value?.id);
+  return props.comments.filter(comment => comment.is_approved && comment.post_id === props.post?.id);
 });
 
 const getAuthorName = (authorId) => {
-  const user = adminUsers.find(u => u.id === authorId);
+  const user = props.authors.find(u => u.id === authorId);
   return user ? (user.penName || user.name) : 'Unknown';
 };
-
-const post = computed(() => {
-  const foundPost = findById(POSTS, route.params.id);
-  return foundPost || POSTS[0];
-});
 
 const inContentAd = computed(() => {
   return getSingleAd('in_content');
 });
 
 usePageSeo({
-  title: computed(() => post.value?.meta_title || (post.value?.title ? `${post.value.title} - ARCHYX` : 'ARCHYX')),
-  description: computed(() => post.value?.meta_description || post.value?.excerpt || ''),
-  keywords: computed(() => post.value?.meta_keywords || (post.value?.tags?.join(', ') || '')),
-  image: computed(() => post.value?.cover_image || ''),
-  url: computed(() => `${window.location.origin}/post/${post.value?.id}`),
+  title: computed(() => props.post?.meta_title || (props.post?.title ? `${props.post.title} - ARCHYX` : 'ARCHYX')),
+  description: computed(() => props.post?.meta_description || props.post?.excerpt || ''),
+  keywords: computed(() => props.post?.meta_keywords || (props.post?.tags?.join(', ') || '')),
+  image: computed(() => props.post?.cover_image || ''),
+  url: computed(() => `${window.location.origin}/posts/${props.post?.slug}`),
   type: 'Article',
-  author: computed(() => getAuthorName(post.value?.author_id))
+  author: computed(() => getAuthorName(props.post?.author_id))
 })
 
 const tableOfContents = computed(() => {
-  if (!post.value?.content) return [];
+  if (!props.post?.content) return [];
   
   const headings = [];
-  const lines = post.value.content.split('\n');
+  const lines = props.post.content.split('\n');
   
   lines.forEach(line => {
     const headingMatch = line.match(/^(#{1,3})\s+(.+)$/);
@@ -108,7 +105,7 @@ const handleScroll = () => {
 };
 
 const goBack = () => {
-  router.back();
+  window.history.back();
 };
 
 const scrollToTop = () => {
@@ -151,30 +148,30 @@ const handleCommentSubmitted = (comment) => {
 };
 
 const getPostLikeCount = () => {
-  if (!post.value) return 0;
+  if (!props.post) return 0;
   return localInteractions.value.filter(
-    i => i.interactable_id === post.value.id && 
+    i => i.interactable_id === props.post.id && 
          i.interactable_type === 'Post' && 
          i.type === 'like'
   ).length;
 };
 
 const isPostLiked = () => {
-  if (!post.value) return false;
+  if (!props.post) return false;
   return localInteractions.value.some(
     i => i.user_id === currentUserId && 
-         i.interactable_id === post.value.id && 
+         i.interactable_id === props.post.id && 
          i.interactable_type === 'Post' && 
          i.type === 'like'
   );
 };
 
 const togglePostLike = () => {
-  if (!post.value) return;
+  if (!props.post) return;
 
   const existingIndex = localInteractions.value.findIndex(
     i => i.user_id === currentUserId && 
-         i.interactable_id === post.value.id && 
+         i.interactable_id === props.post.id && 
          i.interactable_type === 'Post' && 
          i.type === 'like'
   );
@@ -187,7 +184,7 @@ const togglePostLike = () => {
     localInteractions.value.push({
       id: newId,
       user_id: currentUserId,
-      interactable_id: post.value.id,
+      interactable_id: props.post.id,
       interactable_type: 'Post',
       type: 'like',
       created_at: now,
@@ -209,9 +206,9 @@ onUnmounted(() => {
   <div v-if="!post" class="min-h-screen bg-construct-paper flex items-center justify-center p-8">
     <div class="text-center">
       <h1 class="font-display text-4xl md:text-6xl mb-8 tracking-tighter">DATA CORRUPTION</h1>
-      <RouterLink to="/blog" class="bg-construct-black text-white px-8 py-3 font-display tracking-widest text-sm hover:bg-construct-red transition-colors inline-block">
+      <Link href="/blog" class="bg-construct-black text-white px-8 py-3 font-display tracking-widest text-sm hover:bg-construct-red transition-colors inline-block">
         {{ t('post_return_to_blog') }}
-      </RouterLink>
+      </Link>
     </div>
   </div>
 
@@ -252,7 +249,7 @@ onUnmounted(() => {
           <div class="flex flex-wrap gap-8 items-center text-[10px] sm:text-xs font-bold tracking-[0.2em] opacity-80 animate-fade-in" style="animation-delay: 0.2s">
             <div class="flex items-center gap-2">
               <User size="14" class="text-white/40" />
-              <RouterLink :to="`/author/${encodeURIComponent(getAuthorName(post.author_id))}`" class="hover:underline">{{ getAuthorName(post.author_id) }}</RouterLink>
+              <Link :href="`/author/${encodeURIComponent(getAuthorName(post.author_id))}`" class="hover:underline">{{ getAuthorName(post.author_id) }}</Link>
             </div>
             <div class="flex items-center gap-2">
               <Clock size="14" class="text-white/40" />
@@ -340,12 +337,12 @@ onUnmounted(() => {
               <p class="text-sm leading-relaxed text-construct-black/70">
                 {{ t('author_bio') }}
               </p>
-              <RouterLink 
-                :to="`/author/${encodeURIComponent(getAuthorName(post.author_id))}`" 
+              <Link 
+                :href="`/author/${encodeURIComponent(getAuthorName(post.author_id))}`" 
                 class="inline-flex items-center gap-2 mt-4 text-[10px] font-black tracking-widest uppercase text-construct-red hover:underline"
               >
                 {{ t('read_more') || 'VIEW_FULL_PROFILE' }} <ArrowRight size="12" />
-              </RouterLink>
+              </Link>
             </div>
           </div>
         </div>

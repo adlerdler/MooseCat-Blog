@@ -3,42 +3,143 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
-use Illuminate\View\View;
+use App\Services\MockDataService;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class FrontendController extends Controller
 {
-    public function home(): View
+    protected $mockDataService;
+
+    public function __construct(MockDataService $mockDataService)
     {
-        return view('frontend.index');
+        $this->mockDataService = $mockDataService;
     }
 
-    public function blog(): View
+    public function home(): Response
     {
-        return view('frontend.blog');
+        $posts = $this->mockDataService->getPosts(3);
+        $projects = $this->mockDataService->getProjects(3);
+        $videos = $this->mockDataService->getVideos(3);
+
+        return Inertia::render('front/Home', [
+            'posts' => $posts,
+            'projects' => $projects,
+            'videos' => $videos,
+        ]);
     }
 
-    public function projects(): View
+    public function blog(): Response
     {
-        return view('frontend.projects');
+        $posts = $this->mockDataService->getPosts();
+        $categories = $this->mockDataService->getCategories();
+        $authors = $this->mockDataService->getAuthors();
+
+        $perPage = 14;
+        $total = count($posts);
+        $lastPage = (int)ceil($total / $perPage);
+
+        return Inertia::render('front/Blog', [
+            'posts' => (object)[
+                'data' => array_slice($posts, 0, $perPage),
+                'current_page' => 1,
+                'last_page' => $lastPage,
+                'per_page' => $perPage,
+                'total' => $total,
+            ],
+            'categories' => $categories,
+            'authors' => $authors,
+        ]);
     }
 
-    public function resources(): View
+    public function projects(): Response
     {
-        return view('frontend.resources');
+        $projects = $this->mockDataService->getProjects();
+
+        return Inertia::render('front/Projects', [
+            'projects' => $projects,
+        ]);
     }
 
-    public function videos(): View
+    public function resources(): Response
     {
-        return view('frontend.videos');
+        $resources = $this->mockDataService->getResources();
+        $categories = $this->mockDataService->getCategories();
+        
+        return Inertia::render('front/Resources', [
+            'resources' => $resources,
+            'categories' => $categories,
+        ]);
     }
 
-    public function adminLogin(): View
+    public function videos(): Response
     {
-        return view('frontend.index');
+        $videos = $this->mockDataService->getVideos();
+
+        return Inertia::render('front/Videos', [
+            'videos' => $videos,
+        ]);
     }
 
-    public function admin(): View
+    public function postDetail($id): Response
     {
-        return view('frontend.index');
+        $posts = $this->mockDataService->getPosts();
+        $post = collect($posts)->firstWhere('id', $id);
+        
+        $categories = $this->mockDataService->getCategories();
+        $authors = $this->mockDataService->getAuthors();
+        $comments = $this->mockDataService->getComments();
+        $interactions = $this->mockDataService->getInteractions();
+
+        return Inertia::render('front/PostDetail', [
+            'post' => $post,
+            'categories' => $categories,
+            'authors' => $authors,
+            'comments' => $comments,
+            'interactions' => $interactions,
+        ]);
+    }
+
+    public function projectDetail($id): Response
+    {
+        $projects = $this->mockDataService->getProjects();
+        $project = collect($projects)->firstWhere('id', $id);
+
+        return Inertia::render('front/ProjectDetail', [
+            'project' => $project,
+        ]);
+    }
+
+    public function videoDetail($id): Response
+    {
+        $videos = $this->mockDataService->getVideos();
+        $video = collect($videos)->firstWhere('id', $id);
+
+        return Inertia::render('front/VideoDetail', [
+            'video' => $video,
+        ]);
+    }
+
+    public function author(): Response
+    {
+        $authorProfiles = $this->mockDataService->getAuthorProfiles();
+        $author = collect($authorProfiles)->firstWhere('user_id', 9);
+        
+        $skills = $author ? ($author['skills'] ?? []) : [];
+        $manifestos = $author ? ($author['manifestos'] ?? []) : [];
+        $socialLinks = $author ? ($author['social_links'] ?? []) : [];
+        
+        $projects = $this->mockDataService->getProjects();
+        $activeProjects = collect($projects)->filter(function ($project) {
+            return in_array($project['status'] ?? '', ['in-progress', 'planning']);
+        })->values();
+
+        return Inertia::render('front/Author', [
+            'author' => $author,
+            'skills' => $skills,
+            'manifestos' => $manifestos,
+            'socialLinksObj' => (object)$socialLinks,
+            'projects' => $activeProjects,
+        ]);
     }
 }

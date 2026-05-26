@@ -1,0 +1,4 @@
+[
+  {"id": 1, "name": "主邮件配置", "driver": "smtp", "host": "smtp.archyx.com", "port": 587, "username": "admin@archyx.com", "password": "****************", "encryption": "tls", "from_address": "no-reply@archyx.com", "from_name": "Archyx System", "is_default": true, "is_active": true, "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z"},
+  {"id": 2, "name": "备用邮件配置", "driver": "smtp", "host": "smtp.backup.com", "port": 465, "username": "noreply@backup.com", "password": "****************", "encryption": "ssl", "from_address": "noreply@backup.com", "from_name": "Archyx Backup", "is_default": false, "is_active": false, "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z"}
+]

@@ -17,7 +17,7 @@
  * 使用示例：
  * <Footer v-model="isFooterVisible" />
  */
-import { RouterLink } from 'vue-router';
+import { Link } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import { Github, Twitter, Linkedin, Globe, MessageCircle, Palette, Youtube, Facebook, Video } from 'lucide-vue-next';
 import { useFooterData } from '../composables/useFooterData';
@@ -81,12 +81,12 @@ const getLinkStyle = (index) => {
     class="p-8 md:p-16 bg-construct-paper border-t-8 border-black grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-12 sm:gap-8 md:gap-12"
   >
     <div class="sm:col-span-2">
-      <RouterLink
-        to="/"
+      <Link
+        href="/"
         class="font-display text-5xl md:text-6xl tracking-tighter mb-4 block hover:text-accent transition-colors"
       >
         {{ siteName }}
-      </RouterLink>
+      </Link>
       <p class="max-w-xs text-sm uppercase font-bold tracking-tight opacity-60 min-h-[3rem]">
         {{ siteDescription }}
       </p>
@@ -113,9 +113,9 @@ const getLinkStyle = (index) => {
       </h4>
       <ul class="text-xs space-y-3 font-bold tracking-widest uppercase">
         <li v-for="link in categoryLinks" :key="link.id">
-          <RouterLink :to="link.route" class="hover:text-accent hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
+          <Link :href="link.route" class="hover:text-accent hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
             / {{ t(link.label_key) || link.label_default }}
-          </RouterLink>
+          </Link>
         </li>
       </ul>
     </div>
@@ -128,9 +128,9 @@ const getLinkStyle = (index) => {
           <a v-if="link.url" :href="link.url" target="_blank" rel="noopener noreferrer" class="hover:text-accent hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
             {{ t(link.label_key) || link.label_default }}
           </a>
-          <RouterLink v-else :to="link.route" class="hover:text-accent hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
+          <Link v-else :href="link.route" class="hover:text-accent hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
             / {{ t(link.label_key) || link.label_default }}
-          </RouterLink>
+          </Link>
         </li>
       </ul>
     </div>

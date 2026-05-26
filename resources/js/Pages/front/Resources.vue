@@ -17,21 +17,28 @@ import { Motion, AnimatePresence } from 'motion-v';
 import { useTheme } from '../../composables/useTheme';
 import { usePageSeo } from '../../composables/usePageSeo';
 import { usePageSeoData } from '../../composables/usePageSeoData';
-import { resourcesData } from '../../data/resources';
-import { categories } from '../../data/categories';
 import { getCategoryNameById } from '../../utils/categoryUtils';
 import { Download, HardDrive } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
 import { useAdSlot } from '../../composables/useAdSlot';
+import SidebarMenu from '@/components/SidebarMenu.vue';
+import Footer from '@/components/Footer.vue';
+import AdSlot from '@/components/front/AdSlot.vue';
+import ResourceModal from '@/components/ResourceModal.vue';
+
+const props = defineProps({
+  resources: { type: Array, default: () => [] },
+  categories: { type: Array, default: () => [] }
+});
 
 const { getSeoByPageKey } = usePageSeoData();
-const pageSeo = getSeoByPageKey('resources')
+const pageSeo = getSeoByPageKey('resources');
 
 usePageSeo({
   title: pageSeo.title,
   description: pageSeo.description,
   keywords: pageSeo.keywords,
-})
+});
 
 const { t } = useI18n();
 const { initAccentTheme } = useTheme();
@@ -59,21 +66,21 @@ const getDriveLogo = (type) => {
 
 const categoryList = computed(() => {
   // 只显示有资源的分类
-  const usedCategoryIds = [...new Set(resourcesData.map(r => r.category_id))];
-  const usedCategories = categories.filter(c => usedCategoryIds.includes(c.id));
+  const usedCategoryIds = [...new Set(props.resources.map(r => r.category_id))];
+  const usedCategories = props.categories.filter(c => usedCategoryIds.includes(c.id));
   return ['ALL', ...usedCategories.map(c => c.name)];
 });
 const filteredResources = computed(() => {
   if (selectedCategory.value === 'ALL') {
-    return resourcesData;
+    return props.resources;
   }
   // 根据分类名称找到对应的分类ID，然后筛选资源
-  const selectedCategoryData = categories.find(c => c.name === selectedCategory.value);
+  const selectedCategoryData = props.categories.find(c => c.name === selectedCategory.value);
   if (!selectedCategoryData) return [];
-  return resourcesData.filter(r => r.category_id === selectedCategoryData.id);
+  return props.resources.filter(r => r.category_id === selectedCategoryData.id);
 });
 const getResourceCategoryName = (categoryId) => {
-  return getCategoryNameById(categories, categoryId) || '';
+  return getCategoryNameById(props.categories, categoryId) || '';
 };
 onMounted(() => {
   initAccentTheme();

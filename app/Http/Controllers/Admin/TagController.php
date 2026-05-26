@@ -3,16 +3,30 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\MockDataService;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class TagController extends Controller
 {
+    protected $mockDataService;
+
+    public function __construct(MockDataService $mockDataService)
+    {
+        $this->mockDataService = $mockDataService;
+    }
+
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(): Response
     {
-        //
+        $tags = $this->mockDataService->getTags();
+        
+        return Inertia::render('admin/Tags', [
+            'tags' => $tags,
+        ]);
     }
 
     /**
@@ -20,7 +34,7 @@ class TagController extends Controller
      */
     public function create()
     {
-        //
+        return Inertia::render('admin/Tags');
     }
 
     /**
@@ -44,7 +58,12 @@ class TagController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $tags = $this->mockDataService->getTags();
+        $tag = collect($tags)->firstWhere('id', $id);
+        
+        return Inertia::render('admin/Tags', [
+            'tag' => $tag,
+        ]);
     }
 
     /**

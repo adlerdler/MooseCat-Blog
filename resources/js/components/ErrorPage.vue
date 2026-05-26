@@ -17,7 +17,6 @@
 import { computed } from 'vue'
 import { ArrowLeft, AlertTriangle } from 'lucide-vue-next'
 import { useI18n } from 'vue-i18n'
-import { useRoute } from 'vue-router'
 
 const props = defineProps({
   errorCode: {
@@ -31,10 +30,9 @@ const props = defineProps({
 })
 
 const { t } = useI18n()
-const route = useRoute()
 
 const pathSegments = computed(() => {
-  const path = props.errorPath || route.fullPath
+  const path = props.errorPath || window.location.pathname
   return path.split('/').filter(segment => segment !== '')
 })
 
@@ -69,7 +67,7 @@ const detectedError = computed(() => {
     return {
       ...result,
       errorCode: result.code || errorCode,
-      path: props.errorPath || route.fullPath
+      path: props.errorPath || window.location.pathname
     }
   }
 
@@ -78,7 +76,7 @@ const detectedError = computed(() => {
     title: 'Page Not Found',
     hint: '',
     errorCode,
-    path: props.errorPath || route.fullPath
+    path: props.errorPath || window.location.pathname
   }
 })
 

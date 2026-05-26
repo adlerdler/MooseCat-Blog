@@ -11,52 +11,32 @@
  * - 返回上一页按钮
  * - 返回顶部按钮
  */
-import { ref, computed, onMounted, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { ref, computed, onMounted } from 'vue';
 import { Motion, AnimatePresence } from 'motion-v';
 import { useTheme } from '../../composables/useTheme';
 import { useAdSlot } from '../../composables/useAdSlot';
 import AdSlot from '../../components/front/AdSlot.vue';
-import { VIDEOS } from '../../data/videos';
 import { ArrowLeft, ArrowUp } from 'lucide-vue-next';
+
+const props = defineProps({
+  video: { type: Object, default: null }
+});
 
 const { initAccentTheme } = useTheme();
 const { hasActiveAd } = useAdSlot();
-const route = useRoute();
-const router = useRouter();
 const showBackToTop = ref(false);
 
-const video = computed(() => {
-  // 支持字符串和数字类型的 id 比较
-  const paramId = Number(route.params.id);
-  return VIDEOS.find((v) => v.id === paramId);
-});
-
-// 动态更新页面标题
-const updatePageTitle = () => {
-  if (video.value?.title) {
-    document.title = `VIDEO // ${video.value.title}`;
-  }
-};
-
-// 监听video变化更新标题
-watch(video, () => {
-  updatePageTitle();
-}, { immediate: true });
-
 const embedUrl = computed(() => {
-  if (!video.value) return '';
-  return video.value.platform === 'youtube'
-    ? `https://www.youtube.com/embed/${video.value.video_id}`
-    : `https://player.bilibili.com/player.html?bvid=${video.value.video_id}`;
+  if (!props.video) return '';
+  return props.video.platform === 'youtube'
+    ? `https://www.youtube.com/embed/${props.video.video_id}`
+    : `https://player.bilibili.com/player.html?bvid=${props.video.video_id}`;
 });
 
 onMounted(() => {
   initAccentTheme();
   // 前台页面不受后台主题设置影响，移除 light class
   document.documentElement.classList.remove('light');
-  updatePageTitle();
-
   window.addEventListener('scroll', handleScroll);
 });
 
@@ -65,7 +45,7 @@ const handleScroll = () => {
 };
 
 const goBack = () => {
-  router.back();
+  window.history.back();
 };
 
 const scrollToTop = () => {

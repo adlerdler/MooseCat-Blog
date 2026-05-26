@@ -12,52 +12,34 @@
  * - 外部链接图标动画
  * - 项目元数据展示
  */
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
-import { useRoute, useRouter, RouterLink } from 'vue-router';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { Link } from '@inertiajs/vue3';
 import { Motion, AnimatePresence } from 'motion-v';
 import { useTheme } from '../../composables/useTheme';
 import { usePageSeo } from '../../composables/usePageSeo';
-import { PROJECTS } from '../../data/projects';
 import { formatId } from '../../utils/typeConvert';
 import { ExternalLink, Github, ArrowLeft, ArrowUp, Terminal, Cpu, Layers, Globe, Code } from 'lucide-vue-next';
 import AdSlot from '../../components/front/AdSlot.vue';
 
-const { initAccentTheme } = useTheme();
-const route = useRoute();
-const router = useRouter();
-
-const project = computed(() => {
-  const id = Number(route.params.id);
-  const p = PROJECTS.find(proj => proj.id === id);
-  console.log('Project lookup:', { id, routeId: route.params.id, found: !!p, url: p?.url });
-  return p;
+const props = defineProps({
+  project: { type: Object, default: null }
 });
 
+const { initAccentTheme } = useTheme();
+
 usePageSeo({
-  title: computed(() => project.value?.title ? `PROJECT // ${project.value.title} - ARCHYX` : 'PROJECT - ARCHYX'),
-  description: computed(() => project.value?.description || ''),
-  keywords: computed(() => project.value?.tech_stack?.join(', ') || ''),
-  image: computed(() => project.value?.image || ''),
-  url: computed(() => `${window.location.origin}/project/${project.value?.id}`),
+  title: computed(() => props.project?.title ? `PROJECT // ${props.project.title} - ARCHYX` : 'PROJECT - ARCHYX'),
+  description: computed(() => props.project?.description || ''),
+  keywords: computed(() => props.project?.tech_stack?.join(', ') || ''),
+  image: computed(() => props.project?.image || ''),
+  url: computed(() => `${window.location.origin}/projects/${props.project?.id}`),
   type: 'CreativeWork'
 })
 
 // 检查项目是否存在且为已完成状态
 const isValidProject = computed(() => {
-  return project.value && project.value.status === 'completed';
+  return props.project && props.project.status === 'completed';
 });
-
-// 动态更新页面标题
-const updatePageTitle = () => {
-  if (project.value?.title) {
-    document.title = `PROJECT // ${project.value.title}`;
-  }
-};
-
-// 监听project变化更新标题
-watch(project, () => {
-  updatePageTitle();
-}, { immediate: true });
 
 const iframeError = ref(false);
 const iframeLoading = ref(true);
@@ -71,7 +53,6 @@ onMounted(() => {
   initAccentTheme();
   // 前台页面不受后台主题设置影响，移除 light class
   document.documentElement.classList.remove('light');
-  updatePageTitle();
   window.addEventListener('scroll', handleScroll);
 
   // 超时检测：如果 iframe 5 秒后还在 loading，认为加载失败
@@ -88,7 +69,7 @@ onUnmounted(() => {
 });
 
 const goBack = () => {
-  router.push('/projects');
+  window.history.back();
 };
 
 const scrollToTop = () => {
@@ -121,12 +102,12 @@ const scrollToTop = () => {
     <div v-if="!project" class="min-h-screen flex items-center justify-center bg-construct-paper">
       <div class="text-center">
         <h1 class="font-display text-4xl mb-4 uppercase">Node not found</h1>
-        <RouterLink
-          to="/projects"
+        <Link
+          href="/projects"
           class="font-bold tracking-widest text-construct-red hover:underline"
         >
           RETURN TO REPOSITORY
-        </RouterLink>
+        </Link>
       </div>
     </div>
 
@@ -294,7 +275,7 @@ const scrollToTop = () => {
 
           <Motion
             :initial="{ opacity: 0, y: 30 }"
-            :visible="{ opacity: 1, y: 0 }"
+            :animate="{ opacity: 1, y: 0 }"
             :transition="{ delay: 0.4 }"
             class="border-4 md:border-8 border-construct-black p-6 md:p-10 lg:p-12 bg-white relative overflow-hidden"
           >
@@ -392,10 +373,10 @@ const scrollToTop = () => {
       <!-- 底部导航 -->
       <footer class="container mx-auto px-6 md:px-12 mt-32">
         <div class="h-4 w-full bg-construct-black mb-12" />
-        <RouterLink to="/projects" class="group inline-flex flex-col">
+        <Link href="/projects" class="group inline-flex flex-col">
           <span class="text-sm font-bold tracking-[0.5em] opacity-40 group-hover:opacity-100 transition-opacity uppercase mb-2">Back to Repository</span>
           <span class="font-display text-4xl md:text-6xl tracking-tighter uppercase group-hover:italic transition-all">All Artifacts //</span>
-        </RouterLink>
+        </Link>
       </footer>
     </template>
   </div>

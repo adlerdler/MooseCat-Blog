@@ -15,9 +15,51 @@
  */
 import { computed } from 'vue';
 import { sampleAdvertisements } from '../data/advertisements';
-import { adPositions, getAdPositionByName, getAdPositionById, getActiveAdPositions } from '../data/ad_positions';
+import { adPositions } from '../data/ad_positions';
 
 export function useAdSlot() {
+  /**
+   * 根据位置名称获取广告位配置
+   * @param {string} name - 广告位名称
+   * @returns {object|null} 广告位配置对象
+   */
+  const getAdPositionByName = (name) => {
+    return adPositions.find(pos => pos.name === name) || null;
+  };
+
+  /**
+   * 根据ID获取广告位配置
+   * @param {number} id - 广告位ID
+   * @returns {object|null} 广告位配置对象
+   */
+  const getAdPositionById = (id) => {
+    return adPositions.find(pos => pos.id === id) || null;
+  };
+
+  /**
+   * 获取所有启用的广告位
+   * @returns {array} 启用的广告位列表
+   */
+  const getActiveAdPositions = () => {
+    return adPositions.filter(pos => pos.is_active).sort((a, b) => a.sort_order - b.sort_order);
+  };
+
+  /**
+   * 获取广告位的选项列表（用于下拉选择）
+   * @returns {array} 选项数组，包含 label 和 value
+   */
+  const getAdPositionOptions = () => {
+    return adPositions
+      .filter(pos => pos.is_active)
+      .sort((a, b) => a.sort_order - b.sort_order)
+      .map(pos => ({
+        value: pos.id,
+        label: pos.name,
+        name: pos.name,
+        label_key: pos.label_key,
+      }));
+  };
+
   /**
    * 检查广告是否在有效期内
    * @param {Object} ad - 广告对象
@@ -131,6 +173,8 @@ export function useAdSlot() {
     getAvailablePositions,
     getPositionSize,
     isAdValid,
+    getAdPositionByName,
+    getAdPositionById,
     adPositions
   };
 }

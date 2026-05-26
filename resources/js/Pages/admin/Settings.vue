@@ -41,7 +41,15 @@ import { languages as i18nLanguages } from '../../data/i18n_config';
 import { adminMedia } from '../../data/media';
 import { Plus, Edit2, Trash2 } from 'lucide-vue-next';
 
-const { t } = useI18n();
+const { t: originalT } = useI18n();
+const t = (key, fallback = '') => {
+  if (!key) return fallback || '';
+  try {
+    return originalT(key) || fallback;
+  } catch (e) {
+    return fallback;
+  }
+};
 const { isDarkMode, toggleTheme } = useTheme();
 
 const getThemes = () => [...themes];
@@ -100,7 +108,7 @@ const iconMap = {
 const tabs = computed(() => {
   return tabsConfig.map(tab => ({
     ...tab,
-    label: t(tab.label_key),
+    label: (tab.label_key ? t(tab.label_key) : tab.label_key) || String(tab.label_key || tab.id),
     icon: iconMap[tab.icon_key]
   }));
 });

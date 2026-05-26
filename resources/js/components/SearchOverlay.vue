@@ -17,7 +17,7 @@
  * <SearchOverlay :is-open="isSearchOpen" :posts="searchResults" @close="closeSearch" />
  */
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
-import { RouterLink } from 'vue-router';
+import { Link } from '@inertiajs/vue3';
 import { Search, X, ArrowUpRight } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
 
@@ -112,10 +112,10 @@ const closeSearch = () => {
             </span>
 
             <template v-if="filteredPosts.length > 0">
-              <RouterLink
+              <Link
                 v-for="post in filteredPosts"
                 :key="`${post.type}-${post.id}`"
-                :to="post.route || `/blog/${post.id}`"
+                :href="post.route || `/blog/${post.id}`"
                 @click="closeSearch"
                 class="group flex justify-between items-center p-3 md:p-4 border-2 border-transparent hover:border-black hover:bg-construct-paper transition-all"
               >
@@ -128,7 +128,7 @@ const closeSearch = () => {
                   </h4>
                 </div>
                 <ArrowUpRight class="w-5 h-5 md:w-6 md:h-6 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
-              </RouterLink>
+              </Link>
             </template>
 
             <div

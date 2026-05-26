@@ -12,6 +12,7 @@
 import {
   ref,
   computed,
+  watch,
   useI18n,
   useTheme,
   Folder,
@@ -21,14 +22,28 @@ import {
   Trash2,
   Filter,
   FileText,
-  adminCategories,
   MetaForm,
   ConfirmDialog,
   Pagination,
   SearchFilterModal
 } from '../../composables/useAdminImports';
 
-const { t } = useI18n();
+const props = defineProps({
+  categories: {
+    type: Array,
+    default: () => []
+  }
+});
+
+const { t: originalT } = useI18n();
+const t = (key, fallback = '') => {
+  if (!key) return fallback || '';
+  try {
+    return originalT(key) || fallback;
+  } catch (e) {
+    return fallback;
+  }
+};
 const { isDarkMode } = useTheme();
 
 const searchQuery = ref('');
@@ -40,10 +55,16 @@ const editingCategory = ref(null);
 const showDeleteConfirm = ref(false);
 const deletingCategoryId = ref(null);
 
-const categories = ref([...adminCategories]);
+// 本地状态用于管理数据变更
+const localCategories = ref([...props.categories]);
+
+// 当 props 变化时更新本地状态
+watch(() => props.categories, (newCategories) => {
+  localCategories.value = [...newCategories];
+}, { immediate: true });
 
 const filteredCategories = computed(() => {
-  return categories.value.filter(category => {
+  return localCategories.value.filter(category => {
     const matchesSearch = category.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
                          category.description.toLowerCase().includes(searchQuery.value.toLowerCase());
     const matchesStatus = statusFilter.value === 'all' || category.status === statusFilter.value;
@@ -74,13 +95,13 @@ const handleAdd = () => {
 
 const handleSave = (data) => {
   if (editingCategory.value) {
-    const index = categories.value.findIndex(c => c.id === editingCategory.value.id);
+    const index = localCategories.value.findIndex(c => c.id === editingCategory.value.id);
     if (index !== -1) {
-      categories.value[index] = { ...categories.value[index], ...data };
+      localCategories.value[index] = { ...localCategories.value[index], ...data };
     }
   } else {
-    const newId = Math.max(...categories.value.map(c => c.id), 0) + 1;
-    categories.value.push({
+    const newId = Math.max(...localCategories.value.map(c => c.id), 0) + 1;
+    localCategories.value.push({
       id: newId,
       ...data,
       postCount: 0
@@ -102,7 +123,7 @@ const handleDelete = (id) => {
 
 const confirmDelete = () => {
   if (deletingCategoryId.value !== null) {
-    categories.value = categories.value.filter(c => c.id !== deletingCategoryId.value);
+    localCategories.value = localCategories.value.filter(c => c.id !== deletingCategoryId.value);
     deletingCategoryId.value = null;
   }
   showDeleteConfirm.value = false;

@@ -7,7 +7,7 @@
  * - 支持搜索和平台筛选功能
  * - 支持视频的增删改查操作
  */
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import {
   Play,
@@ -20,7 +20,6 @@ import {
   Youtube,
   Video
 } from 'lucide-vue-next';
-import { VIDEOS } from '../../data/videos';
 import { useTheme } from '../../composables/useTheme';
 import { formatToRelative } from '../../utils/dateUtils';
 import VideoForm from '../../components/admin/VideoForm.vue';
@@ -28,7 +27,22 @@ import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import Pagination from '../../components/admin/Pagination.vue';
 import SearchFilterModal from '../../components/admin/SearchFilterModal.vue';
 
-const { t } = useI18n();
+const props = defineProps({
+  videos: {
+    type: Array,
+    default: () => []
+  }
+});
+
+const { t: originalT } = useI18n();
+const t = (key, fallback = '') => {
+  if (!key) return fallback || '';
+  try {
+    return originalT(key) || fallback;
+  } catch (e) {
+    return fallback;
+  }
+};
 const { isDarkMode } = useTheme();
 
 const searchQuery = ref('');
@@ -39,7 +53,12 @@ const isFormVisible = ref(false);
 const editingVideo = ref(null);
 const showDeleteConfirm = ref(false);
 const deletingVideoId = ref(null);
-const videos = ref([...VIDEOS]);
+
+const localVideos = ref([...props.videos]);
+
+watch(() => props.videos, (newVideos) => {
+  localVideos.value = [...newVideos];
+}, { immediate: true });
 
 const platforms = ['all', 'YouTube', 'Vimeo', 'Bilibili'];
 
@@ -53,7 +72,7 @@ const getPlatformIcon = (platform) => {
 };
 
 const filteredVideos = computed(() => {
-  let result = [...videos.value];
+  let result = [...localVideos.value];
   
   if (selectedPlatform.value !== 'all') {
     result = result.filter(video => video.platform === selectedPlatform.value);
@@ -87,7 +106,7 @@ const handleDelete = (id) => {
 
 const confirmDelete = () => {
   if (deletingVideoId.value !== null) {
-    videos.value = videos.value.filter(v => v.id !== deletingVideoId.value);
+    localVideos.value = localVideos.value.filter(v => v.id !== deletingVideoId.value);
     deletingVideoId.value = null;
   }
   showDeleteConfirm.value = false;

@@ -44,7 +44,15 @@ import { formatToShort } from '../../utils/dateUtils';
 import { sampleAdvertisements } from '../../data/advertisements';
 import { adPositions, getAdPositionOptions, getAdPositionById } from '../../data/ad_positions';
 
-const { t } = useI18n();
+const { t: originalT } = useI18n();
+const t = (key, fallback = '') => {
+  if (!key) return fallback || '';
+  try {
+    return originalT(key) || fallback;
+  } catch (e) {
+    return fallback;
+  }
+};
 const { isDarkMode } = useTheme();
 
 const searchQuery = ref('');
@@ -62,7 +70,7 @@ const ads = ref([...sampleAdvertisements]);
 const positionOptions = computed(() => {
   return getAdPositionOptions().map(opt => ({
     ...opt,
-    label: t(opt.label_key) || opt.name
+    label: (opt.label_key ? t(opt.label_key) : opt.name) || opt.name
   }));
 });
 
@@ -102,7 +110,7 @@ const getPositionIcon = (positionId) => {
 const getPositionLabel = (positionId) => {
   const posConfig = getAdPositionById(positionId);
   if (posConfig) {
-    return t(posConfig.label_key) || posConfig.name;
+    return (posConfig.label_key ? t(posConfig.label_key) : posConfig.name) || posConfig.name;
   }
   return '';
 };

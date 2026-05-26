@@ -13,23 +13,29 @@
  * - 点击跳转到视频详情页
  */
 import { ref, computed, onMounted } from 'vue';
-import { RouterLink } from 'vue-router';
+import { Link } from '@inertiajs/vue3';
 import { Motion, AnimatePresence } from 'motion-v';
 import { useTheme } from '../../composables/useTheme';
 import { usePageSeo } from '../../composables/usePageSeo';
 import { usePageSeoData } from '../../composables/usePageSeoData';
-import { VIDEOS } from '../../data/videos';
 import { useI18n } from 'vue-i18n';
 import { useAdSlot } from '../../composables/useAdSlot';
+import SidebarMenu from '@/components/SidebarMenu.vue';
+import Footer from '@/components/Footer.vue';
+import AdSlot from '@/components/front/AdSlot.vue';
+
+const props = defineProps({
+  videos: { type: Array, default: () => [] }
+});
 
 const { getSeoByPageKey } = usePageSeoData();
-const pageSeo = getSeoByPageKey('videos')
+const pageSeo = getSeoByPageKey('videos');
 
 usePageSeo({
   title: pageSeo.title,
   description: pageSeo.description,
   keywords: pageSeo.keywords,
-})
+});
 
 const { t } = useI18n();
 const { initAccentTheme } = useTheme();
@@ -43,10 +49,10 @@ const mixedVideosWithAds = computed(() => {
   let adIndex = 0;
   const ads = getActiveAds('between_posts');
 
-  VIDEOS.forEach((video, index) => {
+  props.videos.forEach((video, index) => {
     result.push({ type: 'content', data: video, originalIndex: index });
 
-    if ((index + 1) % AD_INTERVAL === 0 && index < VIDEOS.length - 1 && ads[adIndex]) {
+    if ((index + 1) % AD_INTERVAL === 0 && index < props.videos.length - 1 && ads[adIndex]) {
       result.push({ type: 'ad', data: ads[adIndex], adIndex: adIndex });
       adIndex++;
     }
@@ -128,7 +134,7 @@ onMounted(() => {
               :transition="{ delay: item.originalIndex * 0.1 }"
               class="group block border-4 border-construct-black hover:border-construct-red transition-colors"
             >
-              <RouterLink :to="`/videos/${item.data.id}`">
+              <Link :href="`/videos/${item.data.id}`">
                 <img
                   :src="item.data.thumbnail"
                   :alt="item.data.title"
@@ -142,7 +148,7 @@ onMounted(() => {
                     {{ item.data.published_at }} // {{ item.data.platform.toUpperCase() }}
                   </p>
                 </div>
-              </RouterLink>
+              </Link>
             </Motion>
           </template>
         </div>

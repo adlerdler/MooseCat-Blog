@@ -28,17 +28,46 @@ import {
   Pagination,
   SearchFilterModal
 } from '../../composables/useAdminImports';
-import { POSTS } from '../../data/posts';
-import { categories } from '../../data/categories';
-import { adminUsers } from '../../data/users';
-import { getCategoryNameById, getCategoryLabelById } from '../../utils/categoryUtils';
 
-const { t } = useI18n();
+const props = defineProps({
+  posts: {
+    type: Array,
+    default: () => []
+  },
+  categories: {
+    type: Array,
+    default: () => []
+  },
+  users: {
+    type: Array,
+    default: () => []
+  }
+});
+
+const { t: originalT } = useI18n();
+const t = (key, fallback = '') => {
+  if (!key) return fallback || '';
+  try {
+    return originalT(key) || fallback;
+  } catch (e) {
+    return fallback;
+  }
+};
 const { isDarkMode } = useTheme();
 
 const getAuthorName = (authorId) => {
-  const user = adminUsers.find(u => u.id === authorId);
+  const user = props.users.find(u => u.id === authorId);
   return user ? (user.penName || user.name) : 'Unknown';
+};
+
+const getCategoryNameById = (categories, categoryId) => {
+  const category = categories.find(c => c.id === categoryId);
+  return category ? category.name : 'Unknown';
+};
+
+const getCategoryLabelById = (categories, categoryId) => {
+  const category = categories.find(c => c.id === categoryId);
+  return category ? category.name : 'Unknown';
 };
 
 const searchQuery = ref('');
@@ -49,10 +78,9 @@ const isFormVisible = ref(false);
 const editingPost = ref(null);
 const showDeleteConfirm = ref(false);
 const deletingPostId = ref(null);
-const posts = ref([...POSTS]);
 
 const categoryOptions = computed(() => {
-  return ['all', ...categories.map(cat => cat.name)];
+  return ['all', ...props.categories.map(cat => cat.name)];
 });
 
 const getCategoryColor = (category) => {
@@ -68,12 +96,12 @@ const getCategoryColor = (category) => {
 };
 
 const filteredPosts = computed(() => {
-  let result = [...posts.value];
+  let result = [...props.posts];
 
   result.sort((a, b) => new Date(b.published_at) - new Date(a.published_at));
 
   if (selectedCategory.value !== 'all') {
-    result = result.filter(post => getCategoryNameById(categories, post.category_id) === selectedCategory.value);
+    result = result.filter(post => getCategoryNameById(props.categories, post.category_id) === selectedCategory.value);
   }
 
   if (searchQuery.value) {

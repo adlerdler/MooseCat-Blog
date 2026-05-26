@@ -1,45 +1,38 @@
 <script setup>
-/**
- * Home.vue - 首页/主页
- *
- * 功能说明：
- * - 展示网站首页，包含全屏欢迎区域和最新内容预览
- * - 集成启动画面（Splash Screen）效果，首次访问显示动画
- * - 提供全局搜索功能
- * - 响应式布局，适配各种屏幕尺寸
- *
- * 主要交互：
- * - 点击跳转至博客列表、视频页面、项目页面等
- * - 键盘快捷键打开搜索（需安装 SearchOverlay）
- * - 底部 Footer 显示控制
- */
 import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
-import { RouterLink } from 'vue-router'
+import { Link } from '@inertiajs/vue3'
 import { Search, ArrowRight, Send, Mail } from 'lucide-vue-next'
 import { Motion, AnimatePresence } from 'motion-v'
 import { useTheme } from '../../composables/useTheme'
 import { useI18n } from 'vue-i18n'
 import { usePageSeo } from '../../composables/usePageSeo'
-import { seoConfig } from '../../data/seo_config'
-import { POSTS } from '../../data/posts'
-import { VIDEOS } from '../../data/videos'
-import { PROJECTS } from '../../data/projects'
-import { resourcesData } from '../../data/resources'
-import { categories as categoryList } from '../../data/categories'
-import { getCategoryLabel, getCategoryLabelById, getCategoryNameById } from '../../utils/categoryUtils'
+
+import SplashScreen from '../../components/SplashScreen.vue'
+import SidebarMenu from '../../components/SidebarMenu.vue'
+import Footer from '../../components/Footer.vue'
+import SearchOverlay from '../../components/SearchOverlay.vue'
+
+const props = defineProps({
+  posts: { type: Array, default: () => [] },
+  projects: { type: Array, default: () => [] },
+  videos: { type: Array, default: () => [] }
+})
+
+console.log('[DEBUG] Home.vue props received:', {
+  posts: props.posts,
+  postsCount: props.posts?.length || 0,
+  projects: props.projects,
+  projectsCount: props.projects?.length || 0,
+  videos: props.videos,
+  videosCount: props.videos?.length || 0
+})
 
 const marqueeText = 'ARCHYX VOL. 2026 // BUILDING SYSTEM // MINIMALISM //'
 const techStack = ['TYPESCRIPT', 'VUE', 'LARAVEL', 'TAILWIND', 'NODE.JS', 'POSTGRES']
 
-const getSeoSettings = () => ({ ...seoConfig })
-const seoSettings = getSeoSettings()
-
 usePageSeo({
-  title: seoSettings.meta_title,
-  description: seoSettings.meta_description,
-  keywords: seoSettings.meta_keywords,
-  url: seoSettings.canonical_url,
-  type: seoSettings.og_type
+  title: 'Archyx - Design & Technology Blog',
+  description: 'Exploring the intersection of design, technology, and human experience.'
 })
 
 const { t } = useI18n()
@@ -52,30 +45,35 @@ const showContent = ref(false)
 let splashTimer = null
 
 const featuredPosts = computed(() => {
-  return POSTS.slice(0, 3).map(post => ({
+  console.log('[DEBUG] featuredPosts computed, posts:', props.posts)
+  const result = props.posts.slice(0, 3).map(post => ({
     id: post.id,
     title: post.title,
     excerpt: post.excerpt,
-    category: getCategoryNameById(categoryList, post.category_id),
-    categoryLabel: getCategoryLabelById(categoryList, post.category_id),
-    views_count: post.views_count || Math.floor(Math.random() * 1000) + 500
+    category: post.category?.name || 'UNCATEGORIZED',
+    categoryLabel: post.category?.name || 'UNCATEGORIZED',
+    views_count: post.views_count || 0
   }))
+  console.log('[DEBUG] featuredPosts result:', result)
+  return result
 })
+
+console.log('[DEBUG] Home.vue script setup completed')
 
 const searchPosts = computed(() => {
   const allContent = []
 
-  POSTS.forEach(post => {
+  props.posts.forEach(post => {
     allContent.push({
       id: post.id,
       type: 'post',
       title: post.title,
       excerpt: post.excerpt,
-      route: `/blog/${post.slug}`
+      route: `/blog/${post.id}`
     })
   })
 
-  VIDEOS.forEach(video => {
+  props.videos.forEach(video => {
     allContent.push({
       id: video.id,
       type: 'video',
@@ -85,7 +83,7 @@ const searchPosts = computed(() => {
     })
   })
 
-  PROJECTS.forEach(project => {
+  props.projects.forEach(project => {
     allContent.push({
       id: project.id,
       type: 'project',
@@ -95,20 +93,11 @@ const searchPosts = computed(() => {
     })
   })
 
-  resourcesData.forEach(resource => {
-    allContent.push({
-      id: resource.id,
-      type: 'resource',
-      title: resource.title,
-      excerpt: resource.description,
-      route: '/resources'
-    })
-  })
-
   return allContent
 })
 
 onMounted(() => {
+  console.log('[DEBUG] Home.vue onMounted, props.posts:', props.posts)
   initAccentTheme()
 
   // 前台页面不受后台主题设置影响，移除 light class
@@ -119,17 +108,19 @@ onMounted(() => {
     isFooterVisible.value = saved === 'true'
   }
 
-  const splashShown = sessionStorage.getItem('splash_shown')
-  if (splashShown !== 'true') {
-    showSplash.value = true
-  } else {
-    showContent.value = true
-  }
+  // 临时解决方案：直接显示内容，绕过 SplashScreen
+  showContent.value = true
+  showSplash.value = false
+  console.log('[DEBUG] Home.vue onMounted complete, showContent:', showContent.value)
 })
 
 watch(isFooterVisible, (newVal) => {
   sessionStorage.setItem('footer_visible', String(newVal))
 })
+
+watch(() => props.posts, (newPosts) => {
+  console.log('[DEBUG] posts prop changed:', newPosts)
+}, { immediate: true })
 
 const handleSplashComplete = () => {
   showSplash.value = false
@@ -158,6 +149,8 @@ onUnmounted(() => {
 
 <template>
   <div class="min-h-screen selection:bg-construct-red selection:text-white">
+
+
     <!-- Splash Screen -->
     <SplashScreen
       v-if="showSplash"
@@ -265,12 +258,12 @@ onUnmounted(() => {
               FEATURED ARTIFACTS // {{ t('home_featured_subtitle') }}
             </div>
           </div>
-          <RouterLink to="/posts" class="group flex flex-col items-end gap-2">
+          <Link href="/posts" class="group flex flex-col items-end gap-2">
             <div class="flex items-center gap-4 text-xs font-bold tracking-widest uppercase hover:text-construct-red transition-colors">
               <span>{{ t('home_view_all') }}</span>
               <ArrowRight class="w-4 h-4 transition-transform group-hover:translate-x-2" />
             </div>
-          </RouterLink>
+          </Link>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
@@ -295,13 +288,13 @@ onUnmounted(() => {
                     {{ post.excerpt }}
                   </p>
                 </div>
-                <a
-                  :href="`/posts/${post.id}`"
+                <Link
+                  :href="`/blog/${post.id}`"
                   class="inline-flex items-center gap-4 text-[10px] font-bold tracking-widest hover:translate-x-4 transition-transform duration-300 uppercase"
                 >
                   VIEW DETAILS
                   <ArrowRight class="w-4 h-4" />
-                </a>
+                </Link>
               </div>
               <!-- Decorative Background Card -->
               <div class="absolute -z-10 inset-0 border-4 border-white/10 translate-y-4 -translate-x-4 pointer-events-none group-hover:bg-white/5 transition-all"></div>

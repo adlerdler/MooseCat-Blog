@@ -40,7 +40,15 @@ import { useMenuItems } from '../../composables/useMenuItems';
 
 const { frontMenuItems, adminMenuItems } = useMenuItems();
 
-const { t } = useI18n();
+const { t: originalT } = useI18n();
+const t = (key, fallback = '') => {
+  if (!key) return fallback || '';
+  try {
+    return originalT(key) || fallback;
+  } catch (e) {
+    return fallback;
+  }
+};
 const { isDarkMode } = useTheme();
 const { success, error } = useToast();
 
@@ -72,8 +80,8 @@ const flattenedAdminMenu = computed(() => {
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase();
     items = items.filter(item => 
-      item.label_key.toLowerCase().includes(query) || 
-      t(item.label_key).toLowerCase().includes(query) ||
+      (item.label_key && item.label_key.toLowerCase().includes(query)) || 
+      (item.label_key && t(item.label_key).toLowerCase().includes(query)) ||
       (item.path && item.path.toLowerCase().includes(query))
     );
   }
@@ -93,8 +101,8 @@ const filteredFrontMenu = computed(() => {
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase();
     items = items.filter(item => 
-      item.label_key.toLowerCase().includes(query) || 
-      t(item.label_key).toLowerCase().includes(query) ||
+      (item.label_key && item.label_key.toLowerCase().includes(query)) || 
+      (item.label_key && t(item.label_key).toLowerCase().includes(query)) ||
       (item.path && item.path.toLowerCase().includes(query))
     );
   }
@@ -268,7 +276,10 @@ const parentMenuOptions = computed(() => {
   const collectParents = (items) => {
     items.forEach(item => {
       if (!item.parent_id) {
-        parents.push({ id: item.id, label: t(item.label_key) });
+        parents.push({ 
+          id: item.id, 
+          label: (item.label_key ? t(item.label_key) : item.label_key) || String(item.id)
+        });
       }
       if (item.children) {
         collectParents(item.children);

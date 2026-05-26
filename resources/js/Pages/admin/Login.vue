@@ -15,14 +15,13 @@
  * - 密码：Archyx_admin123
  */
 import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { router } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import { Lock, Mail, AlertCircle, Eye, EyeOff } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
 
 const { t } = useI18n();
 const { isDarkMode, initTheme } = useTheme();
-const router = useRouter();
 
 const email = ref('');
 const password = ref('');
@@ -73,7 +72,7 @@ const handleLogin = async () => {
       localStorage.removeItem('admin_remembered_password');
     }
 
-    router.push('/admin/index');
+    router.visit('/admin/index');
   } else {
     error.value = t('login_error_invalid');
   }

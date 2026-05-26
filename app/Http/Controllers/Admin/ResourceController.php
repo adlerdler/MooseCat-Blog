@@ -3,16 +3,32 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\MockDataService;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class ResourceController extends Controller
 {
+    protected $mockDataService;
+
+    public function __construct(MockDataService $mockDataService)
+    {
+        $this->mockDataService = $mockDataService;
+    }
+
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(): Response
     {
-        //
+        $resources = $this->mockDataService->getResources();
+        $categories = $this->mockDataService->getCategories();
+        
+        return Inertia::render('admin/Resources', [
+            'resources' => $resources,
+            'categories' => $categories,
+        ]);
     }
 
     /**
@@ -20,7 +36,11 @@ class ResourceController extends Controller
      */
     public function create()
     {
-        //
+        $categories = $this->mockDataService->getCategories();
+        
+        return Inertia::render('admin/Resources', [
+            'categories' => $categories,
+        ]);
     }
 
     /**
@@ -44,7 +64,14 @@ class ResourceController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $resources = $this->mockDataService->getResources();
+        $resource = collect($resources)->firstWhere('id', $id);
+        $categories = $this->mockDataService->getCategories();
+        
+        return Inertia::render('admin/Resources', [
+            'resource' => $resource,
+            'categories' => $categories,
+        ]);
     }
 
     /**

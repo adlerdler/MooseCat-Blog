@@ -3,16 +3,30 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\MockDataService;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class VideoController extends Controller
 {
+    protected $mockDataService;
+
+    public function __construct(MockDataService $mockDataService)
+    {
+        $this->mockDataService = $mockDataService;
+    }
+
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(): Response
     {
-        //
+        $videos = $this->mockDataService->getVideos();
+        
+        return Inertia::render('admin/Videos', [
+            'videos' => $videos,
+        ]);
     }
 
     /**
@@ -20,7 +34,7 @@ class VideoController extends Controller
      */
     public function create()
     {
-        //
+        return Inertia::render('admin/Videos');
     }
 
     /**
@@ -44,7 +58,12 @@ class VideoController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $videos = $this->mockDataService->getVideos();
+        $video = collect($videos)->firstWhere('id', $id);
+        
+        return Inertia::render('admin/Videos', [
+            'video' => $video,
+        ]);
     }
 
     /**

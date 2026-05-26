@@ -8,14 +8,14 @@
 
 ## 架构模式说明
 
-> **重要：** 前台和后台均采用 Laravel 传统服务端渲染模式，使用 Blade 模板引擎，数据直接从数据库查询，**不使用 Inertia.js**。仅移动端 APP 和第三方系统通过 RESTful API 获取数据。
+> **重要：** 采用 **Inertia.js 现代单体架构**。前台和后台均使用 Inertia.js 将 Laravel 后端数据直接传递给 Vue 组件，保留 SPA 体验。API 路由独立保留供移动端 APP 和第三方系统使用。
 
 | 端 | 渲染方式 | 数据获取方式 | 控制器目录 |
 |----|----------|--------------|------------|
-| **前台网站** | Laravel Blade | 直接查询数据库 | `App\Http\Controllers\Frontend\` |
-| **后台管理** | Laravel Blade | 直接查询数据库 | `App\Http\Controllers\Admin\` |
-| **移动端 APP** | - | 通过 API 获取 | `App\Http\Controllers\Api\V1\` |
-| **第三方集成** | - | 通过 API 获取 | `App\Http\Controllers\Api\V1\` |
+| **前台网站** | Inertia.js + Vue 3 | 通过 Inertia props 注入 | `App\Http\Controllers\Frontend\` |
+| **后台管理** | Inertia.js + Vue 3 | 通过 Inertia props 注入 | `App\Http\Controllers\Admin\` |
+| **移动端 APP** | - | 通过 RESTful API 获取 | `App\Http\Controllers\Api\V1\` |
+| **第三方集成** | - | 通过 RESTful API 获取 | `App\Http\Controllers\Api\V1\` |
 
 ---
 
@@ -232,16 +232,23 @@
 | EXT-06 | 创建 seo 表迁移 | Migration | ✅ 已完成 | - | SEO配置 key-value |
 | EXT-07 | 创建 ad_interactions 表迁移 | Migration | ✅ 已完成 | AD-01 | 广告互动追踪 |
 
-### 12. 前端集成
+### 12. Inertia.js 前端集成
 
 | ID | 任务 | 组件类型 | 状态 | 依赖 | Laravel实现 |
 |----|------|----------|:----:|------|------------|
-| FE-01 | 创建 Frontend PostController | Controller | ⚠️ 待处理 | CONT-15, CONT-17 | /api/v1/posts |
-| FE-02 | 创建 Frontend VideoController | Controller | ⚠️ 待处理 | CONT-24, CONT-25 | /api/v1/videos |
-| FE-03 | 创建 Frontend ProjectController | Controller | ⚠️ 待处理 | CONT-27, CONT-29 | /api/v1/projects |
-| FE-04 | 创建 Frontend ResourceController | Controller | ⚠️ 待处理 | CONT-31, CONT-33 | /api/v1/resources |
-| FE-05 | 创建 InteractionController | Controller | ⚠️ 待处理 | AD-07 | /api/interactions/visit |
-| FE-06 | 创建 SEO by route API | Controller | ⚠️ 待处理 | SEO-04 | /api/seo/{route} |
+| FE-01 | 安装 Inertia.js 后端扩展 | Package | ✅ 已完成 | - | composer require inertiajs/inertia-laravel |
+| FE-02 | 创建 HandleInertiaRequests 中间件 | Middleware | ✅ 已完成 | FE-01 | php artisan inertia:middleware |
+| FE-03 | 配置 Inertia 根模板 app.blade.php | Template | ✅ 已完成 | FE-01 | @inertiaHead + @inertia |
+| FE-04 | 创建 Frontend HomeController | Controller | ✅ 已完成 | CONT-15 | Inertia::render('front/Home') |
+| FE-05 | 创建 Frontend BlogController | Controller | ✅ 已完成 | CONT-15 | Inertia::render('front/Blog') |
+| FE-06 | 创建 Admin PostController | Controller | ✅ 已完成 | CONT-15 | Inertia::render('admin/Posts') |
+| FE-07 | 创建 Admin CategoryController | Controller | ✅ 已完成 | CONT-02 | Inertia::render('admin/Categories') |
+| FE-08 | 创建 Admin TagController | Controller | ✅ 已完成 | CONT-06 | Inertia::render('admin/Tags') |
+| FE-09 | 创建 Admin VideoController | Controller | ✅ 已完成 | CONT-23 | Inertia::render('admin/Videos') |
+| FE-10 | 创建 Admin ProjectController | Controller | ✅ 已完成 | CONT-27 | Inertia::render('admin/Projects') |
+| FE-11 | 创建 Admin ResourceController | Controller | ✅ 已完成 | CONT-31 | Inertia::render('admin/Resources') |
+| FE-12 | 前端配置 createInertiaApp | JS | ✅ 已完成 | FE-01 | app.js 入口配置 |
+| FE-13 | 集成 ziggy-js 路由辅助 | Package | ✅ 已完成 | FE-01 | npm install ziggy-js |
 
 ---
 
@@ -249,12 +256,19 @@
 
 | 优先级 | 总数 | ✅ 完成 | 🔄 进行中 | ⚠️ 待处理 |
 |:------:|:----:|:-------:|:---------:|:---------:|
-| 高 | 37 | 14 | 0 | 23 |
+| 高 | 44 | 27 | 0 | 17 |
 | 中 | 25 | 10 | 0 | 15 |
 | 低 | 23 | 9 | 0 | 14 |
-| **总计** | **85** | **33** | **0** | **52** |
+| **总计** | **92** | **46** | **0** | **46** |
 
-> **注：** 截至 2026-05-25，所有数据库迁移已完成，25个 Seeder 已优化完毕，约200条高质量模拟数据已填充。模型文件已全部更新与迁移文件保持一致。
+> **注：** 截至 2026-05-26，所有数据库迁移已完成，25个 Seeder 已优化完毕，约200条高质量模拟数据已填充。
+> 
+> **Inertia.js 架构迁移已完成：**
+> - 后端扩展包已安装配置
+> - HandleInertiaRequests 中间件已创建
+> - 根模板 app.blade.php 已配置
+> - 所有前台和后台控制器已改用 Inertia::render() 返回数据
+> - 前端 Vue 组件已改为通过 props 接收数据
 
 ---
 

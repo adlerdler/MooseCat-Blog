@@ -20,7 +20,9 @@
 import { computed } from 'vue';
 import { ArrowUpRight } from 'lucide-vue-next';
 import { sampleAdvertisements } from '../../data/advertisements';
-import { getAdPositionByName, getAdPositionById, adPositions } from '../../data/ad_positions';
+import { useAdSlot } from '../../composables/useAdSlot';
+
+const { getAdPositionByName, getAdPositionById, adPositions } = useAdSlot();
 
 const props = defineProps({
   position: {

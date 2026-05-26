@@ -1,0 +1,17 @@
+{
+  "id": 1,
+  "meta_title": "ARCHYX - Constructivist Digital Archive",
+  "meta_description": "Exploring digital constructivism through articles, videos, and projects",
+  "meta_keywords": "architecture, digital archive, constructivism, design, technology",
+  "google_analytics": "",
+  "baidu_analytics": "",
+  "sitemap": true,
+  "robots": true,
+  "llm_txt": true,
+  "canonical_url": "https://archyx.com",
+  "og_image": "",
+  "og_type": "website",
+  "twitter_card": "summary_large_image",
+  "created_at": "2024-01-01T00:00:00Z",
+  "updated_at": "2024-01-01T00:00:00Z"
+}

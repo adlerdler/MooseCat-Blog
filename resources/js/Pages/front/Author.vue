@@ -21,30 +21,17 @@ import { usePageSeo } from '../../composables/usePageSeo';
 import { usePageSeoData } from '../../composables/usePageSeoData';
 import SidebarMenu from '@/components/SidebarMenu.vue';
 import Footer from '@/components/Footer.vue';
-import { authorProfiles } from '../../data/author_profiles';
-import { PROJECTS } from '../../data/projects';
+
+const props = defineProps({
+  author: { type: Object, default: null },
+  skills: { type: Array, default: () => [] },
+  manifestos: { type: Array, default: () => [] },
+  socialLinksObj: { type: Object, default: () => ({}) },
+  projects: { type: Array, default: () => [] }
+});
 
 const { getSeoByPageKey } = usePageSeoData();
 const pageSeo = getSeoByPageKey('author')
-
-const getAuthorProfileByUserId = (userId) => {
-  return authorProfiles.find(p => p.user_id === userId && p.is_active);
-};
-
-const getAuthorSkills = (userId) => {
-  const profile = getAuthorProfileByUserId(userId);
-  return profile ? (profile.skills || []).sort((a, b) => a.sort_order - b.sort_order) : [];
-};
-
-const getAuthorManifestos = (userId) => {
-  const profile = getAuthorProfileByUserId(userId);
-  return profile ? (profile.manifestos || []).sort((a, b) => a.sort_order - b.sort_order) : [];
-};
-
-const getAuthorSocialLinks = (userId) => {
-  const profile = getAuthorProfileByUserId(userId);
-  return profile ? profile.social_links : {};
-};
 
 usePageSeo({
   title: pageSeo.title,
@@ -52,11 +39,7 @@ usePageSeo({
   keywords: pageSeo.keywords,
 })
 
-const author = getAuthorProfileByUserId(9);
-const skills = getAuthorSkills(9);
-const manifestos = getAuthorManifestos(9);
-const socialLinksObj = getAuthorSocialLinks(9);
-const socialLinks = Object.entries(socialLinksObj).map(([platform, url], index) => {
+const socialLinks = Object.entries(props.socialLinksObj).map(([platform, url], index) => {
   const iconMap = {
     github: 'Github',
     twitter: 'Twitter',
@@ -89,7 +72,6 @@ const githubStats = ref({ commits: 0, prs: 0, repos: 7 });
 const isLoading = ref(true);
 const githubLink = socialLinks.find(s => s.platform === 'github');
 const username = githubLink?.url?.split('/').pop() || 'adler-decht';
-const projects = PROJECTS.filter(p => p.status === 'in-progress' || p.status === 'planning');
 
 const getIconComponent = (iconName) => {
   const iconMap = {
@@ -297,7 +279,7 @@ const generateMockCalendarData = () => {
           class="lg:col-span-7 lg:col-start-6 flex flex-col gap-8 lg:gap-16 pl-0 lg:pl-6 transition-all duration-1000 delay-300"
           :class="isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'"
         >
-          <div class="relative">
+          <div class="relative" v-if="manifestos && manifestos.length">
             <div class="absolute top-4 left-4 w-full h-full bg-construct-red z-[0]" />
             <section class="bg-white p-6 md:p-10 border-4 border-construct-black relative z-10">
               <div class="absolute -top-6 -right-6 w-12 h-12 bg-construct-black text-white flex items-center justify-center font-bold text-xl">
@@ -308,15 +290,15 @@ const generateMockCalendarData = () => {
               </h3>
               <div class="space-y-6 text-base md:text-lg font-medium leading-relaxed">
                 <p>{{ manifestos[0]?.content }}</p>
-                <p class="pl-4 md:pl-6 border-l-4 border-construct-red">
+                <p class="pl-4 md:pl-6 border-l-4 border-construct-red" v-if="manifestos.length > 1">
                   {{ manifestos[1]?.content }}
                 </p>
-                <p>{{ manifestos[2]?.content }}</p>
+                <p v-if="manifestos.length > 2">{{ manifestos[2]?.content }}</p>
               </div>
             </section>
           </div>
 
-          <section>
+          <section v-if="skills && skills.length">
             <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
               <h3 class="font-display text-2xl md:text-3xl lg:text-4xl uppercase tracking-tighter">
                 {{ t('capability_metrics') }}
@@ -447,6 +429,7 @@ const generateMockCalendarData = () => {
       <div 
         class="mt-12 md:mt-16 pt-12 md:pt-16 border-t-4 border-construct-black mb-12 md:mb-16 transition-all duration-1000 delay-700"
         :class="isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'"
+        v-if="projects && projects.length"
       >
         <div class="flex items-center gap-3 mb-10">
           <div class="w-8 h-8 md:w-10 md:h-10 bg-construct-red flex items-center justify-center text-white">

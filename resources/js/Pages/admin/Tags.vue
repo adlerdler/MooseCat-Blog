@@ -12,6 +12,7 @@
 import {
   ref,
   computed,
+  watch,
   useI18n,
   useTheme,
   Tag,
@@ -21,14 +22,28 @@ import {
   Trash2,
   Filter,
   FileText,
-  adminTags,
   MetaForm,
   ConfirmDialog,
   Pagination,
   SearchFilterModal
 } from '../../composables/useAdminImports';
 
-const { t } = useI18n();
+const props = defineProps({
+  tags: {
+    type: Array,
+    default: () => []
+  }
+});
+
+const { t: originalT } = useI18n();
+const t = (key, fallback = '') => {
+  if (!key) return fallback || '';
+  try {
+    return originalT(key) || fallback;
+  } catch (e) {
+    return fallback;
+  }
+};
 const { isDarkMode } = useTheme();
 
 const searchQuery = ref('');
@@ -40,10 +55,14 @@ const editingTag = ref(null);
 const showDeleteConfirm = ref(false);
 const deletingTagId = ref(null);
 
-const tags = ref([...adminTags]);
+const localTags = ref([...props.tags]);
+
+watch(() => props.tags, (newTags) => {
+  localTags.value = [...newTags];
+}, { immediate: true });
 
 const filteredTags = computed(() => {
-  return tags.value.filter(tag => {
+  return localTags.value.filter(tag => {
     const matchesSearch = tag.name.toLowerCase().includes(searchQuery.value.toLowerCase());
     const matchesStatus = statusFilter.value === 'all' || tag.status === statusFilter.value;
     return matchesSearch && matchesStatus;
@@ -73,13 +92,13 @@ const handleAdd = () => {
 
 const handleSave = (data) => {
   if (editingTag.value) {
-    const index = tags.value.findIndex(t => t.id === editingTag.value.id);
+    const index = localTags.value.findIndex(t => t.id === editingTag.value.id);
     if (index !== -1) {
-      tags.value[index] = { ...tags.value[index], ...data };
+      localTags.value[index] = { ...localTags.value[index], ...data };
     }
   } else {
-    const newId = Math.max(...tags.value.map(t => t.id), 0) + 1;
-    tags.value.push({
+    const newId = Math.max(...localTags.value.map(t => t.id), 0) + 1;
+    localTags.value.push({
       id: newId,
       ...data,
       usageCount: 0
@@ -101,7 +120,7 @@ const handleDelete = (id) => {
 
 const confirmDelete = () => {
   if (deletingTagId.value !== null) {
-    tags.value = tags.value.filter(t => t.id !== deletingTagId.value);
+    localTags.value = localTags.value.filter(t => t.id !== deletingTagId.value);
     deletingTagId.value = null;
   }
   showDeleteConfirm.value = false;

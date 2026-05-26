@@ -7,7 +7,7 @@
  * - 支持搜索和状态筛选功能
  * - 支持项目的增删改查操作
  */
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import {
   FolderKanban,
@@ -21,7 +21,6 @@ import {
   ExternalLink,
   Github
 } from 'lucide-vue-next';
-import { PROJECTS } from '../../data/projects';
 import { useTheme } from '../../composables/useTheme';
 import { formatToShort } from '../../utils/dateUtils';
 import ProjectForm from '../../components/admin/ProjectForm.vue';
@@ -29,7 +28,22 @@ import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import Pagination from '../../components/admin/Pagination.vue';
 import SearchFilterModal from '../../components/admin/SearchFilterModal.vue';
 
-const { t } = useI18n();
+const props = defineProps({
+  projects: {
+    type: Array,
+    default: () => []
+  }
+});
+
+const { t: originalT } = useI18n();
+const t = (key, fallback = '') => {
+  if (!key) return fallback || '';
+  try {
+    return originalT(key) || fallback;
+  } catch (e) {
+    return fallback;
+  }
+};
 const { isDarkMode } = useTheme();
 
 const PROJECT_STATUS = Object.freeze({
@@ -46,12 +60,17 @@ const isFormVisible = ref(false);
 const editingProject = ref(null);
 const showDeleteConfirm = ref(false);
 const deletingProjectId = ref(null);
-const projects = ref([...PROJECTS]);
+
+const localProjects = ref([...props.projects]);
+
+watch(() => props.projects, (newProjects) => {
+  localProjects.value = [...newProjects];
+}, { immediate: true });
 
 const statuses = ['all', PROJECT_STATUS.COMPLETED, PROJECT_STATUS.IN_PROGRESS, PROJECT_STATUS.PLANNING];
 
 const filteredProjects = computed(() => {
-  let result = [...projects.value];
+  let result = [...localProjects.value];
   
   if (selectedStatus.value !== 'all') {
     result = result.filter(project => project.status === selectedStatus.value);
@@ -95,7 +114,7 @@ const handleDelete = (id) => {
 
 const confirmDelete = () => {
   if (deletingProjectId.value !== null) {
-    projects.value = projects.value.filter(p => p.id !== deletingProjectId.value);
+    localProjects.value = localProjects.value.filter(p => p.id !== deletingProjectId.value);
     deletingProjectId.value = null;
   }
   showDeleteConfirm.value = false;

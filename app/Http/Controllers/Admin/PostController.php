@@ -3,16 +3,34 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\MockDataService;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class PostController extends Controller
 {
+    protected $mockDataService;
+
+    public function __construct(MockDataService $mockDataService)
+    {
+        $this->mockDataService = $mockDataService;
+    }
+
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(): Response
     {
-        //
+        $posts = $this->mockDataService->getPosts();
+        $categories = $this->mockDataService->getCategories();
+        $users = $this->mockDataService->getUsers();
+        
+        return Inertia::render('admin/Posts', [
+            'posts' => $posts,
+            'categories' => $categories,
+            'users' => $users,
+        ]);
     }
 
     /**
@@ -20,7 +38,17 @@ class PostController extends Controller
      */
     public function create()
     {
-        //
+        $posts = $this->mockDataService->getPosts();
+        $categories = $this->mockDataService->getCategories();
+        $tags = $this->mockDataService->getTags();
+        $users = $this->mockDataService->getUsers();
+        
+        return Inertia::render('admin/Posts', [
+            'posts' => $posts,
+            'categories' => $categories,
+            'tags' => $tags,
+            'users' => $users,
+        ]);
     }
 
     /**
@@ -44,7 +72,19 @@ class PostController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $posts = $this->mockDataService->getPosts();
+        $post = collect($posts)->firstWhere('id', $id);
+        $categories = $this->mockDataService->getCategories();
+        $tags = $this->mockDataService->getTags();
+        $users = $this->mockDataService->getUsers();
+        
+        return Inertia::render('admin/Posts', [
+            'posts' => $posts,
+            'post' => $post,
+            'categories' => $categories,
+            'tags' => $tags,
+            'users' => $users,
+        ]);
     }
 
     /**

@@ -13,31 +13,34 @@
  * - 项目技术栈标签展示
  */
 import { ref, computed, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { Link } from '@inertiajs/vue3';
 import { Motion, AnimatePresence } from 'motion-v';
 import { useTheme } from '../../composables/useTheme';
 import { usePageSeo } from '../../composables/usePageSeo';
 import { usePageSeoData } from '../../composables/usePageSeoData';
-import { PROJECTS } from '../../data/projects';
-import SidebarMenu from '@/components/SidebarMenu.vue';
-
 import { useI18n } from 'vue-i18n';
 import { useAdSlot } from '../../composables/useAdSlot';
+import SidebarMenu from '@/components/SidebarMenu.vue';
+import Footer from '@/components/Footer.vue';
+import AdSlot from '@/components/front/AdSlot.vue';
+
+const props = defineProps({
+  projects: { type: Array, default: () => [] }
+});
 
 const { getSeoByPageKey } = usePageSeoData();
-const pageSeo = getSeoByPageKey('projects')
+const pageSeo = getSeoByPageKey('projects');
 
 usePageSeo({
   title: pageSeo.title,
   description: pageSeo.description,
   keywords: pageSeo.keywords,
-})
+});
 
 const { t } = useI18n();
 const { initAccentTheme } = useTheme();
-const router = useRouter();
 const isFooterVisible = ref(true);
-const completedProjects = PROJECTS.filter(p => p.status === 'completed');
+const completedProjects = props.projects.filter(p => p.status === 'completed');
 
 onMounted(() => {
   initAccentTheme();
@@ -50,10 +53,6 @@ onMounted(() => {
     isFooterVisible.value = saved === 'true';
   }
 });
-
-const goToProject = (projectId) => {
-  router.push(`/projects/${projectId}`);
-};
 
 const { getActiveAds } = useAdSlot();
 const AD_INTERVAL = 3;
@@ -169,7 +168,6 @@ const getAdSpanClass = () => {
               :initial="{ opacity: 0, y: 20 }"
               :animate="{ opacity: 1, y: 0 }"
               :transition="{ delay: item.originalIndex * 0.1 }"
-              @click="goToProject(item.data.id)"
               :class="[
                 'group cursor-pointer border-4 border-construct-black overflow-hidden transition-all duration-500 h-full flex flex-col',
                 item.originalIndex === 1 
@@ -178,110 +176,112 @@ const getAdSpanClass = () => {
                 getSpanClass(item.originalIndex)
               ]"
             >
-              <!-- Special layout for second card (idx 1) -->
-              <div v-if="item.originalIndex === 1" class="relative overflow-hidden w-full h-full">
-                <!-- Background Image with Grayscale & Scale Transitions -->
-                <img
-                  :src="item.data.image"
-                  :alt="item.data.title"
-                  class="absolute inset-0 w-full h-full object-cover grayscale mix-blend-luminosity opacity-40 group-hover:grayscale-0 group-hover:mix-blend-normal group-hover:opacity-60 group-hover:scale-110 transition-all duration-700 ease-out"
-                />
-                
-                <!-- Base Dark Gradient for readability in normal state -->
-                <div class="absolute inset-0 bg-gradient-to-t from-construct-black via-construct-black/80 to-transparent transition-opacity duration-700"></div>
-                
-                <!-- Constructivist Red Glow Overlay on Hover (duotone red-and-black blend) -->
-                <div class="absolute inset-0 bg-construct-red opacity-0 group-hover:opacity-85 mix-blend-multiply transition-opacity duration-700"></div>
-                <div class="absolute inset-0 bg-gradient-to-t from-construct-black via-transparent to-transparent opacity-0 group-hover:opacity-60 transition-opacity duration-700"></div>
-                
-                <!-- 内容容器 -->
-                <div class="relative p-6 md:p-8 h-full min-h-[350px] flex flex-col justify-between z-10">
-                  <!-- 顶部装饰区域 -->
-                  <div class="flex justify-between items-start">
-                    <div class="flex items-center gap-2">
-                      <div class="w-2 h-2 bg-construct-red group-hover:bg-white transition-colors duration-300"></div>
-                      <span class="text-[9px] font-bold tracking-[0.3em] text-white/60 group-hover:text-white uppercase transition-colors duration-300">FEATURED</span>
-                    </div>
-                    <span class="font-display text-5xl md:text-6xl text-white/10 group-hover:text-white/30 leading-none transition-all duration-500 transform group-hover:scale-110">
-                      {{ String(item.originalIndex + 1).padStart(2, '0') }}
-                    </span>
-                  </div>
-                  
-                  <!-- 下半部分内容（包含中间和底部，形成自然的紧凑感，消除大面积留白） -->
-                  <div class="flex flex-col gap-6 mt-auto pt-6">
-                    <div>
-                      <span class="text-[10px] font-black tracking-[0.3em] text-construct-red group-hover:text-white uppercase mb-2 block transition-colors duration-300">
-                        {{ item.data.year }} / {{ item.data.role }}
-                      </span>
-                      <h3 class="font-display text-2xl md:text-3xl tracking-tighter text-white leading-tight mb-3 group-hover:translate-x-1 transition-transform duration-500">
-                        {{ item.data.title }}
-                      </h3>
-                      <p class="text-xs md:text-sm text-white/70 group-hover:text-white/90 mb-4 transition-colors duration-300 leading-relaxed line-clamp-3">
-                        {{ item.data.description }}
-                      </p>
-                      
-                      <div class="flex flex-wrap gap-1.5">
-                        <span
-                          v-for="tech in item.data.technologies"
-                          :key="tech"
-                          class="text-[9px] font-black tracking-[0.15em] px-2.5 py-1 bg-white/10 text-white border border-white/20 group-hover:bg-white group-hover:text-construct-black group-hover:border-white transition-all duration-300"
-                        >
-                          {{ tech }}
-                        </span>
-                      </div>
-                    </div>
-                    
-                    <!-- 底部操作区域 -->
-                    <div class="flex items-center justify-between pt-4 border-t border-white/10">
-                      <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 border-2 border-white flex items-center justify-center shrink-0 group-hover:bg-white group-hover:border-white transition-all duration-300">
-                          <span class="text-white text-sm group-hover:text-construct-black transition-colors duration-300 transform group-hover:translate-x-0.5">→</span>
-                        </div>
-                        <span class="text-[9px] font-bold tracking-[0.2em] text-white uppercase">VIEW PROJECT</span>
-                      </div>
-                      <div class="w-12 h-[1px] bg-white/20 group-hover:w-20 group-hover:bg-white/40 transition-all duration-500"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Normal layout for other cards -->
-              <div v-else class="p-5 flex flex-col h-full flex-1">
-                <div class="aspect-video overflow-hidden mb-4 border-2 border-construct-black/10 group-hover:border-white/15 transition-colors">
+              <Link :href="`/projects/${item.data.id}`" class="relative w-full h-full flex flex-col">
+                <!-- Special layout for second card (idx 1) -->
+                <div v-if="item.originalIndex === 1" class="relative overflow-hidden w-full h-full">
+                  <!-- Background Image with Grayscale & Scale Transitions -->
                   <img
                     :src="item.data.image"
                     :alt="item.data.title"
-                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    class="absolute inset-0 w-full h-full object-cover grayscale mix-blend-luminosity opacity-40 group-hover:grayscale-0 group-hover:mix-blend-normal group-hover:opacity-60 group-hover:scale-110 transition-all duration-700 ease-out"
                   />
+                  
+                  <!-- Base Dark Gradient for readability in normal state -->
+                  <div class="absolute inset-0 bg-gradient-to-t from-construct-black via-construct-black/80 to-transparent transition-opacity duration-700"></div>
+                  
+                  <!-- Constructivist Red Glow Overlay on Hover (duotone red-and-black blend) -->
+                  <div class="absolute inset-0 bg-construct-red opacity-0 group-hover:opacity-85 mix-blend-multiply transition-opacity duration-700"></div>
+                  <div class="absolute inset-0 bg-gradient-to-t from-construct-black via-transparent to-transparent opacity-0 group-hover:opacity-60 transition-opacity duration-700"></div>
+                  
+                  <!-- 内容容器 -->
+                  <div class="relative p-6 md:p-8 h-full min-h-[350px] flex flex-col justify-between z-10">
+                    <!-- 顶部装饰区域 -->
+                    <div class="flex justify-between items-start">
+                      <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 bg-construct-red group-hover:bg-white transition-colors duration-300"></div>
+                        <span class="text-[9px] font-bold tracking-[0.3em] text-white/60 group-hover:text-white uppercase transition-colors duration-300">FEATURED</span>
+                      </div>
+                      <span class="font-display text-5xl md:text-6xl text-white/10 group-hover:text-white/30 leading-none transition-all duration-500 transform group-hover:scale-110">
+                        {{ String(item.originalIndex + 1).padStart(2, '0') }}
+                      </span>
+                    </div>
+                    
+                    <!-- 下半部分内容（包含中间和底部，形成自然的紧凑感，消除大面积留白） -->
+                    <div class="flex flex-col gap-6 mt-auto pt-6">
+                      <div>
+                        <span class="text-[10px] font-black tracking-[0.3em] text-construct-red group-hover:text-white uppercase mb-2 block transition-colors duration-300">
+                          {{ item.data.year }} / {{ item.data.role }}
+                        </span>
+                        <h3 class="font-display text-2xl md:text-3xl tracking-tighter text-white leading-tight mb-3 group-hover:translate-x-1 transition-transform duration-500">
+                          {{ item.data.title }}
+                        </h3>
+                        <p class="text-xs md:text-sm text-white/70 group-hover:text-white/90 mb-4 transition-colors duration-300 leading-relaxed line-clamp-3">
+                          {{ item.data.description }}
+                        </p>
+                        
+                        <div class="flex flex-wrap gap-1.5">
+                          <span
+                            v-for="tech in item.data.technologies"
+                            :key="tech"
+                            class="text-[9px] font-black tracking-[0.15em] px-2.5 py-1 bg-white/10 text-white border border-white/20 group-hover:bg-white group-hover:text-construct-black group-hover:border-white transition-all duration-300"
+                          >
+                            {{ tech }}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <!-- 底部操作区域 -->
+                      <div class="flex items-center justify-between pt-4 border-t border-white/10">
+                        <div class="flex items-center gap-3">
+                          <div class="w-8 h-8 border-2 border-white flex items-center justify-center shrink-0 group-hover:bg-white group-hover:border-white transition-all duration-300">
+                            <span class="text-white text-sm group-hover:text-construct-black transition-colors duration-300 transform group-hover:translate-x-0.5">→</span>
+                          </div>
+                          <span class="text-[9px] font-bold tracking-[0.2em] text-white uppercase">VIEW PROJECT</span>
+                        </div>
+                        <div class="w-12 h-[1px] bg-white/20 group-hover:w-20 group-hover:bg-white/40 transition-all duration-500"></div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div class="flex items-start justify-between gap-4 mb-3">
-                  <div>
-                    <span class="text-[10px] font-black tracking-widest text-construct-red group-hover:text-white uppercase mb-1.5 block transition-colors duration-300">
-                      {{ item.data.year }} / {{ item.data.role }}
+
+                <!-- Normal layout for other cards -->
+                <div v-else class="p-5 flex flex-col h-full flex-1">
+                  <div class="aspect-video overflow-hidden mb-4 border-2 border-construct-black/10 group-hover:border-white/15 transition-colors">
+                    <img
+                      :src="item.data.image"
+                      :alt="item.data.title"
+                      class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  </div>
+                  <div class="flex items-start justify-between gap-4 mb-3">
+                    <div>
+                      <span class="text-[10px] font-black tracking-widest text-construct-red group-hover:text-white uppercase mb-1.5 block transition-colors duration-300">
+                        {{ item.data.year }} / {{ item.data.role }}
+                      </span>
+                      <h3 class="font-display text-2xl md:text-3xl tracking-tighter group-hover:text-white leading-tight">
+                        {{ item.data.title }}
+                      </h3>
+                    </div>
+                    <div class="w-8 h-8 border-2 border-construct-black group-hover:border-white flex items-center justify-center shrink-0 group-hover:bg-construct-red transition-all duration-300 transform group-hover:translate-x-0.5">
+                      <span class="text-construct-black group-hover:text-white text-lg">→</span>
+                    </div>
+                  </div>
+                  <p class="text-xs md:text-sm text-gray-600 group-hover:text-white/80 line-clamp-3 mb-6 transition-colors leading-relaxed">
+                    {{ item.data.description }}
+                  </p>
+                  
+                  <!-- 技术标签与操作区靠底对齐 -->
+                  <div class="mt-auto pt-4 border-t border-construct-black/10 group-hover:border-white/10 flex flex-wrap gap-1.5 transition-colors duration-300">
+                    <span
+                      v-for="tech in item.data.technologies"
+                      :key="tech"
+                      class="text-[9px] font-black tracking-[0.15em] px-2.5 py-1 group-hover:bg-white group-hover:text-construct-black bg-construct-black text-white transition-colors"
+                    >
+                      {{ tech }}
                     </span>
-                    <h3 class="font-display text-2xl md:text-3xl tracking-tighter group-hover:text-white leading-tight">
-                      {{ item.data.title }}
-                    </h3>
-                  </div>
-                  <div class="w-8 h-8 border-2 border-construct-black group-hover:border-white flex items-center justify-center shrink-0 group-hover:bg-construct-red transition-all duration-300 transform group-hover:translate-x-0.5">
-                    <span class="text-construct-black group-hover:text-white text-lg">→</span>
                   </div>
                 </div>
-                <p class="text-xs md:text-sm text-gray-600 group-hover:text-white/80 line-clamp-3 mb-6 transition-colors leading-relaxed">
-                  {{ item.data.description }}
-                </p>
-                
-                <!-- 技术标签与操作区靠底对齐 -->
-                <div class="mt-auto pt-4 border-t border-construct-black/10 group-hover:border-white/10 flex flex-wrap gap-1.5 transition-colors duration-300">
-                  <span
-                    v-for="tech in item.data.technologies"
-                    :key="tech"
-                    class="text-[9px] font-black tracking-[0.15em] px-2.5 py-1 group-hover:bg-white group-hover:text-construct-black bg-construct-black text-white transition-colors"
-                  >
-                    {{ tech }}
-                  </span>
-                </div>
-              </div>
+              </Link>
             </Motion>
           </template>
         </div>

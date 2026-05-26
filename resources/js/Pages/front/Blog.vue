@@ -14,10 +14,7 @@
  */
 import { ref, computed, h } from 'vue';
 import { ArrowUpRight, Hash, BookOpen, Lightbulb, Users, Cog } from 'lucide-vue-next';
-import { RouterLink } from 'vue-router';
-import { POSTS } from '../../data/posts';
-import { adminUsers } from '../../data/users';
-import { categories } from '../../data/categories';
+import { Link } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import { useTheme } from '../../composables/useTheme';
 import { usePageSeo } from '../../composables/usePageSeo';
@@ -27,78 +24,86 @@ import { formatId } from '../../utils/typeConvert';
 import { getCategoryNameById } from '../../utils/categoryUtils';
 import { useAdSlot } from '../../composables/useAdSlot';
 
+import SidebarMenu from '../../components/SidebarMenu.vue';
+import Footer from '../../components/Footer.vue';
+import AdSlot from '../../components/front/AdSlot.vue';
+
+const props = defineProps({
+  posts: { type: Object, default: () => ({ data: [] }) },
+  categories: { type: Array, default: () => [] },
+  authors: { type: Array, default: () => [] }
+});
+
 const { getSeoByPageKey } = usePageSeoData();
-const pageSeo = getSeoByPageKey('blog')
+const pageSeo = getSeoByPageKey('blog');
 
 usePageSeo({
   title: pageSeo.title,
   description: pageSeo.description,
   keywords: pageSeo.keywords,
-})
+});
 
 const { t } = useI18n();
 const { initAccentTheme } = useTheme();
 const activeFilter = ref('all');
-const currentPage = ref(1);
-const itemsPerPage = 14;
-const categoryNames = ['all', ...categories.map(c => c.name)];
+const currentPage = ref(props.posts.current_page || 1);
+const itemsPerPage = props.posts.per_page || 14;
+const categoryNames = ['all', ...props.categories.map(c => c.name)];
 
 const getAuthorName = (authorId) => {
-  const user = adminUsers.find(u => u.id === authorId);
+  const user = props.authors.find(u => u.id === authorId);
   return user ? (user.penName || user.name) : 'Unknown';
 };
 const filteredPosts = computed(() => {
   if (activeFilter.value === 'all') {
-    return POSTS;
+    return props.posts.data || [];
   }
-  return POSTS.filter(post => getCategoryNameById(categories, post.category_id) === activeFilter.value);
+  return (props.posts.data || []).filter(post => getCategoryNameById(props.categories, post.category_id) === activeFilter.value);
 });
-const totalPages = computed(() => Math.ceil(filteredPosts.value.length / itemsPerPage));
+const totalPages = computed(() => props.posts.last_page || 1);
 const paginatedPosts = computed(() => {
- const start = (currentPage.value - 1) * itemsPerPage;
- const end = start + itemsPerPage;
- return filteredPosts.value.slice(start, end);
+  return filteredPosts.value;
 });
 const handleFilterChange = (filter) => {
- activeFilter.value = filter;
- currentPage.value = 1;
+  activeFilter.value = filter;
+  currentPage.value = 1;
 };
 const handlePageChange = (pageNum) => {
- currentPage.value = pageNum;
+  currentPage.value = pageNum;
 };
 const getCatIcon = (cat) => {
- switch (cat) {
- case 'Theory':
- return h(BookOpen, { size: 16 });
- case 'Design':
- return h(Lightbulb, { size: 16 });
- case 'Technology':
- return h(Cog, { size: 16 });
- case 'Culture':
- return h(Users, { size: 16 });
- default:
- return h(Hash, { size: 16 });
- }
+  switch (cat) {
+    case 'Theory':
+      return h(BookOpen, { size: 16 });
+    case 'Design':
+      return h(Lightbulb, { size: 16 });
+    case 'Technology':
+      return h(Cog, { size: 16 });
+    case 'Culture':
+      return h(Users, { size: 16 });
+    default:
+      return h(Hash, { size: 16 });
+  }
 };
 const getSpanClass = (idx) => {
   const mod = idx % 7;
   switch (mod) {
-  case 0:
-  return 'md:col-span-12 xl:col-span-8';
-  case 1:
-  return 'md:col-span-12 xl:col-span-4';
-  case 2:
-  return 'md:col-span-6 xl:col-span-4';
-  case 3:
-  return 'md:col-span-6 xl:col-span-4';
-  case 4:
-  return 'md:col-span-12 xl:col-span-4';
-  case 5:
-  return 'md:col-span-12 xl:col-span-6';
-  case 6:
-  return 'md:col-span-12 xl:col-span-6';
-  default:
-  return 'md:col-span-12 xl:col-span-4';
+    case 0:
+      return 'md:col-span-12 xl:col-span-8';
+    case 1:
+      return 'md:col-span-12 xl:col-span-4';
+    case 2:
+      return 'md:col-span-6 xl:col-span-4';
+    case 3:
+      return 'md:col-span-6 xl:col-span-4';
+    case 4:
+      return 'md:col-span-12 xl:col-span-4';
+    case 5:
+      return 'md:col-span-12 xl:col-span-6';
+    case 6:
+      return 'md:col-span-12 xl:col-span-6';
+    default:
+      return 'md:col-span-12 xl:col-span-4';
   }
 };
 
@@ -175,9 +180,7 @@ const isFooterVisible = ref(true);
         </div>
       </header>
 
-   
-
-   <!-- Header Banner Ad -->
+      <!-- Header Banner Ad -->
       <section class="bg-construct-black">
         <AdSlot position="header" />
       </section>
@@ -245,7 +248,7 @@ const isFooterVisible = ref(true);
                 getSpanClassForMixed(idx, item.originalIndex)
               ]"
             >
-              <RouterLink :to="`/blog/${item.data.id}`" class="absolute inset-0 z-20" :aria-label="`Read ${item.data.title}`"></RouterLink>
+              <Link :href="`/blog/${item.data.id}`" class="absolute inset-0 z-20" :aria-label="`Read ${item.data.title}`"></Link>
 
               <!-- Decorative ID Background -->
               <div
@@ -259,10 +262,10 @@ const isFooterVisible = ref(true);
               <div class="flex justify-between items-start mb-8 md:mb-12 relative z-10" :class="item.data.color === 'red' ? 'group-hover:text-white' : 'group-hover:text-white'">
                 <div class="flex items-center gap-3">
                   <span class="p-2 transition-colors duration-500" :class="item.data.color === 'red' ? 'bg-construct-red text-white group-hover:bg-white group-hover:text-construct-red' : 'bg-construct-black text-white group-hover:bg-white group-hover:text-construct-black'">
-                    <component :is="getCatIcon(getCategoryNameById(categories, item.data.category_id))" />
+                    <component :is="getCatIcon(getCategoryNameById(props.categories, item.data.category_id))" />
                   </span>
                   <span class="text-[10px] md:text-xs font-bold tracking-[0.3em] uppercase group-hover:text-white">
-                    {{ getCategoryNameById(categories, item.data.category_id) }}
+                    {{ getCategoryNameById(props.categories, item.data.category_id) }}
                   </span>
                 </div>
                 <span class="text-[10px] font-bold tracking-widest opacity-60 group-hover:text-white">
