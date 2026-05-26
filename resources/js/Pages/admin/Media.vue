@@ -1,12 +1,14 @@
 <script setup>
 /**
- * AdminMedia.vue - 媒体库页面 (优化版 - 后台风格一致)
+ * Media Library Page
  * 
- * 功能说明：
- * - 支持网格(Grid)和列表(List)视图切换
- * - 图片文件实时预览
- * - 文件详细信息侧边栏
- * - 风格与后台管理系统统一
+ * Features:
+ * - Grid and list view modes
+ * - File preview functionality
+ * - File upload support
+ * - Search and filter by type
+ * - File deletion with confirmation
+ * - Bulk selection support
  */
 import {
   ref,
@@ -37,8 +39,11 @@ import {
   ConfirmDialog,
   useToast
 } from '../../composables/useAdminImports';
-import { adminMedia } from '../../data/media';
 import { Motion, AnimatePresence } from 'motion-v';
+
+const props = defineProps({
+  media: { type: Array, default: () => [] },
+});
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
@@ -75,7 +80,7 @@ const handleUploadSuccess = (newFiles) => {
   });
 };
 
-const mediaFiles = ref([...adminMedia]);
+const mediaFiles = computed(() => [...(props.media || [])]);
 
 const filteredMedia = computed(() => {
   return mediaFiles.value.filter(file => {

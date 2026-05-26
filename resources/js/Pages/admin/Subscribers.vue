@@ -9,7 +9,7 @@
  * - 查看、编辑、删除订阅者
  * - 订阅者状态管理（激活/未激活）
  */
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import {
   Mail,
@@ -22,12 +22,18 @@ import {
   User
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
-import { subscribers as subscribersData } from '../../data/subscribers';
 import { findById, findIndexById } from '../../utils/typeConvert';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import SearchFilterModal from '../../components/admin/SearchFilterModal.vue';
 import Pagination from '../../components/admin/Pagination.vue';
 import { formatToShort } from '../../utils/dateUtils';
+
+const props = defineProps({
+  subscribers: {
+    type: Array,
+    default: () => []
+  }
+});
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
@@ -54,7 +60,11 @@ const showDeleteConfirm = ref(false);
 const deletingSubscriberId = ref(null);
 const showSuccessMessage = ref(false);
 
-const subscribers = ref([...subscribersData]);
+const subscribers = ref([...props.subscribers]);
+
+watch(() => props.subscribers, (newSubscribers) => {
+  subscribers.value = [...newSubscribers];
+});
 
 const filteredSubscribers = computed(() => {
   return subscribers.value.filter(subscriber => {

@@ -8,15 +8,31 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * SEO Controller
+ * 
+ * Handles SEO management operations.
+ * Provides functionality for managing SEO settings and page meta data.
+ */
 class SeoController extends Controller
 {
     protected $mockDataService;
 
+    /**
+     * Constructor
+     * 
+     * @param MockDataService $mockDataService
+     */
     public function __construct(MockDataService $mockDataService)
     {
         $this->mockDataService = $mockDataService;
     }
 
+    /**
+     * Display the SEO management page
+     * 
+     * @return Response
+     */
     public function index(): Response
     {
         $seoConfig = $this->mockDataService->getSeoConfig();
@@ -28,6 +44,12 @@ class SeoController extends Controller
         ]);
     }
 
+    /**
+     * Update SEO configuration
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function update(Request $request)
     {
         $validated = $request->validate([

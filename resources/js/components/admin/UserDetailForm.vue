@@ -35,7 +35,6 @@ import {
   MessageCircle
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
-import { roles } from '../../data/roles';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
@@ -64,6 +63,10 @@ const props = defineProps({
   visible: {
     type: Boolean,
     default: false
+  },
+  roles: {
+    type: Array,
+    default: () => []
   }
 });
 

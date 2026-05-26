@@ -1,27 +1,19 @@
 <script setup>
 /**
- * AdminUsers.vue - 用户管理页面
+ * User Management Page
  * 
- * 功能说明：
- * - 管理系统用户账户
- * - 用户列表展示（用户名、邮箱、角色、状态）
- * - 用户搜索和筛选功能
- * - 添加、编辑、删除用户
- * - 用户状态管理（启用/禁用）
- * 
- * ⚠️ 角色管理说明（2026-05-24）：
- * - role_id 已从数据库删除，改用 Spatie RBAC 管理角色
- * - 页面中的角色显示和过滤仅用于前端展示，实际角色通过 Spatie 方法获取
- * - 分配角色：$user->assignRole('admin')
- * - 获取角色：$user->getRoleNames()
+ * Features:
+ * - User list display with pagination
+ * - Search and filter functionality
+ * - User CRUD operations (create, edit, delete)
+ * - Role-based filtering
+ * - Status toggle (active/inactive)
  */
+import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { Link } from '@inertiajs/vue3';
+import { useTheme } from '../../composables/useTheme';
 import {
-  ref,
-  computed,
-  useI18n,
-  useRouter,
-  useTheme,
-  formatToShort,
   Users,
   Plus,
   Search,
@@ -33,18 +25,24 @@ import {
   Mail,
   Shield,
   X,
-  adminUsers,
   UserForm,
   ConfirmDialog,
   Pagination,
-  SearchFilterModal
+  SearchFilterModal,
+  formatToShort
 } from '../../composables/useAdminImports';
 import { useRolePermissions } from '../../composables/useRolePermissions';
 
+const props = defineProps({
+  users: { type: Array, default: () => [] },
+  roles: { type: Array, default: () => [] },
+});
+
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
-const { getRoleLabel, getRoleStyle } = useRolePermissions();
-const router = useRouter();
+const { getRoleLabel, getRoleStyle } = useRolePermissions({
+  roles: props.roles
+});
 
 const searchQuery = ref('');
 const roleFilter = ref('all');
@@ -55,7 +53,7 @@ const editingUser = ref(null);
 const showDeleteConfirm = ref(false);
 const deletingUserId = ref(null);
 
-const users = ref([...adminUsers]);
+const users = computed(() => props.users || []);
 
 const filteredUsers = computed(() => {
   return users.value.filter(user => {
@@ -120,10 +118,6 @@ const handleSave = (data) => {
 const handleCancel = () => {
   isFormVisible.value = false;
   editingUser.value = null;
-};
-
-const handleView = (user) => {
-  router.push({ name: 'admin-user-detail', params: { id: user.id } });
 };
 
 const handleDelete = (id) => {
@@ -238,9 +232,9 @@ const handleFilterChange = ({ key, value }) => {
             <td :class="['px-6 py-4', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ formatToShort(user.joined) }}</td>
             <td class="px-6 py-4">
               <div class="flex items-center justify-center gap-2">
-                <button @click="handleView(user)" :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:bg-gray-600' : 'text-gray-500 hover:bg-gray-100']">
+                <Link :href="`/admin/users/${user.id}`" :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:bg-gray-600' : 'text-gray-500 hover:bg-gray-100']">
                   <Eye size="16" />
-                </button>
+                </Link>
                 <button @click="handleEdit(user)" :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:bg-gray-600' : 'text-gray-500 hover:bg-gray-100']">
                   <Edit3 size="16" />
                 </button>
@@ -267,6 +261,7 @@ const handleFilterChange = ({ key, value }) => {
     <UserForm
       :edit-data="editingUser"
       :visible="isFormVisible"
+      :roles="props.roles"
       @save="handleSave"
       @cancel="handleCancel"
     />

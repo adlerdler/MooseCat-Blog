@@ -1,13 +1,4 @@
 <script setup>
-/**
- * MailConfig.vue - 邮件系统配置页面
- * 
- * 功能说明：
- * - SMTP 服务器配置
- * - 发件人信息设置
- * - 测试邮件发送
- * - 加密方式选择
- */
 import {
   ref,
   useI18n,
@@ -22,11 +13,17 @@ import {
   useToast,
   ConfirmDialog
 } from '../../composables/useAdminImports';
-import { mailConfig } from '../../data/mail_config';
+
+const props = defineProps({
+  mailConfig: { type: Object, default: () => ({}) },
+});
 
 const { t } = useI18n();
 
-const getDefaultMailConfig = () => mailConfig.find(config => config.is_default) || mailConfig[0];
+const getDefaultMailConfig = () => {
+  const configs = props.mailConfig?.configs || [];
+  return configs.find(config => config.is_default) || configs[0] || {};
+};
 const { isDarkMode } = useTheme();
 const { success } = useToast();
 

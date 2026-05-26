@@ -38,7 +38,11 @@ import {
 } from '../../composables/useAdminImports';
 import { useMenuItems } from '../../composables/useMenuItems';
 
-const { frontMenuItems, adminMenuItems } = useMenuItems();
+const props = defineProps({
+  menus: { type: Array, default: () => [] },
+});
+
+const { frontMenuItems, adminMenuItems } = useMenuItems({ menus: props.menus });
 
 const { t: originalT } = useI18n();
 const t = (key, fallback = '') => {

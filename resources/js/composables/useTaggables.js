@@ -10,11 +10,19 @@
  * - 获取某个标签关联的所有内容
  * - 获取某个内容的所有标签
  * - 标签筛选和搜索
+ *
+ * 使用方式：
+ * // 通过 options 传入数据（必须）
+ * import { useTaggables } from '../../composables/useTaggables';
+ * const { getTagsByPostId } = useTaggables({
+ *   taggables: props.taggables,
+ *   tags: props.tags
+ * });
  */
-import { taggables } from '../data/taggables';
-import { adminTags } from '../data/tags';
+export const useTaggables = (options = {}) => {
+  const taggables = options.taggables || [];
+  const adminTags = options.tags || [];
 
-export const useTaggables = () => {
   /**
    * 根据类型获取关联的标签ID列表
    * @param {string} type - 内容类型（如 'Post'、'Video'、'Project'）

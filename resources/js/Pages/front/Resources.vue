@@ -12,7 +12,7 @@
  * - 资源卡片网格布局
  * - 模态框展示资源详情
  */
-import { ref, computed, onMounted, TransitionGroup } from 'vue';
+import { ref, computed, onMounted, watch, TransitionGroup } from 'vue';
 import { Motion, AnimatePresence } from 'motion-v';
 import { useTheme } from '../../composables/useTheme';
 import { usePageSeo } from '../../composables/usePageSeo';
@@ -32,12 +32,12 @@ const props = defineProps({
 });
 
 const { getSeoByPageKey } = usePageSeoData();
-const pageSeo = getSeoByPageKey('resources');
+const pageSeo = getSeoByPageKey('resources') || { title: '', description: '', keywords: '' };
 
 usePageSeo({
-  title: pageSeo.title,
-  description: pageSeo.description,
-  keywords: pageSeo.keywords,
+  title: pageSeo.title || '',
+  description: pageSeo.description || '',
+  keywords: pageSeo.keywords || '',
 });
 
 const { t } = useI18n();
@@ -91,6 +91,11 @@ onMounted(() => {
     isFooterVisible.value = saved === 'true';
   }
 });
+
+watch(isFooterVisible, (newVal) => {
+  sessionStorage.setItem('footer_visible', String(newVal));
+});
+
 const selectResource = (resource) => {
   // 创建资源副本并添加 categoryName 字段供模态框使用
   selectedResource.value = {

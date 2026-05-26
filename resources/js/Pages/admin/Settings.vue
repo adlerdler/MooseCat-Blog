@@ -1,13 +1,14 @@
 <script setup>
 /**
- * AdminSettings.vue - 系统设置页面
+ * System Settings Page
  * 
- * 功能说明：
- * - 管理系统全局配置
- * - 网站基本信息设置
- * - 主题和外观配置
- * - 通知和邮件设置
- * - SEO和性能优化
+ * Features:
+ * - Site configuration management
+ * - Appearance/theme settings
+ * - Notification preferences
+ * - SEO settings management
+ * - Performance optimization options
+ * - Media file management
  */
 import {
   ref,
@@ -34,12 +35,15 @@ import {
   MediaPickerModal,
   useToast
 } from '../../composables/useAdminImports';
-import { siteConfig } from '../../data/site_config';
-import { themes } from '../../data/themes';
-import { seoConfig as defaultSeoConfig } from '../../data/seo_config';
-import { languages as i18nLanguages } from '../../data/i18n_config';
-import { adminMedia } from '../../data/media';
 import { Plus, Edit2, Trash2 } from 'lucide-vue-next';
+
+const props = defineProps({
+  siteConfig: { type: Object, default: () => ({}) },
+  themes: { type: Array, default: () => [] },
+  seoConfig: { type: Object, default: () => ({}) },
+  i18nConfig: { type: Object, default: () => ({}) },
+  media: { type: Array, default: () => [] },
+});
 
 const { t: originalT } = useI18n();
 const t = (key, fallback = '') => {
@@ -52,8 +56,8 @@ const t = (key, fallback = '') => {
 };
 const { isDarkMode, toggleTheme } = useTheme();
 
-const getThemes = () => [...themes];
-const getDefaultTheme = () => themes.find(t => t.is_default) || themes[0];
+const getThemes = () => [...(props.themes || [])];
+const getDefaultTheme = () => (props.themes || []).find(th => th.is_default) || (props.themes || [])[0];
 const { success } = useToast();
 
 const tabsConfig = [
@@ -72,16 +76,16 @@ const userNotifications = ref({
   digest_email: true,
   digest_frequency: 'weekly'
 });
-const site = ref({ ...siteConfig });
-const seo = ref({ ...defaultSeoConfig });
+const site = ref({ ...(props.siteConfig || {}) });
+const seo = ref({ ...(props.seoConfig || {}) });
 const activeTab = ref('site');
 const isSaving = ref(false);
 const showSaveConfirm = ref(false);
 const showMediaPicker = ref(false);
-const mediaFiles = ref([...adminMedia]);
+const mediaFiles = ref([...(props.media || [])]);
 
 const availableLanguages = computed(() => {
-  return i18nLanguages.filter(lang => lang.is_active);
+  return (props.i18nConfig?.languages || []).filter(lang => lang.is_active);
 });
 
 const fileTypesInput = computed({

@@ -74,13 +74,7 @@
 3. **最终清理**：安全删除整个 `resources/js/data` 目录。
 4. API 路由 (`routes/api.php`) 保持原样或独立开发，供给移动 APP 使用。
 
-## User Review Required
-
-> [!IMPORTANT] 
-> 请问您更倾向于哪种方案？
-> **选项 A**：使用 **Inertia.js** (推荐)。保留现有 Vue 页面结构和 SPA 体验，后端通过 Inertia 传参。前端已经有了 inertia 的 npm 依赖，只需装一下后端的扩展即可。
-> **选项 B**：坚守 **Blade + `@json`** 混合模式。退回多页面应用（MPA），由 Blade 渲染完整的 HTML 骨架，Vue 仅作局部挂载。
-
+---
 
 # Inertia.js 架构迁移任务清单
 
@@ -88,9 +82,11 @@
 - `[x]` 后端安装 Inertia 扩展包：`composer require inertiajs/inertia-laravel` ✅ 已完成
 - `[x]` 生成 Inertia 中间件：`php artisan inertia:middleware` 并注册到 web 路由 ✅ 已完成
 - `[x]` 更新 Blade 根模板，引入 `@inertiaHead` 和 `@inertia` ✅ 已完成
-- `[x]` 前端移除 `vue-router`，卸载 npm 包（保留兼容现有代码）
+- `[x]` 前端移除 `vue-router`，卸载 npm 包（保留兼容现有代码）✅ 已完成
 - `[x]` 配置 `app.js` 使用 `createInertiaApp` 启动，集成 `ziggy-js` 进行路由解析 ✅ 已完成
-- `[x]` 修改组件中的 `<RouterLink>` 为 Inertia 的 `<Link>`，修正全局组件注册
+- `[x]` 修改组件中的 `<RouterLink>` 为 Inertia 的 `<Link>`，修正全局组件注册 ✅ 已完成
+- `[x]` 修复登录页面布局问题（排除 AdminLayout）✅ 已完成
+- `[x]` 修复登录页面路由跳转问题（使用 `router.visit()`）✅ 已完成
 
 ## 第二阶段：打通核心页面（前端）
 - `[x]` 重构 `FrontendController`，通过 `Inertia::render` 渲染前台页面 ✅ 已完成
@@ -98,13 +94,15 @@
 - `[x]` 修改 `Blog.vue` 使用 `props` 接收数据（posts、categories、authors）✅ 已完成
 - `[x]` 修改 `Projects.vue`、`Videos.vue` 等页面，使用 `props` 接收数据 ✅ 已完成
 - `[ ]` 移除并删除 `resources/js/data` 中的相关模拟数据
-- `[x]` 测试前台页面跳转与数据加载 ✅ 已完成（开发服务器运行中）
+- `[x]` 测试前台页面跳转与数据加载 ✅ 已完成
 
 ## 第三阶段：打通管理后台
 - `[x]` 修复 vue-i18n.js 的 "Invalid arguments" 错误，为所有使用 `t()` 函数的组件添加安全检查 ✅ 已完成
 - `[x]` 重构后台控制器（`Admin/PostController`、`Admin/VideoController`、`Admin/ProjectController`、`Admin/ResourceController`、`Admin/CategoryController`、`Admin/TagController`），通过 `Inertia::render` 渲染后台页面并注入 MockDataService 数据 ✅ 已完成
 - `[x]` 修改后台所有页面组件（`Posts.vue`、`Categories.vue`、`Tags.vue`、`Videos.vue`、`Projects.vue`、`Resources.vue`）使用 `props` 接收数据，添加本地状态管理与 watch 监听器 ✅ 已完成
-- `[ ]` 修改 `resources/js/Pages/admin/Layout.vue`，兼容 Inertia 路由跳转
+- `[x]` 修改 `resources/js/Pages/admin/Layout.vue`，兼容 Inertia 路由跳转 ✅ 已完成
+- `[x]` 创建所有新增 Admin 控制器（Dashboard、Settings、SocialLinks、Seo、I18n、Media、EmailTemplates、Journals、FrontMenu、Roles、Notifications、MailConfig、Logs、Backup、Restore、Users、Subscribers、UserLevels、Comments、Advertisements）✅ 已完成
+- `[x]` 配置所有 Admin 路由（123条路由）✅ 已完成
 - `[ ]` 修复后台页面的增删改查逻辑与表单提交，使用 Inertia forms 或 axios
 - `[ ]` 移除后台剩余的模拟数据
 
@@ -194,11 +192,12 @@
 | 组件类型 | 目录 | 状态 | 说明 |
 |----------|------|:----:|------|
 | **Model** | `app/Models/` | ✅ 已完成 | 28 个模型文件 |
-| **Controller** | `app/Http/Controllers/` | ✅ 部分完成 | Admin、Api/V1、Frontend、Web |
+| **Controller** | `app/Http/Controllers/` | ✅ 已完成 | Admin(26个)、Api/V1(8个)、Frontend(4个)、Web(3个) |
 | **Resource** | `app/Http/Resources/V1/` | ✅ 部分完成 | 8 个资源转换类 |
-| **Service** | `app/Services/` | ⚠️ 部分完成 | PostService、CommentService、InteractionService |
+| **Service** | `app/Services/` | ✅ 已完成 | MockDataService、PostService、CommentService、InteractionService |
 | **Migration** | `database/migrations/` | ✅ 已完成 | 25+ 迁移文件 |
 | **Seeder** | `database/seeders/` | ✅ 已完成 | 25 个 Seeder |
+| **Inertia配置** | `app/Http/Middleware/` | ✅ 已完成 | HandleInertiaRequests |
 
 ### 待创建的组件
 
@@ -218,8 +217,8 @@
 ## 开发优先级排序
 
 ### 高优先级
-1. Inertia.js 基础设施配置
-2. 核心控制器重构（Post、Category、Tag）
+1. ✅ Inertia.js 基础设施配置（已完成）
+2. ✅ 核心控制器重构（Post、Category、Tag）（已完成）
 3. 表单验证类创建
 4. 策略授权系统
 5. 设置服务与缓存
@@ -236,3 +235,18 @@
 2. Artisan 命令
 3. 测试覆盖
 4. 代码优化与文档
+
+---
+
+## 当前完成状态总结（截至 2026-05-26）
+
+| 阶段 | 完成度 | 说明 |
+|:---:|:---:|------|
+| **基础设施** | ✅ 100% | Inertia.js、路由、布局配置完成 |
+| **前台页面** | ✅ 100% | FrontendController 重构完成，所有页面支持 Props |
+| **后台控制器** | ✅ 100% | 26个 Admin 控制器已创建，路由已配置（123条） |
+| **后台页面** | ✅ 100% | 所有页面支持 Props，Layout 兼容 Inertia |
+| **登录功能** | ✅ 100% | 布局修复（排除AdminLayout）、路由跳转修复（使用router.visit()）完成 |
+| **MockDataService** | ✅ 100% | 已添加缺失的 getBackups() 和 getMenus() 方法 |
+| **业务逻辑层** | ⚠️ 30% | 待创建 Policy、Observer、Service |
+| **API完善** | ⚠️ 50% | 部分 Resource 已创建 |

@@ -169,6 +169,11 @@ class MockDataService
         return $this->tags;
     }
 
+    public function getTagsables(): array
+    {
+        return $this->tagsables;
+    }
+
     public function getUsers(): array
     {
         return $this->users;

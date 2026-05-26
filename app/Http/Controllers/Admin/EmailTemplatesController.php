@@ -8,15 +8,31 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * Email Templates Controller
+ * 
+ * Handles email template management.
+ * Provides functionality for viewing and updating email templates.
+ */
 class EmailTemplatesController extends Controller
 {
     protected $mockDataService;
 
+    /**
+     * Constructor
+     * 
+     * @param MockDataService $mockDataService
+     */
     public function __construct(MockDataService $mockDataService)
     {
         $this->mockDataService = $mockDataService;
     }
 
+    /**
+     * Display the email template list
+     * 
+     * @return Response
+     */
     public function index(): Response
     {
         $templates = $this->mockDataService->getEmailTemplates();
@@ -26,6 +42,12 @@ class EmailTemplatesController extends Controller
         ]);
     }
 
+    /**
+     * Display the edit email template form
+     * 
+     * @param string $id
+     * @return Response
+     */
     public function edit(string $id): Response
     {
         $templates = $this->mockDataService->getEmailTemplates();
@@ -36,6 +58,13 @@ class EmailTemplatesController extends Controller
         ]);
     }
 
+    /**
+     * Update the specified email template
+     * 
+     * @param Request $request
+     * @param string $id
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function update(Request $request, string $id)
     {
         $validated = $request->validate([

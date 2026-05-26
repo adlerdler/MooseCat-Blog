@@ -1,13 +1,4 @@
 <script setup>
-/**
- * AdminBackup.vue - 备份管理页面
- * 
- * 功能说明：
- * - 管理系统备份记录
- * - 备份列表展示（名称、类型、状态、大小、时间）
- * - 创建新备份（完整备份、数据库备份、文件备份、增量备份）
- * - 下载和删除备份
- */
 import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import {
@@ -26,11 +17,14 @@ import {
   Loader
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
-import { backupRecords } from '../../data/backup';
 import { formatToShort } from '../../utils/dateUtils';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import Pagination from '../../components/admin/Pagination.vue';
 import SearchFilterModal from '../../components/admin/SearchFilterModal.vue';
+
+const props = defineProps({
+  backups: { type: Array, default: () => [] },
+});
 
 const { t, locale } = useI18n();
 const { isDarkMode } = useTheme();
@@ -45,7 +39,7 @@ const newBackupNote = ref('');
 const showDeleteConfirm = ref(false);
 const deletingBackup = ref(null);
 
-const backups = ref([...backupRecords]);
+const backups = computed(() => props.backups || []);
 
 const filteredBackups = computed(() => {
   return backups.value.filter(backup => {

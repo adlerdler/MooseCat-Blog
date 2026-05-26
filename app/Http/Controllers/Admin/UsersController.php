@@ -8,15 +8,31 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * Users Controller
+ * 
+ * Handles user management operations.
+ * Provides CRUD functionality for system users.
+ */
 class UsersController extends Controller
 {
     protected $mockDataService;
 
+    /**
+     * Constructor
+     * 
+     * @param MockDataService $mockDataService
+     */
     public function __construct(MockDataService $mockDataService)
     {
         $this->mockDataService = $mockDataService;
     }
 
+    /**
+     * Display the user list
+     * 
+     * @return Response
+     */
     public function index(): Response
     {
         $users = $this->mockDataService->getUsers();
@@ -28,6 +44,11 @@ class UsersController extends Controller
         ]);
     }
 
+    /**
+     * Display the create user form
+     * 
+     * @return Response
+     */
     public function create(): Response
     {
         $roles = $this->mockDataService->getRoles();
@@ -37,6 +58,12 @@ class UsersController extends Controller
         ]);
     }
 
+    /**
+     * Store a newly created user
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -49,6 +76,31 @@ class UsersController extends Controller
         return back()->with('success', '用户已创建');
     }
 
+    /**
+     * Display the specified user
+     * 
+     * @param string $id
+     * @return Response
+     */
+    public function show(string $id): Response
+    {
+        $users = $this->mockDataService->getUsers();
+        $roles = $this->mockDataService->getRoles();
+        $authorProfiles = $this->mockDataService->getAuthorProfiles();
+        
+        return Inertia::render('admin/UserDetail', [
+            'users' => $users,
+            'roles' => $roles,
+            'authorProfiles' => $authorProfiles,
+        ]);
+    }
+
+    /**
+     * Display the edit user form
+     * 
+     * @param string $id
+     * @return Response
+     */
     public function edit(string $id): Response
     {
         $users = $this->mockDataService->getUsers();
@@ -61,6 +113,13 @@ class UsersController extends Controller
         ]);
     }
 
+    /**
+     * Update the specified user
+     * 
+     * @param Request $request
+     * @param string $id
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function update(Request $request, string $id)
     {
         $validated = $request->validate([
@@ -72,6 +131,12 @@ class UsersController extends Controller
         return back()->with('success', '用户已更新');
     }
 
+    /**
+     * Remove the specified user
+     * 
+     * @param string $id
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function destroy(string $id)
     {
         return back()->with('success', '用户已删除');

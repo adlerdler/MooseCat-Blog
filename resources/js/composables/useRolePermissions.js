@@ -8,19 +8,28 @@
  * - 提供角色信息获取、权限检查等功能
  * - 支持 Spatie 标准字段 (name, guard_name)
  * - 支持扩展字段 (color, label, program_id)
- * 
+ *
  * ⚠️ 角色管理说明（2026-05-24）：
  * - users 表的 role_id 字段已删除，改用 Spatie RBAC 的 model_has_roles 中间表管理角色
  * - 本 composable 仅用于前端展示参考，实际角色管理通过 Spatie 方法
  * - 分配角色：$user->assignRole('admin')
  * - 检查角色：$user->hasRole('admin')
  * - 获取角色：$user->getRoleNames()
+ *
+ * 使用方式：
+ * // 通过 options 传入数据（必须）
+ * import { useRolePermissions } from '../../composables/useRolePermissions';
+ * const { roles, permissions } = useRolePermissions({
+ *   roles: props.roles,
+ *   permissions: props.permissions,
+ *   rolePermissions: props.rolePermissions
+ * });
  */
-import { roles } from '../data/roles';
-import { permissions } from '../data/permissions';
-import { rolePermissions } from '../data/role_permissions';
+export const useRolePermissions = (options = {}) => {
+  const roles = options.roles || [];
+  const permissions = options.permissions || [];
+  const rolePermissions = options.rolePermissions || [];
 
-export const useRolePermissions = () => {
   const COLOR_MAP = {
     red: { bg: 'bg-red-600', text: 'text-white', border: 'border-red-500' },
     blue: { bg: 'bg-blue-600', text: 'text-white', border: 'border-blue-500' },

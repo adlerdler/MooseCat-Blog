@@ -12,7 +12,7 @@
  * - Hover 时卡片背景变色效果
  * - 装饰性编号背景增强品牌感
  */
-import { ref, computed, h } from 'vue';
+import { ref, computed, h, onMounted, watch } from 'vue';
 import { ArrowUpRight, Hash, BookOpen, Lightbulb, Users, Cog } from 'lucide-vue-next';
 import { Link } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
@@ -35,12 +35,12 @@ const props = defineProps({
 });
 
 const { getSeoByPageKey } = usePageSeoData();
-const pageSeo = getSeoByPageKey('blog');
+const pageSeo = getSeoByPageKey('blog') || { title: '', description: '', keywords: '' };
 
 usePageSeo({
-  title: pageSeo.title,
-  description: pageSeo.description,
-  keywords: pageSeo.keywords,
+  title: pageSeo.title || '',
+  description: pageSeo.description || '',
+  keywords: pageSeo.keywords || '',
 });
 
 const { t } = useI18n();
@@ -49,6 +49,7 @@ const activeFilter = ref('all');
 const currentPage = ref(props.posts.current_page || 1);
 const itemsPerPage = props.posts.per_page || 14;
 const categoryNames = ['all', ...props.categories.map(c => c.name)];
+const isFooterVisible = ref(true);
 
 const getAuthorName = (authorId) => {
   const user = props.authors.find(u => u.id === authorId);
@@ -153,7 +154,22 @@ const getAdSpanClass = () => {
   return 'md:col-span-12 xl:col-span-4';
 };
 
-const isFooterVisible = ref(true);
+onMounted(() => {
+  initAccentTheme();
+
+  // 前台页面不受后台主题设置影响，移除 light class
+  document.documentElement.classList.remove('light');
+
+  // 从 sessionStorage 读取页脚可见性状态
+  const saved = sessionStorage.getItem('footer_visible');
+  if (saved !== null) {
+    isFooterVisible.value = saved === 'true';
+  }
+});
+
+watch(isFooterVisible, (newVal) => {
+  sessionStorage.setItem('footer_visible', String(newVal));
+});
 </script>
 
 <template>

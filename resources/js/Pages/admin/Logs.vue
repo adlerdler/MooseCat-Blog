@@ -1,18 +1,18 @@
 <script setup>
 /**
- * AdminLogs.vue - 操作日志页面
+ * System Logs Page
  * 
- * 功能说明：
- * - 查看系统操作日志
- * - 日志列表展示（操作类型、用户、IP、详情、时间）
- * - 日志搜索和筛选（支持模块和动作）
+ * Features:
+ * - System operation logs display
+ * - Search and filter functionality (module, action)
+ * - Log details modal
+ * - Pagination support
+ * - IP address and user tracking
  */
+import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useTheme } from '../../composables/useTheme';
 import {
-  ref,
-  computed,
-  useI18n,
-  useTheme,
-  formatToShort,
   FileText,
   Search,
   Filter,
@@ -23,10 +23,14 @@ import {
   Eye,
   X,
   Zap,
-  adminLogs,
   Pagination,
-  SearchFilterModal
+  SearchFilterModal,
+  formatToShort
 } from '../../composables/useAdminImports';
+
+const props = defineProps({
+  logs: { type: Array, default: () => [] },
+});
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
@@ -39,14 +43,14 @@ const itemsPerPage = ref(6);
 const selectedLog = ref(null);
 const showDetailModal = ref(false);
 
-const logs = ref([...adminLogs]);
+const logs = computed(() => props.logs || []);
 
-// 获取所有模块类型
+// Get all module types
 const moduleTypes = computed(() => {
   return ['all', ...new Set(logs.value.map(log => log.module))];
 });
 
-// 获取基于模块筛选后的动作类型
+// Get action types based on module filter
 const actionTypes = computed(() => {
   let sourceLogs = logs.value;
   if (moduleFilter.value !== 'all') {

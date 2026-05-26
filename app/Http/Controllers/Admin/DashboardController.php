@@ -7,15 +7,31 @@ use App\Services\MockDataService;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * Dashboard Controller
+ *
+ * Handles admin dashboard related operations.
+ * Provides data for the admin dashboard overview page.
+ */
 class DashboardController extends Controller
 {
     protected $mockDataService;
 
+    /**
+     * Constructor
+     *
+     * @param MockDataService $mockDataService
+     */
     public function __construct(MockDataService $mockDataService)
     {
         $this->mockDataService = $mockDataService;
     }
 
+    /**
+     * Display the admin dashboard
+     *
+     * @return Response
+     */
     public function index(): Response
     {
         $posts = $this->mockDataService->getPosts();
@@ -23,26 +39,57 @@ class DashboardController extends Controller
         $videos = $this->mockDataService->getVideos();
         $users = $this->mockDataService->getUsers();
         $logs = $this->mockDataService->getLogs();
-        
+        $categories = $this->mockDataService->getCategories();
+        $comments = $this->mockDataService->getComments();
+        $resources = $this->mockDataService->getResources();
+        $visits = $this->mockDataService->getVisits();
+        $userLevels = $this->mockDataService->getUserLevels();
+        $roles = $this->mockDataService->getRoles();
+        $tags = $this->mockDataService->getTags();
+        $taggables = $this->mockDataService->getTagsables();
+
         return Inertia::render('admin/Index', [
             'posts' => $posts,
             'projects' => $projects,
             'videos' => $videos,
             'users' => $users,
             'logs' => $logs,
+            'categories' => $categories,
+            'comments' => $comments,
+            'resources' => $resources,
+            'visits' => $visits,
+            'userLevels' => $userLevels,
+            'roles' => $roles,
+            'tags' => $tags,
+            'taggables' => $taggables,
         ]);
     }
 
+    /**
+     * Display the login page
+     *
+     * @return Response
+     */
     public function login(): Response
     {
         return Inertia::render('admin/Login');
     }
 
+    /**
+     * Handle login request
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function handleLogin()
     {
         return redirect()->route('admin');
     }
 
+    /**
+     * Display the about page
+     *
+     * @return Response
+     */
     public function about(): Response
     {
         return Inertia::render('admin/About');

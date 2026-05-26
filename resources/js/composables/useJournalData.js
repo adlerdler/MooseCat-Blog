@@ -1,17 +1,22 @@
 /**
  * useJournalData.js - 日记数据 Composable
- * 
+ *
  * 功能说明：
  * - 提供日记相关的工具函数
  * - 供 Journals.vue 和 JournalForm.vue 使用
+ *
+ * 使用方式：
+ * // 通过 options 传入数据（必须）
+ * import { useJournalData } from '../../composables/useJournalData';
+ * const { getJournalsByUserId } = useJournalData({ journals: props.journals });
  */
-import { journals } from '../data/journals';
+export function useJournalData(options = {}) {
+  const journals = options.journals || [];
 
-export function useJournalData() {
   const getMoodTypes = () => ['excited', 'happy', 'calm', 'thoughtful', 'motivated', 'sad', 'anxious', 'neutral'];
-  
+
   const getWeatherTypes = () => ['sunny', 'cloudy', 'rainy', 'snowy', 'windy', 'clear', 'stormy'];
-  
+
   const getMoodLabel = (mood) => {
     const moodMap = {
       'excited': '兴奋',
@@ -25,7 +30,7 @@ export function useJournalData() {
     };
     return moodMap[mood] || mood;
   };
-  
+
   const getWeatherLabel = (weather) => {
     const weatherMap = {
       'sunny': '晴天',
@@ -38,7 +43,7 @@ export function useJournalData() {
     };
     return weatherMap[weather] || weather;
   };
-  
+
   const getJournalsByUserId = (userId) => {
     return journals
       .filter(j => j.user_id === userId)

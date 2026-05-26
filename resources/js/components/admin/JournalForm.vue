@@ -4,6 +4,9 @@
  * 
  * 功能说明：
  * - 编辑日志基本信息（标题、内容、心情、天气、日期、公开状态）
+ * 
+ * 使用示例：
+ * <JournalForm :journal-data="journal" :visible="isVisible" :users="users" @save="handleSave" @cancel="handleCancel" />
  */
 import { ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -19,7 +22,6 @@ import {
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
 import { useJournalData } from '../../composables/useJournalData';
-import { adminUsers } from '../../data/users';
 
 const { getMoodLabel, getWeatherLabel, getMoodTypes, getWeatherTypes } = useJournalData();
 
@@ -34,6 +36,10 @@ const props = defineProps({
   visible: {
     type: Boolean,
     default: false
+  },
+  users: {
+    type: Array,
+    default: () => []
   }
 });
 
@@ -101,7 +107,7 @@ const handleSave = () => {
               <div>
                 <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">用户</label>
                 <select v-model="editingJournal.user_id" :class="['w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red', isDarkMode ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300 text-gray-900']">
-                  <option v-for="user in adminUsers" :key="user.id" :value="user.id">{{ user.name }}</option>
+                  <option v-for="user in props.users" :key="user.id" :value="user.id">{{ user.name }}</option>
                 </select>
               </div>
             </div>

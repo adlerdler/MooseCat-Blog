@@ -27,7 +27,6 @@ import {
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
 import { formatToRelative } from '../../utils/dateUtils';
-import { resourceTypes } from '../../data/resources';
 import ResourceForm from '../../components/admin/ResourceForm.vue';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import Pagination from '../../components/admin/Pagination.vue';
@@ -54,6 +53,8 @@ const t = (key, fallback = '') => {
   }
 };
 const { isDarkMode } = useTheme();
+
+const resourceTypes = ['all', 'PDF', 'Image', 'Video', 'Archive', 'Other'];
 
 const searchQuery = ref('');
 const currentPage = ref(1);

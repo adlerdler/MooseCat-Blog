@@ -77,12 +77,13 @@ const toggleDropdown = (key) => {
 };
 
 const getOptionLabel = (filter) => {
+  if (!filter) return '';
   if (filter.type === 'checkbox') {
     return props.filterValues[filter.key] ? filter.checkedLabel : filter.uncheckedLabel;
   }
   const currentValue = props.filterValues[filter.key];
-  const option = filter.options.find(o => o.value === currentValue);
-  return option ? option.label : filter.options[0]?.label || '';
+  const option = filter.options?.find(o => o.value === currentValue);
+  return option ? option.label : filter.options?.[0]?.label || '';
 };
 
 const handleClickOutside = (event) => {
@@ -125,6 +126,7 @@ onBeforeUnmount(() => {
     <!-- Filters -->
     <div v-if="filters.length > 0" class="flex items-center gap-4 flex-wrap">
       <template v-for="filter in filters" :key="filter.key">
+        <template v-if="filter">
         <!-- Checkbox type filter -->
         <div v-if="filter.type === 'checkbox'" class="flex items-center gap-2">
           <label :class="['flex items-center gap-2 px-4 py-3 rounded-lg cursor-pointer transition-colors', isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100']">
@@ -183,6 +185,7 @@ onBeforeUnmount(() => {
             </div>
           </div>
         </div>
+        </template>
       </template>
     </div>
   </div>

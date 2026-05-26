@@ -1,13 +1,4 @@
 <script setup>
-/**
- * AdminRestore.vue - 数据还原页面
- * 
- * 功能说明：
- * - 显示可还原的备份列表
- * - 支持选择备份进行还原
- * - 显示还原进度和状态
- * - 支持预览备份内容
- */
 import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import {
@@ -31,11 +22,14 @@ import {
   Image
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
-import { backupRecords } from '../../data/backup';
 import { formatToShort } from '../../utils/dateUtils';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import Pagination from '../../components/admin/Pagination.vue';
 import SearchFilterModal from '../../components/admin/SearchFilterModal.vue';
+
+const props = defineProps({
+  backups: { type: Array, default: () => [] },
+});
 
 const { t, locale } = useI18n();
 const { isDarkMode } = useTheme();
@@ -51,7 +45,7 @@ const isRestoring = ref(false);
 const expandedBackup = ref(null);
 const selectedItems = ref([]);
 
-const backups = ref([...backupRecords].filter(b => b.status === 'completed'));
+const backups = computed(() => (props.backups || []).filter(b => b.status === 'completed'));
 
 const filteredBackups = computed(() => {
   return backups.value.filter(backup => {

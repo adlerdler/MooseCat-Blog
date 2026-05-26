@@ -7,7 +7,7 @@
  * - 支持编辑、启用/禁用页面 SEO
  * - 数据保存到 page_seo.js
  */
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import {
   Search,
@@ -18,8 +18,14 @@ import {
   EyeOff
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
-import { pageSeoList } from '../../data/page_seo';
 import SearchFilterModal from '../../components/admin/SearchFilterModal.vue';
+
+const props = defineProps({
+  pageSeo: {
+    type: Array,
+    default: () => []
+  }
+});
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
@@ -29,20 +35,19 @@ const showEditModal = ref(false);
 const editingPage = ref(null);
 const editForm = ref({});
 
-const getAllPageSeo = () => [...pageSeoList];
+const getAllPageSeo = () => [...props.pageSeo];
 
 const updatePageSeo = (id, data) => {
-  const index = pageSeoList.findIndex(p => p.id === id);
+  const index = props.pageSeo.findIndex(p => p.id === id);
   if (index === -1) return null;
-  pageSeoList[index] = {
-    ...pageSeoList[index],
-    ...data,
-    updatedAt: new Date().toISOString()
-  };
-  return { ...pageSeoList[index] };
+  return { ...props.pageSeo[index], ...data, updatedAt: new Date().toISOString() };
 };
 
 const pageSeoListRef = ref(getAllPageSeo().map(page => ({ ...page })));
+
+watch(() => props.pageSeo, (newPageSeo) => {
+  pageSeoListRef.value = newPageSeo.map(page => ({ ...page }));
+}, { deep: true });
 
 const filteredPages = computed(() => {
   if (!searchQuery.value) return pageSeoListRef.value;

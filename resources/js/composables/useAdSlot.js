@@ -7,17 +7,29 @@
  * - 供页面在实现卡片广告时复用筛选逻辑
  *
  * 使用方式：
+ * // 通过 options 传入数据（必须）
  * import { useAdSlot } from '../../composables/useAdSlot';
+ * const { getActiveAds } = useAdSlot({
+ *   ads: props.ads,
+ *   adPositions: props.adPositions
+ * });
  *
- * const { getActiveAds } = useAdSlot();
  * const headerAds = getActiveAds('header');
  * const betweenPostsAds = getActiveAds('between_posts', 3);
  */
 import { computed } from 'vue';
-import { sampleAdvertisements } from '../data/advertisements';
-import { adPositions } from '../data/ad_positions';
 
-export function useAdSlot() {
+/**
+ * 创建广告位 Composable
+ * @param {Object} options - 可选配置
+ * @param {Array} options.ads - 广告数据数组（从 props 传入）
+ * @param {Array} options.adPositions - 广告位配置数组（从 props 传入）
+ * @returns {Object} 广告位操作方法
+ */
+export function useAdSlot(options = {}) {
+  const ads = options.ads || [];
+  const adPositions = options.adPositions || [];
+
   /**
    * 根据位置名称获取广告位配置
    * @param {string} name - 广告位名称
@@ -33,7 +45,8 @@ export function useAdSlot() {
    * @returns {object|null} 广告位配置对象
    */
   const getAdPositionById = (id) => {
-    return adPositions.find(pos => pos.id === id) || null;
+    const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
+    return adPositions.find(pos => pos.id === numericId) || null;
   };
 
   /**
@@ -86,16 +99,16 @@ export function useAdSlot() {
       targetPosition = posConfig ? posConfig.name : positionOrId;
     }
 
-    let ads = sampleAdvertisements.filter(ad => {
+    let filteredAds = ads.filter(ad => {
       if (ad.position !== targetPosition || !ad.is_active) return false;
       return isAdValid(ad);
     });
 
     if (limit !== null) {
-      ads = ads.slice(0, limit);
+      filteredAds = filteredAds.slice(0, limit);
     }
 
-    return ads;
+    return filteredAds;
   };
 
   /**
@@ -106,7 +119,7 @@ export function useAdSlot() {
     const result = {};
 
     adPositions.forEach(pos => {
-      result[pos.name] = sampleAdvertisements.filter(ad => {
+      result[pos.name] = ads.filter(ad => {
         if (ad.position !== pos.name || !ad.is_active) return false;
         return isAdValid(ad);
       });
@@ -130,8 +143,8 @@ export function useAdSlot() {
    * @returns {Object|null} 广告对象或null
    */
   const getSingleAd = (positionOrId) => {
-    const ads = getActiveAds(positionOrId, 1);
-    return ads.length > 0 ? ads[0] : null;
+    const adsResult = getActiveAds(positionOrId, 1);
+    return adsResult.length > 0 ? adsResult[0] : null;
   };
 
   /**

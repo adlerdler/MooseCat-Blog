@@ -16,13 +16,13 @@
  * <AdSlot position="header" />
  * <AdSlot position="footer" />
  * <AdSlot position="sidebar" :limit="2" />
+ * 
+ * 支持通过 props 传入数据（推荐）：
+ * <AdSlot position="header" :ads="props.ads" :adPositions="props.adPositions" />
  */
 import { computed } from 'vue';
 import { ArrowUpRight } from 'lucide-vue-next';
-import { sampleAdvertisements } from '../../data/advertisements';
 import { useAdSlot } from '../../composables/useAdSlot';
-
-const { getAdPositionByName, getAdPositionById, adPositions } = useAdSlot();
 
 const props = defineProps({
   position: {
@@ -38,7 +38,23 @@ const props = defineProps({
   limit: {
     type: Number,
     default: 1
+  },
+  // 可选：通过 props 传入广告数据
+  ads: {
+    type: Array,
+    default: null
+  },
+  // 可选：通过 props 传入广告位配置
+  adPositions: {
+    type: Array,
+    default: null
   }
+});
+
+// 使用传入的数据或默认数据
+const { getAdPositionByName, getAdPositionById, getActiveAds } = useAdSlot({
+  ads: props.ads,
+  adPositions: props.adPositions
 });
 
 const positionConfig = computed(() => {
@@ -62,20 +78,8 @@ const targetPositionName = computed(() => {
   return positionConfig.value?.name || '';
 });
 
-const isAdValid = (ad) => {
-  const now = new Date();
-  const start = new Date(ad.start_date);
-  const end = new Date(ad.end_date);
-  return now >= start && now <= end;
-};
-
 const activeAds = computed(() => {
-  return sampleAdvertisements
-    .filter(ad => {
-      if (ad.position_id !== targetPositionId.value || !ad.is_active) return false;
-      return isAdValid(ad);
-    })
-    .slice(0, props.limit);
+  return getActiveAds(props.position, props.limit);
 });
 
 const getContainerClasses = () => {

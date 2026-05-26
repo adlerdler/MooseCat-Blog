@@ -8,9 +8,6 @@
 // Vue 组合式 API
 export { ref, computed, watch } from 'vue';
 
-// Vue Router
-export { useRouter, useRoute } from 'vue-router';
-
 // Vue I18n
 export { useI18n } from 'vue-i18n';
 
@@ -131,11 +128,8 @@ export { findById, formatId } from '../utils/typeConvert';
 // 分类工具函数
 export { getCategoryLabel, getCategoryNames } from '../utils/categoryUtils';
 
-// 数据文件
-export { adminUsers } from '../data/users';
-export { categories as adminCategories } from '../data/categories';
-export { adminTags } from '../data/tags';
-export { adminLogs } from '../data/logs';
+// 数据文件 - 已迁移到后端 MockDataService
+// 请通过 props 从后端获取数据，使用 composables 的 options 参数传入
 // 菜单数据已迁移到 useMenuItems composable
 // 角色和权限相关函数已迁移到 useRolePermissions composable
 

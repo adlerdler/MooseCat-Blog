@@ -1,12 +1,13 @@
 <script setup>
 /**
- * AdminComments.vue - 评论管理页面
+ * Comment Management Page
  * 
- * 功能说明：
- * - 管理用户评论
- * - 评论列表展示（作者、内容、文章、状态、时间）
- * - 评论搜索和筛选
- * - 审核、回复、删除评论
+ * Features:
+ * - Comment list display with pagination
+ * - Search and filter functionality
+ * - Comment approval/rejection
+ * - Reply to comments
+ * - Delete comments with confirmation
  */
 import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -30,10 +31,13 @@ import {
   SearchFilterModal
 } from '../../composables/useAdminImports';
 import { useTheme } from '../../composables/useTheme';
-import { commentsData } from '../../data/comments';
-import { POSTS } from '../../data/posts';
 import { formatToShort } from '../../utils/dateUtils';
 import { Motion, AnimatePresence } from 'motion-v';
+
+const props = defineProps({
+  comments: { type: Array, default: () => [] },
+  posts: { type: Array, default: () => [] },
+});
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
@@ -43,18 +47,16 @@ const statusFilter = ref('all');
 const currentPage = ref(1);
 const itemsPerPage = ref(6);
 
-// State for delete confirmation
 const showDeleteConfirm = ref(false);
 const commentToDelete = ref(null);
 
-// State for replying
 const replyingToId = ref(null);
 const replyContent = ref('');
 
-const comments = ref([...commentsData]);
+const comments = computed(() => props.comments || []);
 
 const getPostTitle = (postId) => {
-  const post = POSTS.find(p => p.id === postId);
+  const post = (props.posts || []).find(p => p.id === postId);
   return post ? post.title : 'Unknown Post';
 };
 

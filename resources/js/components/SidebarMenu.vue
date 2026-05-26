@@ -14,7 +14,13 @@
  * - Footer 显示控制
  *
  * 使用示例：
- * <SidebarMenu v-model:is-footer-visible="isFooterVisible" />
+ * <SidebarMenu 
+ *   v-model:is-footer-visible="isFooterVisible" 
+ *   :posts="posts"
+ *   :videos="videos"
+ *   :projects="projects"
+ *   :resources="resources"
+ * />
  */
 import { ref, computed, watch, onUnmounted } from 'vue';
 import { Link } from '@inertiajs/vue3';
@@ -23,17 +29,42 @@ import SettingsPanel from './SettingsPanel.vue';
 import SearchOverlay from './SearchOverlay.vue';
 import { useI18n } from 'vue-i18n';
 import { useSiteConfig } from '../composables/useSiteConfig';
-import { POSTS } from '../data/posts';
-import { VIDEOS } from '../data/videos';
-import { PROJECTS } from '../data/projects';
-import { resourcesData } from '../data/resources';
+import { useMenuItems } from '../composables/useMenuItems';
 
 const { getSiteName, getSiteCopyright } = useSiteConfig();
+
+const props = defineProps({
+  isFooterVisible: {
+    type: Boolean,
+    default: true
+  },
+  posts: {
+    type: Array,
+    default: () => []
+  },
+  videos: {
+    type: Array,
+    default: () => []
+  },
+  projects: {
+    type: Array,
+    default: () => []
+  },
+  resources: {
+    type: Array,
+    default: () => []
+  }
+});
+
+const { frontMenuItems } = useMenuItems();
+
+const siteName = getSiteName();
+const siteCopyright = getSiteCopyright();
 
 const searchPosts = computed(() => {
   const allContent = [];
 
-  POSTS.forEach(post => {
+  props.posts.forEach(post => {
     allContent.push({
       id: post.id,
       type: 'post',
@@ -43,7 +74,7 @@ const searchPosts = computed(() => {
     });
   });
 
-  VIDEOS.forEach(video => {
+  props.videos.forEach(video => {
     allContent.push({
       id: video.id,
       type: 'video',
@@ -53,7 +84,7 @@ const searchPosts = computed(() => {
     });
   });
 
-  PROJECTS.forEach(project => {
+  props.projects.forEach(project => {
     allContent.push({
       id: project.id,
       type: 'project',
@@ -63,7 +94,7 @@ const searchPosts = computed(() => {
     });
   });
 
-  resourcesData.forEach(resource => {
+  props.resources.forEach(resource => {
     allContent.push({
       id: resource.id,
       type: 'resource',
@@ -75,20 +106,6 @@ const searchPosts = computed(() => {
 
   return allContent;
 });
-
-import { useMenuItems } from '../composables/useMenuItems';
-
-const { frontMenuItems } = useMenuItems();
-
-const siteName = getSiteName();
-const siteCopyright = getSiteCopyright();
-
-const props = defineProps({
-  isFooterVisible: {
-    type: Boolean,
-    default: true
-  }
-})
 
 const emit = defineEmits(['toggle-search', 'toggle-menu', 'update:is-footer-visible']);
 

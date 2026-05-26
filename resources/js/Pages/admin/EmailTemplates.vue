@@ -1,13 +1,4 @@
 <script setup>
-/**
- * EmailTemplates.vue - 邮件模板编辑器
- * 
- * 功能说明：
- * - 列表展示系统内置邮件模板
- * - 可视化/代码双模式编辑器
- * - 支持模板变量提示
- * - 预览预览功能
- */
 import {
   ref,
   computed,
@@ -27,7 +18,10 @@ import {
   ConfirmDialog,
   useToast
 } from '../../composables/useAdminImports';
-import { emailTemplates } from '../../data/email_templates';
+
+const props = defineProps({
+  templates: { type: Array, default: () => [] },
+});
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
@@ -42,14 +36,16 @@ const variables = [
   { name: 'post_url', desc: '文章/评论所在页面的链接' }
 ];
 
-const templates = ref(emailTemplates.map(t => ({
-  id: t.name,  // Using name as the id to maintain compatibility
-  name: t.name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()), // Convert snake_case to Title Case
-  subject: t.subject,
-  description: t.description,
-  lastUpdated: t.updated_at,
-  content: t.body  // Map body to content for compatibility
-})));
+const templates = computed(() => {
+  return (props.templates || []).map(t => ({
+    id: t.name,  // Using name as the id to maintain compatibility
+    name: t.name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()), // Convert snake_case to Title Case
+    subject: t.subject,
+    description: t.description,
+    lastUpdated: t.updated_at,
+    content: t.body  // Map body to content for compatibility
+  }));
+});
 
 const selectedTemplate = ref({...templates.value[0]});
 const activeMode = ref('visual'); // visual | code

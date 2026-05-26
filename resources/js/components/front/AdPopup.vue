@@ -10,24 +10,30 @@
  * 
  * 使用方式：
  * <AdPopup />
+ * 
+ * 支持通过 props 传入数据（推荐）：
+ * <AdPopup :ads="props.ads" />
  */
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { X } from 'lucide-vue-next';
-import { sampleAdvertisements } from '../../data/advertisements';
+import { useAdSlot } from '../../composables/useAdSlot';
+
+const props = defineProps({
+  // 可选：通过 props 传入广告数据
+  ads: {
+    type: Array,
+    default: null
+  }
+});
+
+const { getSingleAd } = useAdSlot({
+  ads: props.ads
+});
 
 const isVisible = ref(false);
-const isAdValid = (ad) => {
-  const now = new Date();
-  const start = new Date(ad.start_date);
-  const end = new Date(ad.end_date);
-  return now >= start && now <= end;
-};
 
 const popupAd = computed(() => {
-  return sampleAdvertisements.find(ad => {
-    if (ad.position !== 'popup' || !ad.is_active) return false;
-    return isAdValid(ad);
-  });
+  return getSingleAd('popup');
 });
 
 const hasSeenPopup = () => {

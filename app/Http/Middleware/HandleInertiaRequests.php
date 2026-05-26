@@ -4,9 +4,17 @@ namespace App\Http\Middleware;
 
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use App\Services\MockDataService;
 
 class HandleInertiaRequests extends Middleware
 {
+    protected $mockDataService;
+
+    public function __construct(MockDataService $mockDataService)
+    {
+        $this->mockDataService = $mockDataService;
+    }
+
     /**
      * The root template that's loaded on the first page visit.
      *
@@ -35,6 +43,16 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $menus = [];
+        $pageSeo = [];
+
+        try {
+            $menus = $this->mockDataService->getMenus();
+            $pageSeo = $this->mockDataService->getPageSeo();
+        } catch (\Exception $e) {
+            // MockDataService might not be available in some contexts
+        }
+
         return [
             ...parent::share($request),
             'auth' => [
@@ -44,6 +62,8 @@ class HandleInertiaRequests extends Middleware
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
             ],
+            'menus' => $menus,
+            'pageSeo' => $pageSeo,
         ];
     }
 }

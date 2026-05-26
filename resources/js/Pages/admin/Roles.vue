@@ -1,21 +1,18 @@
 <script setup>
 /**
- * AdminRoles.vue - 角色管理页面
+ * Role Management Page
  *
- * 基于 Spatie/laravel-permission 方案 + 扩展字段。
- *
- * 功能说明：
- * - 管理系统角色和权限
- * - 角色列表展示（名称、标签、颜色、守卫、用户数、权限）
- * - 角色搜索
- * - 添加、编辑、删除角色
- * - 权限配置
+ * Features:
+ * - Role list display with pagination
+ * - Search functionality
+ * - Role CRUD operations (create, edit, delete)
+ * - Permission management per role
+ * - Role color configuration
  */
+import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useTheme } from '../../composables/useTheme';
 import {
-  ref,
-  computed,
-  useI18n,
-  useTheme,
   Shield,
   Plus,
   Search,
@@ -32,12 +29,25 @@ import {
 } from '../../composables/useAdminImports';
 import { useRolePermissions } from '../../composables/useRolePermissions';
 
-const { adminRoles, permissions, getPermissionIdsByRoleId, getRoleGuardName, GUARD_LABELS, getRoleColorConfig } = useRolePermissions();
+const props = defineProps({
+  roles: { type: Array, default: () => [] },
+  permissions: { type: Array, default: () => [] },
+  rolePermissions: { type: Array, default: () => [] },
+});
+
+const { permissions: permData, getPermissionIdsByRoleId, getRoleGuardName, GUARD_LABELS, getRoleColorConfig } = useRolePermissions({
+  roles: props.roles,
+  permissions: props.permissions,
+  rolePermissions: props.rolePermissions
+});
+
+const roles = computed(() => props.roles || []);
+const permissions = computed(() => props.permissions || permData);
 
 const getRolePermissions = (roleId) => {
   const permissionIds = getPermissionIdsByRoleId(roleId);
   return permissionIds.map(id => {
-    const permission = permissions.find(p => p.id === id);
+    const permission = permissions.value.find(p => p.id === id);
     return permission ? permission.label : 'Unknown';
   });
 };
@@ -66,8 +76,6 @@ const isFormVisible = ref(false);
 const editingRole = ref(null);
 const showDeleteConfirm = ref(false);
 const deletingRoleId = ref(null);
-
-const roles = ref([...adminRoles]);
 
 const filteredRoles = computed(() => {
   return roles.value.filter(role => {

@@ -1,12 +1,10 @@
 /**
  * categoryUtils.js - 分类相关工具函数
- * 
+ *
  * 功能说明：
  * - 提供分类数据的查询和格式化功能
- * - 与 data/categories.js 配合使用
- * 
+ *
  * 使用方式：
- * import { categories } from '../data/categories';
  * import { getCategoryLabel } from '../utils/categoryUtils';
  */
 

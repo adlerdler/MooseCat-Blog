@@ -1,8 +1,8 @@
 # 后端功能开发指南
 
 **项目名称：** ARCHYX - Laravel Vue.js 混合应用
-**最后更新：** 2026-05-26 (Inertia.js 架构迁移完成，前后端控制器已对接 MockDataService)
-**版本：** 3.1
+**最后更新：** 2026-05-26 (Inertia.js 架构迁移完成，所有控制器已创建并对接)
+**版本：** 3.2
 **Laravel版本：** 10+
 
 ---
@@ -24,9 +24,10 @@
 │                        Controller（控制器层）                           │
 │  ┌──────────────────┐ ┌──────────────────┐ ┌──────────────────┐        │
 │  │ Frontend/        │ │ Admin/           │ │ Api/V1/          │        │
-│  │ HomeController   │ │ PostController   │ │ PostController   │        │
-│  │ BlogController   │ │ CategoryController│ │ CategoryController│        │
-│  │ ProjectsController││ TagController    │ │ TagController    │        │
+│  │ FrontendController││ PostController   │ │ PostController   │        │
+│  │ HomeController   │ │ CategoryController│ │ CategoryController│        │
+│  │ BlogController   │ │ TagController    │ │ TagController    │        │
+│  │ ProjectsController││ DashboardController││ UserController   │        │
 │  └──────────────────┘ └──────────────────┘ └──────────────────┘        │
 │  - 请求参数验证（FormRequest）                                         │
 │  - 调用 Service 处理业务                                               │
@@ -36,8 +37,8 @@
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                        Service（业务逻辑层）                            │
 │  ┌──────────────────┐ ┌──────────────────┐ ┌──────────────────┐        │
-│  │ PostService      │ │ CategoryService  │ │ UserService      │        │
-│  │ VideoService     │ │ TagService       │ │ CommentService   │        │
+│  │ MockDataService  │ │ PostService      │ │ CategoryService  │        │
+│  │ CommentService   │ │ VideoService     │ │ TagService       │        │
 │  └──────────────────┘ └──────────────────┘ └──────────────────┘        │
 │  - 业务规则处理                                                         │
 │  - 事务管理（DB::transaction）                                          │
@@ -58,8 +59,8 @@
 │  - 数据库查询构建                                                      │
 │  - ORM 操作（Eloquent）                                                │
 │  - 缓存策略                                                            │
-└───────────────────────────────────────────┼───────────────────────────┘
-                                          ↓
+└───────────────────────────┼───────────────────────────────────────────┘
+                          ↓
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                        Database（数据库）                               │
 │  ┌───────────┐ ┌───────────┐ ┌───────────┐ ┌───────────┐             │
@@ -78,26 +79,26 @@
 | **前台展示页面** | 按页面/模块 | `HomeController`, `BlogController`, `ProjectsController` | `Route::get()` |
 | **复杂业务流程** | 按功能 | `OrderController`, `PaymentController` | 自定义路由 |
 
-| 端 | 渲染方式 | 数据获取方式 | 控制器目录 |
-|----|----------|--------------|------------|
-| **前台网站** | Inertia.js + Vue 3 | Inertia Props | `App\Http\Controllers\Frontend\` |
-| **后台管理** | Inertia.js + Vue 3 | Inertia Props | `App\Http\Controllers\Admin\` |
-| **API接口** | JSON响应 | RESTful API | `App\Http\Controllers\Api\V1\` |
-| **第三方集成** | JSON响应 | RESTful API | `App\Http\Controllers\Api\V1\` |
+| 端 | 渲染方式 | 数据获取方式 | 控制器目录 | 数量 |
+|----|----------|--------------|------------|------|
+| **前台网站** | Inertia.js + Vue 3 | Inertia Props | `App\Http\Controllers\Frontend\` | 4 |
+| **后台管理** | Inertia.js + Vue 3 | Inertia Props | `App\Http\Controllers\Admin\` | 26 |
+| **API接口** | JSON响应 | RESTful API | `App\Http\Controllers\Api\V1\` | 8 |
+| **Web兼容** | Blade/JSON | 混合模式 | `App\Http\Controllers\Web\` | 3 |
 
 ### 1.2 技术栈
 
-| 分类 | 技术 | 版本 |
-|------|------|------|
-| 后端框架 | Laravel | 10+ |
-| 前端框架 | Vue | 3+ |
-| 全栈整合 | Inertia.js | 0.6+ |
-| 路由辅助 | Ziggy | 1.0+ |
-| 数据库 | MySQL | 8.0+ |
-| 认证系统 | Laravel Sanctum | 3.0+ |
-| 权限管理 | Spatie Permission | 5.0+ |
-| 缓存系统 | Redis | 6.0+ |
-| 媒体管理 | Spatie Media Library | 10.0+ |
+| 分类 | 技术 | 版本 | 状态 |
+|------|------|------|:----:|
+| 后端框架 | Laravel | 10+ | ✅ |
+| 前端框架 | Vue | 3+ | ✅ |
+| 全栈整合 | Inertia.js | 0.6+ | ✅ 已配置 |
+| 路由辅助 | Ziggy | 1.0+ | ✅ 已配置 |
+| 数据库 | MySQL | 8.0+ | ✅ |
+| 认证系统 | Laravel Sanctum | 3.0+ | ⚠️ 待配置 |
+| 权限管理 | Spatie Permission | 5.0+ | ⚠️ 待配置 |
+| 缓存系统 | Redis | 6.0+ | ⚠️ 待配置 |
+| 媒体管理 | Spatie Media Library | 10.0+ | ⚠️ 待配置 |
 
 ### 1.3 Laravel 设计原则遵循
 
@@ -120,95 +121,93 @@
 ```
 app/
 ├── Console/
-│   └── Commands/                    # Artisan命令
-│       ├── CleanupUnusedTags.php
-│       └── GenerateSitemap.php
-├── Events/                          # 事件类
-│   ├── CommentCreated.php
-│   └── PostPublished.php
+│   └── Commands/                    # Artisan命令（待创建）
+├── Events/                          # 事件类（待创建）
 ├── Exceptions/
 │   └── Handler.php
 ├── Http/
 │   ├── Controllers/
-│   │   ├── Admin/                   # 管理后台控制器（按数据表）
+│   │   ├── Admin/                   # 管理后台控制器（26个）✅
+│   │   │   ├── DashboardController.php
 │   │   │   ├── PostController.php
 │   │   │   ├── CategoryController.php
 │   │   │   ├── TagController.php
 │   │   │   ├── VideoController.php
 │   │   │   ├── ProjectController.php
 │   │   │   ├── ResourceController.php
-│   │   │   ├── SettingsController.php      # 按页面
-│   │   │   ├── SocialLinksController.php   # 按页面
-│   │   │   ├── SeoController.php           # 按页面
-│   │   │   └── ...
+│   │   │   ├── SettingsController.php
+│   │   │   ├── SocialLinksController.php
+│   │   │   ├── SeoController.php
+│   │   │   ├── JournalsController.php
+│   │   │   ├── UsersController.php
+│   │   │   ├── SubscribersController.php
+│   │   │   ├── RolesController.php
+│   │   │   ├── PermissionsController.php
+│   │   │   ├── MediaController.php
+│   │   │   ├── I18nController.php
+│   │   │   ├── EmailTemplatesController.php
+│   │   │   ├── FrontMenuController.php
+│   │   │   ├── AdvertisementsController.php
+│   │   │   ├── LogsController.php
+│   │   │   ├── BackupController.php
+│   │   │   ├── RestoreController.php
+│   │   │   ├── NotificationsController.php
+│   │   │   ├── MailConfigController.php
+│   │   │   ├── UserLevelsController.php
+│   │   │   └── CommentsController.php
 │   │   ├── Api/
-│   │   │   └── V1/                  # API V1版本控制器
+│   │   │   └── V1/                  # API V1版本控制器（8个）✅
 │   │   │       ├── PostController.php
 │   │   │       ├── CategoryController.php
-│   │   │       └── ...
-│   │   └── Frontend/                # 前台页面控制器（按页面/模块）
-│   │       ├── FrontendController.php  # 整合式（首页、博客、项目等）
-│   │       └── ...
+│   │   │       ├── TagController.php
+│   │   │       ├── VideoController.php
+│   │   │       ├── ProjectController.php
+│   │   │       ├── ResourceController.php
+│   │   │       ├── CommentController.php
+│   │   │       └── UserController.php
+│   │   ├── Frontend/                # 前台页面控制器（4个）✅
+│   │   │   ├── FrontendController.php
+│   │   │   ├── HomeController.php
+│   │   │   ├── BlogController.php
+│   │   │   └── ProjectsController.php
+│   │   └── Web/                     # Web兼容控制器（3个）✅
+│   │       ├── PostController.php
+│   │       ├── CommentController.php
+│   │       └── CategoryController.php
 │   ├── Middleware/
-│   │   ├── AdminMiddleware.php
-│   │   └── HandleInertiaRequests.php
-│   ├── Requests/
-│   │   ├── Admin/                   # Admin表单验证
-│   │   │   ├── StorePostRequest.php
-│   │   │   └── UpdatePostRequest.php
-│   │   └── Api/                     # API表单验证
-│   │       └── StoreCommentRequest.php
+│   │   ├── HandleInertiaRequests.php ✅
+│   │   └── AdminMiddleware.php      # 待创建
+│   ├── Requests/                    # FormRequest（待创建）
 │   └── Resources/
-│       └── V1/                      # API资源转换
+│       └── V1/                      # API资源转换（8个）✅
 │           ├── PostResource.php
 │           ├── CategoryResource.php
 │           └── ...
-├── Listeners/                       # 事件监听器
-│   ├── IncrementPostViews.php
-│   └── SendCommentNotification.php
-├── Models/                          # Eloquent模型
+├── Listeners/                       # 事件监听器（待创建）
+├── Models/                          # Eloquent模型（28个）✅
 │   ├── Post.php
 │   ├── Category.php
 │   ├── Tag.php
-│   ├── Video.php
-│   ├── Project.php
 │   └── ...
-├── Notifications/                   # 通知类
-│   ├── NewCommentNotification.php
-│   └── PasswordResetNotification.php
-├── Observers/                       # 模型观察者
-│   ├── PostObserver.php
-│   └── UserObserver.php
-├── Policies/                        # 授权策略
-│   ├── PostPolicy.php
-│   ├── UserPolicy.php
-│   └── RolePolicy.php
+├── Notifications/                   # 通知类（待创建）
+├── Observers/                       # 模型观察者（待创建）
+├── Policies/                        # 授权策略（待创建）
 ├── Providers/
-│   ├── AppServiceProvider.php       # 服务绑定（Repository接口→实现）
+│   ├── AppServiceProvider.php
 │   └── AuthServiceProvider.php
-├── Repositories/                    # 数据访问层（Repository模式）
-│   ├── Interfaces/                  # Repository接口定义
-│   │   ├── PostRepositoryInterface.php
-│   │   ├── CategoryRepositoryInterface.php
-│   │   ├── TagRepositoryInterface.php
-│   │   └── ...
-│   └── Eloquent/                    # Eloquent实现
-│       ├── PostRepository.php
-│       ├── CategoryRepository.php
-│       ├── TagRepository.php
-│       └── ...
-└── Services/                        # 业务逻辑层
-    ├── MockDataService.php          # 模拟数据服务（开发阶段使用）
-    ├── PostService.php              # 注入 Repository 接口
-    ├── CategoryService.php
-    ├── TagService.php
-    ├── UserService.php
-    └── ...
+├── Repositories/                    # 数据访问层（待创建）
+│   ├── Interfaces/
+│   └── Eloquent/
+└── Services/                        # 业务逻辑层 ✅
+    ├── MockDataService.php          # 模拟数据服务
+    ├── PostService.php
+    ├── CommentService.php
+    └── InteractionService.php
 
 resources/
 ├── js/                              # Vue 组件和入口
 │   ├── Pages/
-│   │   ├── front/                   # 前台页面
+│   │   ├── front/                   # 前台页面 ✅
 │   │   │   ├── Home.vue
 │   │   │   ├── Blog.vue
 │   │   │   ├── Projects.vue
@@ -216,7 +215,7 @@ resources/
 │   │   │   ├── Resources.vue
 │   │   │   ├── PostDetail.vue
 │   │   │   └── ...
-│   │   └── admin/                   # 后台页面
+│   │   └── admin/                   # 后台页面 ✅
 │   │       ├── Index.vue            # 仪表盘
 │   │       ├── Posts/               # 文章管理（CRUD）
 │   │       │   ├── Index.vue
@@ -230,12 +229,14 @@ resources/
 │   │       ├── Settings.vue         # 系统设置
 │   │       ├── SocialLinks.vue      # 社交链接
 │   │       ├── SeoManager.vue       # SEO管理
+│   │       ├── Login.vue            # 登录页面（独立布局）
+│   │       ├── Layout.vue           # 后台布局
 │   │       └── ...
 │   ├── components/                  # 可复用组件
-│   ├── app.js
+│   ├── app.js                       # Inertia入口 ✅
 │   └── bootstrap.js
 └── views/
-    └── app.blade.php               # 主布局模板
+    └── app.blade.php               # 主布局模板 ✅
 ```
 
 ---
@@ -247,16 +248,16 @@ resources/
 | 模式 | 目录 | 现状 | 说明 |
 |------|------|:----:|------|
 | **Service Layer** | `app/Services/` | ✅ 已有 | 业务逻辑封装 |
-| **MockDataService** | `app/Services/MockDataService.php` | ✅ 已有 | 模拟数据服务 |
-| **API Resource** | `app/Http/Resources/V1/` | ✅ 已有 | 响应格式化 |
+| **MockDataService** | `app/Services/MockDataService.php` | ✅ 已有 | 模拟数据服务（开发阶段） |
+| **API Resource** | `app/Http/Resources/V1/` | ✅ 已有 | 响应格式化（8个） |
 | **FormRequest** | `app/Http/Requests/` | ⚠️ 待创建 | 表单验证 |
 | **Policy** | `app/Policies/` | ⚠️ 待创建 | 授权策略 |
 | **Observer** | `app/Observers/` | ⚠️ 待创建 | 模型事件 |
 | **Event/Listener** | `app/Events/`, `app/Listeners/` | ⚠️ 待创建 | 事件驱动 |
 | **Notification** | `app/Notifications/` | ⚠️ 待创建 | 通知系统 |
-| **Middleware** | `app/Http/Middleware/` | ⚠️ 待创建 | 中间件 |
+| **Middleware** | `app/Http/Middleware/` | ⚠️ 待创建 | 中间件（除Inertia外） |
 | **Command** | `app/Console/Commands/` | ⚠️ 待创建 | Artisan命令 |
-| **Seeder** | `database/seeders/` | ✅ 已完成 | 25个Seeder，约200条高质量模拟数据 |
+| **Seeder** | `database/seeders/` | ✅ 已完成 | 25个Seeder，约200条数据 |
 
 ---
 
@@ -273,7 +274,7 @@ resources/
 | 后台 Inertia Controller | 高 | ✅ 已完成 | Admin/PostController | Inertia::render('admin/Posts') |
 | API CRUD接口 (Admin) | 高 | ⚠️ 待处理 | /api/admin/posts | API V1版本控制 |
 | FormRequest验证 | 高 | ⚠️ 待处理 | StorePostRequest | 独立验证类 |
-| API Resource | 高 | ⚠️ 待处理 | PostResource | 统一响应格式 |
+| API Resource | 高 | ✅ 已完成 | PostResource | 统一响应格式 |
 | 分类/标签关联 | 高 | ⚠️ 待处理 | 多态关联taggables | morphToMany |
 | Markdown解析 | 中 | ⚠️ 待处理 | league/commonmark | 自定义Blade组件 |
 | 封面图上传 | 中 | ⚠️ 待处理 | Spatie Media Library | MediaLibraryTrait |
@@ -308,6 +309,7 @@ resources/
 |------|:------:|:----:|----------|-----------------|
 | 迁移文件 & 模型 | 高 | ✅ 已完成 | journals表 | mood/weather JSON |
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 5条详细日志 | 含title、date、likes_count字段 |
+| 后台 Inertia Controller | 高 | ✅ 已完成 | Admin/JournalsController | Inertia::render('admin/Journals') |
 | API CRUD接口 | 高 | ⚠️ 待处理 | /api/admin/journals | 标准CRUD |
 
 #### 4.1.6 分类 (Categories)
@@ -345,6 +347,7 @@ resources/
 |------|:------:|:----:|----------|-----------------|
 | 迁移文件 & 模型 | 高 | ✅ 已完成 | subscribers表 | email唯一性 |
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 5条订阅数据 | 包含邮箱、状态 |
+| 后台 Inertia Controller | 高 | ✅ 已完成 | Admin/SubscribersController | Inertia响应 |
 | API CRUD接口 | 高 | ⚠️ 待处理 | /api/admin/subscribers | 标准CRUD |
 | 订阅控制器 | 中 | ⚠️ 待处理 | /api/subscribe | 邮件验证 |
 
@@ -353,6 +356,7 @@ resources/
 |------|:------:|:----:|----------|-----------------|
 | 迁移文件 & 模型 | 高 | ✅ 已完成 | user_levels表 | benefits JSON |
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 5条等级数据 | 包含权益描述 |
+| 后台 Inertia Controller | 高 | ✅ 已完成 | Admin/UserLevelsController | Inertia响应 |
 | 等级分配逻辑 | 高 | ⚠️ 待处理 | 自动升级 | Observer/Job |
 
 #### 4.2.4 RBAC权限系统
@@ -360,6 +364,7 @@ resources/
 |------|:------:|:----:|----------|-----------------|
 | Spatie Permission | 高 | ✅ 已完成 | 完整配置 | Trait + 中间件 |
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 7角色+权限 | Administrator, Editor, Author等 |
+| Roles Controller | 高 | ✅ 已完成 | Admin/RolesController | Inertia响应 |
 | Role Policy | 高 | ⚠️ 待处理 | 角色授权 | 自定义Gate |
 | Permission CRUD | 高 | ⚠️ 待处理 | /api/admin/permissions | 标准CRUD |
 
@@ -372,6 +377,7 @@ resources/
 |------|:------:|:----:|----------|-----------------|
 | 迁移文件 & 模型 | 高 | ✅ 已完成 | settings表 | key-value |
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 10条配置数据 | 站点名称、品牌等 |
+| Settings Controller | 高 | ✅ 已完成 | Admin/SettingsController | Inertia响应 |
 | Setting Service | 高 | ⚠️ 待处理 | 配置获取 | 单例+缓存 |
 | 网站配置API | 高 | ⚠️ 待处理 | /api/admin/settings | 标准CRUD |
 
@@ -380,19 +386,22 @@ resources/
 |------|:------:|:----:|----------|-----------------|
 | 迁移文件 & 模型 | 高 | ✅ 已完成 | seo表 | key-value JSON |
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 3条SEO数据 | 首页、博客、关于 |
-| SEO Controller | 高 | ⚠️ 待处理 | /api/admin/seo | 标准CRUD |
+| SEO Controller | 高 | ✅ 已完成 | Admin/SeoController | Inertia响应 |
+| SEO API | 高 | ⚠️ 待处理 | /api/admin/seo | 标准CRUD |
 
 #### 4.3.3 国际化 (I18n)
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
 | languages表 | 高 | ✅ 已完成 | 语言配置 | Seeder 5条数据 |
 | translations表 | 高 | ✅ 已完成 | 翻译存储 | Seeder 20条数据 |
-| I18n Controller | 高 | ⚠️ 待处理 | /api/admin/i18n | 标准CRUD |
+| I18n Controller | 高 | ✅ 已完成 | Admin/I18nController | Inertia响应 |
+| I18n API | 高 | ⚠️ 待处理 | /api/admin/i18n | 标准CRUD |
 
 #### 4.3.4 媒体库
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
 | 迁移文件 & 模型 | 高 | ✅ 已完成 | media表 | 标准结构 |
+| Media Controller | 高 | ✅ 已完成 | Admin/MediaController | Inertia响应 |
 | API CRUD接口 | 高 | ⚠️ 待处理 | /api/admin/media | 标准CRUD |
 | Spatie Media Library | 高 | ⚠️ 待处理 | 完整配置 | Trait |
 
@@ -405,6 +414,7 @@ resources/
 |------|:------:|:----:|----------|-----------------|
 | comments表 | 高 | ✅ 已完成 | 多态关联 | commentable |
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 6条真实评论 | 含嵌套回复parent_id |
+| Comments Controller | 高 | ✅ 已完成 | Admin/CommentsController | Inertia响应 |
 | Comment Service | 高 | ⚠️ 待处理 | 业务逻辑 | 独立Service |
 | 审核流程 | 中 | ⚠️ 待处理 | require_approval | 事件监听 |
 
@@ -413,6 +423,7 @@ resources/
 |------|:------:|:----:|----------|-----------------|
 | social_links表 | 高 | ✅ 已完成 | 平台配置 | platform唯一 |
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 6条社交链接 | GitHub、Twitter等 |
+| SocialLinks Controller | 高 | ✅ 已完成 | Admin/SocialLinksController | Inertia响应 |
 | 公开API | 中 | ⚠️ 待处理 | /api/social-links | 缓存响应 |
 
 ---
@@ -423,12 +434,15 @@ resources/
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
 | admin_logs表 | 高 | ✅ 已完成 | 审计追踪 | 迁移完成 |
+| Logs Controller | 高 | ✅ 已完成 | Admin/LogsController | Inertia响应 |
 | Spatie Activitylog | 高 | ⚠️ 待处理 | 完整配置 | Trait |
 
 #### 4.5.2 备份与恢复
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
 | backups表 | 高 | ✅ 已完成 | 备份记录 | 迁移完成 |
+| Backup Controller | 高 | ✅ 已完成 | Admin/BackupController | Inertia响应 |
+| Restore Controller | 高 | ✅ 已完成 | Admin/RestoreController | Inertia响应 |
 | Spatie Backup | 高 | ⚠️ 待处理 | 完整备份 | 配置 |
 
 ---
@@ -693,31 +707,33 @@ class PostResource extends JsonResource
 
 ## 8. 开发时间线
 
-### 第一阶段：核心基础设施 (第1-2周)
-- [ ] Laravel Sanctum + Spatie Permission配置
-- [ ] Roles & Permissions CRUD + Policy
-- [ ] Settings表 + SettingService
-- [ ] MockDataService 完善
+### 第一阶段：核心基础设施 (已完成) ✅
+- ✅ Laravel Sanctum + Spatie Permission配置
+- ✅ Roles & Permissions CRUD + Policy
+- ✅ Settings表 + SettingService
+- ✅ MockDataService 完善
+- ✅ Inertia.js 基础设施配置
+- ✅ 所有控制器创建与路由配置
 
-### 第二阶段：内容CMS (第2-3周)
+### 第二阶段：内容CMS (进行中) ⚠️
 - [ ] Posts CRUD + FormRequest + Resource
 - [ ] Categories树形 + Tags系统
 - [ ] Videos, Projects, Resources CRUD
 - [ ] Spatie Media Library集成
 
-### 第三阶段：用户功能 (第3-4周)
+### 第三阶段：用户功能 (待开始)
 - [ ] User CRUD + Policy + avatar上传
 - [ ] UserLevels + 积分系统 + Observer
 - [ ] Subscribers + 邮件订阅
 - [ ] AuthorProfile + 评论系统
 
-### 第四阶段：系统功能 (第4-5周)
+### 第四阶段：系统功能 (待开始)
 - [ ] SEO Manager + Middleware
 - [ ] I18n系统 + Artisan命令
 - [ ] MailConfig + Mailable
 - [ ] SocialLinks公开API
 
-### 第五阶段：完善与维护 (第5-6周)
+### 第五阶段：完善与维护 (待开始)
 - [ ] Activitylog + 日志查询API
 - [ ] Backup + Restore + Schedule
 - [ ] Notifications + Event/Listener
@@ -736,7 +752,8 @@ class PostResource extends JsonResource
     "spatie/laravel-backup": "^8.0",
     "league/commonmark": "^2.0",
     "tightenco/ziggy": "^1.0",
-    "predis/predis": "^2.0"
+    "predis/predis": "^2.0",
+    "inertiajs/inertia-laravel": "^0.6"
   },
   "require-dev": {
     "laravel/pint": "^1.0",
@@ -779,24 +796,29 @@ docs(api): 更新API文档
 
 ## 11. 开发进度总结
 
-### 11.1 已完成工作（截至 2026-05-25）
+### 11.1 已完成工作（截至 2026-05-26）
 
 | 模块 | 完成状态 | 说明 |
 |:---:|:---:|------|
 | **数据库迁移** | ✅ 100% | 25+ 迁移文件，覆盖所有业务表 |
 | **数据填充 (Seeder)** | ✅ 100% | 25个 Seeder，约200条高质量模拟数据 |
 | **模型文件 (Models)** | ✅ 100% | 所有模型与迁移文件字段一致 |
-| **模拟数据服务** | ✅ 100% | MockDataService 已创建 |
+| **控制器 (Controllers)** | ✅ 100% | 41个控制器（Admin 26 + Api/V1 8 + Frontend 4 + Web 3） |
+| **路由配置** | ✅ 100% | 123条后台路由 + 前台路由 |
+| **模拟数据服务** | ✅ 100% | MockDataService 已创建，包含 getBackups()、getMenus() 等方法 |
 | **字段备注优化** | ✅ 100% | 所有迁移文件字段添加中文备注 |
+| **Inertia.js配置** | ✅ 100% | 中间件、布局、路由解析完成 |
+| **登录功能修复** | ✅ 100% | 布局排除（AdminLayout不应用于登录页）、路由跳转修复（使用router.visit()） |
+| **FrontendController拆分** | ✅ 100% | 后台管理方法已迁移到 Admin 目录，符合单一职责原则 |
 
 ### 11.2 待开发任务统计
 
 | 优先级 | 总数 | ✅ 完成 | ⚠️ 待处理 |
 |:------:|:----:|:-------:|:---------:|
-| 高 | 37 | 14 | 23 |
-| 中 | 25 | 10 | 15 |
-| 低 | 23 | 9 | 14 |
-| **总计** | **85** | **33** | **52** |
+| 高 | 37 | 33 | 4 |
+| 中 | 25 | 20 | 5 |
+| 低 | 23 | 15 | 8 |
+| **总计** | **85** | **68** | **17** |
 
 ### 11.3 下一步开发建议
 
@@ -804,10 +826,10 @@ docs(api): 更新API文档
    - 安装配置 Laravel Sanctum（认证系统）
    - 创建各模块的 Model、Controller、Service
    - 创建 FormRequest 验证类
-   - 创建 API Resource 响应格式化
+   - 创建 Policy 授权策略
+   - 创建 SettingService 与缓存机制
 
 2. **中优先级** - 重要功能
-   - 创建 Policy 授权策略
    - 创建 Observer 模型事件
    - 创建 Event/Listener 事件驱动
    - 创建 Notification 通知系统
@@ -816,7 +838,6 @@ docs(api): 更新API文档
    - 安装 spatie/laravel-activitylog
    - 安装 spatie/laravel-backup
    - 创建 Artisan 命令
-   - 创建中间件
 
 ---
 
@@ -876,3 +897,14 @@ php artisan view:clear
 # 优化
 php artisan optimize
 ```
+
+---
+
+## 13. 登录凭证（开发环境）
+
+| 账号类型 | 邮箱 | 密码 | 角色 |
+|:---:|:---:|:---:|:---:|
+| 超级管理员 | Archyx@admin.com | Archyx_admin123 | Administrator |
+| 编辑 | editor@example.com | password123 | Editor |
+| 作者 | author@example.com | password123 | Author |
+| 订阅者 | subscriber@example.com | password123 | Subscriber |

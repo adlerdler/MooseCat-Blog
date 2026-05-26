@@ -12,7 +12,7 @@
  * - Hover 动画效果
  * - 点击跳转到视频详情页
  */
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import { Motion, AnimatePresence } from 'motion-v';
 import { useTheme } from '../../composables/useTheme';
@@ -29,12 +29,12 @@ const props = defineProps({
 });
 
 const { getSeoByPageKey } = usePageSeoData();
-const pageSeo = getSeoByPageKey('videos');
+const pageSeo = getSeoByPageKey('videos') || { title: '', description: '', keywords: '' };
 
 usePageSeo({
-  title: pageSeo.title,
-  description: pageSeo.description,
-  keywords: pageSeo.keywords,
+  title: pageSeo.title || '',
+  description: pageSeo.description || '',
+  keywords: pageSeo.keywords || '',
 });
 
 const { t } = useI18n();
@@ -71,6 +71,10 @@ onMounted(() => {
   if (saved !== null) {
     isFooterVisible.value = saved === 'true';
   }
+});
+
+watch(isFooterVisible, (newVal) => {
+  sessionStorage.setItem('footer_visible', String(newVal));
 });
 </script>
 

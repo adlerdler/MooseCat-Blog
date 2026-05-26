@@ -1,33 +1,29 @@
 <script setup>
 /**
- * Index.vue - 管理后台首页（Dashboard）
- * 
- * 功能说明：
- * - 网站内容管理后台的首页/控制面板
- * - 展示关键统计数据（文章数、视频数、项目数、资源数）
- * - 显示最近活动日志
- * - 展示流量分析图表
- * - 展示内容统计和热门页面
+ * Admin Dashboard Index Page
+ *
+ * Features:
+ * - Displays key statistics (posts, videos, projects, resources)
+ * - Traffic analytics charts using ECharts
+ * - Recent posts and activities
+ * - User growth statistics
+ * - Category distribution pie chart
+ * - Post trend line chart
  */
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import {
   FileText,
   Play,
   FolderKanban,
   Eye,
-  Plus,
-  Edit3,
-  Trash2,
   TrendingUp,
   Activity,
   BarChart3,
   Users,
   Calendar,
   UserPlus,
-  Bell,
-  Lightbulb,
-  TrendingDown
+  Bell
 } from 'lucide-vue-next';
 import { use } from 'echarts/core';
 import { CanvasRenderer } from 'echarts/renderers';
@@ -39,18 +35,45 @@ import {
   GridComponent
 } from 'echarts/components';
 import VChart from 'vue-echarts';
-import { POSTS } from '../../data/posts';
-import { VIDEOS } from '../../data/videos';
-import { PROJECTS } from '../../data/projects';
-import { adminUsers } from '../../data/users';
 import { useTheme } from '../../composables/useTheme';
-import {
+import { createAdminStats } from '../../composables/useAdminStats';
+
+const props = defineProps({
+  posts: { type: Array, default: () => [] },
+  videos: { type: Array, default: () => [] },
+  projects: { type: Array, default: () => [] },
+  users: { type: Array, default: () => [] },
+  logs: { type: Array, default: () => [] },
+  categories: { type: Array, default: () => [] },
+  comments: { type: Array, default: () => [] },
+  resources: { type: Array, default: () => [] },
+  visits: { type: Array, default: () => [] },
+  userLevels: { type: Array, default: () => [] },
+  roles: { type: Array, default: () => [] },
+  tags: { type: Array, default: () => [] },
+  taggables: { type: Array, default: () => [] },
+});
+
+const {
   getTrafficData,
   getUserStats,
   getPostTrendData,
   getCategoryDistribution,
   getUserGrowthData
-} from '../../composables/useAdminStats';
+} = createAdminStats({
+  posts: props.posts,
+  videos: props.videos,
+  projects: props.projects,
+  users: props.users,
+  categories: props.categories,
+  comments: props.comments,
+  resources: props.resources,
+  visits: props.visits,
+  userLevels: props.userLevels,
+  roles: props.roles,
+  tags: props.tags,
+  taggables: props.taggables
+});
 
 const timeRanges = [
   { value: '7d', label: '7 DAYS' },
@@ -76,33 +99,33 @@ const { isDarkMode } = useTheme();
 const timeRange = ref('7d');
 
 const stats = computed(() => [
-  { 
-    label: t('admin_total_posts'), 
-    value: POSTS.length, 
+  {
+    label: t('admin_total_posts'),
+    value: props.posts?.length || 0,
     change: '+12%',
     icon: FileText
   },
-  { 
-    label: t('admin_total_videos'), 
-    value: VIDEOS.length, 
+  {
+    label: t('admin_total_videos'),
+    value: props.videos?.length || 0,
     change: '+8%',
     icon: Play
   },
-  { 
-    label: t('admin_total_projects'), 
-    value: PROJECTS.length, 
+  {
+    label: t('admin_total_projects'),
+    value: props.projects?.length || 0,
     change: '+15%',
     icon: FolderKanban
   },
-  { 
-    label: t('admin_total_resources'), 
-    value: '2.4K', 
+  {
+    label: t('admin_total_resources'),
+    value: props.resources?.length || 0,
     change: '+23%',
     icon: Eye
   }
 ]);
 
-const recentPosts = computed(() => POSTS.slice(0, 5));
+const recentPosts = computed(() => (props.posts || []).slice(0, 5));
 
 const iconMap = {
   fileText: FileText,
@@ -422,8 +445,8 @@ const categoryPieChartOption = computed(() => ({
   <div class="p-8">
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      <div 
-        v-for="stat in stats" 
+      <div
+        v-for="stat in stats"
         :key="stat.label"
         :class="[
           'p-6 hover:border-construct-red transition-colors',
@@ -431,15 +454,15 @@ const categoryPieChartOption = computed(() => ({
         ]"
       >
         <div class="flex items-center justify-between mb-4">
-          <component 
-            :is="stat.icon" 
+          <component
+            :is="stat.icon"
             :class="[
               stat.icon === FileText ? (isDarkMode ? 'text-construct-red' : 'text-red-600') :
               stat.icon === Play ? (isDarkMode ? 'text-blue-400' : 'text-blue-600') :
               stat.icon === FolderKanban ? (isDarkMode ? 'text-green-400' : 'text-green-600') :
               (isDarkMode ? 'text-purple-400' : 'text-purple-600')
-            ]" 
-            size="24" 
+            ]"
+            size="24"
           />
           <span :class="['text-xs font-bold', isDarkMode ? 'text-green-400' : 'text-green-600']">{{ stat.change }}</span>
         </div>

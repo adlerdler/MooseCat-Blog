@@ -1,16 +1,15 @@
 <script setup>
 /**
- * Journals.vue - 日志管理页面
+ * Journal Management Page
  * 
- * 功能说明：
- * - 管理用户日志
- * - 日志列表展示（标题、用户、心情、天气、日期、状态）
- * - 日志搜索和筛选功能
- * - 查看、编辑、删除日志
- * - 日志状态管理（公开/私密）
+ * Features:
+ * - Journal list display with pagination
+ * - Search and filter functionality (mood, weather, status)
+ * - Journal CRUD operations (create, edit, delete)
+ * - Mood and weather indicators
+ * - Public/private status management
  */
 import { ref, computed } from 'vue';
-import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import {
   BookText,
@@ -26,18 +25,22 @@ import {
   Plus
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
-import { journals as journalsData } from '../../data/journals';
 import { useJournalData } from '../../composables/useJournalData';
-import { adminUsers } from '../../data/users';
 import { findById, findIndexById } from '../../utils/typeConvert';
 import JournalForm from '../../components/admin/JournalForm.vue';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import SearchFilterModal from '../../components/admin/SearchFilterModal.vue';
 
+const props = defineProps({
+  journals: { type: Array, default: () => [] },
+  users: { type: Array, default: () => [] },
+});
+
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
-const { getJournalsByUserId, getMoodLabel, getWeatherLabel, getMoodTypes, getWeatherTypes } = useJournalData();
-const router = useRouter();
+const { getJournalsByUserId, getMoodLabel, getWeatherLabel, getMoodTypes, getWeatherTypes } = useJournalData({
+  journals: props.journals
+});
 
 const searchQuery = ref('');
 const moodFilter = ref('all');
@@ -51,7 +54,7 @@ const showDeleteConfirm = ref(false);
 const deletingJournalId = ref(null);
 const showSuccessMessage = ref(false);
 
-const journals = ref([...journalsData]);
+const journals = computed(() => props.journals || []);
 
 const filteredJournals = computed(() => {
   return journals.value.filter(journal => {
@@ -74,7 +77,7 @@ const paginatedJournals = computed(() => {
 });
 
 const getUserName = (userId) => {
-  const user = findById(adminUsers, userId);
+  const user = findById(props.users || [], userId);
   return user ? user.name : '未知用户';
 };
 

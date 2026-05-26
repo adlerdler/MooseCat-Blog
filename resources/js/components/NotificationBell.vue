@@ -7,21 +7,30 @@
  * - 点击展开通知列表
  * - 支持标记已读/全部已读
  * - 通知类型区分（info/warning/error/success）
+ * 
+ * 使用示例：
+ * <NotificationBell :notifications="notifications" />
  */
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { Bell, Check, CheckCheck, Trash2, Info, AlertTriangle, AlertCircle, CheckCircle } from 'lucide-vue-next';
-import { NOTIFICATIONS } from '../data/notifications';
 import { useI18n } from 'vue-i18n';
 import { useTheme } from '../composables/useTheme';
+
+const props = defineProps({
+  notifications: {
+    type: Array,
+    default: () => []
+  }
+});
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
 
-const notifications = ref(NOTIFICATIONS.map(n => ({ ...n })));
+const localNotifications = ref(props.notifications.map(n => ({ ...n })));
 const isOpen = ref(false);
 const dropdownRef = ref(null);
 
-const unreadCount = computed(() => notifications.value.filter(n => !n.read).length);
+const unreadCount = computed(() => localNotifications.value.filter(n => !n.read).length);
 
 const typeConfig = {
   info: { icon: Info, color: 'text-blue-500', bg: computed(() => isDarkMode ? 'bg-blue-900/20' : 'bg-blue-50') },
@@ -51,20 +60,20 @@ onUnmounted(() => {
 });
 
 const markAsRead = (id) => {
-  const notification = notifications.value.find(n => n.id === id);
+  const notification = localNotifications.value.find(n => n.id === id);
   if (notification) {
     notification.read = true;
   }
 };
 
 const markAllAsRead = () => {
-  notifications.value.forEach(n => {
+  localNotifications.value.forEach(n => {
     n.read = true;
   });
 };
 
 const deleteNotification = (id) => {
-  notifications.value = notifications.value.filter(n => n.id !== id);
+  localNotifications.value = localNotifications.value.filter(n => n.id !== id);
 };
 
 const formatTime = (dateStr) => {
@@ -125,7 +134,7 @@ const formatTime = (dateStr) => {
 
         <!-- Notification List -->
         <div class="max-h-96 overflow-y-auto">
-          <div v-if="notifications.length === 0" class="p-8 text-center"
+          <div v-if="localNotifications.length === 0" class="p-8 text-center"
             :class="isDarkMode ? 'text-gray-500' : 'text-gray-400'">
             <Bell size="32" class="mx-auto mb-3 opacity-30" />
             <p class="text-xs font-bold tracking-widest uppercase">
@@ -134,7 +143,7 @@ const formatTime = (dateStr) => {
           </div>
 
           <div
-            v-for="notification in notifications"
+            v-for="notification in localNotifications"
             :key="notification.id"
             @click="markAsRead(notification.id)"
             class="group flex gap-3 px-4 py-3 transition-colors cursor-pointer"

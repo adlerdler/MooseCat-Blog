@@ -1,21 +1,18 @@
 <script setup>
 /**
- * Notifications.vue - 通知管理页面
- *
- * 样式参考 Logs.vue (操作日志页面)
- *
- * 功能说明：
- * - 管理站内通知列表
- * - 通知列表展示（标题、内容、类型、状态、时间）
- * - 通知搜索和筛选功能
- * - 添加、编辑、删除通知
- * - 通知类型管理（info/warning/error/success）
+ * Notification Management Page
+ * 
+ * Features:
+ * - Notification list display with pagination
+ * - Search and filter functionality
+ * - Notification CRUD operations
+ * - Notification types (info, warning, error, success)
+ * - Mark notifications as read
  */
+import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useTheme } from '../../composables/useTheme';
 import {
-  ref,
-  computed,
-  useI18n,
-  useTheme,
   Bell,
   Eye,
   Edit3,
@@ -34,11 +31,14 @@ import {
   Pagination,
   SearchFilterModal
 } from '../../composables/useAdminImports';
-import { NOTIFICATIONS } from '../../data/notifications';
 import { findById, findIndexById } from '../../utils/typeConvert';
 import { formatToShort } from '../../utils/dateUtils';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import NotificationForm from '../../components/admin/NotificationForm.vue';
+
+const props = defineProps({
+  notifications: { type: Array, default: () => [] },
+});
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
@@ -121,7 +121,7 @@ const deletingNotificationId = ref(null);
 const showDetailModal = ref(false);
 const viewingNotification = ref(null);
 
-const notifications = ref(NOTIFICATIONS.map(n => ({ ...n })));
+const notifications = computed(() => (props.notifications || []).map(n => ({ ...n })));
 
 const filteredNotifications = computed(() => {
   return notifications.value.filter(notification => {

@@ -60,7 +60,9 @@ import NotificationBell from '../../components/NotificationBell.vue';
 import { useTheme } from '../../composables/useTheme';
 import { useMenuItems } from '../../composables/useMenuItems';
 
-const { adminMenuItems } = useMenuItems();
+const page = usePage();
+const sharedMenus = computed(() => page.props.menus || []);
+const { adminMenuItems } = useMenuItems({ menus: sharedMenus.value });
 
 const { t: originalT } = useI18n();
 const t = (key, fallback = '') => {
@@ -71,7 +73,7 @@ const t = (key, fallback = '') => {
     return fallback;
   }
 };
-const page = usePage();
+
 const adminEmail = ref('');
 const isSidebarOpen = ref(true);
 const isSidebarCollapsed = ref(false);

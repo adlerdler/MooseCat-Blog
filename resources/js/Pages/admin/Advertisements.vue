@@ -12,6 +12,7 @@
 import {
   ref,
   computed,
+  watch,
   useI18n,
   useTheme,
   Plus,
@@ -41,8 +42,33 @@ import {
 } from '../../composables/useAdminImports';
 import { Motion, AnimatePresence } from 'motion-v';
 import { formatToShort } from '../../utils/dateUtils';
-import { sampleAdvertisements } from '../../data/advertisements';
-import { adPositions, getAdPositionOptions, getAdPositionById } from '../../data/ad_positions';
+
+const props = defineProps({
+  ads: {
+    type: Array,
+    default: () => []
+  },
+  adPositions: {
+    type: Array,
+    default: () => []
+  }
+});
+
+const getAdPositionById = (id) => {
+  return props.adPositions.find(pos => pos.id === id) || null;
+};
+
+const getAdPositionOptions = () => {
+  return props.adPositions
+    .filter(pos => pos.is_active)
+    .sort((a, b) => a.sort_order - b.sort_order)
+    .map(pos => ({
+      value: pos.id,
+      label: pos.name,
+      name: pos.name,
+      label_key: pos.label_key,
+    }));
+};
 
 const { t: originalT } = useI18n();
 const t = (key, fallback = '') => {
@@ -65,7 +91,11 @@ const editingAd = ref(null);
 const showDeleteConfirm = ref(false);
 const deletingAdId = ref(null);
 
-const ads = ref([...sampleAdvertisements]);
+const ads = ref([...props.ads]);
+
+watch(() => props.ads, (newAds) => {
+  ads.value = [...newAds];
+});
 
 const positionOptions = computed(() => {
   return getAdPositionOptions().map(opt => ({

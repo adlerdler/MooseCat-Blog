@@ -39,9 +39,16 @@ import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import Pagination from '../../components/admin/Pagination.vue';
 import SearchFilterModal from '../../components/admin/SearchFilterModal.vue';
 
+const props = defineProps({
+  socialLinks: { type: Array, default: () => [] },
+  navLinks: { type: Object, default: () => ({}) },
+});
+
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
-const { getFooterSocialLinks, getFooterNavLinks, footerConfig } = useFooterData();
+const { getFooterSocialLinks, getFooterNavLinks, footerConfig } = useFooterData({
+  footerConfig: { social_links: props.socialLinks, nav_links: props.navLinks }
+});
 
 const activeTab = ref('social');
 

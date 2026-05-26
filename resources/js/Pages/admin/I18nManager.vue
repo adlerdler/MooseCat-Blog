@@ -1,13 +1,4 @@
 <script setup>
-/**
- * I18nManager.vue - 多语言配置管理页面
- * 
- * 功能说明：
- * - 管理系统支持的语言列表
- * - 编辑各语言的翻译键值对
- * - 支持添加/删除语言
- * - 支持批量导入/导出翻译数据
- */
 import { ref, computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import {
@@ -24,11 +15,14 @@ import {
   AlertCircle
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
-import { languages as languagesConfig } from '../../data/i18n_config';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import SearchFilterModal from '../../components/admin/SearchFilterModal.vue';
 import Pagination from '../../components/admin/Pagination.vue';
 import { useToast } from '../../composables/useToast';
+
+const props = defineProps({
+  i18nConfig: { type: Object, default: () => ({}) },
+});
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
@@ -45,7 +39,7 @@ const showTopErrorToast = (message) => {
   }, 3000);
 };
 
-const languages = ref([]);
+const languages = computed(() => props.i18nConfig?.languages || []);
 const translations = ref({});
 
 const activeTab = ref('languages');
@@ -77,13 +71,13 @@ const newKeyForm = ref({
 });
 
 const loadLanguages = () => {
-  languages.value = languagesConfig.map(lang => ({ ...lang }));
+  // languages are now loaded from props
 };
 
 const loadTranslations = async () => {
   const loadedTranslations = {};
   
-  for (const lang of languagesConfig) {
+  for (const lang of languages.value) {
     try {
       const response = await fetch(lang.file_path);
       const data = await response.json();

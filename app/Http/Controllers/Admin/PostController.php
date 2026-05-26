@@ -8,17 +8,30 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * Post Controller
+ * 
+ * Handles blog post management operations.
+ * Provides CRUD functionality for blog posts.
+ */
 class PostController extends Controller
 {
     protected $mockDataService;
 
+    /**
+     * Constructor
+     * 
+     * @param MockDataService $mockDataService
+     */
     public function __construct(MockDataService $mockDataService)
     {
         $this->mockDataService = $mockDataService;
     }
 
     /**
-     * Display a listing of the resource.
+     * Display a listing of the posts.
+     * 
+     * @return Response
      */
     public function index(): Response
     {
@@ -34,9 +47,11 @@ class PostController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Show the form for creating a new post.
+     * 
+     * @return Response
      */
-    public function create()
+    public function create(): Response
     {
         $posts = $this->mockDataService->getPosts();
         $categories = $this->mockDataService->getCategories();
@@ -52,25 +67,33 @@ class PostController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Store a newly created post in storage.
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function store(Request $request)
     {
-        //
+        // Handle post creation
     }
 
     /**
-     * Display the specified resource.
+     * Display the specified post.
+     * 
+     * @param string $id
      */
     public function show(string $id)
     {
-        //
+        // Show post details
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Show the form for editing the specified post.
+     * 
+     * @param string $id
+     * @return Response
      */
-    public function edit(string $id)
+    public function edit(string $id): Response
     {
         $posts = $this->mockDataService->getPosts();
         $post = collect($posts)->firstWhere('id', $id);
@@ -88,18 +111,25 @@ class PostController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update the specified post in storage.
+     * 
+     * @param Request $request
+     * @param string $id
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function update(Request $request, string $id)
     {
-        //
+        // Handle post update
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Remove the specified post from storage.
+     * 
+     * @param string $id
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function destroy(string $id)
     {
-        //
+        // Handle post deletion
     }
 }

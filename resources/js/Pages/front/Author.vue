@@ -11,7 +11,7 @@
  * 数据来源：
  * - GitHub API 获取用户信息和贡献数据
  */
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { ArrowRight, Github, Twitter, Linkedin, Mail } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
 import { CalendarHeatmap } from 'vue3-calendar-heatmap';
@@ -31,12 +31,12 @@ const props = defineProps({
 });
 
 const { getSeoByPageKey } = usePageSeoData();
-const pageSeo = getSeoByPageKey('author')
+const pageSeo = getSeoByPageKey('author') || { title: '', description: '', keywords: '' };
 
 usePageSeo({
-  title: pageSeo.title,
-  description: pageSeo.description,
-  keywords: pageSeo.keywords,
+  title: pageSeo.title || '',
+  description: pageSeo.description || '',
+  keywords: pageSeo.keywords || '',
 })
 
 const socialLinks = Object.entries(props.socialLinksObj).map(([platform, url], index) => {
@@ -110,53 +110,68 @@ onMounted(() => {
     isVisible.value = true;
   }, 100);
   fetchGitHubData();
+  
+  // 从 sessionStorage 读取页脚可见性状态
+  const saved = sessionStorage.getItem('footer_visible');
+  if (saved !== null) {
+    isFooterVisible.value = saved === 'true';
+  }
+});
+
+watch(isFooterVisible, (newVal) => {
+  sessionStorage.setItem('footer_visible', String(newVal));
 });
 const fetchGitHubData = async () => {
  try {
- const [userResponse, contributionsResponse] = await Promise.all([
- fetch(`https://api.github.com/users/${username}`),
- fetch(`https://gh-calendar.rschristian.dev/user/${username}`)
- ]);
- 
- if (!userResponse.ok) {
- throw new Error('Failed to fetch GitHub user data');
- }
- 
- const userData = await userResponse.json();
- 
- githubStats.value = {
- commits: userData.public_repos * 15 || 0,
- prs: Math.floor(userData.public_repos * 2) || 0,
- repos: userData.public_repos || 7,
- };
- 
- if (contributionsResponse.ok) {
- const contributionsData = await contributionsResponse.json();
- 
- if (contributionsData && contributionsData.contributions) {
- const flatContributions = contributionsData.contributions.flat();
+  // 添加 User-Agent 头来避免 GitHub API 403 错误
+  const headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+  };
+  
+  const [userResponse, contributionsResponse] = await Promise.all([
+    fetch(`https://api.github.com/users/${username}`, { headers }),
+    fetch(`https://gh-calendar.rschristian.dev/user/${username}`, { headers })
+  ]);
 
- const totalContributions = flatContributions.reduce((sum, day) => sum + (day.count || 0), 0);
- githubStats.value.commits = totalContributions;
+  if (!userResponse.ok) {
+    throw new Error('Failed to fetch GitHub user data');
+  }
 
- calendarValues.value = flatContributions
- .filter(day => day && day.date)
- .map(day => ({
- date: day.date,
- count: day.count || null
- }));
- } else {
- generateMockCalendarData();
- }
- } else {
- console.warn('Contributions API failed, using fallback');
- generateMockCalendarData();
- }
+  const userData = await userResponse.json();
+
+  githubStats.value = {
+    commits: userData.public_repos * 15 || 0,
+    prs: Math.floor(userData.public_repos * 2) || 0,
+    repos: userData.public_repos || 7,
+  };
+
+  if (contributionsResponse.ok) {
+    const contributionsData = await contributionsResponse.json();
+
+    if (contributionsData && contributionsData.contributions) {
+      const flatContributions = contributionsData.contributions.flat();
+
+      const totalContributions = flatContributions.reduce((sum, day) => sum + (day.count || 0), 0);
+      githubStats.value.commits = totalContributions;
+
+      calendarValues.value = flatContributions
+        .filter(day => day && day.date)
+        .map(day => ({
+          date: day.date,
+          count: day.count || null
+        }));
+    } else {
+      generateMockCalendarData();
+    }
+  } else {
+    console.warn('Contributions API failed, using fallback');
+    generateMockCalendarData();
+  }
  } catch (error) {
- console.error('Error fetching GitHub data:', error);
- generateMockCalendarData();
+  console.error('Error fetching GitHub data:', error);
+  generateMockCalendarData();
  } finally {
- isLoading.value = false;
+  isLoading.value = false;
  }
 };
 const generateMockCalendarData = () => {

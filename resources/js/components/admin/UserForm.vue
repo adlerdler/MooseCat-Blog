@@ -19,7 +19,6 @@ import { ref, computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { X, Save } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
-import { roles } from '../../data/roles';
 
 const { t } = useI18n();
 
@@ -31,6 +30,10 @@ const props = defineProps({
   visible: {
     type: Boolean,
     default: false
+  },
+  roles: {
+    type: Array,
+    default: () => []
   }
 });
 

@@ -8,15 +8,31 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * Mail Config Controller
+ * 
+ * Handles mail configuration management.
+ * Provides functionality for viewing, updating, and testing email settings.
+ */
 class MailConfigController extends Controller
 {
     protected $mockDataService;
 
+    /**
+     * Constructor
+     * 
+     * @param MockDataService $mockDataService
+     */
     public function __construct(MockDataService $mockDataService)
     {
         $this->mockDataService = $mockDataService;
     }
 
+    /**
+     * Display the mail configuration page
+     * 
+     * @return Response
+     */
     public function index(): Response
     {
         $mailConfig = $this->mockDataService->getMailConfig();
@@ -26,6 +42,12 @@ class MailConfigController extends Controller
         ]);
     }
 
+    /**
+     * Update mail configuration
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function update(Request $request)
     {
         $validated = $request->validate([
@@ -40,6 +62,11 @@ class MailConfigController extends Controller
         return back()->with('success', '邮件配置已更新');
     }
 
+    /**
+     * Test mail configuration
+     * 
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function test()
     {
         return back()->with('success', '测试邮件已发送');

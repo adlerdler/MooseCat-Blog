@@ -11,6 +11,7 @@
 import {
   ref,
   computed,
+  watch,
   useI18n,
   useTheme,
   Crown,
@@ -28,7 +29,13 @@ import {
   Pagination,
   SearchFilterModal
 } from '../../composables/useAdminImports';
-import { userLevels } from '../../data/user_levels';
+
+const props = defineProps({
+  levels: {
+    type: Array,
+    default: () => []
+  }
+});
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
@@ -42,7 +49,11 @@ const editingLevel = ref(null);
 const showDeleteConfirm = ref(false);
 const deletingLevelId = ref(null);
 
-const levels = ref([...userLevels]);
+const levels = ref([...props.levels]);
+
+watch(() => props.levels, (newLevels) => {
+  levels.value = [...newLevels];
+});
 
 const filteredLevels = computed(() => {
   return levels.value.filter(level => {

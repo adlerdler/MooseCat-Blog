@@ -1,21 +1,15 @@
 <script setup>
 /**
- * UserDetail.vue - 用户详情页面
+ * User Detail Page
  * 
- * 功能说明：
- * - 显示用户基础信息（从 users.js）
- * - 显示关联的作者信息（从 author_profiles.js）
- * - 显示作者技能（从 author_profiles.js）
- * - 显示社交链接（从 author_profiles.js）
- * - 显示作者宣言（从 author_profiles.js）
- * - 支持编辑所有关联数据
- * 
- * ⚠️ 角色管理说明（2026-05-24）：
- * - role_id 已从数据库删除，改用 Spatie RBAC 管理角色
- * - 页面中的角色显示仅用于前端展示，实际角色通过 Spatie 方法获取
+ * Features:
+ * - Display detailed user information
+ * - Show author profile (skills, social links, manifestos)
+ * - Edit user details
+ * - Back navigation to user list
  */
 import { ref, computed } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
+import { Link } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import {
   User,
@@ -31,13 +25,16 @@ import {
   CheckCircle
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
-import { adminUsers } from '../../data/users';
-import { roles } from '../../data/roles';
-import { authorProfiles } from '../../data/author_profiles';
 import { findById, findIndexById } from '../../utils/typeConvert';
 import UserDetailForm from '../../components/admin/UserDetailForm.vue';
 
-const getAuthorProfileByUserId = (userId) => authorProfiles.find(p => p.user_id === userId) || null;
+const props = defineProps({
+  users: { type: Array, default: () => [] },
+  roles: { type: Array, default: () => [] },
+  authorProfiles: { type: Array, default: () => [] },
+});
+
+const getAuthorProfileByUserId = (userId) => (props.authorProfiles || []).find(p => p.user_id === userId) || null;
 const getAuthorSkills = (userId) => {
   const profile = getAuthorProfileByUserId(userId);
   return profile ? profile.skills : [];
@@ -53,15 +50,13 @@ const getAuthorManifestos = (userId) => {
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
-const router = useRouter();
-const route = useRoute();
 
-const users = ref([...adminUsers]);
 const isFormVisible = ref(false);
 const showSuccessMessage = ref(false);
 
 const user = computed(() => {
-  return findById(users.value, route.params.id) || null;
+  const userId = window.location.pathname.split('/').pop();
+  return findById(props.users || [], userId) || null;
 });
 
 const authorInfo = computed(() => {
@@ -117,9 +112,9 @@ const formatToShort = (dateStr) => {
 };
 
 const getRoleStyle = (roleId) => {
-  const role = roles.find(r => r.id === roleId);
+  const role = (props.roles || []).find(r => r.id === roleId);
   if (!role) return isDarkMode.value ? 'bg-gray-500/20 text-gray-400 border-gray-500/50' : 'bg-gray-100 text-gray-600 border-gray-300';
-  
+
   const colorMap = {
     'red': isDarkMode.value ? 'bg-red-500/20 text-red-400 border-red-500/50' : 'bg-red-100 text-red-600 border-red-300',
     'blue': isDarkMode.value ? 'bg-blue-500/20 text-blue-400 border-blue-500/50' : 'bg-blue-100 text-blue-600 border-blue-300',
@@ -133,7 +128,7 @@ const getRoleStyle = (roleId) => {
 };
 
 const getRoleLabel = (roleId) => {
-  const role = roles.find(r => r.id === roleId);
+  const role = (props.roles || []).find(r => r.id === roleId);
   return role ? (role.label || role.name) : (t('admin_role_user') || '用户');
 };
 
@@ -147,30 +142,26 @@ const getLinkIcon = (iconName) => {
   return iconMap[iconName] || LinkIcon;
 };
 
-const goBack = () => {
-  router.push({ name: 'admin-users' });
-};
-
 const openEditForm = () => {
   isFormVisible.value = true;
 };
 
 const handleSave = (data) => {
-  const userIndex = findIndexById(users.value, data.user.id);
+  const userIndex = findIndexById(props.users, data.user.id);
   if (userIndex !== -1) {
-    users.value[userIndex] = { ...data.user };
+    props.users[userIndex] = { ...data.user };
   }
 
-  const profileIndex = findIndexById(authorProfiles, data.author.id);
+  const profileIndex = findIndexById(props.authorProfiles, data.author.id);
   if (profileIndex !== -1) {
-    authorProfiles[profileIndex] = {
+    props.authorProfiles[profileIndex] = {
       ...data.author,
       social_links: data.social_links,
       skills: data.skills,
       manifestos: data.manifestos
     };
   } else if (data.author) {
-    authorProfiles.push({
+    props.authorProfiles.push({
       ...data.author,
       social_links: data.social_links,
       skills: data.skills,
@@ -180,7 +171,7 @@ const handleSave = (data) => {
 
   isFormVisible.value = false;
   showSuccessMessage.value = true;
-  
+
   setTimeout(() => {
     showSuccessMessage.value = false;
   }, 3000);
@@ -196,28 +187,28 @@ const handleCancel = () => {
     <div v-if="user">
       <div class="mb-8">
         <div class="flex items-center justify-between mb-6">
-          <button 
-            @click="goBack" 
+          <Link
+            href="/admin/users"
             :class="['flex items-center gap-2 px-4 py-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-600']"
           >
             <ChevronLeft :size="20" />
             <span class="font-bold tracking-wider uppercase text-sm">{{ t('admin_users') }}</span>
-          </button>
-          
-          <button 
-            @click="openEditForm" 
+          </Link>
+
+          <button
+            @click="openEditForm"
             class="flex items-center gap-2 px-6 py-2 bg-construct-red hover:bg-red-600 text-white font-bold tracking-wider rounded-lg transition-colors"
           >
             <Edit3 :size="18" />
             {{ t('admin_edit') }}
           </button>
         </div>
-        
+
         <div v-if="showSuccessMessage" :class="['mb-6 p-4 rounded-lg flex items-center gap-3', isDarkMode ? 'bg-green-900/30 text-green-400 border border-green-700' : 'bg-green-50 text-green-700 border border-green-200']">
           <CheckCircle :size="20" />
           <span class="font-medium">保存成功！</span>
         </div>
-        
+
         <div :class="['rounded-xl p-8', isDarkMode ? 'bg-gray-800' : 'bg-white shadow-lg']">
           <div class="flex items-start gap-6 mb-8">
             <div :class="['w-24 h-24 rounded-full flex items-center justify-center overflow-hidden', isDarkMode ? 'bg-gray-700' : 'bg-gray-100']">
@@ -252,7 +243,7 @@ const handleCancel = () => {
               <FileText :size="20" />
               作者信息
             </h3>
-            
+
             <div v-if="authorInfo.bio" :class="['p-4 rounded-lg mb-4', isDarkMode ? 'bg-gray-700' : 'bg-gray-50']">
               <p :class="['text-sm font-bold tracking-wider uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">简介</p>
               <p>{{ authorInfo.bio }}</p>
@@ -309,12 +300,12 @@ const handleCancel = () => {
     <div v-else :class="['text-center py-16', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
       <User :size="64" class="mx-auto mb-4 opacity-50" />
       <p class="text-xl">{{ t('no_artifacts') || '用户不存在' }}</p>
-      <button 
-        @click="goBack" 
+      <Link
+        href="/admin/users"
         :class="['mt-6 px-6 py-3 bg-construct-red hover:bg-red-600 text-white font-bold tracking-wider rounded-lg transition-colors']"
       >
         {{ t('admin_users') }}
-      </button>
+      </Link>
     </div>
 
     <UserDetailForm
@@ -324,6 +315,7 @@ const handleCancel = () => {
       :skills-data="authorSkills"
       :manifestos-data="authorManifestos"
       :visible="isFormVisible"
+      :roles="props.roles"
       @save="handleSave"
       @cancel="handleCancel"
     />
