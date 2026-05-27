@@ -11,7 +11,7 @@
  */
 import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { Link } from '@inertiajs/vue3';
+import { Link, useForm, router } from '@inertiajs/vue3';
 import { useTheme } from '../../composables/useTheme';
 import {
   Users,
@@ -86,33 +86,33 @@ const handleAdd = () => {
 };
 
 const handleSave = (data) => {
+  const formData = { ...data };
+  
   if (editingUser.value) {
-    const index = users.value.findIndex(u => u.id === editingUser.value.id);
-    if (index !== -1) {
-      users.value[index] = { 
-        ...users.value[index], 
-        ...data
-      };
-    }
+    const form = useForm(formData);
+    form.put(route('admin.users.update', editingUser.value.id), {
+      onSuccess: () => {
+        isFormVisible.value = false;
+        editingUser.value = null;
+        router.reload();
+      },
+      onError: (errors) => {
+        console.error('Update error:', errors);
+      }
+    });
   } else {
-    const newId = Math.max(...users.value.map(u => u.id), 0) + 1;
-    const today = new Date().toISOString().split('T')[0];
-    users.value.push({
-      id: newId,
-      ...data,
-      joined: today,
-      avatar: null,
-      bio: null,
-      github: null,
-      twitter: null,
-      linkedin: null,
-      last_login_at: null,
-      created_at: today,
-      updated_at: today
+    const form = useForm(formData);
+    form.post(route('admin.users.store'), {
+      onSuccess: () => {
+        isFormVisible.value = false;
+        editingUser.value = null;
+        router.reload();
+      },
+      onError: (errors) => {
+        console.error('Create error:', errors);
+      }
     });
   }
-  isFormVisible.value = false;
-  editingUser.value = null;
 };
 
 const handleCancel = () => {
@@ -127,10 +127,22 @@ const handleDelete = (id) => {
 
 const confirmDelete = () => {
   if (deletingUserId.value !== null) {
-    users.value = users.value.filter(u => u.id !== deletingUserId.value);
-    deletingUserId.value = null;
+    const form = useForm({});
+    form.delete(route('admin.users.destroy', deletingUserId.value), {
+      onSuccess: () => {
+        showDeleteConfirm.value = false;
+        deletingUserId.value = null;
+        router.reload();
+      },
+      onError: (errors) => {
+        console.error('Delete error:', errors);
+        showDeleteConfirm.value = false;
+        deletingUserId.value = null;
+      }
+    });
+  } else {
+    showDeleteConfirm.value = false;
   }
-  showDeleteConfirm.value = false;
 };
 
 const handleFilterChange = ({ key, value }) => {

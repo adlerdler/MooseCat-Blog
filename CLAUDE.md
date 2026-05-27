@@ -5,28 +5,24 @@
 *   **Aesthetics:** 严格遵循 **Extreme Minimalism**。UI 必须采用 **Glassmorphism**（毛玻璃）风格，保持白净、高透、低信息密度的视觉链路。
 
 ### ### 02. Tech Stack Protocol
-*   **Infrastructure:** PHP 8.2+ / Laravel 11 (精简模式) / MySQL.
-*   **Frontend:** Blade + Vue 3 (局部增强模式).
+*   **Infrastructure:** PHP 8.2+ / Laravel 11.31 (精简模式) / MySQL.
+*   **Frontend:** Vue 3 + Inertia.js (前后端分离SPA).
 *   **CSS:** Tailwind CSS.
 *   **Build:** Vite + laravel-vite-plugin.
 *   **Editor:** Vditor (Markdown).
 *   **Core AI:** 深度集成 Trae/Claude 进行 Agentic 开发。
 
 ### ### 03. Architecture & Routing
-*   **Front-facing (/):** 纯 Blade 渲染，无需认证，SEO 优先。包含文章、视频、项目、资源、分类、标签页面。
+*   **Front-facing (/):** Inertia.js + Vue 3 SPA，SEO 友好。包含文章、视频、项目、资源、分类、标签页面。
 *   **API (/api/v1/*):** RESTful 接口，支持移动端（Flutter）对接。覆盖 Posts、Comments、Videos、Projects、Resources、Categories、Tags、Users 8 个模块。
-*   **Admin (/admin/*):** 独立 Controller，必须通过 `auth` 中间件认证。完整 CRUD 支持：Posts、Videos、Projects、Resources、Categories、Tags。
-*   **Vue Boundary:**
-    - **Blade Only:** 文章列表、详情、分类页、项目展示。
-    - **Vue Components:** 编辑器 (Vditor)、评论区、图片上传、搜索框。
-    - **Blade Forms:** 标签管理、分类管理。
+*   **Admin (/admin/*):** Inertia.js + Vue 3 SPA，独立 Controller，必须通过 `auth` 中间件认证。完整 CRUD 支持：Posts、Videos、Projects、Resources、Categories、Tags、Users、Roles、Journals、Settings、SocialLinks、Backups、Logs。
 
 ### ### 03.5. Current Development Progress
-*   **Backend API:** ✅ 完整（8 个模块，14 个接口）
-*   **Web Controllers:** ✅ 完整（6 个控制器）
-*   **Admin Panel:** ✅ 路由就绪（6 个资源，42 个路由）
-*   **Vue Components:** ⚠️ 待完善（编辑器、评论区待实现）
-*   **Blade Views:** ⚠️ 待创建（管理后台页面）
+*   **Backend API:** ✅ 完整（8+ 模块）
+*   **Web Controllers:** ✅ 完整（40+ 控制器）
+*   **Admin Panel:** ✅ 完整（路由 + 页面组件都已就绪）
+*   **Vue Components:** ✅ 已实现（所有页面组件已完成）
+*   **Inertia.js:** ✅ 已完整集成（前台和后台都使用 Inertia）
 
 ### ### 04. Development Constraints (Non-negotiable)
 *   **Pragmatism First:** 禁止过度设计，任何功能模块（如：文章同步、视频嵌入）必须有明确的业务价值（ROI）。

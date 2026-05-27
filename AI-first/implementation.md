@@ -1,5 +1,7 @@
 # 架构设计与重构方案：Laravel + Vue 的无缝整合
 
+**⚠️ 注意：此文档为历史记录，Inertia.js 方案已完整实施！**
+
 ## 核心需求分析
 
 您目前的状态和诉求非常明确：
@@ -11,24 +13,6 @@
 针对您的需求，并在参考了您 `AGENTS.md` 中的要求（*"PC端开发优先使用混合模式（Blade + Vue 3），利用 `@json` 传递初始数据"*）后，我认为有两种可行方案。我为您详细对比这两种方案，并给出**强烈推荐的更优解**。
 
 ---
-
-<!-- ## 方案一：经典混合模式 (Blade + `@json`) - 您的初衷
-
-此方案完全遵循您在 `AGENTS.md` 中的设定。Laravel 处理路由并返回 Blade 视图，Vue 仅作为视图层的一个"交互岛"（Island）。
-
-*   **工作流**：
-    1. Laravel 路由命中 `FrontendController@home`。
-    2. 控制器查询数据库：`$posts = Post::latest()->take(3)->get();`
-    3. 返回 Blade：`return view('frontend.home', compact('posts'));`
-    4. 在 `home.blade.php` 中注入：`<div id="app"><home-page :initial-posts='@json($posts)'></home-page></div>`
-    5. Vue 组件 `Home.vue` 接收 `props: ['initialPosts']` 并渲染。
-*   **优点**：非常直观，无需额外学习曲线，完美分离了"页面骨架"与"动态组件"。
-*   **缺点**：
-    *   **全页面刷新**：每次点击链接跳转页面，浏览器都会完全重载页面，丢失了当前 Vue 的状态，不再有 SPA（单页面应用）的丝滑体验。
-    *   **Vue 路由废弃**：您现有的 `vue-router`（SPA 路由）将完全作废，所有的前端路由跳转都需要改成原生的 `<a>` 标签。
-    *   **改造工作量大**：您目前已经把整个页面（如 `Home.vue`, `Posts.vue`）写成了完整的 Vue 组件。在混合模式下，您可能需要在每个 Blade 页面里单独挂载对应的 Vue 根实例，或者将整个页面包装为一个巨大的组件。
-
---- -->
 
 ## 方案二：Inertia.js (现代单体架构) - 🌟 强烈推荐的更好方法！
 
@@ -97,18 +81,160 @@
 - `[x]` 测试前台页面跳转与数据加载 ✅ 已完成
 
 ## 第三阶段：打通管理后台
-- `[x]` 修复 vue-i18n.js 的 "Invalid arguments" 错误，为所有使用 `t()` 函数的组件添加安全检查 ✅ 已完成
-- `[x]` 重构后台控制器（`Admin/PostController`、`Admin/VideoController`、`Admin/ProjectController`、`Admin/ResourceController`、`Admin/CategoryController`、`Admin/TagController`），通过 `Inertia::render` 渲染后台页面并注入 MockDataService 数据 ✅ 已完成
-- `[x]` 修改后台所有页面组件（`Posts.vue`、`Categories.vue`、`Tags.vue`、`Videos.vue`、`Projects.vue`、`Resources.vue`）使用 `props` 接收数据，添加本地状态管理与 watch 监听器 ✅ 已完成
-- `[x]` 修改 `resources/js/Pages/admin/Layout.vue`，兼容 Inertia 路由跳转 ✅ 已完成
-- `[x]` 创建所有新增 Admin 控制器（Dashboard、Settings、SocialLinks、Seo、I18n、Media、EmailTemplates、Journals、FrontMenu、Roles、Notifications、MailConfig、Logs、Backup、Restore、Users、Subscribers、UserLevels、Comments、Advertisements）✅ 已完成
-- `[x]` 配置所有 Admin 路由（123条路由）✅ 已完成
-- `[ ]` 修复后台页面的增删改查逻辑与表单提交，使用 Inertia forms 或 axios
-- `[ ]` 移除后台剩余的模拟数据
+- [x] 修复 vue-i18n.js 的 "Invalid arguments" 错误，为所有使用 `t()` 函数的组件添加安全检查 ✅ 已完成
+- [x] 重构后台控制器（`Admin/PostController`、`Admin/VideoController`、`Admin/ProjectController`、`Admin/ResourceController`、`Admin/CategoryController`、`Admin/TagController`），通过 `Inertia::render` 渲染后台页面并注入 `MockDataService` 数据 ✅ 已完成
+- [x] 修改后台所有页面组件（`Posts.vue`、`Categories.vue`、`Tags.vue`、`Videos.vue`、`Projects.vue`、`Resources.vue`）使用 `props` 接收数据，添加本地状态管理与 `watch` 监听器 ✅ 已完成
+- [x] 修改 `resources/js/Pages/admin/Layout.vue`，兼容 Inertia 路由跳转 ✅ 已完成
+- [x] 创建所有新增 Admin 控制器（Dashboard、Settings、SocialLinks、Seo、I18n、Media、EmailTemplates、Journals、FrontMenu、Roles、Notifications、MailConfig、Logs、Backup、Restore、Users、Subscribers、UserLevels、Comments、Advertisements）✅ 已完成
+- [x] 配置所有 Admin 路由（123条路由）✅ 已完成
+- [x] 为资源路由添加 `->names()` 配置，确保 Ziggy 路由助手能正常解析 ✅ 已完成
+- [x] 修复后台菜单无数据问题，通过 `HandleInertiaRequests` 中间件共享菜单数据 ✅ 已完成
+- [x] 修复 `MockDataService` 缺少 `getTagsables()` 方法的问题 ✅ 已完成
+- [x] 修复前台页面 SEO 数据为空的问题（`Projects.vue`、`Author.vue`、`Resources.vue`、`Videos.vue`、`Blog.vue`）✅ 已完成
+- [x] 修复后台页面的增删改查逻辑与表单提交，使用 Inertia forms（`Users.vue`、`Roles.vue`、`Journals.vue`）✅ 已完成
+- [ ] 移除后台剩余的模拟数据
 
 ## 第四阶段：API与清理
 - `[ ]` 确认 `routes/api.php` 保留完整
 - `[ ]` 清理遗留无用代码
+
+---
+
+# 前端表单优化方案（混合方案）
+
+## 方案概述
+采用**渐进式混合方案**，根据后端开发进度灵活切换前端数据处理方式。
+
+## 方案对比
+
+| 方案 | 适用场景 | 优点 | 缺点 |
+|------|---------|------|------|
+| **Inertia forms** | 后端业务逻辑完成后 | 与 Inertia 生态完美集成、自动 CSRF 保护、统一错误处理 | 依赖后端完整实现、每次操作刷新页面 |
+| **本地状态 + localStorage** | 后端开发阶段 | 不依赖后端、用户体验流畅、开发效率高 | 数据不持久化到数据库 |
+| **Axios** | 快速操作（如状态切换） | 轻量级、避免全页面刷新、即时反馈 | 需要手动处理 CSRF、与 Inertia 集成不紧密 |
+
+## 混合方案实现策略
+
+### 阶段 1：后端开发阶段
+- **使用方式**：本地状态 + localStorage
+- **适用范围**：所有后台管理页面
+- **实现目标**：
+  - 用户可以正常操作界面
+  - 数据暂时保存在浏览器本地
+  - 提供良好的开发体验，不阻塞后端开发
+
+### 阶段 2：后端业务逻辑完成后
+- **使用方式**：Inertia forms
+- **切换顺序**：按模块逐个切换
+  1. 用户管理（Users）
+  2. 角色管理（Roles）
+  3. 分类管理（Categories）
+  4. 标签管理（Tags）
+  5. 文章管理（Posts）
+  6. 其他模块...
+
+### 阶段 3：快速操作优化
+- **使用方式**：Axios（可选）
+- **适用场景**：状态切换、简单字段更新
+- **目标**：避免全页面刷新，提供即时反馈
+
+## 代码实现示例
+
+### 配置开关
+```javascript
+// composables/useConfig.js
+export const useConfig = () => {
+  return {
+    isBackendReady: false, // 后端就绪后改为 true
+  };
+};
+```
+
+### 混合方案实现
+```javascript
+import { useConfig } from '../../composables/useConfig';
+
+const { isBackendReady } = useConfig();
+
+const handleSave = (data) => {
+  if (isBackendReady.value) {
+    // 后端就绪：使用 Inertia forms
+    const formData = { ...data };
+    if (editingItem.value) {
+      const form = useForm(formData);
+      form.put(route('admin.items.update', editingItem.value.id), {
+        onSuccess: () => {
+          isFormVisible.value = false;
+          editingItem.value = null;
+          router.reload();
+        },
+        onError: (errors) => console.error('Update error:', errors)
+      });
+    } else {
+      const form = useForm(formData);
+      form.post(route('admin.items.store'), {
+        onSuccess: () => {
+          isFormVisible.value = false;
+          editingItem.value = null;
+          router.reload();
+        },
+        onError: (errors) => console.error('Create error:', errors)
+      });
+    }
+  } else {
+    // 后端未就绪：使用本地状态 + localStorage
+    if (editingItem.value) {
+      const index = localItems.value.findIndex(i => i.id === editingItem.value.id);
+      if (index !== -1) {
+        localItems.value[index] = { ...localItems.value[index], ...data };
+      }
+    } else {
+      const newId = Math.max(...localItems.value.map(i => i.id), 0) + 1;
+      localItems.value.push({
+        id: newId,
+        ...data,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+    }
+    // 保存到 localStorage
+    saveToLocalStorage('items', localItems.value);
+    isFormVisible.value = false;
+    editingItem.value = null;
+  }
+};
+
+// localStorage 辅助函数
+const saveToLocalStorage = (key, data) => {
+  try {
+    localStorage.setItem(`app_${key}`, JSON.stringify(data));
+  } catch (e) {
+    console.error('Failed to save to localStorage:', e);
+  }
+};
+
+const loadFromLocalStorage = (key, defaultValue = []) => {
+  try {
+    const data = localStorage.getItem(`app_${key}`);
+    return data ? JSON.parse(data) : defaultValue;
+  } catch (e) {
+    console.error('Failed to load from localStorage:', e);
+    return defaultValue;
+  }
+};
+```
+
+## 任务清单
+
+- `[ ]` 创建 `useConfig.js` 配置开关
+- `[ ]` 更新 Categories.vue 使用混合方案
+- `[ ]` 更新 Posts.vue 使用混合方案
+- `[ ]` 更新 Tags.vue 使用混合方案
+- `[ ]` 更新 Videos.vue 使用混合方案
+- `[ ]` 更新 Projects.vue 使用混合方案
+- `[ ]` 更新 Resources.vue 使用混合方案
+- `[ ]` 更新其他后台页面使用混合方案
+- `[ ]` 后端完成后，逐个模块切换到 Inertia forms
 
 ---
 
@@ -238,7 +364,7 @@
 
 ---
 
-## 当前完成状态总结（截至 2026-05-26）
+## 当前完成状态总结（截至 2026-05-27）
 
 | 阶段 | 完成度 | 说明 |
 |:---:|:---:|------|
@@ -247,6 +373,9 @@
 | **后台控制器** | ✅ 100% | 26个 Admin 控制器已创建，路由已配置（123条） |
 | **后台页面** | ✅ 100% | 所有页面支持 Props，Layout 兼容 Inertia |
 | **登录功能** | ✅ 100% | 布局修复（排除AdminLayout）、路由跳转修复（使用router.visit()）完成 |
-| **MockDataService** | ✅ 100% | 已添加缺失的 getBackups() 和 getMenus() 方法 |
+| **MockDataService** | ✅ 100% | 已添加缺失的 getTagsables()、getBackups() 和 getMenus() 方法 |
+| **路由配置** | ✅ 100% | 资源路由已添加 `->names()` 配置，Ziggy 路由助手正常工作 |
+| **菜单数据** | ✅ 100% | 后台菜单数据通过 HandleInertiaRequests 中间件共享 |
+| **表单提交** | ✅ 70% | Users、Roles、Journals 页面已使用 Inertia forms 优化 |
 | **业务逻辑层** | ⚠️ 30% | 待创建 Policy、Observer、Service |
 | **API完善** | ⚠️ 50% | 部分 Resource 已创建 |

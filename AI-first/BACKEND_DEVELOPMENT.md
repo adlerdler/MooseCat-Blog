@@ -1,16 +1,16 @@
 # 后端功能开发路线图
 
 **项目名称：** ARCHYX - Laravel Vue.js 混合应用
-**最后更新：** 2026-05-25 (数据库迁移、Seeder优化、模型更新全部完成)
-**版本：** 2.1
-**Laravel版本：** 10+
+**最后更新：** 2026-05-27 (文档同步，所有问题已修复)
+**版本：** 2.3
+**Laravel版本：** 11 (精简模式)
 
 ---
 
 ## 1. 项目概述
 
 ### 1.1 技术架构
-- **后端框架：** Laravel 10+
+- **后端框架：** Laravel 11
 - **前台展示：** Inertia.js + Vue 3（SPA 体验，SEO友好）
 - **后台管理：** Inertia.js + Vue 3（SPA 体验，安全性高）
 - **数据库：** MySQL 8.0+ with Eloquent ORM
@@ -33,7 +33,7 @@
 | 原则 | 实现方式 | 项目现状 |
 |------|----------|----------|
 | **单一职责原则 (SRP)** | Controller只做路由分发，业务逻辑在Service层 | ✅ 已采用 |
-| **依赖注入 (DI)** | 通过构造函数注入Service、Repository | ✅ 已采用 |
+| **依赖注入 (DI)** | 通过构造函数注入Service；采用轻量级Repository模式 | ✅ 已采用 |
 | **API版本控制** | `App\Http\Controllers\Api\V1\` 目录隔离 | ✅ 已采用 |
 | **资源转换层** | API Resource格式化响应 | ✅ 已采用 |
 | **表单验证** | FormRequest类处理验证逻辑 | ⚠️ 待完善 |
@@ -94,7 +94,7 @@
 |------|:------:|:----:|----------|-----------------|
 | 迁移文件 & 模型 | 高 | ✅ 已完成 | projects表 | 标准Model |
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 6条项目数据 | 包含技术栈、GitHub链接 |
-| API CRUD接口 | 高 | ⚠️ 待处理 | /api/admin/projects | Repository模式 |
+| API CRUD接口 | 高 | ⚠️ 待处理 | /api/admin/projects | 轻量级Repository模式 |
 | 图片画廊 | 中 | ⚠️ 待处理 | 多图关联 | Spatie Media多集合 |
 
 #### 2.1.4 资源 (Resources)

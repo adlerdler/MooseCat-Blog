@@ -74,6 +74,7 @@ To support both the integrated web frontend and the external mobile app, the bac
 - `app/Http/Controllers/Web`: Controllers managing web views and web-specific logic.
 - `app/Http/Controllers/Api/V1`: Controllers exclusively handling formatting and routing for Flutter API requests.
 - `app/Services`: **Crucial shared layer**. Both Web and API controllers inject these services to perform the actual business logic, ensuring DRY (Don't Repeat Yourself) principles.
+- `app/Repositories`: **Data access layer**. Encapsulates complex database queries. Simple CRUD operations use Model directly in Service, while complex queries are delegated to Repository classes (Lightweight Repository pattern).
 - `resources/js/Pages/`: Vue 3 page components, each representing a route in the SPA.
 - `resources/js/Components/`: Reusable Vue components (SidebarMenu, Footer, SearchOverlay, etc.).
 

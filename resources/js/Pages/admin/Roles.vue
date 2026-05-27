@@ -11,6 +11,7 @@
  */
 import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useForm, router } from '@inertiajs/vue3';
 import { useTheme } from '../../composables/useTheme';
 import {
   Shield,
@@ -103,21 +104,33 @@ const handleAdd = () => {
 };
 
 const handleSave = (data) => {
+  const formData = { ...data };
+  
   if (editingRole.value) {
-    const index = roles.value.findIndex(r => r.id === editingRole.value.id);
-    if (index !== -1) {
-      roles.value[index] = { ...roles.value[index], ...data };
-    }
+    const form = useForm(formData);
+    form.put(route('admin.roles.update', editingRole.value.id), {
+      onSuccess: () => {
+        isFormVisible.value = false;
+        editingRole.value = null;
+        router.reload();
+      },
+      onError: (errors) => {
+        console.error('Update error:', errors);
+      }
+    });
   } else {
-    const newId = Math.max(...roles.value.map(r => r.id), 0) + 1;
-    roles.value.push({
-      id: newId,
-      ...data,
-      userCount: 0
+    const form = useForm(formData);
+    form.post(route('admin.roles.store'), {
+      onSuccess: () => {
+        isFormVisible.value = false;
+        editingRole.value = null;
+        router.reload();
+      },
+      onError: (errors) => {
+        console.error('Create error:', errors);
+      }
     });
   }
-  isFormVisible.value = false;
-  editingRole.value = null;
 };
 
 const handleCancel = () => {
@@ -132,10 +145,21 @@ const handleDelete = (id) => {
 
 const confirmDelete = () => {
   if (deletingRoleId.value !== null) {
-    roles.value = roles.value.filter(r => r.id !== deletingRoleId.value);
-    deletingRoleId.value = null;
-  }
-  showDeleteConfirm.value = false;
+    const form = useForm({});
+    form.delete(route('admin.roles.destroy', deletingRoleId.value), {
+      onSuccess: () => {
+        showDeleteConfirm.value = false;
+        deletingRoleId.value = null;
+        router.reload();
+      },
+      onError: (errors) => {
+        console.error('Delete error:', errors);
+        showDeleteConfirm.value = false;
+        deletingRoleId.value = null;
+      }
+    });
+  } else {
+    showDeleteConfirm.value = false;
 };
 
 const getColorStyle = (role) => {

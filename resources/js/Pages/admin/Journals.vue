@@ -11,6 +11,7 @@
  */
 import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useForm, router } from '@inertiajs/vue3';
 import {
   BookText,
   Eye,
@@ -117,33 +118,34 @@ const handleAdd = () => {
 };
 
 const handleSave = (data) => {
+  const formData = { ...data };
+  delete formData.action;
+  
   if (data.action === 'edit') {
-    const index = findIndexById(journals.value, data.id);
-    if (index !== -1) {
-      journals.value[index] = { 
-        ...journals.value[index], 
-        ...data,
-        updated_at: new Date().toISOString().replace('T', ' ').substring(0, 19)
-      };
-    }
+    const form = useForm(formData);
+    form.put(route('admin.journals.update', data.id), {
+      onSuccess: () => {
+        isFormVisible.value = false;
+        editingJournal.value = null;
+        router.reload();
+      },
+      onError: (errors) => {
+        console.error('Update error:', errors);
+      }
+    });
   } else if (data.action === 'add') {
-    const newId = Math.max(...journals.value.map(j => j.id), 0) + 1;
-    const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
-    journals.value.push({
-      id: newId,
-      ...data,
-      created_at: now,
-      updated_at: now
+    const form = useForm(formData);
+    form.post(route('admin.journals.store'), {
+      onSuccess: () => {
+        isFormVisible.value = false;
+        editingJournal.value = null;
+        router.reload();
+      },
+      onError: (errors) => {
+        console.error('Create error:', errors);
+      }
     });
   }
-  
-  isFormVisible.value = false;
-  editingJournal.value = null;
-  showSuccessMessage.value = true;
-  
-  setTimeout(() => {
-    showSuccessMessage.value = false;
-  }, 3000);
 };
 
 const handleCancel = () => {
@@ -158,10 +160,22 @@ const handleDelete = (id) => {
 
 const confirmDelete = () => {
   if (deletingJournalId.value !== null) {
-    journals.value = journals.value.filter(j => j.id !== deletingJournalId.value);
-    deletingJournalId.value = null;
+    const form = useForm({});
+    form.delete(route('admin.journals.destroy', deletingJournalId.value), {
+      onSuccess: () => {
+        showDeleteConfirm.value = false;
+        deletingJournalId.value = null;
+        router.reload();
+      },
+      onError: (errors) => {
+        console.error('Delete error:', errors);
+        showDeleteConfirm.value = false;
+        deletingJournalId.value = null;
+      }
+    });
+  } else {
+    showDeleteConfirm.value = false;
   }
-  showDeleteConfirm.value = false;
 };
 
 const handleFilterChange = ({ key, value }) => {

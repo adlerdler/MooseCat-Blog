@@ -2,6 +2,15 @@
 
 本文档旨在指导 `laravel-vue-app` 从静态 Mock 数据向 Laravel 后端 API 驱动架构的平滑过渡。
 
+### 架构模式说明
+
+采用 **轻量级 Repository 模式**：
+- **简单 CRUD**：直接在 Service 中使用 Model
+- **复杂查询**：委托给 Repository 类封装
+- **Repository 层**：`app/Repositories/` - 数据访问层
+
+数据流向：`Controller → Service → Repository/Model → Database`
+
 ---
 
 ## 一、 数据库与模型同步 (Database & Models)

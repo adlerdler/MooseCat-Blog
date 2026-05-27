@@ -15,16 +15,17 @@
 *   **Task:** 模拟边缘场景测试代码健壮性（如：验证失败、越权访问、Vue 响应式失效）。
 *   **Veto Power:** 若发现安全漏洞或性能冗余，有权要求重新重构。
 
-### ### 04. Orchestration Protocol (via Trae/Claude)
+### ### Orchestration Protocol (via Trae/Claude)
 *   **Handover:** Architect (设计) -> Coder (实现) -> Auditor (审计) -> Master Branch (合并)。
-*   **Frontend Note:** PC 端开发优先使用“混合模式”（Blade + Vue 3），利用 `@json` 传递初始数据，保持架构直观。
-*   **Conflict Resolution:** 当逻辑冲突时，回退至 `command.md` 的 `/refactor-minimal` 逻辑。
-*   **Current Phase:** 后端 API 与管理后台路由已完成，进入前端 Vue 组件开发阶段。
+*   **Frontend:** PC 端使用 **Inertia.js 现代单体架构**，通过 Laravel Controller 直接将数据传递给 Vue 组件，保留 SPA 丝滑体验。
+*   **Conflict Resolution:** 当逻辑冲突时，回退到 `command.md` 的 `/refactor-minimal` 逻辑。
 
-### ### 05. Current Development Status
-*   **Backend:** ✅ 数据库模型完整（12 个表）
-*   **API:** ✅ 8 个模块完整（Posts、Comments、Videos、Projects、Resources、Categories、Tags、Users）
-*   **Web:** ✅ 6 个控制器就绪（Post、Video、Project、Resource、Category、Comment）
-*   **Admin:** ✅ 6 个资源路由（Posts、Videos、Projects、Resources、Categories、Tags）
-*   **Frontend:** ⚠️ Vue 组件待实现（编辑器、评论区）
-*   **Docs:** ✅ API 文档与管理后台规范已更新
+### ### Current Development Status
+*   **Backend:** ✅ 数据库模型完整（25+ 个表 + 迁移）
+*   **API:** ✅ 8+ 个模块完整
+*   **Web:** ✅ 40+ 个控制器就绪
+*   **Admin:** ✅ 123 条后台路由完整
+*   **Frontend:** ✅ Vue 组件已实现（所有页面组件已完成）
+*   **Inertia.js:** ✅ 已完整集成
+*   **Current Phase:** 后端业务逻辑层开发（Service、FormRequest、Policy、Observer）
+*   **Docs:** ✅ 所有文档已同步更新（2026-05-27）

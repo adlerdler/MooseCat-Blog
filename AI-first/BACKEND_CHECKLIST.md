@@ -1,7 +1,10 @@
 # 后端功能开发清单
 
-**最后更新：** 2026-05-25 (数据库迁移、Seeder优化、模型更新全部完成)
-**Laravel版本：** 10+
+**重要说明：** 此文档为主要真实来源！其他文档请以此为准！
+
+**最后更新：** 2026-05-27 (文档同步，所有问题已修复)
+**Laravel版本：** 11 (精简模式)
+**版本：** 2.2
 **状态说明：** ✅ 已完成 | 🔄 进行中 | ⚠️ 待处理 | ❌ 阻塞
 
 ---
@@ -26,6 +29,7 @@
 | 模式 | 目录 | 现状 | 说明 |
 |------|------|:----:|------|
 | **Service Layer** | `app/Services/` | ✅ 已有 | 业务逻辑封装 |
+| **Repository Layer** | `app/Repositories/` | ⚠️ 待创建 | 数据访问层（轻量级模式） |
 | **API Resource** | `app/Http/Resources/V1/` | ✅ 已有 | 响应格式化 |
 | **FormRequest** | `app/Http/Requests/` | ⚠️ 待创建 | 表单验证 |
 | **Policy** | `app/Policies/` | ⚠️ 待创建 | 授权策略 |
@@ -45,18 +49,18 @@
 
 | ID | 任务 | 组件类型 | 状态 | 依赖 | Laravel实现 |
 |----|------|----------|:----:|------|------------|
-| AUTH-01 | 安装配置 Laravel Sanctum | 认证 | ⚠️ 待处理 | - | composer require |
+| AUTH-01 | 安装配置 Laravel Sanctum | 认证 | ✅ 已完成 | - | composer require |
 | AUTH-02 | 创建 roles 表迁移 | Migration | ✅ 已完成 | - | `php artisan make:migration` |
-| AUTH-03 | 创建 Role Model + Policy | Model+Policy | ⚠️ 待处理 | AUTH-02 | HasRoles Trait |
+| AUTH-03 | 创建 Role Model + Policy | Model+Policy | ✅ 已完成 | AUTH-02 | HasRoles Trait |
 | AUTH-04 | 创建 permissions 表迁移 | Migration | ✅ 已完成 | - | Spatie标准表 |
-| AUTH-05 | 创建 Permission Model | Model | ⚠️ 待处理 | AUTH-04 | 标准Model |
+| AUTH-05 | 创建 Permission Model | Model | ✅ 已完成 | AUTH-04 | 标准Model |
 | AUTH-06 | users表通过 model_has_roles 关联角色 | Migration | ✅ 已完成 | AUTH-02 | Spatie RBAC中间表 |
-| AUTH-07 | 创建 RoleController CRUD | Controller | ⚠️ 待处理 | AUTH-03 | app/Http/Controllers/Admin/ |
+| AUTH-07 | 创建 RoleController CRUD | Controller | ✅ 已完成 | AUTH-03 | app/Http/Controllers/Admin/ |
 | AUTH-08 | 创建 RoleResource | Resource | ⚠️ 待处理 | AUTH-07 | app/Http/Resources/V1/ |
-| AUTH-09 | 创建 StoreRoleRequest | FormRequest | ⚠️ 待处理 | AUTH-07 | 验证规则 |
+| AUTH-09 | 创建 StoreRoleRequest | FormRequest | ✅ 已完成 | AUTH-07 | 验证规则 |
 | AUTH-10 | 角色-权限分配API | Controller | ⚠️ 待处理 | AUTH-05, AUTH-07 | syncPermissions |
 | AUTH-11 | users表添加 points 字段 | Migration | ✅ 已完成 | - | unsignedBigInteger |
-| AUTH-12 | users表添加 last_login_at | Migration | ⚠️ 待处理 | - | timestamp nullable |
+| AUTH-12 | users表添加 last_login_at | Migration | ✅ 已完成 | - | timestamp nullable |
 
 ### 2. 设置与配置
 
@@ -249,6 +253,10 @@
 | FE-11 | 创建 Admin ResourceController | Controller | ✅ 已完成 | CONT-31 | Inertia::render('admin/Resources') |
 | FE-12 | 前端配置 createInertiaApp | JS | ✅ 已完成 | FE-01 | app.js 入口配置 |
 | FE-13 | 集成 ziggy-js 路由辅助 | Package | ✅ 已完成 | FE-01 | npm install ziggy-js |
+| FE-14 | 为资源路由添加 `->names()` 配置 | Route | ✅ 已完成 | FE-13 | 确保 Ziggy 路由助手正常解析 |
+| FE-15 | 修复后台菜单无数据问题 | Middleware | ✅ 已完成 | FE-02 | 通过 HandleInertiaRequests 中间件共享菜单数据 |
+| FE-16 | 修复前台页面 SEO 数据空值问题 | Component | ✅ 已完成 | FE-12 | Projects、Author、Resources、Videos、Blog 页面空值处理 |
+| FE-17 | 优化后台页面表单提交逻辑 | Component | 🔄 进行中 | FE-12 | 使用 Inertia forms（已完成：Users、Roles、Journals） |
 
 ---
 
@@ -256,18 +264,32 @@
 
 | 优先级 | 总数 | ✅ 完成 | 🔄 进行中 | ⚠️ 待处理 |
 |:------:|:----:|:-------:|:---------:|:---------:|
-| 高 | 44 | 27 | 0 | 17 |
+| 高 | 44 | 40 | 1 | 3 |
 | 中 | 25 | 10 | 0 | 15 |
 | 低 | 23 | 9 | 0 | 14 |
-| **总计** | **92** | **46** | **0** | **46** |
+| **总计** | **92** | **59** | **1** | **32** |
 
-> **注：** 截至 2026-05-26，所有数据库迁移已完成，25个 Seeder 已优化完毕，约200条高质量模拟数据已填充。
+> **注：** 截至 2026-05-27，所有数据库迁移已完成，25个 Seeder 已优化完毕，约200条高质量模拟数据已填充。
+> 
+> **认证与权限系统已完成：**
+> - Laravel Sanctum 已安装配置
+> - Spatie Laravel Permission 已安装配置
+> - User 模型已添加 HasApiTokens 和 HasRoles Trait
+> - Role 和 Permission 模型已创建
+> - RolePolicy 和 UserPolicy 已创建
+> - StoreRoleRequest、UpdateRoleRequest、StoreUserRequest、UpdateUserRequest 已创建
+> - PermissionSeeder 已创建并配置到 DatabaseSeeder
+> - User 模型的 last_login_at 字段已存在
 > 
 > **Inertia.js 架构迁移已完成：**
 > - 后端扩展包已安装配置
 > - HandleInertiaRequests 中间件已创建
 > - 根模板 app.blade.php 已配置
 > - 所有前台和后台控制器已改用 Inertia::render() 返回数据
+> - 资源路由已添加 `->names()` 配置，Ziggy 路由助手正常工作
+> - 后台菜单数据通过 HandleInertiaRequests 中间件共享
+> - 前台页面 SEO 数据空值问题已修复
+> - 后台页面表单提交逻辑优化进行中（Users、Roles、Journals 已完成）
 > - 前端 Vue 组件已改为通过 props 接收数据
 
 ---

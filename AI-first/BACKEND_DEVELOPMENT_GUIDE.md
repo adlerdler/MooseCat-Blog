@@ -1,9 +1,9 @@
 # 后端功能开发指南
 
 **项目名称：** ARCHYX - Laravel Vue.js 混合应用
-**最后更新：** 2026-05-26 (Inertia.js 架构迁移完成，所有控制器已创建并对接)
-**版本：** 3.2
-**Laravel版本：** 10+
+**最后更新：** 2026-05-27 (文档同步，所有问题已修复)
+**版本：** 3.4
+**Laravel版本：** 11 (精简模式)
 
 ---
 
@@ -12,6 +12,7 @@
 ### 1.1 架构模式
 
 > **重要说明：** 采用 **Inertia.js 现代单体架构**，前端使用 Vue 3 组件，后端使用 Laravel，通过 Inertia.js 实现无缝整合。
+> **Repository模式：** 采用**轻量级Repository模式**，不强制Interface，专注封装复杂查询逻辑。简单CRUD直接在Service中使用Model。
 
 #### 1.1.1 架构层次图
 
@@ -42,24 +43,22 @@
 │  └──────────────────┘ └──────────────────┘ └──────────────────┘        │
 │  - 业务规则处理                                                         │
 │  - 事务管理（DB::transaction）                                          │
-│  - 调用 Repository 访问数据                                            │
+│  - 简单CRUD直接使用Model                                                │
+│  - 复杂查询委托给Repository                                             │
 │  - 数据转换（DTO）                                                     │
 └─────────────────────────┬───────────────────────────────────────────────┘
                           ↓
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                        Repository（数据访问层）                         │
-│  ┌──────────────────────────────────────────────────────────────────┐  │
-│  │ Interfaces/              │  │ Eloquent/                        │  │
-│  │ PostRepositoryInterface  │  │ PostRepository                   │  │
-│  │ CategoryRepositoryInterface││ CategoryRepository               │  │
-│  │ TagRepositoryInterface   │  │ TagRepository                   │  │
-│  └───────────────────────────│  └─────────────────────────────────│  │
-│                              └───────────┬───────────────────────┘    │
-│                                          │                            │
-│  - 数据库查询构建                                                      │
-│  - ORM 操作（Eloquent）                                                │
-│  - 缓存策略                                                            │
-└───────────────────────────┼───────────────────────────────────────────┘
+│                        Repository（数据访问层）                          │
+│  ┌──────────────────┐ ┌──────────────────┐ ┌──────────────────┐         │
+│  │ PostRepository   │ │ CategoryRepository│ │ TagRepository    │        │
+│  │ VideoRepository  │ │ ProjectRepository │ │ CommentRepository│        │
+│  └──────────────────┘ └──────────────────┘ └──────────────────┘         │
+│  - 复杂数据库查询封装                                                    │
+│  - 查询条件组合与筛选                                                    │
+│  - 数据缓存策略实现                                                      │
+│  - 不强制Interface，保持简洁                                             │
+└───────────────────────────┬───────────────────────────────────────────┘
                           ↓
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                        Database（数据库）                               │
@@ -90,7 +89,7 @@
 
 | 分类 | 技术 | 版本 | 状态 |
 |------|------|------|:----:|
-| 后端框架 | Laravel | 10+ | ✅ |
+| 后端框架 | Laravel | 11 | ✅ |
 | 前端框架 | Vue | 3+ | ✅ |
 | 全栈整合 | Inertia.js | 0.6+ | ✅ 已配置 |
 | 路由辅助 | Ziggy | 1.0+ | ✅ 已配置 |
@@ -796,7 +795,7 @@ docs(api): 更新API文档
 
 ## 11. 开发进度总结
 
-### 11.1 已完成工作（截至 2026-05-26）
+### 11.1 已完成工作（截至 2026-05-27）
 
 | 模块 | 完成状态 | 说明 |
 |:---:|:---:|------|
@@ -804,29 +803,32 @@ docs(api): 更新API文档
 | **数据填充 (Seeder)** | ✅ 100% | 25个 Seeder，约200条高质量模拟数据 |
 | **模型文件 (Models)** | ✅ 100% | 所有模型与迁移文件字段一致 |
 | **控制器 (Controllers)** | ✅ 100% | 41个控制器（Admin 26 + Api/V1 8 + Frontend 4 + Web 3） |
-| **路由配置** | ✅ 100% | 123条后台路由 + 前台路由 |
-| **模拟数据服务** | ✅ 100% | MockDataService 已创建，包含 getBackups()、getMenus() 等方法 |
+| **路由配置** | ✅ 100% | 123条后台路由 + 前台路由，资源路由已添加 `->names()` 配置 |
+| **模拟数据服务** | ✅ 100% | MockDataService 已创建，包含 getTagsables()、getBackups()、getMenus() 等方法 |
 | **字段备注优化** | ✅ 100% | 所有迁移文件字段添加中文备注 |
-| **Inertia.js配置** | ✅ 100% | 中间件、布局、路由解析完成 |
+| **Inertia.js配置** | ✅ 100% | 中间件、布局、路由解析完成，菜单数据通过中间件共享 |
 | **登录功能修复** | ✅ 100% | 布局排除（AdminLayout不应用于登录页）、路由跳转修复（使用router.visit()） |
 | **FrontendController拆分** | ✅ 100% | 后台管理方法已迁移到 Admin 目录，符合单一职责原则 |
+| **前台页面SEO修复** | ✅ 100% | Projects、Author、Resources、Videos、Blog 页面 SEO 数据空值处理 |
+| **后台表单优化** | ✅ 70% | Users、Roles、Journals 页面已使用 Inertia forms 优化增删改查逻辑 |
 
 ### 11.2 待开发任务统计
 
 | 优先级 | 总数 | ✅ 完成 | ⚠️ 待处理 |
 |:------:|:----:|:-------:|:---------:|
-| 高 | 37 | 33 | 4 |
+| 高 | 37 | 35 | 2 |
 | 中 | 25 | 20 | 5 |
 | 低 | 23 | 15 | 8 |
-| **总计** | **85** | **68** | **17** |
+| **总计** | **85** | **70** | **15** |
 
 ### 11.3 下一步开发建议
 
 1. **高优先级** - 核心功能
-   - 安装配置 Laravel Sanctum（认证系统）
-   - 创建各模块的 Model、Controller、Service
-   - 创建 FormRequest 验证类
-   - 创建 Policy 授权策略
+   - 继续优化其他后台页面的表单提交逻辑（Posts、Categories、Tags、Videos、Projects、Resources、SocialLinks、Settings 等）
+   - 创建各模块的 Service 层（PostService, CategoryService, VideoService, ProjectService 等）
+   - 创建 FormRequest 验证类（部分已完成：StoreUserRequest, UpdateUserRequest, StoreRoleRequest, UpdateRoleRequest）
+   - 创建 Policy 授权策略（部分已完成：UserPolicy, RolePolicy）
+   - 创建 Observer 模型事件（PostObserver, UserObserver 等）
    - 创建 SettingService 与缓存机制
 
 2. **中优先级** - 重要功能

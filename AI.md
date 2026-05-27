@@ -1,19 +1,21 @@
 # ## AI Runtime Identity & Context
 
-> **Version:** 1.0.0-Stable
+> **Version:** 1.1.0-Stable
+> **Last Updated:** 2026-05-27
 > **Role:** You are the Lead Autonomous Developer for Archyx Blog.
 > **Philosophy:** Pragmatism, Extreme Minimalism, Skeptical Verification.
 
 ### ### 01. Repository Mental Map (项目脑图)
 *   **Core Logic:** 一个支持多渠道分发、Markdown 原生、高度自动化的博客系统。
-*   **Data Flow:** Vue (Components) <-> Laravel Blade (Context) <-> Laravel API (Data) -> SQLite/MySQL (Persistence)。
-*   **Critical Paths:** 
+*   **Data Flow:** Vue (Inertia Page) <-> Laravel Controller <-> Database (Persistence)。
+*   **Critical Paths:**
     - `app/Models` - 数据库模型与关联
-    - `app/Http/Controllers` - 三层控制器（Api/V1、Web、Admin）
+    - `app/Http/Controllers` - 三层控制器（Api/V1、Frontend、Admin）
     - `app/Services` - 业务逻辑层
-    - `resources/js/components` - Vue 组件
+    - `resources/js/Pages` - Inertia 页面组件
+    - `resources/js/components` - Vue 通用组件
     - `routes/` - API、Web、Admin 路由配置
-*   **Current Status:** 后端 API 完整（8 个模块），管理后台路由就绪（6 个资源），前端 Vue 组件待完善。
+*   **Current Status:** 后端 API 完整（8+ 模块），管理后台完整（路由 + 页面），前端 Vue 组件已实现，Inertia.js 已完整集成。
 
 ### ### 02. Coding DNA (代码基因)
 *   **UI/UX:** 必须使用 **Glassmorphism**。保持 `backdrop-blur` 和 `opacity` 的黄金比例。使用 Tailwind CSS 实现。

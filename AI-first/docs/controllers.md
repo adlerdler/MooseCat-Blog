@@ -2,6 +2,16 @@
 
 All API controllers should be placed in the `app/Http/Controllers/Api/V1` namespace to allow for future versioning. Controllers should only be responsible for receiving requests, calling services, and returning formatted responses.
 
+### Architecture Flow
+```
+Controller → Service → Repository/Model → Database
+```
+
+- **Controller**: Receive requests, validate input, call services, return responses
+- **Service**: Business logic, transaction management, orchestration
+- **Repository**: Complex database queries (Lightweight pattern, no Interface required)
+- **Model**: Simple CRUD operations directly
+
 ---
 
 ## API Endpoints Overview

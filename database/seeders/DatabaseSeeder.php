@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Spatie\Permission\Models\Role;
 
 class DatabaseSeeder extends Seeder
 {
@@ -14,9 +13,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // 1. 先运行角色 Seeder（创建 roles）
+        // 1. 先运行角色和权限 Seeder
         $this->call([
             RoleSeeder::class,
+            PermissionSeeder::class,
         ]);
 
         // 2. 创建用户并分配角色
@@ -25,28 +25,21 @@ class DatabaseSeeder extends Seeder
             'email' => 'admin@archyx.com',
             'password' => Hash::make('password'),
         ]);
-        $adminUser->assignRole('Administrator');
+        $adminUser->assignRole('admin');
 
         $editorUser = User::create([
             'name' => 'Content Editor',
             'email' => 'editor@archyx.com',
             'password' => Hash::make('password'),
         ]);
-        $editorUser->assignRole('Editor');
-
-        $authorUser = User::create([
-            'name' => 'Author Writer',
-            'email' => 'author@archyx.com',
-            'password' => Hash::make('password'),
-        ]);
-        $authorUser->assignRole('Author');
+        $editorUser->assignRole('editor');
 
         $testUser = User::create([
             'name' => 'Test User',
             'email' => 'user@archyx.com',
             'password' => Hash::make('password'),
         ]);
-        $testUser->assignRole('Subscriber');
+        $testUser->assignRole('user');
 
         // 3. 按顺序调用子 Seeder
         $this->call([

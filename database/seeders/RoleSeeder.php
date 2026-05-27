@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use Spatie\Permission\Models\Role;
+use App\Models\Role;
 use Illuminate\Database\Seeder;
 
 class RoleSeeder extends Seeder
@@ -69,7 +69,7 @@ class RoleSeeder extends Seeder
         ];
 
         foreach ($roles as $role) {
-            Role::create($role);
+            Role::firstOrCreate(['name' => $role['name'], 'guard_name' => $role['guard_name']], $role);
         }
     }
 }

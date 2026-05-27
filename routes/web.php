@@ -98,10 +98,20 @@ Route::prefix('admin')->group(function () {
     Route::resource('resources', AdminResourceController::class);
     Route::resource('categories', AdminCategoryController::class);
     Route::resource('tags', AdminTagController::class);
-    Route::resource('journals', JournalsController::class);
+    Route::resource('journals', JournalsController::class)->names([
+        'index' => 'admin.journals.index',
+        'store' => 'admin.journals.store',
+        'update' => 'admin.journals.update',
+        'destroy' => 'admin.journals.destroy',
+    ]);
     
     // 用户管理
-    Route::resource('users', UsersController::class);
+    Route::resource('users', UsersController::class)->names([
+        'index' => 'admin.users.index',
+        'store' => 'admin.users.store',
+        'update' => 'admin.users.update',
+        'destroy' => 'admin.users.destroy',
+    ]);
     Route::resource('subscribers', SubscribersController::class)->only(['index', 'store', 'destroy']);
     Route::resource('user-levels', UserLevelsController::class);
     
@@ -112,7 +122,12 @@ Route::prefix('admin')->group(function () {
         'update' => 'admin.front-menu.update',
         'destroy' => 'admin.front-menu.destroy',
     ]);
-    Route::resource('roles', RolesController::class);
+    Route::resource('roles', RolesController::class)->names([
+        'index' => 'admin.roles.index',
+        'store' => 'admin.roles.store',
+        'update' => 'admin.roles.update',
+        'destroy' => 'admin.roles.destroy',
+    ]);
     Route::get('/notifications', [NotificationsController::class, 'index'])->name('admin.notifications');
     Route::patch('/notifications/{id}/mark-as-read', [NotificationsController::class, 'markAsRead'])->name('admin.notifications.mark-as-read');
     Route::delete('/notifications', [NotificationsController::class, 'clear'])->name('admin.notifications.clear');

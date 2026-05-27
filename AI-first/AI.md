@@ -6,11 +6,12 @@
 
 ### ### 01. Repository Mental Map (项目脑图)
 *   **Core Logic:** 一个支持多渠道分发、Markdown 原生、高度自动化的博客系统。
-*   **Data Flow:** Vue (Components) <-> Laravel Blade (Context) <-> Laravel API (Data) -> SQLite/MySQL (Persistence)。
+*   **Data Flow:** Vue (Inertia Page) <-> Laravel Controller <-> Service <-> Repository/Model <-> Database。
 *   **Critical Paths:** 
     - `app/Models` - 数据库模型与关联
-    - `app/Http/Controllers` - 三层控制器（Api/V1、Web、Admin）
+    - `app/Http/Controllers` - 三层控制器（Api/V1、Frontend、Admin）
     - `app/Services` - 业务逻辑层
+    - `app/Repositories` - 数据访问层（轻量级Repository模式）
     - `resources/js/components` - Vue 组件
     - `routes/` - API、Web、Admin 路由配置
 *   **Current Status:** 后端 API 完整（8 个模块），管理后台路由就绪（6 个资源），前端 Vue 组件待完善。
