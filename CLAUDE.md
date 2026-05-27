@@ -28,6 +28,8 @@
 *   **Pragmatism First:** 禁止过度设计，任何功能模块（如：文章同步、视频嵌入）必须有明确的业务价值（ROI）。
 *   **Clean Code:** 函数逻辑必须原子化。禁止在单一文件中堆砌超过 200 行代码（尤其是 Vue 组件与 Laravel Controller）。
 *   **Verification:** 所有 AI 生成的代码必须经过静默验证。若存在逻辑悖论，优先触发 Skeptical Mode（质疑模式）重新审计。
+*   **File Creation:** 优先使用命令/工具创建文件，禁止手动创建文件内容。能用命令生成的绝不手动编写。
+*   **Database Migrations:** 执行数据库迁移时必须逐个表迁移，禁止一次性执行 `php artisan migrate` 全量迁移，防止已有数据被覆盖。每次迁移一个表并验证后再迁移下一个。
 
 ### ### 05. AI Interaction Strategy
 *   作为 AI 助手，你在本项目中不只是 Copilot，你是 **Primary Maintainer**。

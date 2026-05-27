@@ -133,36 +133,15 @@ class PermissionSeeder extends Seeder
             ]);
         }
 
-        // 创建角色
-        $adminRole = Role::firstOrCreate([
-            'name' => 'admin',
-            'guard_name' => 'web',
-        ], [
-            'value' => 'admin',
-            'label' => 'Administrator',
-            'color' => 'text-red-500 bg-red-100',
-            'description' => '系统管理员，拥有所有权限',
-        ]);
-
-        $editorRole = Role::firstOrCreate([
-            'name' => 'editor',
-            'guard_name' => 'web',
-        ], [
-            'value' => 'editor',
-            'label' => 'Editor',
-            'color' => 'text-blue-500 bg-blue-100',
-            'description' => '编辑，可以管理内容',
-        ]);
-
-        $userRole = Role::firstOrCreate([
-            'name' => 'user',
-            'guard_name' => 'web',
-        ], [
-            'value' => 'user',
-            'label' => 'User',
-            'color' => 'text-gray-500 bg-gray-100',
-            'description' => '普通用户',
-        ]);
+        // 获取已存在的角色（由 RoleSeeder 创建）
+        $adminRole = Role::where('value', 'admin')->where('guard_name', 'web')->first();
+        $editorRole = Role::where('value', 'editor')->where('guard_name', 'web')->first();
+        $userRole = Role::where('value', 'subscriber')->where('guard_name', 'web')->first();
+        
+        if (!$adminRole || !$editorRole) {
+            $this->command->error('Roles not found. Please run RoleSeeder first.');
+            return;
+        }
 
         // 给管理员角色分配所有权限
         $adminRole->syncPermissions(Permission::all());

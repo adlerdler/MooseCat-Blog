@@ -25,21 +25,28 @@ class DatabaseSeeder extends Seeder
             'email' => 'admin@archyx.com',
             'password' => Hash::make('password'),
         ]);
-        $adminUser->assignRole('admin');
+        $adminUser->assignRole('Administrator');
 
         $editorUser = User::create([
             'name' => 'Content Editor',
             'email' => 'editor@archyx.com',
             'password' => Hash::make('password'),
         ]);
-        $editorUser->assignRole('editor');
+        $editorUser->assignRole('Editor');
+
+        $authorUser = User::create([
+            'name' => 'Test Author',
+            'email' => 'author@archyx.com',
+            'password' => Hash::make('password'),
+        ]);
+        $authorUser->assignRole('Author');
 
         $testUser = User::create([
             'name' => 'Test User',
             'email' => 'user@archyx.com',
             'password' => Hash::make('password'),
         ]);
-        $testUser->assignRole('user');
+        $testUser->assignRole('Subscriber');
 
         // 3. 按顺序调用子 Seeder
         $this->call([
