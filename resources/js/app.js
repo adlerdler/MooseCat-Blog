@@ -11,7 +11,7 @@ import './bootstrap';
 import '../css/app.css';
 
 import { createApp, h } from 'vue';
-import { createInertiaApp } from '@inertiajs/vue3';
+import { createInertiaApp, router } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { ZiggyVue } from 'ziggy-js';
 import { i18n } from './i18n';
@@ -21,7 +21,44 @@ import AdminLayout from './Pages/admin/Layout.vue';
 const { initTheme } = useTheme();
 initTheme();
 
+const getPageKeyFromRoute = (url) => {
+    if (!url || url === '/' || url === '') return 'home';
+    const segments = url.split('/').filter(Boolean);
+    if (segments.length === 0) return 'home';
+    
+    if (segments[0] === 'blog' && segments[1]) return 'post_detail';
+    if (segments[0] === 'projects' && segments[1]) return 'project_detail';
+    if (segments[0] === 'videos' && segments[1]) return 'video_detail';
+    
+    return segments[0];
+};
+
+router.on('navigate', (event) => {
+    setTimeout(() => {
+        const pageProps = event.detail.page.props;
+        const pageSeo = pageProps.pageSeo || [];
+        const url = event.detail.page.url;
+        const pageKey = getPageKeyFromRoute(url);
+        
+        if (pageKey === 'post_detail' && pageProps.post?.title) {
+            document.title = pageProps.post.meta_title || `${pageProps.post.title} - ARCHYX`;
+        } else if (pageKey === 'project_detail' && pageProps.project?.title) {
+            document.title = pageProps.project.title;
+        } else if (pageKey === 'video_detail' && pageProps.video?.title) {
+            document.title = pageProps.video.title;
+        } else {
+            const seoData = pageSeo.find(s => s.pageKey === pageKey);
+            if (seoData && seoData.title) {
+                document.title = seoData.title;
+            } else {
+                document.title = 'Archyx Blog';
+            }
+        }
+    }, 50);
+});
+
 createInertiaApp({
+    title: (title) => title || 'Archyx Blog',
     resolve: (name) => {
         console.log('[DEBUG] Inertia resolving page:', name);
         try {

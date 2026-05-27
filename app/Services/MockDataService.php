@@ -2,6 +2,13 @@
 
 namespace App\Services;
 
+/**
+ * MockDataService - 模拟数据服务类
+ * 
+ * 提供前端开发所需的模拟数据，从JSON文件加载数据并支持各种数据查询操作。
+ * Provides mock data for frontend development, loading data from JSON files and 
+ * supporting various data query operations.
+ */
 class MockDataService
 {
     private array $posts = [];
@@ -40,12 +47,20 @@ class MockDataService
 
     private string $dataPath;
 
+    /**
+     * 构造函数 - 初始化数据路径并加载所有数据
+     * Constructor - Initialize data path and load all data
+     */
     public function __construct()
     {
         $this->dataPath = resource_path('js/data');
         $this->loadAllData();
     }
 
+    /**
+     * 加载JSON文件
+     * Load JSON file
+     */
     private function loadJson(string $filename): array
     {
         $path = $this->dataPath . '/' . $filename;
@@ -56,6 +71,10 @@ class MockDataService
         return json_decode($content, true) ?? [];
     }
 
+    /**
+     * 加载所有数据
+     * Load all data
+     */
     private function loadAllData(): void
     {
         $this->videos = $this->loadJson('videos.json');
@@ -100,6 +119,10 @@ class MockDataService
         }
     }
 
+    /**
+     * 根据ID查找分类
+     * Find category by ID
+     */
     private function findCategoryById(?int $id): ?array
     {
         if ($id === null) return null;
@@ -111,6 +134,10 @@ class MockDataService
         return null;
     }
 
+    /**
+     * 根据ID查找作者
+     * Find author by ID
+     */
     private function findAuthorById(?int $id): ?array
     {
         if ($id === null) return null;
@@ -122,6 +149,10 @@ class MockDataService
         return $authors[$id] ?? null;
     }
 
+    /**
+     * 根据ID数组查找标签
+     * Find tags by IDs
+     */
     private function findTagsByIds(array $tagIds): array
     {
         $allTags = [
@@ -135,6 +166,10 @@ class MockDataService
         return array_filter(array_map(fn($id) => $allTags[$id]['name'] ?? null, $tagIds));
     }
 
+    /**
+     * 获取文章列表
+     * Get posts
+     */
     public function getPosts(int $limit = null): array
     {
         if ($limit !== null) {
@@ -143,6 +178,10 @@ class MockDataService
         return $this->posts;
     }
 
+    /**
+     * 获取项目列表
+     * Get projects
+     */
     public function getProjects(int $limit = null): array
     {
         if ($limit !== null) {
@@ -151,6 +190,10 @@ class MockDataService
         return $this->projects;
     }
 
+    /**
+     * 获取视频列表
+     * Get videos
+     */
     public function getVideos(int $limit = null): array
     {
         if ($limit !== null) {
@@ -159,41 +202,73 @@ class MockDataService
         return $this->videos;
     }
 
+    /**
+     * 获取分类列表
+     * Get categories
+     */
     public function getCategories(): array
     {
         return $this->categories;
     }
 
+    /**
+     * 获取标签列表
+     * Get tags
+     */
     public function getTags(): array
     {
         return $this->tags;
     }
 
+    /**
+     * 获取标签关联列表
+     * Get taggables
+     */
     public function getTagsables(): array
     {
         return $this->tagsables;
     }
 
+    /**
+     * 获取用户列表
+     * Get users
+     */
     public function getUsers(): array
     {
         return $this->users;
     }
 
+    /**
+     * 获取角色列表
+     * Get roles
+     */
     public function getRoles(): array
     {
         return $this->roles;
     }
 
+    /**
+     * 获取权限列表
+     * Get permissions
+     */
     public function getPermissions(): array
     {
         return $this->permissions;
     }
 
+    /**
+     * 获取角色权限关联
+     * Get role permissions
+     */
     public function getRolePermissions(): array
     {
         return $this->rolePermissions;
     }
 
+    /**
+     * 获取日志列表
+     * Get journals
+     */
     public function getJournals(int $limit = null): array
     {
         if ($limit !== null) {
@@ -202,126 +277,226 @@ class MockDataService
         return $this->journals;
     }
 
+    /**
+     * 获取评论列表
+     * Get comments
+     */
     public function getComments(): array
     {
         return $this->comments;
     }
 
+    /**
+     * 获取通知列表
+     * Get notifications
+     */
     public function getNotifications(): array
     {
         return $this->notifications;
     }
 
+    /**
+     * 获取广告列表
+     * Get advertisements
+     */
     public function getAdvertisements(): array
     {
         return $this->advertisements;
     }
 
+    /**
+     * 获取广告位置列表
+     * Get ad positions
+     */
     public function getAdPositions(): array
     {
         return $this->adPositions;
     }
 
+    /**
+     * 获取媒体文件列表
+     * Get media
+     */
     public function getMedia(): array
     {
         return $this->media;
     }
 
+    /**
+     * 获取资源列表
+     * Get resources
+     */
     public function getResources(): array
     {
         return $this->resources;
     }
 
+    /**
+     * 获取订阅者列表
+     * Get subscribers
+     */
     public function getSubscribers(): array
     {
         return $this->subscribers;
     }
 
+    /**
+     * 获取互动记录列表
+     * Get interactions
+     */
     public function getInteractions(): array
     {
         return $this->interactions;
     }
 
+    /**
+     * 获取访问记录列表
+     * Get visits
+     */
     public function getVisits(): array
     {
         return $this->visits;
     }
 
+    /**
+     * 获取系统日志列表
+     * Get logs
+     */
     public function getLogs(): array
     {
         return $this->logs;
     }
 
+    /**
+     * 获取备份列表
+     * Get backup
+     */
     public function getBackup(): array
     {
         return $this->backup;
     }
 
+    /**
+     * 获取备份列表（别名）
+     * Get backups
+     */
     public function getBackups(): array
     {
         return $this->backup;
     }
 
+    /**
+     * 获取作者资料列表
+     * Get author profiles
+     */
     public function getAuthorProfiles(): array
     {
         return $this->authorProfiles;
     }
 
+    /**
+     * 获取主题列表
+     * Get themes
+     */
     public function getThemes(): array
     {
         return $this->themes;
     }
 
+    /**
+     * 获取用户等级列表
+     * Get user levels
+     */
     public function getUserLevels(): array
     {
         return $this->userLevels;
     }
 
+    /**
+     * 获取站点配置
+     * Get site config
+     */
     public function getSiteConfig(): array
     {
         return $this->siteConfig;
     }
 
+    /**
+     * 获取SEO配置
+     * Get SEO config
+     */
     public function getSeoConfig(): array
     {
         return $this->seoConfig;
     }
 
+    /**
+     * 获取页脚配置
+     * Get footer config
+     */
     public function getFooterConfig(): array
     {
         return $this->footerConfig;
     }
 
+    /**
+     * 获取邮件配置
+     * Get mail config
+     */
     public function getMailConfig(): array
     {
         return $this->mailConfig;
     }
 
+    /**
+     * 获取邮件模板
+     * Get email templates
+     */
     public function getEmailTemplates(): array
     {
         return $this->emailTemplates;
     }
 
+    /**
+     * 获取国际化配置
+     * Get i18n config
+     */
     public function getI18nConfig(): array
     {
         return $this->i18nConfig;
     }
 
+    /**
+     * 获取菜单数据
+     * Get menu
+     */
     public function getMenu(): array
     {
         return $this->menu;
     }
 
+    /**
+     * 获取菜单列表（别名）
+     * Get menus
+     */
     public function getMenus(): array
     {
         return $this->menu;
     }
 
+    /**
+     * 获取页面SEO配置
+     * Get page SEO
+     */
     public function getPageSeo(): array
     {
         return $this->pageSeo;
     }
 
+    /**
+     * 根据slug获取文章
+     * Get post by slug
+     */
     public function getPostBySlug(string $slug): ?array
     {
         foreach ($this->posts as $post) {
@@ -332,6 +507,10 @@ class MockDataService
         return null;
     }
 
+    /**
+     * 根据分类获取文章
+     * Get posts by category
+     */
     public function getPostsByCategory(string $categorySlug, int $limit = null): array
     {
         $filtered = array_filter($this->posts, function ($post) use ($categorySlug) {
@@ -344,6 +523,10 @@ class MockDataService
         return $result;
     }
 
+    /**
+     * 分页获取文章
+     * Paginate posts
+     */
     public function paginatePosts(int $page = 1, int $perPage = 6): array
     {
         $total = count($this->posts);
@@ -359,11 +542,19 @@ class MockDataService
         ];
     }
 
+    /**
+     * 获取作者列表
+     * Get authors
+     */
     public function getAuthors(): array
     {
         return $this->authorProfiles;
     }
 
+    /**
+     * 根据ID获取用户
+     * Get user by ID
+     */
     public function getUserById(int $id): ?array
     {
         foreach ($this->users as $user) {
@@ -374,6 +565,10 @@ class MockDataService
         return null;
     }
 
+    /**
+     * 根据ID获取角色
+     * Get role by ID
+     */
     public function getRoleById(int $id): ?array
     {
         foreach ($this->roles as $role) {
@@ -384,6 +579,10 @@ class MockDataService
         return null;
     }
 
+    /**
+     * 根据ID获取分类
+     * Get category by ID
+     */
     public function getCategoryById(int $id): ?array
     {
         foreach ($this->categories as $category) {
@@ -394,6 +593,10 @@ class MockDataService
         return null;
     }
 
+    /**
+     * 根据ID获取标签
+     * Get tag by ID
+     */
     public function getTagById(int $id): ?array
     {
         foreach ($this->tags as $tag) {

@@ -1,7 +1,7 @@
 # 后端功能开发指南
 
 **项目名称：** ARCHYX - Laravel Vue.js 混合应用
-**最后更新：** 2026-05-27 (文档同步，所有问题已修复)
+**最后更新：** 2026-05-27 (新增前台API认证系统，9个测试用例全部通过)
 **版本：** 3.4
 **Laravel版本：** 11 (精简模式)
 
@@ -59,7 +59,7 @@
 │  - 数据缓存策略实现                                                      │
 │  - 不强制Interface，保持简洁                                             │
 └───────────────────────────┬───────────────────────────────────────────┘
-                          ↓
+                            ↓
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                        Database（数据库）                               │
 │  ┌───────────┐ ┌───────────┐ ┌───────────┐ ┌───────────┐             │
@@ -82,7 +82,7 @@
 |----|----------|--------------|------------|------|
 | **前台网站** | Inertia.js + Vue 3 | Inertia Props | `App\Http\Controllers\Frontend\` | 4 |
 | **后台管理** | Inertia.js + Vue 3 | Inertia Props | `App\Http\Controllers\Admin\` | 26 |
-| **API接口** | JSON响应 | RESTful API | `App\Http\Controllers\Api\V1\` | 8 |
+| **API接口** | JSON响应 | RESTful API | `App\Http\Controllers\Api\V1\` | 10 |
 | **Web兼容** | Blade/JSON | 混合模式 | `App\Http\Controllers\Web\` | 3 |
 
 ### 1.2 技术栈
@@ -94,10 +94,10 @@
 | 全栈整合 | Inertia.js | 0.6+ | ✅ 已配置 |
 | 路由辅助 | Ziggy | 1.0+ | ✅ 已配置 |
 | 数据库 | MySQL | 8.0+ | ✅ |
-| 认证系统 | Laravel Sanctum | 3.0+ | ⚠️ 待配置 |
-| 权限管理 | Spatie Permission | 5.0+ | ⚠️ 待配置 |
+| 认证系统 | Laravel Sanctum | 3.0+ | ✅ 已配置（前台API认证） |
+| 权限管理 | Spatie Permission | 5.0+ | ✅ 已配置（RBAC） |
 | 缓存系统 | Redis | 6.0+ | ⚠️ 待配置 |
-| 媒体管理 | Spatie Media Library | 10.0+ | ⚠️ 待配置 |
+| 媒体管理 | Spatie Media Library | 11.0+ | ✅ 已配置（本地存储 + 自动裁剪） |
 
 ### 1.3 Laravel 设计原则遵循
 

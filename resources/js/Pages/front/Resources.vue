@@ -28,13 +28,17 @@ import ResourceModal from '@/components/ResourceModal.vue';
 
 const props = defineProps({
   resources: { type: Array, default: () => [] },
-  categories: { type: Array, default: () => [] }
+  categories: { type: Array, default: () => [] },
+  menus: { type: Array, default: () => [] },
+  siteConfig: { type: Object, default: () => ({}) },
+  footerConfig: { type: Object, default: () => ({}) },
+  themes: { type: Array, default: () => [] }
 });
 
 const { getSeoByPageKey } = usePageSeoData();
 const pageSeo = getSeoByPageKey('resources') || { title: '', description: '', keywords: '' };
 
-usePageSeo({
+const { SeoHead } = usePageSeo({
   title: pageSeo.title || '',
   description: pageSeo.description || '',
   keywords: pageSeo.keywords || '',
@@ -129,9 +133,15 @@ const mixedResourcesWithAds = computed(() => {
 </script>
 
 <template>
+  <SeoHead />
   <div class="min-h-screen bg-construct-paper selection:bg-construct-red selection:text-white">
     <!-- Sidebar Menu -->
-    <SidebarMenu v-model:is-footer-visible="isFooterVisible" />
+    <SidebarMenu 
+      v-model:is-footer-visible="isFooterVisible" 
+      :menus="menus"
+      :site-config="siteConfig"
+      :footer-config="footerConfig"
+    />
 
     <!-- Main Content with left margin for sidebar -->
     <div class="ml-16">
@@ -250,7 +260,11 @@ const mixedResourcesWithAds = computed(() => {
       </div>
 
       <!-- Footer -->
-      <Footer v-model="isFooterVisible" />
+      <Footer 
+        v-model="isFooterVisible" 
+        :footer-config="footerConfig"
+        :site-config="siteConfig"
+      />
     </div>
 
     <!-- Resource Modal -->

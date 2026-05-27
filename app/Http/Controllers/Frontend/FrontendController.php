@@ -21,12 +21,30 @@ class FrontendController extends Controller
         $posts = $this->mockDataService->getPosts(3);
         $projects = $this->mockDataService->getProjects(3);
         $videos = $this->mockDataService->getVideos(3);
+        $menu = $this->mockDataService->getMenu();
+        $siteConfig = $this->mockDataService->getSiteConfig();
+        $footerConfig = $this->mockDataService->getFooterConfig();
+        $themes = $this->mockDataService->getThemes();
 
         return Inertia::render('front/Home', [
             'posts' => $posts,
             'projects' => $projects,
             'videos' => $videos,
+            'menus' => $menu,
+            'siteConfig' => $siteConfig,
+            'footerConfig' => $footerConfig,
+            'themes' => $themes,
         ]);
+    }
+
+    private function getConfigData(): array
+    {
+        return [
+            'menus' => $this->mockDataService->getMenu(),
+            'siteConfig' => $this->mockDataService->getSiteConfig(),
+            'footerConfig' => $this->mockDataService->getFooterConfig(),
+            'themes' => $this->mockDataService->getThemes(),
+        ];
     }
 
     public function blog(): Response
@@ -49,6 +67,7 @@ class FrontendController extends Controller
             ],
             'categories' => $categories,
             'authors' => $authors,
+            ...$this->getConfigData(),
         ]);
     }
 
@@ -58,6 +77,7 @@ class FrontendController extends Controller
 
         return Inertia::render('front/Projects', [
             'projects' => $projects,
+            ...$this->getConfigData(),
         ]);
     }
 
@@ -69,6 +89,7 @@ class FrontendController extends Controller
         return Inertia::render('front/Resources', [
             'resources' => $resources,
             'categories' => $categories,
+            ...$this->getConfigData(),
         ]);
     }
 
@@ -78,6 +99,7 @@ class FrontendController extends Controller
 
         return Inertia::render('front/Videos', [
             'videos' => $videos,
+            ...$this->getConfigData(),
         ]);
     }
 
@@ -97,6 +119,7 @@ class FrontendController extends Controller
             'authors' => $authors,
             'comments' => $comments,
             'interactions' => $interactions,
+            ...$this->getConfigData(),
         ]);
     }
 
@@ -107,6 +130,7 @@ class FrontendController extends Controller
 
         return Inertia::render('front/ProjectDetail', [
             'project' => $project,
+            ...$this->getConfigData(),
         ]);
     }
 
@@ -117,6 +141,7 @@ class FrontendController extends Controller
 
         return Inertia::render('front/VideoDetail', [
             'video' => $video,
+            ...$this->getConfigData(),
         ]);
     }
 
@@ -140,6 +165,7 @@ class FrontendController extends Controller
             'manifestos' => $manifestos,
             'socialLinksObj' => (object)$socialLinks,
             'projects' => $activeProjects,
+            ...$this->getConfigData(),
         ]);
     }
 }

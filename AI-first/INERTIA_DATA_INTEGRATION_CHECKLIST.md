@@ -1,7 +1,7 @@
 # Inertia.js 数据对接任务清单
 
 **项目名称：** ARCHYX - Laravel Vue.js 混合应用
-**最后更新：** 2026-05-27
+**最后更新：** 2026-05-27 (新增前台API认证系统，9个测试用例全部通过)
 **版本：** 3.0
 **状态：** 进行中
 
@@ -11,17 +11,18 @@
 
 | 阶段 | 任务数 | 完成 | 进行中 | 待处理 |
 |:----:|:------:|:----:|:------:|:------:|
-| 第一阶段：MockDataService | 15 | 15 | 0 | 0 |
-| 第二阶段：后端Service层 | 20 | 20 | 0 | 0 |
-| 第二阶段B：后端Repository层 | 13 | 0 | 0 | 13 |
-| 第三阶段：后端FormRequest | 15 | 4 | 0 | 11 |
-| 第四阶段：后端Policy | 10 | 2 | 0 | 8 |
-| 第五阶段：后端Observer | 8 | 0 | 0 | 8 |
-| 第六阶段：API Resource | 12 | 8 | 0 | 4 |
-| 第七阶段：后台Controller | 30 | 24 | 0 | 6 |
-| 第八阶段：前台页面 | 40 | 26 | 0 | 14 |
-| 第九阶段：数据清理 | 5 | 0 | 0 | 5 |
-| **总计** | **168** | **99** | **0** | **69** |
+| 第一阶段：MockDataService | 15 | 15 | 0 | 0 | ✅ |
+| 第二阶段：后端Service层 | 20 | 20 | 0 | 0 | ✅ |
+| 第二阶段B：后端Repository层 | 13 | 13 | 0 | 0 | ✅ |
+| 第三阶段：后端FormRequest | 15 | 15 | 0 | 0 | ✅ |
+| 第四阶段：后端Policy | 10 | 10 | 0 | 0 | ✅ |
+| 第五阶段：后端Observer | 8 | 0 | 0 | 8 | ❌ 跳过 |
+| 第六阶段：API Resource | 12 | 12 | 0 | 0 | ✅ |
+| 第七阶段：后台Controller | 30 | 24 | 0 | 6 | ⚠️ |
+| 第八阶段：前台页面 | 40 | 26 | 0 | 14 | ⚠️ |
+| 第九阶段：数据清理 | 5 | 0 | 0 | 5 | ⚠️ |
+| 第十阶段：前台API认证 | 6 | 6 | 0 | 0 | ✅ |
+| **总计** | **174** | **137** | **0** | **37** |
 
 ---
 
@@ -113,7 +114,7 @@
 
 ## 第二阶段B：后端 Repository 层开发
 
-> **状态：** ⚠️ 待处理
+> **状态：** ✅ 已完成
 > **文件位置：** `app/Repositories/`
 > **架构模式：** 采用轻量级 Repository 模式，不强制 Interface，专注封装复杂查询逻辑。简单 CRUD 直接在 Service 中使用 Model。
 
@@ -121,61 +122,61 @@
 
 | 序号 | 任务 | 文件位置 | 优先级 | 状态 |
 |:---:|------|----------|:------:|:----:|
-| 2B.1.1 | 创建 PostRepository 类 | app/Repositories/PostRepository.php | 高 | ⚠️ 待处理 |
-| 2B.1.2 | 实现 getPaginatedPosts() 分页查询 | 2B.1.1 | 高 | ⚠️ 待处理 |
-| 2B.1.3 | 实现 searchPosts() 搜索功能 | 2B.1.1 | 中 | ⚠️ 待处理 |
-| 2B.1.4 | 实现 getPostsByCategory() 分类筛选 | 2B.1.1 | 中 | ⚠️ 待处理 |
-| 2B.1.5 | 实现 getPostsByTag() 标签筛选 | 2B.1.1 | 中 | ⚠️ 待处理 |
+| 2B.1.1 | 创建 PostRepository 类 | app/Repositories/PostRepository.php | 高 | ✅ 已完成 |
+| 2B.1.2 | 实现 getPaginatedPosts() 分页查询 | 2B.1.1 | 高 | ✅ 已完成 |
+| 2B.1.3 | 实现 searchPosts() 搜索功能 | 2B.1.1 | 中 | ✅ 已完成 |
+| 2B.1.4 | 实现 getPostsByCategory() 分类筛选 | 2B.1.1 | 中 | ✅ 已完成 |
+| 2B.1.5 | 实现 getPostsByTag() 标签筛选 | 2B.1.1 | 中 | ✅ 已完成 |
 
 ### 2B.2 CategoryRepository 分类数据访问
 
 | 序号 | 任务 | 文件位置 | 优先级 | 状态 |
 |:---:|------|----------|:------:|:----:|
-| 2B.2.1 | 创建 CategoryRepository 类 | app/Repositories/CategoryRepository.php | 高 | ⚠️ 待处理 |
-| 2B.2.2 | 实现 getCategoriesWithCount() 带文章数 | 2B.2.1 | 高 | ⚠️ 待处理 |
-| 2B.2.3 | 实现 getCategoryTree() 树形结构 | 2B.2.1 | 中 | ⚠️ 待处理 |
+| 2B.2.1 | 创建 CategoryRepository 类 | app/Repositories/CategoryRepository.php | 高 | ✅ 已完成 |
+| 2B.2.2 | 实现 getCategoriesWithCount() 带文章数 | 2B.2.1 | 高 | ✅ 已完成 |
+| 2B.2.3 | 实现 getCategoryTree() 树形结构 | 2B.2.1 | 中 | ✅ 已完成 |
 
 ### 2B.3 其他 Repository
 
 | 序号 | 任务 | 文件位置 | 优先级 | 状态 |
 |:---:|------|----------|:------:|:----:|
-| 2B.3.1 | TagRepository | app/Repositories/TagRepository.php | 高 | ⚠️ 待处理 |
-| 2B.3.2 | VideoRepository | app/Repositories/VideoRepository.php | 高 | ⚠️ 待处理 |
-| 2B.3.3 | ProjectRepository | app/Repositories/ProjectRepository.php | 高 | ⚠️ 待处理 |
-| 2B.3.4 | CommentRepository | app/Repositories/CommentRepository.php | 高 | ⚠️ 待处理 |
-| 2B.3.5 | UserRepository | app/Repositories/UserRepository.php | 中 | ⚠️ 待处理 |
+| 2B.3.1 | TagRepository | app/Repositories/TagRepository.php | 高 | ✅ 已完成 |
+| 2B.3.2 | VideoRepository | app/Repositories/VideoRepository.php | 高 | ✅ 已完成 |
+| 2B.3.3 | ProjectRepository | app/Repositories/ProjectRepository.php | 高 | ✅ 已完成 |
+| 2B.3.4 | CommentRepository | app/Repositories/CommentRepository.php | 高 | ✅ 已完成 |
+| 2B.3.5 | UserRepository | app/Repositories/UserRepository.php | 中 | ✅ 已完成 |
 
 ---
 
 ## 第三阶段：后端 FormRequest 表单验证
 
-> **状态：** 🔄 进行中（4/15 已完成）
+> **状态：** ✅ 已完成
 > **文件位置：** `app/Http/Requests/`
 
 ### 3.1 文章相关验证
 
 | 序号 | 任务 | 文件位置 | 优先级 | 状态 |
 |:---:|------|----------|:------:|:----:|
-| 3.1.1 | StorePostRequest 创建文章验证 | app/Http/Requests/StorePostRequest.php | 高 | ⚠️ 待处理 |
-| 3.1.2 | UpdatePostRequest 更新文章验证 | app/Http/Requests/UpdatePostRequest.php | 高 | ⚠️ 待处理 |
+| 3.1.1 | StorePostRequest 创建文章验证 | app/Http/Requests/StorePostRequest.php | 高 | ✅ 已完成 |
+| 3.1.2 | UpdatePostRequest 更新文章验证 | app/Http/Requests/UpdatePostRequest.php | 高 | ✅ 已完成 |
 
 ### 3.2 分类标签验证
 
 | 序号 | 任务 | 文件位置 | 优先级 | 状态 |
 |:---:|------|----------|:------:|:----:|
-| 3.2.1 | StoreCategoryRequest | app/Http/Requests/StoreCategoryRequest.php | 高 | ⚠️ 待处理 |
-| 3.2.2 | UpdateCategoryRequest | app/Http/Requests/UpdateCategoryRequest.php | 高 | ⚠️ 待处理 |
-| 3.2.3 | StoreTagRequest | app/Http/Requests/StoreTagRequest.php | 高 | ⚠️ 待处理 |
-| 3.2.4 | UpdateTagRequest | app/Http/Requests/UpdateTagRequest.php | 高 | ⚠️ 待处理 |
+| 3.2.1 | StoreCategoryRequest | app/Http/Requests/StoreCategoryRequest.php | 高 | ✅ 已完成 |
+| 3.2.2 | UpdateCategoryRequest | app/Http/Requests/UpdateCategoryRequest.php | 高 | ✅ 已完成 |
+| 3.2.3 | StoreTagRequest | app/Http/Requests/StoreTagRequest.php | 高 | ✅ 已完成 |
+| 3.2.4 | UpdateTagRequest | app/Http/Requests/UpdateTagRequest.php | 高 | ✅ 已完成 |
 
 ### 3.3 视频项目验证
 
 | 序号 | 任务 | 文件位置 | 优先级 | 状态 |
 |:---:|------|----------|:------:|:----:|
-| 3.3.1 | StoreVideoRequest | app/Http/Requests/StoreVideoRequest.php | 高 | ⚠️ 待处理 |
-| 3.3.2 | UpdateVideoRequest | app/Http/Requests/UpdateVideoRequest.php | 高 | ⚠️ 待处理 |
-| 3.3.3 | StoreProjectRequest | app/Http/Requests/StoreProjectRequest.php | 高 | ⚠️ 待处理 |
-| 3.3.4 | UpdateProjectRequest | app/Http/Requests/UpdateProjectRequest.php | 高 | ⚠️ 待处理 |
+| 3.3.1 | StoreVideoRequest | app/Http/Requests/StoreVideoRequest.php | 高 | ✅ 已完成 |
+| 3.3.2 | UpdateVideoRequest | app/Http/Requests/UpdateVideoRequest.php | 高 | ✅ 已完成 |
+| 3.3.3 | StoreProjectRequest | app/Http/Requests/StoreProjectRequest.php | 高 | ✅ 已完成 |
+| 3.3.4 | UpdateProjectRequest | app/Http/Requests/UpdateProjectRequest.php | 高 | ✅ 已完成 |
 
 ### 3.4 用户评论验证
 
@@ -183,56 +184,62 @@
 |:---:|------|----------|:------:|:----:|
 | 3.4.1 | StoreUserRequest | app/Http/Requests/StoreUserRequest.php | 高 | ✅ 已完成 |
 | 3.4.2 | UpdateUserRequest | app/Http/Requests/UpdateUserRequest.php | 高 | ✅ 已完成 |
-| 3.4.3 | StoreCommentRequest | app/Http/Requests/StoreCommentRequest.php | 高 | ⚠️ 待处理 |
-| 3.4.4 | SubscribeRequest | app/Http/Requests/SubscribeRequest.php | 中 | ⚠️ 待处理 |
+| 3.4.3 | StoreCommentRequest | app/Http/Requests/StoreCommentRequest.php | 高 | ✅ 已完成 |
+| 3.4.4 | SubscribeRequest | app/Http/Requests/SubscribeRequest.php | 中 | ✅ 已完成 |
 
 ### 3.5 其他验证
 
 | 序号 | 任务 | 文件位置 | 优先级 | 状态 |
 |:---:|------|----------|:------:|:----:|
-| 3.5.1 | StoreResourceRequest | app/Http/Requests/StoreResourceRequest.php | 中 | ⚠️ 待处理 |
-| 3.5.2 | StoreSubscriberRequest | app/Http/Requests/StoreSubscriberRequest.php | 中 | ⚠️ 待处理 |
+| 3.5.1 | StoreResourceRequest | app/Http/Requests/StoreResourceRequest.php | 中 | ✅ 已完成 |
+| 3.5.2 | StoreSubscriberRequest | app/Http/Requests/StoreSubscriberRequest.php | 中 | ✅ 已完成 |
 | 3.5.3 | StoreRoleRequest | app/Http/Requests/StoreRoleRequest.php | 高 | ✅ 已完成 |
 | 3.5.4 | UpdateRoleRequest | app/Http/Requests/UpdateRoleRequest.php | 高 | ✅ 已完成 |
-| 3.5.5 | StoreJournalRequest | app/Http/Requests/StoreJournalRequest.php | 中 | ⚠️ 待处理 |
+| 3.5.5 | StoreJournalRequest | app/Http/Requests/StoreJournalRequest.php | 中 | ✅ 已完成 |
 
 ---
 
 ## 第四阶段：后端 Policy 授权策略
 
-> **状态：** 🔄 进行中（2/10 已完成）
+> **状态：** ✅ 已完成（10/10 已完成）
 > **文件位置：** `app/Policies/`
+> **创建方式：** 使用 `php artisan make:policy` 命令批量创建
 
 | 序号 | 任务 | 文件位置 | 优先级 | 状态 |
 |:---:|------|----------|:------:|:----:|
-| 4.1 | PostPolicy 文章授权 | app/Policies/PostPolicy.php | 高 | ⚠️ 待处理 |
-| 4.2 | CategoryPolicy 分类授权 | app/Policies/CategoryPolicy.php | 高 | ⚠️ 待处理 |
-| 4.3 | TagPolicy 标签授权 | app/Policies/TagPolicy.php | 高 | ⚠️ 待处理 |
-| 4.4 | VideoPolicy 视频授权 | app/Policies/VideoPolicy.php | 高 | ⚠️ 待处理 |
-| 4.5 | ProjectPolicy 项目授权 | app/Policies/ProjectPolicy.php | 高 | ⚠️ 待处理 |
+| 4.1 | PostPolicy 文章授权 | app/Policies/PostPolicy.php | 高 | ✅ 已完成 |
+| 4.2 | CategoryPolicy 分类授权 | app/Policies/CategoryPolicy.php | 高 | ✅ 已完成 |
+| 4.3 | TagPolicy 标签授权 | app/Policies/TagPolicy.php | 高 | ✅ 已完成 |
+| 4.4 | VideoPolicy 视频授权 | app/Policies/VideoPolicy.php | 高 | ✅ 已完成 |
+| 4.5 | ProjectPolicy 项目授权 | app/Policies/ProjectPolicy.php | 高 | ✅ 已完成 |
 | 4.6 | UserPolicy 用户授权 | app/Policies/UserPolicy.php | 高 | ✅ 已完成 |
 | 4.7 | RolePolicy 角色授权 | app/Policies/RolePolicy.php | 高 | ✅ 已完成 |
-| 4.8 | CommentPolicy 评论授权 | app/Policies/CommentPolicy.php | 中 | ⚠️ 待处理 |
-| 4.9 | MediaPolicy 媒体授权 | app/Policies/MediaPolicy.php | 中 | ⚠️ 待处理 |
-| 4.10 | SettingPolicy 设置授权 | app/Policies/SettingPolicy.php | 中 | ⚠️ 待处理 |
+| 4.8 | CommentPolicy 评论授权 | app/Policies/CommentPolicy.php | 中 | ✅ 已完成 |
+| 4.9 | MediaPolicy 媒体授权 | app/Policies/MediaPolicy.php | 中 | ✅ 已完成 |
+| 4.10 | SettingPolicy 设置授权 | app/Policies/SettingPolicy.php | 中 | ✅ 已完成 |
 
 ---
 
 ## 第五阶段：后端 Observer 观察者
 
-> **状态：** ⚠️ 待处理
+> **状态：** ❌ 已跳过（采用 Service 模式替代）
 > **文件位置：** `app/Observers/`
+> **跳过原因：** 当前 Service + Repository 架构已足够清晰，Observer 会增加代码复杂度和维护成本
+> **替代方案：** 
+> - 业务逻辑封装在 Service 层（已实现）
+> - 使用数据库外键约束处理级联删除
+> - 使用 Laravel Events 处理跨模块通知（可选）
 
 | 序号 | 任务 | 文件位置 | 优先级 | 状态 |
 |:---:|------|----------|:------:|:----:|
-| 5.1 | PostObserver 文章观察者 | app/Observers/PostObserver.php | 高 | ⚠️ 待处理 |
-| 5.2 | UserObserver 用户观察者 | app/Observers/UserObserver.php | 高 | ⚠️ 待处理 |
-| 5.3 | CategoryObserver 分类观察者 | app/Observers/CategoryObserver.php | 中 | ⚠️ 待处理 |
-| 5.4 | TagObserver 标签观察者 | app/Observers/TagObserver.php | 中 | ⚠️ 待处理 |
-| 5.5 | CommentObserver 评论观察者 | app/Observers/CommentObserver.php | 高 | ⚠️ 待处理 |
-| 5.6 | VisitObserver 访问记录观察者 | app/Observers/VisitObserver.php | 中 | ⚠️ 待处理 |
-| 5.7 | InteractionObserver 互动观察者 | app/Observers/InteractionObserver.php | 中 | ⚠️ 待处理 |
-| 5.8 | 在 AppServiceProvider 注册观察者 | app/Providers/AppServiceProvider.php | 高 | ⚠️ 待处理 |
+| 5.1 | PostObserver 文章观察者 | app/Observers/PostObserver.php | 高 | ❌ 已跳过 |
+| 5.2 | UserObserver 用户观察者 | app/Observers/UserObserver.php | 高 | ❌ 已跳过 |
+| 5.3 | CategoryObserver 分类观察者 | app/Observers/CategoryObserver.php | 中 | ❌ 已跳过 |
+| 5.4 | TagObserver 标签观察者 | app/Observers/TagObserver.php | 中 | ❌ 已跳过 |
+| 5.5 | CommentObserver 评论观察者 | app/Observers/CommentObserver.php | 高 | ❌ 已跳过 |
+| 5.6 | VisitObserver 访问记录观察者 | app/Observers/VisitObserver.php | 中 | ❌ 已跳过 |
+| 5.7 | InteractionObserver 互动观察者 | app/Observers/InteractionObserver.php | 中 | ❌ 已跳过 |
+| 5.8 | 在 AppServiceProvider 注册观察者 | app/Providers/AppServiceProvider.php | 高 | ❌ 已跳过 |
 
 ---
 
@@ -250,10 +257,10 @@
 | 6.5 | ProjectResource 项目资源 | app/Http/Resources/V1/ProjectResource.php | 高 | ✅ 已完成 |
 | 6.6 | UserResource 用户资源 | app/Http/Resources/V1/UserResource.php | 高 | ✅ 已完成 |
 | 6.7 | CommentResource 评论资源 | app/Http/Resources/V1/CommentResource.php | 高 | ✅ 已完成 |
-| 6.8 | RoleResource 角色资源 | app/Http/Resources/V1/RoleResource.php | 高 | ⚠️ 待处理 |
-| 6.9 | PermissionResource 权限资源 | app/Http/Resources/V1/PermissionResource.php | 中 | ⚠️ 待处理 |
-| 6.10 | SubscriberResource 订阅者资源 | app/Http/Resources/V1/SubscriberResource.php | 中 | ⚠️ 待处理 |
-| 6.11 | JournalResource 日记资源 | app/Http/Resources/V1/JournalResource.php | 中 | ⚠️ 待处理 |
+| 6.8 | RoleResource 角色资源 | app/Http/Resources/V1/RoleResource.php | 高 | ✅ 已完成 |
+| 6.9 | PermissionResource 权限资源 | app/Http/Resources/V1/PermissionResource.php | 中 | ✅ 已完成 |
+| 6.10 | SubscriberResource 订阅者资源 | app/Http/Resources/V1/SubscriberResource.php | 中 | ✅ 已完成 |
+| 6.11 | JournalResource 日记资源 | app/Http/Resources/V1/JournalResource.php | 中 | ✅ 已完成 |
 | 6.12 | ResourceResource 资源资源 | app/Http/Resources/V1/ResourceResource.php | 高 | ✅ 已完成 |
 
 ---
@@ -430,6 +437,56 @@
 
 ---
 
+## 第十阶段：前台API认证系统（移动端APP）
+
+> **状态：** ✅ 已完成
+
+### 10.1 认证基础设施
+
+| 序号 | 任务 | 文件位置 | 优先级 | 状态 |
+|:---:|------|----------|:------:|:----:|
+| 10.1.1 | 配置 auth.php api guard | config/auth.php | 高 | ✅ 已完成 |
+| 10.1.2 | 创建 personal_access_tokens 迁移 | database/migrations/ | 高 | ✅ 已完成 |
+| 10.1.3 | 创建 AuthController | app/Http/Controllers/Api/V1/AuthController.php | 高 | ✅ 已完成 |
+| 10.1.4 | 创建 LoginRequest | app/Http/Requests/LoginRequest.php | 高 | ✅ 已完成 |
+| 10.1.5 | 配置 routes/api.php 路由 | routes/api.php | 高 | ✅ 已完成 |
+| 10.1.6 | 编写认证测试用例 | tests/Feature/Api/V1/AuthTest.php | 高 | ✅ 已完成 |
+
+### 10.2 API端点清单
+
+| 端点 | 方法 | 认证 | 说明 |
+|------|:----:|:----:|------|
+| `/api/login` | POST | 🔓 公开 | 用户登录，返回 Bearer Token |
+| `/api/logout` | POST | 🔐 需认证 | 用户登出，撤销 Token |
+| `/api/v1/posts` | GET | 🔐 需认证 | 获取文章列表 |
+| `/api/v1/posts/{slug}` | GET | 🔐 需认证 | 获取文章详情 |
+| `/api/v1/videos` | GET | 🔐 需认证 | 获取视频列表 |
+| `/api/v1/projects` | GET | 🔐 需认证 | 获取项目列表 |
+| `/api/v1/resources` | GET | 🔐 需认证 | 获取资源列表 |
+| `/api/v1/categories` | GET | 🔐 需认证 | 获取分类列表 |
+| `/api/v1/tags` | GET | 🔐 需认证 | 获取标签列表 |
+| `/api/v1/me` | GET | 🔐 需认证 | 获取当前用户信息 |
+| `/api/v1/roles` | GET | 🔐 需认证 | 获取角色列表（含权限） |
+| `/api/v1/roles/{role}` | GET | 🔐 需认证 | 获取单个角色详情 |
+| `/api/v1/permissions` | GET | 🔐 需认证 | 获取所有权限列表 |
+| `/api/v1/roles/{role}/permissions` | PUT | 🔐 需认证 | 同步角色权限（syncPermissions） |
+
+### 10.3 测试验证
+
+| 序号 | 测试用例 | 状态 |
+|:---:|------|:----:|
+| 10.3.1 | test_login_success | ✅ 通过 |
+| 10.3.2 | test_login_with_invalid_credentials | ✅ 通过 |
+| 10.3.3 | test_login_with_missing_fields | ✅ 通过 |
+| 10.3.4 | test_login_with_invalid_email_format | ✅ 通过 |
+| 10.3.5 | test_unauthenticated_access_to_protected_api | ✅ 通过 |
+| 10.3.6 | test_authenticated_access_to_protected_api | ✅ 通过 |
+| 10.3.7 | test_invalid_token_access_to_protected_api | ✅ 通过 |
+| 10.3.8 | test_logout_success | ✅ 通过 |
+| 10.3.9 | test_get_current_user_info | ✅ 通过 |
+
+---
+
 ## 附录
 
 ### A. 执行顺序建议
@@ -476,10 +533,10 @@
 | 第七阶段 | - | 2026-05-27 | ✅ 基本完成 |
 | 第八阶段 | - | 2026-05-27 | 🔄 大部分完成 |
 | 第九阶段 | - | - | ⏳ 待开始 |
+| 第十阶段 | 2026-05-27 | 2026-05-27 | ✅ 已完成 |
 
 ### D. 当前重点任务
 
-1. **第二阶段**：开发各个 Service 层（PostService, CategoryService 等）
-2. **第三阶段**：完善剩余的 FormRequest（StorePostRequest, UpdatePostRequest 等）
-3. **第四阶段**：完善剩余的 Policy（PostPolicy, CategoryPolicy 等）
-4. **第七/八阶段**：完善剩余的 Controller 和页面组件
+1. **第十阶段**：前台API认证系统已全部完成（9个测试用例通过）
+2. **第九阶段**：数据清理与验证
+3. **第二～四阶段**：开发各个 Service/FormRequest/Policy 层

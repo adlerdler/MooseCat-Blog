@@ -59,6 +59,7 @@ class PermissionSeeder extends Seeder
             // 媒体管理
             'view-media',
             'upload-media',
+            'edit-media',
             'delete-media',
             
             // 项目管理
@@ -172,7 +173,7 @@ class PermissionSeeder extends Seeder
             'view-categories', 'create-categories', 'edit-categories',
             'view-tags', 'create-tags', 'edit-tags',
             'view-comments', 'approve-comments', 'delete-comments',
-            'view-media', 'upload-media', 'delete-media',
+            'view-media', 'upload-media', 'edit-media', 'delete-media',
             'view-projects', 'create-projects', 'edit-projects',
             'view-resources', 'create-resources', 'edit-resources',
             'view-videos', 'create-videos', 'edit-videos',

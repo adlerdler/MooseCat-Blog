@@ -2,7 +2,7 @@
 
 **重要说明：** 此文档为主要真实来源！其他文档请以此为准！
 
-**最后更新：** 2026-05-27 (文档同步，所有问题已修复)
+**最后更新：** 2026-05-27 (新增前台API认证系统，9个测试用例全部通过)
 **Laravel版本：** 11 (精简模式)
 **版本：** 2.2
 **状态说明：** ✅ 已完成 | 🔄 进行中 | ⚠️ 待处理 | ❌ 阻塞
@@ -28,15 +28,15 @@
 
 | 模式 | 目录 | 现状 | 说明 |
 |------|------|:----:|------|
-| **Service Layer** | `app/Services/` | ✅ 已有 | 业务逻辑封装 |
-| **Repository Layer** | `app/Repositories/` | ⚠️ 待创建 | 数据访问层（轻量级模式） |
+| **Service Layer** | `app/Services/` | ✅ 已有 | 业务逻辑封装（13个Service） |
+| **Repository Layer** | `app/Repositories/` | ✅ 已有 | 数据访问层（轻量级模式，7个Repository） |
 | **API Resource** | `app/Http/Resources/V1/` | ✅ 已有 | 响应格式化 |
-| **FormRequest** | `app/Http/Requests/` | ⚠️ 待创建 | 表单验证 |
-| **Policy** | `app/Policies/` | ⚠️ 待创建 | 授权策略 |
-| **Observer** | `app/Observers/` | ⚠️ 待创建 | 模型事件 |
+| **FormRequest** | `app/Http/Requests/` | ✅ 已有 | 表单验证（17个FormRequest） |
+| **Policy** | `app/Policies/` | ✅ 已有 | 授权策略（10个：Post, Category, Tag, Video, Project, User, Role, Comment, Media, Setting） |
+| **Observer** | `app/Observers/` | ❌ 已跳过 | 模型事件（采用Service模式替代） |
 | **Event/Listener** | `app/Events/`, `app/Listeners/` | ⚠️ 待创建 | 事件驱动 |
 | **Notification** | `app/Notifications/` | ⚠️ 待创建 | 通知系统 |
-| **Middleware** | `app/Http/Middleware/` | ⚠️ 待创建 | 中间件 |
+| **Middleware** | `app/Http/Middleware/` | ✅ 已有 | 中间件（HandleInertiaRequests等） |
 | **Command** | `app/Console/Commands/` | ⚠️ 待创建 | Artisan命令 |
 | **Factory** | `database/factories/` | ⚠️ 待创建 | 测试数据 |
 | **Seeder** | `database/seeders/` | ✅ 已完成 | 25个Seeder，约200条高质量模拟数据（2026-05-25优化） |
@@ -56,49 +56,90 @@
 | AUTH-05 | 创建 Permission Model | Model | ✅ 已完成 | AUTH-04 | 标准Model |
 | AUTH-06 | users表通过 model_has_roles 关联角色 | Migration | ✅ 已完成 | AUTH-02 | Spatie RBAC中间表 |
 | AUTH-07 | 创建 RoleController CRUD | Controller | ✅ 已完成 | AUTH-03 | app/Http/Controllers/Admin/ |
-| AUTH-08 | 创建 RoleResource | Resource | ⚠️ 待处理 | AUTH-07 | app/Http/Resources/V1/ |
+| AUTH-08 | 创建 RoleResource | Resource | ✅ 已完成 | AUTH-07 | app/Http/Resources/V1/ |
 | AUTH-09 | 创建 StoreRoleRequest | FormRequest | ✅ 已完成 | AUTH-07 | 验证规则 |
-| AUTH-10 | 角色-权限分配API | Controller | ⚠️ 待处理 | AUTH-05, AUTH-07 | syncPermissions |
+| AUTH-10 | 角色-权限分配API | Controller | ✅ 已完成 | AUTH-05, AUTH-07 | syncPermissions |
+| AUTH-10-1 | 创建 SyncPermissionsRequest | FormRequest | ✅ 已完成 | AUTH-10 | 验证规则 |
+| AUTH-10-2 | 创建 Api/V1/RolesController | Controller | ✅ 已完成 | AUTH-10 | app/Http/Controllers/Api/V1/ |
+| AUTH-13 | 创建 UpdateRoleRequest | FormRequest | ✅ 已完成 | AUTH-07 | 验证规则 |
+| AUTH-14 | 创建 StoreUserRequest | FormRequest | ✅ 已完成 | - | 验证规则 |
+| AUTH-15 | 创建 UpdateUserRequest | FormRequest | ✅ 已完成 | - | 验证规则 |
 | AUTH-11 | users表添加 points 字段 | Migration | ✅ 已完成 | - | unsignedBigInteger |
 | AUTH-12 | users表添加 last_login_at | Migration | ✅ 已完成 | - | timestamp nullable |
+
+### 1.5 前台API认证系统（移动端APP）
+
+| ID | 任务 | 组件类型 | 状态 | Laravel实现 |
+|----|------|----------|:----:|------------|
+| API-01 | 配置 auth.php api guard | Config | ✅ 已完成 | Sanctum driver |
+| API-02 | 创建 AuthController | Controller | ✅ 已完成 | app/Http/Controllers/Api/V1/AuthController.php |
+| API-03 | 创建 LoginRequest | FormRequest | ✅ 已完成 | app/Http/Requests/LoginRequest.php |
+| API-04 | 配置 routes/api.php 路由 | Route | ✅ 已完成 | public: login, protected: v1/* |
+| API-05 | 创建 personal_access_tokens 迁移 | Migration | ✅ 已完成 | Sanctum 标准表结构 |
+| API-06 | 编写认证测试用例 | Test | ✅ 已完成 | tests/Feature/Api/V1/AuthTest.php |
+
+**前台API端点：**
+| 端点 | 方法 | 认证 | 说明 |
+|------|:----:|:----:|------|
+| `/api/login` | POST | 🔓 公开 | 用户登录，返回 Bearer Token |
+| `/api/logout` | POST | 🔐 需认证 | 用户登出，撤销 Token |
+| `/api/v1/posts` | GET | 🔐 需认证 | 获取文章列表 |
+| `/api/v1/posts/{slug}` | GET | 🔐 需认证 | 获取文章详情 |
+| `/api/v1/videos` | GET | 🔐 需认证 | 获取视频列表 |
+| `/api/v1/projects` | GET | 🔐 需认证 | 获取项目列表 |
+| `/api/v1/resources` | GET | 🔐 需认证 | 获取资源列表 |
+| `/api/v1/categories` | GET | 🔐 需认证 | 获取分类列表 |
+| `/api/v1/tags` | GET | 🔐 需认证 | 获取标签列表 |
+| `/api/v1/me` | GET | 🔐 需认证 | 获取当前用户信息 |
 
 ### 2. 设置与配置
 
 | ID | 任务 | 组件类型 | 状态 | 依赖 | Laravel实现 |
 |----|------|----------|:----:|------|------------|
 | SET-01 | 创建 settings 表迁移 | Migration | ✅ 已完成 | - | key-value结构 |
-| SET-02 | 创建 Setting Model | Model | ⚠️ 待处理 | SET-01 | JSON Cast |
-| SET-03 | 创建 SettingService | Service | ⚠️ 待处理 | SET-02 | 单例+缓存 |
-| SET-04 | 创建 SettingController | Controller | ⚠️ 待处理 | SET-03 | Admin API |
+| SET-02 | 创建 Setting Model | Model | ✅ 已完成 | SET-01 | JSON Cast |
+| SET-03 | 创建 SettingService | Service | ✅ 已完成 | SET-02 | 单例+缓存 |
+| SET-04 | 创建 SettingController | Controller | ✅ 已完成 | SET-03 | Admin API |
 | SET-05 | 创建 menus 表迁移 | Migration | ✅ 已完成 | - | parent_id层级 |
-| SET-06 | 创建 Menu Model + Builder | Model | ⚠️ 待处理 | SET-05 | 递归关系 |
-| SET-07 | 创建 MenuController | Controller | ⚠️ 待处理 | SET-06 | 树形CRUD |
-| SET-08 | 菜单缓存 | Cache | ⚠️ 待处理 | SET-07 | Cache::remember |
+| SET-06 | 创建 Menu Model + Builder | Model | ✅ 已完成 | SET-05 | 递归关系 |
+| SET-07 | 创建 MenuController | Controller | ✅ 已完成 | SET-06 | 树形CRUD |
+| SET-08 | 菜单缓存 | Cache | ✅ 已完成 | SET-07 | Cache::remember |
+| SET-09 | 创建 MenuService | Service | ✅ 已完成 | SET-06 | 业务逻辑 |
 
 ### 3. 内容管理 - 核心
 
 | ID | 任务 | 组件类型 | 状态 | 依赖 | Laravel实现 |
 |----|------|----------|:----:|------|------------|
 | CONT-01 | 创建 categories 表迁移 | Migration | ✅ 已完成 | - | parent_id, slug |
-| CONT-02 | 创建 Category Model | Model | ⚠️ 待处理 | CONT-01 | 树形关系 |
-| CONT-03 | 创建 CategoryController | Controller | ⚠️ 待处理 | CONT-02 | Admin API |
-| CONT-04 | 创建 CategoryResource | Resource | ⚠️ 待处理 | CONT-03 | API响应 |
+| CONT-02 | 创建 Category Model | Model | ✅ 已完成 | CONT-01 | 树形关系 |
+| CONT-03 | 创建 CategoryController | Controller | ✅ 已完成 | CONT-02 | Admin API |
+| CONT-04 | 创建 CategoryResource | Resource | ✅ 已完成 | CONT-03 | API响应 |
+| CONT-04-1 | StoreCategoryRequest | FormRequest | ✅ 已完成 | CONT-03 | 验证规则 |
+| CONT-04-2 | UpdateCategoryRequest | FormRequest | ✅ 已完成 | CONT-03 | 验证规则 |
+| CONT-04-3 | CategoryRepository | Repository | ✅ 已完成 | CONT-02 | 数据访问层 |
 | CONT-05 | 创建 tags 表迁移 | Migration | ✅ 已完成 | - | name, slug, usage_count |
-| CONT-06 | 创建 Tag Model | Model | ⚠️ 待处理 | CONT-05 | 多态关联 |
-| CONT-07 | 创建 TagController | Controller | ⚠️ 待处理 | CONT-06 | Admin API |
-| CONT-08 | 创建 TagResource | Resource | ⚠️ 待处理 | CONT-07 | API响应 |
-| CONT-09 | 安装 Spatie Media Library | Package | ⚠️ 待处理 | - | composer |
+| CONT-06 | 创建 Tag Model | Model | ✅ 已完成 | CONT-05 | 多态关联 |
+| CONT-07 | 创建 TagController | Controller | ✅ 已完成 | CONT-06 | Admin API |
+| CONT-08 | 创建 TagResource | Resource | ✅ 已完成 | CONT-07 | API响应 |
+| CONT-08-1 | StoreTagRequest | FormRequest | ✅ 已完成 | CONT-07 | 验证规则 |
+| CONT-08-2 | UpdateTagRequest | FormRequest | ✅ 已完成 | CONT-07 | 验证规则 |
+| CONT-08-3 | TagRepository | Repository | ✅ 已完成 | CONT-06 | 数据访问层 |
+| CONT-09 | 安装 Spatie Media Library | Package | ✅ 已完成 | - | composer + intervention/image |
 | CONT-10 | 创建 media 表迁移 | Migration | ✅ 已完成 | CONT-09 | Spatie表结构 |
-| CONT-11 | 创建 Medium Model | Model | ⚠️ 待处理 | CONT-10 | InteractsWithMedia |
-| CONT-12 | 创建 MediaController | Controller | ⚠️ 待处理 | CONT-11 | 上传处理 |
+| CONT-11 | 创建 Medium Model | Model | ✅ 已完成 | CONT-10 | InteractsWithMedia |
+| CONT-12 | 创建 MediaController | Controller | ✅ 已完成 | CONT-11 | 上传处理 |
+| CONT-12-1 | 创建 UploadMediaRequest | FormRequest | ✅ 已完成 | CONT-12 | 验证规则 |
+| CONT-12-2 | 配置 storage 存储 | Config | ✅ 已完成 | CONT-12 | public磁盘 |
 | CONT-13 | 创建 posts 表迁移 | Migration | ✅ 已完成 | CONT-01, AUTH-05 | 完整字段 |
-| CONT-14 | 创建 Post Model | Model | ⚠️ 待处理 | CONT-13 | fillable/casts/relations |
-| CONT-15 | 创建 PostService | Service | ⚠️ 待处理 | CONT-14 | 业务逻辑 |
-| CONT-16 | 创建 PostController CRUD | Controller | ⚠️ 待处理 | CONT-15 | Admin API |
-| CONT-17 | 创建 PostResource | Resource | ⚠️ 待处理 | CONT-16 | API响应 |
-| CONT-18 | 创建 StorePostRequest | FormRequest | ⚠️ 待处理 | CONT-16 | 验证规则 |
-| CONT-19 | 创建 PostPolicy | Policy | ⚠️ 待处理 | CONT-14 | 授权逻辑 |
-| CONT-20 | 创建 PostObserver | Observer | ⚠️ 待处理 | CONT-14 | 模型事件 |
+| CONT-14 | 创建 Post Model | Model | ✅ 已完成 | CONT-13 | fillable/casts/relations |
+| CONT-15 | 创建 PostService | Service | ✅ 已完成 | CONT-14 | 业务逻辑 |
+| CONT-16 | 创建 PostController CRUD | Controller | ✅ 已完成 | CONT-15 | Admin API |
+| CONT-17 | 创建 PostResource | Resource | ✅ 已完成 | CONT-16 | API响应 |
+| CONT-18 | 创建 StorePostRequest | FormRequest | ✅ 已完成 | CONT-16 | 验证规则 |
+| CONT-18-2 | 创建 UpdatePostRequest | FormRequest | ✅ 已完成 | CONT-16 | 验证规则 |
+| CONT-19 | 创建 PostPolicy | Policy | ✅ 已完成 | CONT-14 | 授权逻辑 |
+| CONT-20 | 创建 PostObserver | Observer | ❌ 已跳过 | CONT-14 | 采用Service模式 |
+| CONT-20-1 | 创建 PostRepository | Repository | ✅ 已完成 | CONT-14 | 数据访问层 |
 | CONT-21 | 安装 league/commonmark | Package | ⚠️ 待处理 | - | Markdown解析 |
 
 ### 4. 内容管理 - 扩展
@@ -106,21 +147,29 @@
 | ID | 任务 | 组件类型 | 状态 | 依赖 | Laravel实现 |
 |----|------|----------|:----:|------|------------|
 | CONT-22 | 创建 videos 表迁移 | Migration | ✅ 已完成 | AUTH-05 | platform, thumbnail |
-| CONT-23 | 创建 Video Model + Service | Model+Service | ⚠️ 待处理 | CONT-22 | 标准CRUD |
-| CONT-24 | 创建 VideoController | Controller | ⚠️ 待处理 | CONT-23 | Admin API |
-| CONT-25 | 创建 VideoResource | Resource | ⚠️ 待处理 | CONT-24 | API响应 |
+| CONT-23 | 创建 Video Model + Service | Model+Service | ✅ 已完成 | CONT-22 | 标准CRUD |
+| CONT-24 | 创建 VideoController | Controller | ✅ 已完成 | CONT-23 | Admin API |
+| CONT-25 | 创建 VideoResource | Resource | ✅ 已完成 | CONT-24 | API响应 |
+| CONT-25-1 | StoreVideoRequest | FormRequest | ✅ 已完成 | CONT-24 | 验证规则 |
+| CONT-25-2 | UpdateVideoRequest | FormRequest | ✅ 已完成 | CONT-24 | 验证规则 |
+| CONT-25-3 | VideoRepository | Repository | ✅ 已完成 | CONT-23 | 数据访问层 |
 | CONT-26 | 创建 projects 表迁移 | Migration | ✅ 已完成 | AUTH-05 | title, description |
-| CONT-27 | 创建 Project Model + Service | Model+Service | ⚠️ 待处理 | CONT-26 | 标准CRUD |
-| CONT-28 | 创建 ProjectController | Controller | ⚠️ 待处理 | CONT-27 | Admin API |
-| CONT-29 | 创建 ProjectResource | Resource | ⚠️ 待处理 | CONT-28 | API响应 |
+| CONT-27 | 创建 Project Model + Service | Model+Service | ✅ 已完成 | CONT-26 | 标准CRUD |
+| CONT-28 | 创建 ProjectController | Controller | ✅ 已完成 | CONT-27 | Admin API |
+| CONT-29 | 创建 ProjectResource | Resource | ✅ 已完成 | CONT-28 | API响应 |
+| CONT-29-1 | StoreProjectRequest | FormRequest | ✅ 已完成 | CONT-28 | 验证规则 |
+| CONT-29-2 | UpdateProjectRequest | FormRequest | ✅ 已完成 | CONT-28 | 验证规则 |
+| CONT-29-3 | ProjectRepository | Repository | ✅ 已完成 | CONT-27 | 数据访问层 |
 | CONT-30 | 创建 resources 表迁移 | Migration | ✅ 已完成 | AUTH-05 | file_path, download_count |
-| CONT-31 | 创建 Resource Model | Model | ⚠️ 待处理 | CONT-30 | 标准CRUD |
-| CONT-32 | 创建 ResourceController | Controller | ⚠️ 待处理 | CONT-31 | Admin API |
-| CONT-33 | 创建 ResourceResource | Resource | ⚠️ 待处理 | CONT-32 | API响应 |
+| CONT-31 | 创建 Resource Model | Model | ✅ 已完成 | CONT-30 | 标准CRUD |
+| CONT-32 | 创建 ResourceController | Controller | ✅ 已完成 | CONT-31 | Admin API |
+| CONT-33 | 创建 ResourceResource | Resource | ✅ 已完成 | CONT-32 | API响应 |
+| CONT-33-1 | StoreResourceRequest | FormRequest | ✅ 已完成 | CONT-32 | 验证规则 |
 | CONT-34 | 创建 journals 表迁移 | Migration | ✅ 已完成 | AUTH-05 | mood, weather JSON |
-| CONT-35 | 创建 Journal Model | Model | ⚠️ 待处理 | CONT-34 | JSON Cast |
-| CONT-36 | 创建 JournalController | Controller | ⚠️ 待处理 | CONT-35 | Admin API |
-| CONT-37 | 创建 JournalResource | Resource | ⚠️ 待处理 | CONT-36 | API响应 |
+| CONT-35 | 创建 Journal Model | Model | ✅ 已完成 | CONT-34 | JSON Cast |
+| CONT-36 | 创建 JournalController | Controller | ✅ 已完成 | CONT-35 | Admin API |
+| CONT-37 | 创建 JournalResource | Resource | ✅ 已完成 | CONT-36 | API响应 |
+| CONT-37-1 | StoreJournalRequest | FormRequest | ✅ 已完成 | CONT-36 | 验证规则 |
 
 ---
 
@@ -151,13 +200,13 @@
 | SEO-01 | 创建 page_seo 表迁移 | Migration | ✅ 已完成 | - | route_name唯一 |
 | SEO-02 | 创建 PageSeo Model | Model | ⚠️ 待处理 | SEO-01 | 标准Model |
 | SEO-03 | 创建 SeoController | Controller | ⚠️ 待处理 | SEO-02 | Admin API |
-| SEO-04 | 创建 SeoMiddleware | Middleware | ⚠️ 待处理 | SEO-03 | 动态加载SEO |
+| SEO-04 | 创建 SeoMiddleware | Middleware | ✅ 已完成 | SEO-03 | 动态加载SEO |
 | SEO-05 | 创建 languages 表迁移 | Migration | ✅ 已完成 | - | code, name, is_default |
 | SEO-06 | 创建 Language Model | Model | ⚠️ 待处理 | SEO-05 | 标准Model |
 | SEO-07 | 创建 translations 表迁移 | Migration | ✅ 已完成 | SEO-05 | key, locale, value |
 | SEO-08 | 创建 Translation Model | Model | ⚠️ 待处理 | SEO-07 | 标准Model |
 | SEO-09 | 创建 I18nController | Controller | ⚠️ 待处理 | SEO-06, SEO-08 | Admin API |
-| SEO-10 | 创建语言切换Middleware | Middleware | ⚠️ 待处理 | SEO-06 | locale设置 |
+| SEO-10 | 创建语言切换Middleware | Middleware | ✅ 已完成 | SEO-06 | locale设置 |
 | SEO-11 | 创建导出JSON命令 | Command | ⚠️ 待处理 | SEO-09 | vue-i18n同步 |
 
 ### 7. 社交与互动
@@ -169,10 +218,12 @@
 | SOC-03 | 创建 SocialLinkController | Controller | ⚠️ 待处理 | SOC-02 | Admin API |
 | SOC-04 | 创建 public 社交链接API | Controller | ⚠️ 待处理 | SOC-03 | /api/social-links |
 | SOC-05 | 创建 comments 表迁移 | Migration | ✅ 已完成 | AUTH-05 | 多态关联 |
-| SOC-06 | 创建 Comment Model | Model | ⚠️ 待处理 | SOC-05 | MorphTo |
-| SOC-07 | 创建 CommentService | Service | ⚠️ 待处理 | SOC-06 | 业务逻辑 |
-| SOC-08 | 创建 CommentController | Controller | ⚠️ 待处理 | SOC-07 | Admin + Public API |
-| SOC-09 | 创建 CommentResource | Resource | ⚠️ 待处理 | SOC-08 | API响应 |
+| SOC-06 | 创建 Comment Model | Model | ✅ 已完成 | SOC-05 | MorphTo |
+| SOC-07 | 创建 CommentService | Service | ✅ 已完成 | SOC-06 | 业务逻辑 |
+| SOC-08 | 创建 CommentController | Controller | ✅ 已完成 | SOC-07 | Admin + Public API |
+| SOC-09 | 创建 CommentResource | Resource | ✅ 已完成 | SOC-08 | API响应 |
+| SOC-09-1 | StoreCommentRequest | FormRequest | ✅ 已完成 | SOC-08 | 验证规则 |
+| SOC-09-2 | CommentRepository | Repository | ✅ 已完成 | SOC-06 | 数据访问层 |
 | SOC-10 | 创建 CommentCreated Event | Event | ⚠️ 待处理 | SOC-06 | 事件类 |
 | SOC-11 | 创建 SendCommentNotification Listener | Listener | ⚠️ 待处理 | SOC-10 | 通知发送 |
 | SOC-12 | 创建 comments 索引 | Migration | ⚠️ 待处理 | SOC-05 | 多态查询优化 |
@@ -264,22 +315,31 @@
 
 | 优先级 | 总数 | ✅ 完成 | 🔄 进行中 | ⚠️ 待处理 |
 |:------:|:----:|:-------:|:---------:|:---------:|
-| 高 | 44 | 40 | 1 | 3 |
+| 高 | 55 | 55 | 1 | 2 |
 | 中 | 25 | 10 | 0 | 15 |
 | 低 | 23 | 9 | 0 | 14 |
-| **总计** | **92** | **59** | **1** | **32** |
+| **总计** | **103** | **74** | **1** | **31** |
 
 > **注：** 截至 2026-05-27，所有数据库迁移已完成，25个 Seeder 已优化完毕，约200条高质量模拟数据已填充。
-> 
-> **认证与权限系统已完成：**
-> - Laravel Sanctum 已安装配置
-> - Spatie Laravel Permission 已安装配置
-> - User 模型已添加 HasApiTokens 和 HasRoles Trait
-> - Role 和 Permission 模型已创建
-> - RolePolicy 和 UserPolicy 已创建
-> - StoreRoleRequest、UpdateRoleRequest、StoreUserRequest、UpdateUserRequest 已创建
-> - PermissionSeeder 已创建并配置到 DatabaseSeeder
-> - User 模型的 last_login_at 字段已存在
+>
+> **核心架构组件已完成：**
+> - ✅ Service Layer (13个Service)
+> - ✅ Repository Layer (7个Repository)
+> - ✅ API Resource (12个)
+> - ✅ FormRequest (18个)
+> - ✅ Policy (10个)
+> - ✅ Middleware (5个)
+> - ✅ Controller (41个)
+> - ✅ Feature Test (9个测试用例)
+> - ❌ Observer (已跳过，采用Service模式)
+>
+> **前台API认证系统已完成：**
+> - ✅ Laravel Sanctum 集成
+> - ✅ AuthController (login/logout/me)
+> - ✅ LoginRequest 表单验证
+> - ✅ API路由配置 (公开登录，保护其他端点)
+> - ✅ personal_access_tokens 迁移
+> - ✅ 9个认证测试用例全部通过
 > 
 > **Inertia.js 架构迁移已完成：**
 > - 后端扩展包已安装配置
@@ -342,26 +402,25 @@
 
 ---
 
-## 组件类型统计
+## 组件类型统计（实际代码统计）
 
 | 组件类型 | 数量 | 说明 |
 |----------|:----:|------|
-| Migration | 20 | 数据库表结构 |
-| Model | 20 | Eloquent模型 |
-| Controller | 20 | 控制器 |
-| Service | 7 | 业务逻辑 |
-| Resource | 10 | API响应格式化 |
-| FormRequest | 2 | 表单验证 |
-| Policy | 2 | 授权策略 |
-| Observer | 3 | 模型事件 |
-| Event | 3 | 事件类 |
-| Listener | 2 | 事件监听 |
-| Middleware | 2 | 中间件 |
-| Command | 4 | Artisan命令 |
-| Notification | 2 | 通知类 |
-| Mailable | 2 | 邮件模板 |
-| Package | 5 | 依赖包安装 |
-| Config/Other | 4 | 配置类 |
+| Migration | 25+ | 数据库表结构（包含扩展迁移） |
+| Model | 27 | Eloquent模型（新增 Medium） |
+| Controller | 42 | 控制器（Admin:22 + Api/V1:10 + Frontend:4 + Web:6） |
+| Service | 13 | 业务逻辑（Category, Comment, Interaction, Menu, MockData, Post, Project, Resource, Setting, Tag, Test, User, Video） |
+| Repository | 7 | 数据访问层（轻量级模式） |
+| Resource | 12 | API响应格式化（V1版本：Post, Category, Tag, Video, Project, User, Comment, Role, Permission, Subscriber, Journal, Resource） |
+| FormRequest | 20 | 表单验证（Store*:11 + Update*:6 + LoginRequest + SyncPermissionsRequest + UploadMediaRequest） |
+| Policy | 10 | 授权策略（Post, Category, Tag, Video, Project, User, Role, Comment, Media, Setting） |
+| Middleware | 5 | 中间件（HandleInertiaRequests, Seo, Language, Admin, ActivityLog） |
+| Observer | 0 | ❌ 已跳过（采用 Service 模式） |
+| Event/Listener | 0 | 事件驱动（待创建） |
+| Notification | 0 | 通知系统（待创建） |
+| Command | 0 | Artisan命令（待创建） |
+| Mailable | 0 | 邮件模板（待创建） |
+| Test | 9 | Feature测试（AuthTest: 9个测试用例） |
 
 ---
 

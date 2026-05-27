@@ -31,13 +31,17 @@ import AdSlot from '../../components/front/AdSlot.vue';
 const props = defineProps({
   posts: { type: Object, default: () => ({ data: [] }) },
   categories: { type: Array, default: () => [] },
-  authors: { type: Array, default: () => [] }
+  authors: { type: Array, default: () => [] },
+  menus: { type: Array, default: () => [] },
+  siteConfig: { type: Object, default: () => ({}) },
+  footerConfig: { type: Object, default: () => ({}) },
+  themes: { type: Array, default: () => [] }
 });
 
 const { getSeoByPageKey } = usePageSeoData();
 const pageSeo = getSeoByPageKey('blog') || { title: '', description: '', keywords: '' };
 
-usePageSeo({
+const { SeoHead } = usePageSeo({
   title: pageSeo.title || '',
   description: pageSeo.description || '',
   keywords: pageSeo.keywords || '',
@@ -173,9 +177,15 @@ watch(isFooterVisible, (newVal) => {
 </script>
 
 <template>
+  <SeoHead />
   <div class="min-h-screen bg-construct-paper">
     <!-- Sidebar Menu -->
-    <SidebarMenu v-model:is-footer-visible="isFooterVisible" />
+    <SidebarMenu 
+      v-model:is-footer-visible="isFooterVisible" 
+      :menus="menus"
+      :site-config="siteConfig"
+      :footer-config="footerConfig"
+    />
     <!-- Main Content -->
     <div class="ml-16">
       <!-- Avant-garde Header -->
@@ -356,7 +366,11 @@ watch(isFooterVisible, (newVal) => {
       </main>
 
       <!-- Footer -->
-      <Footer v-model="isFooterVisible" />
+      <Footer 
+        v-model="isFooterVisible" 
+        :footer-config="footerConfig"
+        :site-config="siteConfig"
+      />
     </div>
   </div>
 </template>

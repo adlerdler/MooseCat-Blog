@@ -17,6 +17,7 @@
  * 使用示例：
  * <Footer v-model="isFooterVisible" />
  */
+import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import { Github, Twitter, Linkedin, Globe, MessageCircle, Palette, Youtube, Facebook, Video } from 'lucide-vue-next';
@@ -24,22 +25,30 @@ import { useFooterData } from '../composables/useFooterData';
 import { useSiteConfig } from '../composables/useSiteConfig';
 import AdSlot from './front/AdSlot.vue';
 
-const { getFooterSocialLinks, getFooterNavLinks } = useFooterData();
+const props = defineProps({
+  modelValue: {
+    type: Boolean,
+    default: true
+  },
+  footerConfig: {
+    type: Object,
+    default: () => ({})
+  },
+  siteConfig: {
+    type: Object,
+    default: () => ({})
+  }
+});
+
+const { getFooterSocialLinks, getFooterNavLinks } = useFooterData({ footerConfig: props.footerConfig });
 const { t } = useI18n();
 
 const socialLinks = getFooterSocialLinks();
 const categoryLinks = getFooterNavLinks('categories');
 const dataLinks = getFooterNavLinks('data');
-const { getSiteName, getSiteDescription } = useSiteConfig();
-const siteName = getSiteName();
-const siteDescription = getSiteDescription();
-
-const props = defineProps({
-  modelValue: {
-    type: Boolean,
-    default: true
-  }
-})
+const { getSiteName, getSiteDescription } = useSiteConfig({ config: props.siteConfig });
+const siteName = computed(() => getSiteName());
+const siteDescription = computed(() => getSiteDescription());
 
 const emit = defineEmits(['update:modelValue'])
 

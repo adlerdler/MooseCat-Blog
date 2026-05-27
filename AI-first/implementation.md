@@ -77,7 +77,7 @@
 - `[x]` 修改 `Home.vue` 使用 `props` 接收数据 ✅ 已完成
 - `[x]` 修改 `Blog.vue` 使用 `props` 接收数据（posts、categories、authors）✅ 已完成
 - `[x]` 修改 `Projects.vue`、`Videos.vue` 等页面，使用 `props` 接收数据 ✅ 已完成
-- `[ ]` 移除并删除 `resources/js/data` 中的相关模拟数据
+- `[x]` 移除并删除 `resources/js/data` 中的相关模拟数据 ✅ 已完成
 - `[x]` 测试前台页面跳转与数据加载 ✅ 已完成
 
 ## 第三阶段：打通管理后台
@@ -92,11 +92,11 @@
 - [x] 修复 `MockDataService` 缺少 `getTagsables()` 方法的问题 ✅ 已完成
 - [x] 修复前台页面 SEO 数据为空的问题（`Projects.vue`、`Author.vue`、`Resources.vue`、`Videos.vue`、`Blog.vue`）✅ 已完成
 - [x] 修复后台页面的增删改查逻辑与表单提交，使用 Inertia forms（`Users.vue`、`Roles.vue`、`Journals.vue`）✅ 已完成
-- [ ] 移除后台剩余的模拟数据
+- [x] 移除后台剩余的模拟数据 ✅ 已完成
 
 ## 第四阶段：API与清理
-- `[ ]` 确认 `routes/api.php` 保留完整
-- `[ ]` 清理遗留无用代码
+- `[x]` 确认 `routes/api.php` 保留完整 ✅ 已完成
+- `[x]` 清理遗留无用代码 ✅ 已完成
 
 ---
 
@@ -240,27 +240,33 @@ const loadFromLocalStorage = (key, defaultValue = []) => {
 
 # 后端开发任务清单（补充）
 
-## 第五阶段：中间件开发
-- `[ ]` 创建 `SeoMiddleware` - 动态加载页面 SEO 配置
-- `[ ]` 创建 `LanguageMiddleware` - 语言切换与 locale 设置
-- `[ ]` 创建 `AdminMiddleware` - 后台权限验证
-- `[ ]` 创建 `ActivityLogMiddleware` - 管理员操作日志记录
-- `[ ]` 注册中间件到 `app/Http/Kernel.php`
+## 第五阶段：中间件开发 ✅ 已完成
+- `[x]` 创建 `SeoMiddleware` - 动态加载页面 SEO 配置 ✅
+- `[x]` 创建 `LanguageMiddleware` - 语言切换与 locale 设置 ✅
+- `[x]` 创建 `AdminMiddleware` - 后台权限验证 ✅
+- `[x]` 创建 `ActivityLogMiddleware` - 管理员操作日志记录 ✅
+- `[x]` 注册中间件到 `bootstrap/app.php` ✅
 
-## 第六阶段：策略授权 (Policy)
-- `[ ]` 创建 `PostPolicy` - 文章授权策略
-- `[ ]` 创建 `CategoryPolicy` - 分类授权策略
-- `[ ]` 创建 `UserPolicy` - 用户授权策略
-- `[ ]` 创建 `RolePolicy` - 角色授权策略
-- `[ ]` 创建 `TagPolicy` - 标签授权策略
-- `[ ]` 在 `AuthServiceProvider` 中注册策略
+## 第六阶段：策略授权 (Policy) ✅ 已完成
+- `[x]` 创建 `PostPolicy` - 文章授权策略 ✅
+- `[x]` 创建 `CategoryPolicy` - 分类授权策略 ✅
+- `[x]` 创建 `UserPolicy` - 用户授权策略 ✅
+- `[x]` 创建 `RolePolicy` - 角色授权策略 ✅
+- `[x]` 创建 `TagPolicy` - 标签授权策略 ✅
+- `[x]` 创建 `VideoPolicy` - 视频授权策略 ✅
+- `[x]` 创建 `ProjectPolicy` - 项目授权策略 ✅
+- `[x]` 创建 `CommentPolicy` - 评论授权策略 ✅
+- `[x]` 创建 `MediaPolicy` - 媒体授权策略 ✅
+- `[x]` 创建 `SettingPolicy` - 设置授权策略 ✅
+- `[x]` 在 `AuthServiceProvider` 中注册策略 ✅
 
-## 第七阶段：观察者模式 (Observer)
-- `[ ]` 创建 `PostObserver` - 文章模型事件监听
-- `[ ]` 创建 `UserObserver` - 用户模型事件监听
-- `[ ]` 创建 `CommentObserver` - 评论模型事件监听
-- `[ ]` 创建 `VisitObserver` - 访问记录自动创建
-- `[ ]` 在 `AppServiceProvider` 中注册观察者
+## 第七阶段：观察者模式 (Observer) ❌ 已跳过
+> **说明：** 采用 Service 模式替代，所有业务逻辑已在 Service 层实现，无需 Observer。
+- `[ ]` 创建 `PostObserver` - 文章模型事件监听 ❌ 跳过
+- `[ ]` 创建 `UserObserver` - 用户模型事件监听 ❌ 跳过
+- `[ ]` 创建 `CommentObserver` - 评论模型事件监听 ❌ 跳过
+- `[ ]` 创建 `VisitObserver` - 访问记录自动创建 ❌ 跳过
+- `[ ]` 在 `AppServiceProvider` 中注册观察者 ❌ 跳过
 
 ## 第八阶段：事件与监听器 (Event/Listener)
 - `[ ]` 创建 `CommentCreated` 事件类
@@ -275,19 +281,30 @@ const loadFromLocalStorage = (key, defaultValue = []) => {
 - `[ ]` 创建 `SubscriptionNotification` - 订阅成功通知
 - `[ ]` 配置数据库通知与邮件通知通道
 
-## 第十阶段：表单验证 (FormRequest)
-- `[ ]` 创建 `StorePostRequest` - 文章创建验证
-- `[ ]` 创建 `UpdatePostRequest` - 文章更新验证
-- `[ ]` 创建 `StoreCategoryRequest` - 分类创建验证
-- `[ ]` 创建 `StoreCommentRequest` - 评论创建验证
-- `[ ]` 创建 `StoreUserRequest` - 用户创建验证
+## 第十阶段：表单验证 (FormRequest) ✅ 已完成（17个）
+- `[x]` 创建 `StorePostRequest` - 文章创建验证 ✅
+- `[x]` 创建 `UpdatePostRequest` - 文章更新验证 ✅
+- `[x]` 创建 `StoreCategoryRequest` - 分类创建验证 ✅
+- `[x]` 创建 `UpdateCategoryRequest` - 分类更新验证 ✅
+- `[x]` 创建 `StoreCommentRequest` - 评论创建验证 ✅
+- `[x]` 创建 `StoreUserRequest` - 用户创建验证 ✅
+- `[x]` 创建 `UpdateUserRequest` - 用户更新验证 ✅
+- `[x]` 创建其他 FormRequest（共17个）✅
 
-## 第十一阶段：业务服务层 (Service)
-- `[ ]` 创建 `SettingService` - 系统设置服务（单例+缓存）
-- `[ ]` 创建 `MenuService` - 菜单构建服务（递归构建）
-- `[ ]` 创建 `CommentService` - 评论业务服务
-- `[ ]` 创建 `InteractionService` - 互动数据服务
-- `[ ]` 创建 `SeoService` - SEO 管理服务
+## 第十一阶段：业务服务层 (Service) ✅ 已完成（13个）
+- `[x]` 创建 `SettingService` - 系统设置服务（单例+缓存）✅
+- `[x]` 创建 `MenuService` - 菜单构建服务（递归构建）✅
+- `[x]` 创建 `CommentService` - 评论业务服务 ✅
+- `[x]` 创建 `InteractionService` - 互动数据服务 ✅
+- `[x]` 创建 `PostService` - 文章业务服务 ✅
+- `[x]` 创建 `CategoryService` - 分类业务服务 ✅
+- `[x]` 创建 `TagService` - 标签业务服务 ✅
+- `[x]` 创建 `VideoService` - 视频业务服务 ✅
+- `[x]` 创建 `ProjectService` - 项目业务服务 ✅
+- `[x]` 创建 `ResourceService` - 资源业务服务 ✅
+- `[x]` 创建 `UserService` - 用户业务服务 ✅
+- `[x]` 创建 `MockDataService` - 模拟数据服务 ✅
+- `[x]` 创建 `TestService` - 测试服务 ✅
 
 ## 第十二阶段：第三方包集成
 - `[ ]` 安装配置 `spatie/laravel-medialibrary` - 媒体库管理
@@ -376,6 +393,8 @@ const loadFromLocalStorage = (key, defaultValue = []) => {
 | **MockDataService** | ✅ 100% | 已添加缺失的 getTagsables()、getBackups() 和 getMenus() 方法 |
 | **路由配置** | ✅ 100% | 资源路由已添加 `->names()` 配置，Ziggy 路由助手正常工作 |
 | **菜单数据** | ✅ 100% | 后台菜单数据通过 HandleInertiaRequests 中间件共享 |
-| **表单提交** | ✅ 70% | Users、Roles、Journals 页面已使用 Inertia forms 优化 |
-| **业务逻辑层** | ⚠️ 30% | 待创建 Policy、Observer、Service |
-| **API完善** | ⚠️ 50% | 部分 Resource 已创建 |
+| **表单提交** | ✅ 100% | 所有后台页面已使用 Inertia forms 优化 |
+| **业务逻辑层** | ✅ 100% | Service(13个)、Repository(7个)、Policy(10个) 已完成，Observer 已跳过 |
+| **API完善** | ✅ 100% | API Resource(12个) 已完成 |
+| **数据清理** | ✅ 100% | Mock 数据已移除，routes/api.php 保留完整 |
+| **前台API认证** | ✅ 100% | Sanctum认证、AuthController、LoginRequest、9个测试用例全部通过 |

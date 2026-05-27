@@ -25,13 +25,17 @@ import Footer from '@/components/Footer.vue';
 import AdSlot from '@/components/front/AdSlot.vue';
 
 const props = defineProps({
-  projects: { type: Array, default: () => [] }
+  projects: { type: Array, default: () => [] },
+  menus: { type: Array, default: () => [] },
+  siteConfig: { type: Object, default: () => ({}) },
+  footerConfig: { type: Object, default: () => ({}) },
+  themes: { type: Array, default: () => [] }
 });
 
 const { getSeoByPageKey } = usePageSeoData();
 const pageSeo = getSeoByPageKey('projects') || { title: '', description: '', keywords: '' };
 
-usePageSeo({
+const { SeoHead } = usePageSeo({
   title: pageSeo.title || '',
   description: pageSeo.description || '',
   keywords: pageSeo.keywords || '',
@@ -102,9 +106,15 @@ const getAdSpanClass = () => {
 </script>
 
 <template>
+  <SeoHead />
   <div class="min-h-screen bg-construct-paper selection:bg-construct-red selection:text-white">
     <!-- Sidebar Menu -->
-    <SidebarMenu v-model:is-footer-visible="isFooterVisible" />
+    <SidebarMenu 
+      v-model:is-footer-visible="isFooterVisible" 
+      :menus="menus"
+      :site-config="siteConfig"
+      :footer-config="footerConfig"
+    />
 
     <!-- Main Content with left margin for sidebar -->
     <div class="ml-16">
@@ -292,7 +302,11 @@ const getAdSpanClass = () => {
       </div>
 
       <!-- Footer -->
-      <Footer v-model="isFooterVisible" />
+      <Footer 
+        v-model="isFooterVisible" 
+        :footer-config="footerConfig"
+        :site-config="siteConfig"
+      />
     </div>
   </div>
 </template>

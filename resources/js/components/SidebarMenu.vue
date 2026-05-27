@@ -31,8 +31,6 @@ import { useI18n } from 'vue-i18n';
 import { useSiteConfig } from '../composables/useSiteConfig';
 import { useMenuItems } from '../composables/useMenuItems';
 
-const { getSiteName, getSiteCopyright } = useSiteConfig();
-
 const props = defineProps({
   isFooterVisible: {
     type: Boolean,
@@ -53,13 +51,26 @@ const props = defineProps({
   resources: {
     type: Array,
     default: () => []
+  },
+  menus: {
+    type: Array,
+    default: () => []
+  },
+  siteConfig: {
+    type: Object,
+    default: () => ({})
+  },
+  footerConfig: {
+    type: Object,
+    default: () => ({})
   }
 });
 
-const { frontMenuItems } = useMenuItems();
+const { frontMenuItems } = useMenuItems({ menus: props.menus });
+const { getSiteName, getSiteCopyright } = useSiteConfig({ config: props.siteConfig });
 
-const siteName = getSiteName();
-const siteCopyright = getSiteCopyright();
+const siteName = computed(() => getSiteName());
+const siteCopyright = computed(() => getSiteCopyright());
 
 const searchPosts = computed(() => {
   const allContent = [];

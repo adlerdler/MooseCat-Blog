@@ -27,13 +27,17 @@ const props = defineProps({
   skills: { type: Array, default: () => [] },
   manifestos: { type: Array, default: () => [] },
   socialLinksObj: { type: Object, default: () => ({}) },
-  projects: { type: Array, default: () => [] }
+  projects: { type: Array, default: () => [] },
+  menus: { type: Array, default: () => [] },
+  siteConfig: { type: Object, default: () => ({}) },
+  footerConfig: { type: Object, default: () => ({}) },
+  themes: { type: Array, default: () => [] }
 });
 
 const { getSeoByPageKey } = usePageSeoData();
 const pageSeo = getSeoByPageKey('author') || { title: '', description: '', keywords: '' };
 
-usePageSeo({
+const { SeoHead } = usePageSeo({
   title: pageSeo.title || '',
   description: pageSeo.description || '',
   keywords: pageSeo.keywords || '',
@@ -64,7 +68,7 @@ const socialLinks = Object.entries(props.socialLinksObj).map(([platform, url], i
 });
 
 const { t } = useI18n();
-const { currentTheme } = useTheme();
+const { currentTheme } = useTheme({ themesData: props.themes });
 const isFooterVisible = ref(true);
 const isVisible = ref(false);
 const calendarValues = ref([]);
@@ -199,7 +203,12 @@ const generateMockCalendarData = () => {
 <template>
   <div class="min-h-screen bg-construct-paper text-construct-black overflow-hidden relative">
     <!-- Sidebar Menu -->
-    <SidebarMenu v-model:is-footer-visible="isFooterVisible" />
+    <SidebarMenu 
+      v-model:is-footer-visible="isFooterVisible" 
+      :menus="menus"
+      :site-config="siteConfig"
+      :footer-config="footerConfig"
+    />
 
     <!-- Main Content with left margin for sidebar -->
     <div class="ml-16">
@@ -536,7 +545,11 @@ const generateMockCalendarData = () => {
     </section>
 
     <!-- Footer -->
-    <Footer v-model="isFooterVisible" />
+    <Footer 
+      v-model="isFooterVisible" 
+      :footer-config="footerConfig"
+      :site-config="siteConfig"
+    />
 
     </div><!-- End of ml-16 wrapper -->
   </div>

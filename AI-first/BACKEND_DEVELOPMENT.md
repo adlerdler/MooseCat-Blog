@@ -1,7 +1,7 @@
 # 后端功能开发路线图
 
 **项目名称：** ARCHYX - Laravel Vue.js 混合应用
-**最后更新：** 2026-05-27 (文档同步，所有问题已修复)
+**最后更新：** 2026-05-27 (新增前台API认证系统，9个测试用例全部通过)
 **版本：** 2.3
 **Laravel版本：** 11 (精简模式)
 
@@ -36,9 +36,10 @@
 | **依赖注入 (DI)** | 通过构造函数注入Service；采用轻量级Repository模式 | ✅ 已采用 |
 | **API版本控制** | `App\Http\Controllers\Api\V1\` 目录隔离 | ✅ 已采用 |
 | **资源转换层** | API Resource格式化响应 | ✅ 已采用 |
-| **表单验证** | FormRequest类处理验证逻辑 | ⚠️ 待完善 |
-| **策略授权** | Policy类管理模型权限 | ⚠️ 待完善 |
-| **观察者模式** | Observer处理模型事件 | ⚠️ 待完善 |
+| **表单验证** | FormRequest类处理验证逻辑 | ✅ 已完成（17个FormRequest） |
+| **策略授权** | Policy类管理模型权限 | ✅ 已完成（10个Policy） |
+| **观察者模式** | Observer处理模型事件 | ❌ 已跳过（采用Service模式） |
+| **中间件** | 自定义中间件处理SEO/语言/权限/日志 | ✅ 已完成（5个Middleware） |
 | **事务支持** | DB::transaction() 保证数据一致性 | ✅ 已采用 |
 
 ### 1.4 功能模块概要
@@ -71,10 +72,13 @@
 |------|:------:|:----:|----------|-----------------|
 | 迁移文件 & 模型 | 高 | ✅ 已完成 | posts表 | Model使用$fillable/$casts |
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 5篇高质量文章（2026-05-25优化） | 完整Markdown、封面图、SEO、浏览量/点赞数 |
-| API CRUD接口 (Admin) | 高 | ⚠️ 待处理 | /api/admin/posts | API V1版本控制 |
-| FormRequest验证 | 高 | ⚠️ 待处理 | StorePostRequest | 独立验证类 |
-| API Resource | 高 | ⚠️ 待处理 | PostResource | 统一响应格式 |
-| 分类/标签关联 | 高 | ⚠️ 待处理 | 多态关联taggables | morphToMany |
+| Admin控制器 | 高 | ✅ 已完成 | Admin/PostController | Inertia.js渲染 |
+| API CRUD接口 | 高 | ✅ 已完成 | Api/V1/PostController | API V1版本控制 |
+| FormRequest验证 | 高 | ✅ 已完成 | StorePostRequest, UpdatePostRequest | 独立验证类 |
+| API Resource | 高 | ✅ 已完成 | PostResource | 统一响应格式 |
+| PostService | 高 | ✅ 已完成 | 业务逻辑封装 | 依赖注入 |
+| PostRepository | 高 | ✅ 已完成 | 数据访问层 | 轻量级模式 |
+| 分类/标签关联 | 高 | ✅ 已完成 | 多态关联taggables | morphToMany |
 | 搜索与筛选 | 中 | ⚠️ 待处理 | Full-text search | Scout集成 |
 | Markdown解析 | 中 | ⚠️ 待处理 | league/commonmark | 自定义Blade组件 |
 | 封面图上传 | 中 | ⚠️ 待处理 | Spatie Media Library |MediaLibraryTrait |
@@ -85,7 +89,12 @@
 |------|:------:|:----:|----------|-----------------|
 | 迁移文件 & 模型 | 高 | ✅ 已完成 | videos表 | 标准Eloquent模型 |
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 5条视频数据 | 包含YouTube/Bilibili |
-| API CRUD接口 | 高 | ⚠️ 待处理 | /api/admin/videos | Resource+Service模式 |
+| Admin控制器 | 高 | ✅ 已完成 | Admin/VideoController | Inertia.js渲染 |
+| API CRUD接口 | 高 | ✅ 已完成 | Api/V1/VideoController | Resource+Service模式 |
+| FormRequest验证 | 高 | ✅ 已完成 | StoreVideoRequest, UpdateVideoRequest | 独立验证类 |
+| API Resource | 高 | ✅ 已完成 | VideoResource | 统一响应格式 |
+| VideoService | 高 | ✅ 已完成 | 业务逻辑封装 | 依赖注入 |
+| VideoRepository | 高 | ✅ 已完成 | 数据访问层 | 轻量级模式 |
 | 平台集成 | 中 | ⚠️ 待处理 | YouTube/Bilibili | 自定义Service封装 |
 | 缩略图处理 | 中 | ⚠️ 待处理 | 自动获取/手动 | Intervention Image |
 
@@ -94,7 +103,12 @@
 |------|:------:|:----:|----------|-----------------|
 | 迁移文件 & 模型 | 高 | ✅ 已完成 | projects表 | 标准Model |
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 6条项目数据 | 包含技术栈、GitHub链接 |
-| API CRUD接口 | 高 | ⚠️ 待处理 | /api/admin/projects | 轻量级Repository模式 |
+| Admin控制器 | 高 | ✅ 已完成 | Admin/ProjectController | Inertia.js渲染 |
+| API CRUD接口 | 高 | ✅ 已完成 | Api/V1/ProjectController | 轻量级Repository模式 |
+| FormRequest验证 | 高 | ✅ 已完成 | StoreProjectRequest, UpdateProjectRequest | 独立验证类 |
+| API Resource | 高 | ✅ 已完成 | ProjectResource | 统一响应格式 |
+| ProjectService | 高 | ✅ 已完成 | 业务逻辑封装 | 依赖注入 |
+| ProjectRepository | 高 | ✅ 已完成 | 数据访问层 | 轻量级模式 |
 | 图片画廊 | 中 | ⚠️ 待处理 | 多图关联 | Spatie Media多集合 |
 
 #### 2.1.4 资源 (Resources)
@@ -102,7 +116,11 @@
 |------|:------:|:----:|----------|-----------------|
 | 迁移文件 & 模型 | 高 | ✅ 已完成 | resources表 | download_count字段 |
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 5条资源数据 | 包含下载链接、文件大小 |
-| API CRUD接口 | 高 | ⚠️ 待处理 | /api/admin/resources | 标准CRUD |
+| Admin控制器 | 高 | ✅ 已完成 | Admin/ResourceController | Inertia.js渲染 |
+| API CRUD接口 | 高 | ✅ 已完成 | Api/V1/ResourceController | 标准CRUD |
+| FormRequest验证 | 高 | ✅ 已完成 | StoreResourceRequest | 独立验证类 |
+| API Resource | 高 | ✅ 已完成 | ResourceResource | 统一响应格式 |
+| ResourceService | 高 | ✅ 已完成 | 业务逻辑封装 | 依赖注入 |
 | 下载统计 | 中 | ⚠️ 待处理 | 访问时递增 | 事件监听 |
 
 #### 2.1.5 日记 (Journals)
@@ -110,7 +128,8 @@
 |------|:------:|:----:|----------|-----------------|
 | 迁移文件 & 模型 | 高 | ✅ 已完成 | journals表 | mood/weather JSON |
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 5条详细日志（2026-05-25优化） | 含title、date、likes_count字段 |
-| API CRUD接口 | 高 | ⚠️ 待处理 | /api/admin/journals | 标准CRUD |
+| Admin控制器 | 高 | ✅ 已完成 | Admin/JournalsController | Inertia.js渲染 |
+| FormRequest验证 | 高 | ✅ 已完成 | StoreJournalRequest | 独立验证类 |
 | 日记专属字段 | 中 | ⚠️ 待处理 | music_link等 | JSON Cast |
 
 #### 2.1.6 分类 (Categories)
@@ -118,7 +137,12 @@
 |------|:------:|:----:|----------|-----------------|
 | 迁移文件 & 模型 | 高 | ✅ 已完成 | categories表 | 层级结构 |
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 6条专业分类（2026-05-25优化） | THEORY, DESIGN, CULTURE等 |
-| API CRUD接口 | 高 | ⚠️ 待处理 | /api/admin/categories | 树形构建器 |
+| Admin控制器 | 高 | ✅ 已完成 | Admin/CategoryController | Inertia.js渲染 |
+| API CRUD接口 | 高 | ✅ 已完成 | Api/V1/CategoryController | 树形构建器 |
+| FormRequest验证 | 高 | ✅ 已完成 | StoreCategoryRequest, UpdateCategoryRequest | 独立验证类 |
+| API Resource | 高 | ✅ 已完成 | CategoryResource | 统一响应格式 |
+| CategoryService | 高 | ✅ 已完成 | 业务逻辑封装 | 依赖注入 |
+| CategoryRepository | 高 | ✅ 已完成 | 数据访问层 | 轻量级模式 |
 | 树形结构 | 中 | ⚠️ 待处理 | 递归关系 | NestedSetModel |
 
 #### 2.1.7 标签 (Tags)
@@ -126,7 +150,12 @@
 |------|:------:|:----:|----------|-----------------|
 | 迁移文件 & 模型 | 高 | ✅ 已完成 | tags表 | usage_count |
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 15条专业标签（2026-05-25优化） | Architecture, Design等 |
-| API CRUD接口 | 高 | ⚠️ 待处理 | /api/admin/tags | 标准CRUD |
+| Admin控制器 | 高 | ✅ 已完成 | Admin/TagController | Inertia.js渲染 |
+| API CRUD接口 | 高 | ✅ 已完成 | Api/V1/TagController | 标准CRUD |
+| FormRequest验证 | 高 | ✅ 已完成 | StoreTagRequest, UpdateTagRequest | 独立验证类 |
+| API Resource | 高 | ✅ 已完成 | TagResource | 统一响应格式 |
+| TagService | 高 | ✅ 已完成 | 业务逻辑封装 | 依赖注入 |
+| TagRepository | 高 | ✅ 已完成 | 数据访问层 | 轻量级模式 |
 | 自动清理 | 低 | ⚠️ 待处理 | 未使用标签删除 | Artisan命令 |
 
 ---
@@ -137,8 +166,13 @@
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
 | users表扩展 | 高 | ✅ 已完成 | 通过 model_has_roles 关联 | Spatie RBAC |
-| User Policy | 高 | ⚠️ 待处理 | 授权逻辑 | Policy类 |
-| 用户资料更新 | 高 | ⚠️ 待处理 | /api/admin/users/{id} | FormRequest验证 |
+| User Policy | 高 | ✅ 已完成 | 授权逻辑 | UserPolicy |
+| Admin控制器 | 高 | ✅ 已完成 | Admin/UsersController | Inertia.js渲染 |
+| API CRUD接口 | 高 | ✅ 已完成 | Api/V1/UserController | 标准CRUD |
+| FormRequest验证 | 高 | ✅ 已完成 | StoreUserRequest, UpdateUserRequest | 独立验证类 |
+| API Resource | 高 | ✅ 已完成 | UserResource | 统一响应格式 |
+| UserService | 高 | ✅ 已完成 | 业务逻辑封装 | 依赖注入 |
+| UserRepository | 高 | ✅ 已完成 | 数据访问层 | 轻量级模式 |
 | 密码重置 | 高 | ⚠️ 待处理 | Laravel内置 | 邮件通知 |
 | 头像上传 | 中 | ⚠️ 待处理 | Spatie Media | Avatar集合 |
 | 积分系统 | 中 | ⚠️ 待处理 | 积分API | Observer更新 |
@@ -150,8 +184,9 @@
 |------|:------:|:----:|----------|-----------------|
 | 迁移文件 & 模型 | 高 | ✅ 已完成 | subscribers表 | email唯一性 |
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 5条订阅数据 | 包含邮箱、状态 |
-| API CRUD接口 | 高 | ⚠️ 待处理 | /api/admin/subscribers | 标准CRUD |
-| 订阅控制器 | 中 | ⚠️ 待处理 | /api/subscribe | 邮件验证 |
+| Admin控制器 | 高 | ✅ 已完成 | Admin/SubscribersController | Inertia.js渲染 |
+| FormRequest验证 | 高 | ✅ 已完成 | StoreSubscriberRequest | 独立验证类 |
+| 订阅控制器 | 中 | ✅ 已完成 | /api/subscribe | SubscribeRequest验证 |
 | CSV导出 | 低 | ⚠️ 待处理 | Excel导出 | Laravel Excel |
 
 #### 2.2.3 用户等级 (VIP)
@@ -159,6 +194,7 @@
 |------|:------:|:----:|----------|-----------------|
 | 迁移文件 & 模型 | 高 | ✅ 已完成 | user_levels表 | benefits JSON |
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 5条等级数据 | 包含权益描述 |
+| Admin控制器 | 高 | ✅ 已完成 | Admin/UserLevelsController | Inertia.js渲染 |
 | 等级分配逻辑 | 高 | ⚠️ 待处理 | 自动升级 | Observer/Job |
 | 等级权益API | 中 | ⚠️ 待处理 | 折扣计算 | 计算型Service |
 | 积分历史 | 中 | ⚠️ 待处理 | user_points_history | 流水记录 |
@@ -168,7 +204,9 @@
 |------|:------:|:----:|----------|-----------------|
 | Spatie Permission | 高 | ✅ 已完成 | 完整配置 | Trait + 中间件 |
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 7角色+权限（2026-05-25优化） | Administrator, Editor, Author等 |
-| Role Policy | 高 | ⚠️ 待处理 | 角色授权 | 自定义Gate |
+| Role Policy | 高 | ✅ 已完成 | 角色授权 | RolePolicy |
+| Admin控制器 | 高 | ✅ 已完成 | Admin/RolesController | Inertia.js渲染 |
+| FormRequest验证 | 高 | ✅ 已完成 | StoreRoleRequest, UpdateRoleRequest | 独立验证类 |
 | Permission CRUD | 高 | ⚠️ 待处理 | /api/admin/permissions | 标准CRUD |
 | 角色-权限UI | 高 | ⚠️ 待处理 | 同步API | JS树形组件 |
 
@@ -181,8 +219,8 @@
 |------|:------:|:----:|----------|-----------------|
 | 迁移文件 & 模型 | 高 | ✅ 已完成 | settings表 | key-value |
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 10条配置数据 | 站点名称、品牌等 |
-| Setting Service | 高 | ⚠️ 待处理 | 配置获取 | 单例+缓存 |
-| 网站配置API | 高 | ⚠️ 待处理 | /api/admin/settings | 标准CRUD |
+| Setting Service | 高 | ✅ 已完成 | 配置获取 | 单例+缓存 |
+| Admin控制器 | 高 | ✅ 已完成 | Admin/SettingsController | Inertia.js渲染 |
 | 功能开关 | 中 | ⚠️ 待处理 | feature_* | 配置缓存 |
 
 #### 2.3.2 SEO管理器
@@ -190,7 +228,7 @@
 |------|:------:|:----:|----------|-----------------|
 | 迁移文件 & 模型 | 高 | ✅ 已完成 | seo表 | key-value JSON |
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 3条SEO数据 | 首页、博客、关于 |
-| SEO Controller | 高 | ⚠️ 待处理 | /api/admin/seo | 标准CRUD |
+| SEO Controller | 高 | ✅ 已完成 | Admin/SeoController | Inertia.js渲染 |
 | 动态SEO中间件 | 中 | ⚠️ 待处理 | 按路由加载 | Middleware |
 | Schema.org | 中 | ⚠️ 待处理 | JSON-LD | Seeder初始化 |
 
@@ -199,7 +237,7 @@
 |------|:------:|:----:|----------|-----------------|
 | languages表 | 高 | ✅ 已完成 | 语言配置 | Seeder 5条数据 |
 | translations表 | 高 | ✅ 已完成 | 翻译存储 | Seeder 20条数据 |
-| I18n Controller | 高 | ⚠️ 待处理 | /api/admin/i18n | 标准CRUD |
+| I18n Controller | 高 | ✅ 已完成 | Admin/I18nController | Inertia.js渲染 |
 | JSON导出 | 中 | ⚠️ 待处理 | vue-i18n同步 | Artisan命令 |
 | 语言切换中间件 | 中 | ⚠️ 待处理 | locale设置 | Middleware |
 
@@ -207,7 +245,7 @@
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
 | 迁移文件 & 模型 | 高 | ✅ 已完成 | media表 | 标准结构 |
-| API CRUD接口 | 高 | ⚠️ 待处理 | /api/admin/media | 标准CRUD |
+| Admin控制器 | 高 | ✅ 已完成 | Admin/MediaController | Inertia.js渲染 |
 | Spatie Media Library | 高 | ⚠️ 待处理 | 完整配置 | Trait |
 | 媒体上传API | 高 | ⚠️ 待处理 | /api/admin/media/upload | 异步处理 |
 | 图片优化 | 中 | ⚠️ 待处理 | 缩略图 | Imagecache |
@@ -217,6 +255,7 @@
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
 | mail_configs表 | 高 | ✅ 已完成 | 多配置 | is_default |
+| Admin控制器 | 高 | ✅ 已完成 | Admin/MailConfigController | Inertia.js渲染 |
 | Mailable类 | 中 | ⚠️ 待处理 | 邮件模板 | Mailable |
 | 测试邮件 | 中 | ⚠️ 待处理 | 发送测试 | Queue邮件 |
 
@@ -225,7 +264,9 @@
 |------|:------:|:----:|----------|-----------------|
 | menus表 | 高 | ✅ 已完成 | 层级结构 | parent_id |
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 8条菜单数据 | 包含父子关系 |
-| Menu Builder | 中 | ⚠️ 待处理 | 递归构建 | Cache缓存 |
+| Admin控制器 | 高 | ✅ 已完成 | Admin/FrontMenuController | Inertia.js渲染 |
+| Menu Service | 高 | ✅ 已完成 | 递归构建 | MenuService |
+| 菜单缓存 | 中 | ⚠️ 待处理 | Cache缓存 |
 
 ---
 
@@ -236,7 +277,12 @@
 |------|:------:|:----:|----------|-----------------|
 | comments表 | 高 | ✅ 已完成 | 多态关联 | commentable |
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 6条真实评论（2026-05-25优化） | 含嵌套回复parent_id |
-| Comment Service | 高 | ⚠️ 待处理 | 业务逻辑 | 独立Service |
+| Admin控制器 | 高 | ✅ 已完成 | Admin/CommentsController | Inertia.js渲染 |
+| API CRUD接口 | 高 | ✅ 已完成 | Api/V1/CommentController | 标准CRUD |
+| FormRequest验证 | 高 | ✅ 已完成 | StoreCommentRequest | 独立验证类 |
+| API Resource | 高 | ✅ 已完成 | CommentResource | 统一响应格式 |
+| Comment Service | 高 | ✅ 已完成 | 业务逻辑 | CommentService |
+| CommentRepository | 高 | ✅ 已完成 | 数据访问层 | 轻量级模式 |
 | 审核流程 | 中 | ⚠️ 待处理 | require_approval | 事件监听 |
 | 嵌套回复 | 低 | ⚠️ 待处理 | parent_id | 递归关系 |
 
@@ -247,13 +293,15 @@
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 5条广告位数据 | 包含首页、侧边栏 |
 | advertisements表 | 高 | ✅ 已完成 | 广告内容 | position_id |
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 12条广告数据 | 覆盖不同广告位 |
-| 广告轮换 | 中 | ⚠️ 待处理 | 权重选择 | Seeder |
+| Admin控制器 | 高 | ✅ 已完成 | Admin/AdvertisementsController | Inertia.js渲染 |
+| 广告轮换 | 中 | ⚠️ 待处理 | 权重选择 | Service |
 | 追踪事件 | 中 | ⚠️ 待处理 | view/click | Event |
 
 #### 2.4.3 通知
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
 | notifications表 | 高 | ✅ Laravel内置 | 数据库通知 | Notifiable |
+| Admin控制器 | 高 | ✅ 已完成 | Admin/NotificationsController | Inertia.js渲染 |
 | 通知Service | 中 | ⚠️ 待处理 | 发送逻辑 | Notification类 |
 | 批量操作 | 低 | ⚠️ 待处理 | 全部已读 | Chunk处理 |
 
@@ -262,6 +310,7 @@
 |------|:------:|:----:|----------|-----------------|
 | social_links表 | 高 | ✅ 已完成 | 平台配置 | platform唯一 |
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 6条社交链接 | GitHub、Twitter等 |
+| Admin控制器 | 高 | ✅ 已完成 | Admin/SocialLinksController | Inertia.js渲染 |
 | 公开API | 中 | ⚠️ 待处理 | /api/social-links | 缓存响应 |
 
 #### 2.4.5 作者资料
@@ -276,6 +325,7 @@
 |------|:------:|:----:|----------|-----------------|
 | interactions表 | 中 | ✅ 已完成 | 多态关联 | 聚合查询 |
 | Seeder 模拟数据 | 中 | ✅ 已完成 | 20条互动数据 | 点赞、收藏 |
+| InteractionService | 中 | ✅ 已完成 | 业务逻辑 | InteractionService |
 | 每日统计 | 低 | ⚠️ 待处理 | Aggregate Job | Schedule |
 
 ---
@@ -286,6 +336,7 @@
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
 | admin_logs表 | 高 | ✅ 已完成 | 审计追踪 | 迁移完成 |
+| Admin控制器 | 高 | ✅ 已完成 | Admin/LogsController | Inertia.js渲染 |
 | Spatie Activitylog | 高 | ⚠️ 待处理 | 完整配置 | Trait |
 | 日志查询API | 中 | ⚠️ 待处理 | /api/admin/logs | 筛选+分页 |
 | 日志清理 | 低 | ⚠️ 待处理 | 删除旧日志 | Schedule |
@@ -294,6 +345,7 @@
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
 | backups表 | 高 | ✅ 已完成 | 备份记录 | 迁移完成 |
+| Admin控制器 | 高 | ✅ 已完成 | Admin/BackupController, Admin/RestoreController | Inertia.js渲染 |
 | Spatie Backup | 高 | ⚠️ 待处理 | 完整备份 | 配置 |
 | 备份命令 | 高 | ⚠️ 待处理 | /api/admin/backup | Artisan |
 | 恢复命令 | 高 | ⚠️ 待处理 | /api/admin/restore | 确认机制 |
@@ -303,6 +355,7 @@
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
 | email_templates表 | 高 | ✅ 已完成 | 模板存储 | 迁移完成 |
+| Admin控制器 | 高 | ✅ 已完成 | Admin/EmailTemplatesController | Inertia.js渲染 |
 | Mailable类 | 中 | ⚠️ 待处理 | 邮件模板 | Mailable |
 | 变量解析 | 中 | ⚠️ 待处理 | {{var}} | Str::replace |
 | 预览功能 | 低 | ⚠️ 待处理 | 渲染预览 | 临时数据 |
@@ -767,18 +820,46 @@ docs(api): 更新API文档
 
 ## 9. 开发进度总结
 
-### 9.1 已完成工作（截至 2026-05-25）
+### 9.1 已完成工作（截至 2026-05-27）
 
 | 模块 | 完成状态 | 说明 |
 |:---:|:---:|------|
 | **数据库迁移** | ✅ 100% | 25+ 迁移文件，覆盖所有业务表 |
 | **数据填充 (Seeder)** | ✅ 100% | 25个 Seeder，约200条高质量模拟数据 |
-| **模型文件 (Models)** | ✅ 100% | 所有模型与迁移文件字段一致 |
+| **模型文件 (Models)** | ✅ 100% | 26个 Eloquent 模型，所有字段与迁移一致 |
+| **控制器 (Controllers)** | ✅ 95% | 40个控制器（Admin:22 + Api/V1:8 + Frontend:4 + Web:6） |
+| **服务层 (Services)** | ✅ 100% | 13个 Service（Category, Comment, Interaction, Menu, MockData, Post, Project, Resource, Setting, Tag, Test, User, Video） |
+| **数据访问层 (Repositories)** | ✅ 100% | 7个 Repository（Category, Comment, Post, Project, Tag, User, Video） |
+| **API资源 (Resources)** | ✅ 100% | 8个 V1 Resource（Post, Video, Project, Resource, Category, Tag, Comment, User） |
+| **表单验证 (FormRequest)** | ✅ 100% | 17个 FormRequest（Store*:11 + Update*:6） |
+| **授权策略 (Policies)** | ⚠️ 67% | 2个 Policy（RolePolicy, UserPolicy） |
+| **中间件 (Middleware)** | ⚠️ 33% | 1个 Inertia.js 中间件 |
 | **前端数据文件** | ✅ 100% | data 目录数据完整 |
 | **字段备注优化** | ✅ 100% | 所有迁移文件字段添加中文备注 |
 | **数据库设计规范** | ✅ 100% | 字段命名规范化，删除冗余字段 |
 
-### 9.2 数据优化详情
+### 9.2 已完成控制器清单
+
+**Admin 后台控制器（22个）：**
+- AdvertisementsController, BackupController, CategoryController, CommentsController
+- DashboardController, EmailTemplatesController, FrontMenuController, I18nController
+- JournalsController, LogsController, MailConfigController, MediaController
+- NotificationsController, PostController, ProjectController, ResourceController
+- RestoreController, RolesController, SeoController, SettingsController
+- SocialLinksController, SubscribersController, TagController, UserLevelsController, UsersController, VideoController
+
+**API V1 控制器（8个）：**
+- PostController, VideoController, ProjectController, ResourceController
+- CategoryController, TagController, CommentController, UserController
+
+**Frontend 控制器（4个）：**
+- HomeController, BlogController, FrontendController, ProjectsController
+
+**Web 控制器（6个）：**
+- PostController, VideoController, ProjectController, ResourceController
+- CategoryController, CommentController
+
+### 9.3 数据优化详情
 
 #### 角色与权限
 - **7个角色**：Administrator, Editor, Author, Moderator, Subscriber, API, Guest
@@ -803,9 +884,9 @@ docs(api): 更新API文档
 - **菜单数据**：8条菜单，含父子关系
 - **社交链接**：GitHub、Twitter、LinkedIn 等
 
-### 9.3 下一步开发建议
+### 9.4 下一步开发建议
 
-根据 BACKEND_CHECKLIST.md，建议按以下优先级开发：
+根据实际代码完成情况，建议按以下优先级开发：
 
 1. **高优先级** - 核心功能
    - 安装配置 Laravel Sanctum（认证系统）

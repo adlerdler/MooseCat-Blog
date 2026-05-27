@@ -9,10 +9,18 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Pagination\LengthAwarePaginator;
 
+/**
+ * PostService - 文章服务类
+ * 
+ * 提供文章内容的管理功能，包括文章列表、创建、更新、发布和浏览量统计。
+ * Provides post content management functionality, including post listing, creation, 
+ * update, publication and view count statistics.
+ */
 class PostService
 {
     /**
      * 获取文章列表（带分页和筛选）
+     * Get paginated post list with filters
      */
     public function getPaginatedPosts(int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
@@ -27,6 +35,7 @@ class PostService
 
     /**
      * 创建新文章
+     * Create new post
      */
     public function createPost(array $data): Post
     {
@@ -45,6 +54,7 @@ class PostService
 
     /**
      * 更新文章
+     * Update post
      */
     public function updatePost(Post $post, array $data): Post
     {
@@ -65,6 +75,7 @@ class PostService
 
     /**
      * 发布文章
+     * Publish post
      */
     public function publishPost(Post $post): bool
     {
@@ -76,6 +87,7 @@ class PostService
 
     /**
      * 增加文章浏览量
+     * Increment post view count
      */
     public function incrementViews(Post $post): void
     {

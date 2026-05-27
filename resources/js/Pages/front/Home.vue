@@ -15,7 +15,11 @@ import SearchOverlay from '../../components/SearchOverlay.vue'
 const props = defineProps({
   posts: { type: Array, default: () => [] },
   projects: { type: Array, default: () => [] },
-  videos: { type: Array, default: () => [] }
+  videos: { type: Array, default: () => [] },
+  menus: { type: Array, default: () => [] },
+  siteConfig: { type: Object, default: () => ({}) },
+  footerConfig: { type: Object, default: () => ({}) },
+  themes: { type: Array, default: () => [] }
 })
 
 console.log('[DEBUG] Home.vue props received:', {
@@ -30,7 +34,7 @@ console.log('[DEBUG] Home.vue props received:', {
 const marqueeText = 'ARCHYX VOL. 2026 // BUILDING SYSTEM // MINIMALISM //'
 const techStack = ['TYPESCRIPT', 'VUE', 'LARAVEL', 'TAILWIND', 'NODE.JS', 'POSTGRES']
 
-usePageSeo({
+const { SeoHead } = usePageSeo({
   title: 'Archyx - Design & Technology Blog',
   description: 'Exploring the intersection of design, technology, and human experience.'
 })
@@ -148,6 +152,7 @@ onUnmounted(() => {
 </script>
 
 <template>
+  <SeoHead />
   <div class="min-h-screen selection:bg-construct-red selection:text-white">
 
 
@@ -162,6 +167,12 @@ onUnmounted(() => {
     <!-- Sidebar Menu -->
     <SidebarMenu
       v-model:is-footer-visible="isFooterVisible"
+      :menus="menus"
+      :site-config="siteConfig"
+      :footer-config="footerConfig"
+      :posts="posts"
+      :videos="videos"
+      :projects="projects"
     />
 
     <!-- Main Content with left margin for sidebar -->
@@ -400,7 +411,11 @@ onUnmounted(() => {
     </section>
 
     <!-- Footer -->
-    <Footer v-model="isFooterVisible" />
+    <Footer 
+      v-model="isFooterVisible" 
+      :footer-config="footerConfig"
+      :site-config="siteConfig"
+    />
 
     <!-- Search Overlay -->
     <SearchOverlay :is-open="isSearchOpen" :posts="searchPosts" @close="closeSearch" />

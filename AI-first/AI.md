@@ -14,7 +14,7 @@
     - `app/Repositories` - 数据访问层（轻量级Repository模式）
     - `resources/js/components` - Vue 组件
     - `routes/` - API、Web、Admin 路由配置
-*   **Current Status:** 后端 API 完整（8 个模块），管理后台路由就绪（6 个资源），前端 Vue 组件待完善。
+*   **Current Status:** 后端 API 完整（8+ 模块），管理后台路由就绪（20+ 控制器），前端 Vue 组件完整，Policy 授权策略（10个）已完成，API Resource（12个）已完成，Observer 已跳过（采用 Service 模式）。
 
 ### ### 02. Coding DNA (代码基因)
 *   **UI/UX:** 必须使用 **Glassmorphism**。保持 `backdrop-blur` 和 `opacity` 的黄金比例。使用 Tailwind CSS 实现。

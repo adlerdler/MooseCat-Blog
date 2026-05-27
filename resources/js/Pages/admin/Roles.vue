@@ -160,6 +160,7 @@ const confirmDelete = () => {
     });
   } else {
     showDeleteConfirm.value = false;
+  }
 };
 
 const getColorStyle = (role) => {
