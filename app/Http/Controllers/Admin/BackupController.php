@@ -4,72 +4,51 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Services\MockDataService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
-use Inertia\Response;
 
-/**
- * Backup Controller
- * 
- * Handles backup management operations.
- * Provides functionality for creating, downloading, and deleting backups.
- */
 class BackupController extends Controller
 {
-    protected $mockDataService;
+    private MockDataService $mockDataService;
 
-    /**
-     * Constructor
-     * 
-     * @param MockDataService $mockDataService
-     */
     public function __construct(MockDataService $mockDataService)
     {
         $this->mockDataService = $mockDataService;
     }
 
-    /**
-     * Display the backup list
-     * 
-     * @return Response
-     */
-    public function index(): Response
+    public function index(): \Inertia\Response
     {
+        // 使用模拟数据 - 先对接前端
         $backups = $this->mockDataService->getBackups();
-        
+
         return Inertia::render('admin/Backup', [
             'backups' => $backups,
         ]);
     }
 
-    /**
-     * Create a new backup
-     * 
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function create()
+    public function create(Request $request)
     {
-        return back()->with('success', '备份已创建');
+        // TODO: 先使用模拟逻辑，后续对接真实备份功能
+        $request->validate([
+            'type' => 'required|in:full,database,files,incremental',
+            'note' => 'nullable|string',
+        ]);
+
+        // 模拟创建备份成功
+        return back()->with('success', '备份创建成功');
     }
 
-    /**
-     * Download a backup file
-     * 
-     * @param string $id
-     * @return \Illuminate\Http\RedirectResponse
-     */
     public function download(string $id)
     {
-        return back();
+        // TODO: 先使用模拟逻辑，后续对接真实下载功能
+        return back()->with('success', '备份下载中...');
     }
 
-    /**
-     * Remove the specified backup
-     * 
-     * @param string $id
-     * @return \Illuminate\Http\RedirectResponse
-     */
     public function destroy(string $id)
     {
+        // TODO: 先使用模拟逻辑，后续对接真实删除功能
         return back()->with('success', '备份已删除');
     }
 }

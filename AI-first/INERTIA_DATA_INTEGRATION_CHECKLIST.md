@@ -14,15 +14,16 @@
 | 第一阶段：MockDataService | 15 | 15 | 0 | 0 | ✅ |
 | 第二阶段：后端Service层 | 20 | 20 | 0 | 0 | ✅ |
 | 第二阶段B：后端Repository层 | 13 | 13 | 0 | 0 | ✅ |
-| 第三阶段：后端FormRequest | 15 | 15 | 0 | 0 | ✅ |
+| 第三阶段：后端FormRequest | 17 | 17 | 0 | 0 | ✅ |
 | 第四阶段：后端Policy | 10 | 10 | 0 | 0 | ✅ |
 | 第五阶段：后端Observer | 8 | 0 | 0 | 8 | ❌ 跳过 |
 | 第六阶段：API Resource | 12 | 12 | 0 | 0 | ✅ |
+| 第六阶段B：中间件开发 | 5 | 5 | 0 | 0 | ✅ |
 | 第七阶段：后台Controller | 30 | 24 | 0 | 6 | ⚠️ |
 | 第八阶段：前台页面 | 40 | 26 | 0 | 14 | ⚠️ |
 | 第九阶段：数据清理 | 5 | 0 | 0 | 5 | ⚠️ |
 | 第十阶段：前台API认证 | 6 | 6 | 0 | 0 | ✅ |
-| **总计** | **174** | **137** | **0** | **37** |
+| **总计** | **176** | **143** | **0** | **33** |
 
 ---
 
@@ -245,7 +246,7 @@
 
 ## 第六阶段：API Resource 资源转换
 
-> **状态：** 🔄 进行中（8/12 已完成）
+> **状态：** ✅ 已完成（12/12 已完成）
 > **文件位置：** `app/Http/Resources/V1/`
 
 | 序号 | 任务 | 文件位置 | 优先级 | 状态 |
@@ -262,6 +263,21 @@
 | 6.10 | SubscriberResource 订阅者资源 | app/Http/Resources/V1/SubscriberResource.php | 中 | ✅ 已完成 |
 | 6.11 | JournalResource 日记资源 | app/Http/Resources/V1/JournalResource.php | 中 | ✅ 已完成 |
 | 6.12 | ResourceResource 资源资源 | app/Http/Resources/V1/ResourceResource.php | 高 | ✅ 已完成 |
+
+---
+
+## 第六阶段B：中间件开发
+
+> **状态：** ✅ 已完成（5/5 已完成）
+> **文件位置：** `app/Http/Middleware/`
+
+| 序号 | 任务 | 文件位置 | 优先级 | 状态 |
+|:---:|------|----------|:------:|:----:|
+| 6B.1 | HandleInertiaRequests Inertia中间件 | app/Http/Middleware/HandleInertiaRequests.php | 高 | ✅ 已完成 |
+| 6B.2 | SeoMiddleware SEO配置中间件 | app/Http/Middleware/SeoMiddleware.php | 高 | ✅ 已完成 |
+| 6B.3 | LanguageMiddleware 语言切换中间件 | app/Http/Middleware/LanguageMiddleware.php | 中 | ✅ 已完成 |
+| 6B.4 | AdminMiddleware 后台权限验证 | app/Http/Middleware/AdminMiddleware.php | 高 | ✅ 已完成 |
+| 6B.5 | ActivityLogMiddleware 操作日志记录 | app/Http/Middleware/ActivityLogMiddleware.php | 中 | ✅ 已完成 |
 
 ---
 

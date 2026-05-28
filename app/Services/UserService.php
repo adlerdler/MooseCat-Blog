@@ -5,24 +5,15 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\User;
+use App\Models\UserLevel;
+use App\Models\UserPointsHistory;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 
-/**
- * UserService - 用户服务类
- * 
- * 提供用户的管理功能，包括用户列表、创建、更新、删除、密码管理和角色分配。
- * Provides user management functionality, including user listing, creation, update, 
- * deletion, password management and role assignment.
- */
 class UserService
 {
-    /**
-     * 获取用户列表（带分页和筛选）
-     * Get paginated user list with filters
-     */
     public function getPaginatedUsers(int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
         return User::query()
@@ -33,28 +24,16 @@ class UserService
             ->paginate($perPage);
     }
 
-    /**
-     * 根据ID获取用户
-     * Get user by ID
-     */
     public function getUserById(int $id): ?User
     {
         return User::with(['roles', 'profile'])->find($id);
     }
 
-    /**
-     * 根据邮箱获取用户
-     * Get user by email
-     */
     public function getUserByEmail(string $email): ?User
     {
         return User::where('email', $email)->first();
     }
 
-    /**
-     * 获取所有用户
-     * Get all users
-     */
     public function getUsers(array $filters = []): Collection
     {
         return User::query()
@@ -63,10 +42,6 @@ class UserService
             ->get();
     }
 
-    /**
-     * 创建用户
-     * Create user
-     */
     public function createUser(array $data): User
     {
         return DB::transaction(function () use ($data) {
@@ -80,10 +55,6 @@ class UserService
         });
     }
 
-    /**
-     * 更新用户
-     * Update user
-     */
     public function updateUser(User $user, array $data): User
     {
         return DB::transaction(function () use ($user, $data) {
@@ -100,10 +71,6 @@ class UserService
         });
     }
 
-    /**
-     * 删除用户
-     * Delete user
-     */
     public function deleteUser(User $user): bool
     {
         return DB::transaction(function () use ($user) {
@@ -112,10 +79,6 @@ class UserService
         });
     }
 
-    /**
-     * 更新用户头像
-     * Update user avatar
-     */
     public function updateAvatar(User $user, string $avatarPath): User
     {
         return DB::transaction(function () use ($user, $avatarPath) {
@@ -124,21 +87,62 @@ class UserService
         });
     }
 
-    /**
-     * 修改密码
-     * Change password
-     */
     public function changePassword(User $user, string $newPassword): bool
     {
         return $user->update(['password' => Hash::make($newPassword)]);
     }
 
-    /**
-     * 验证密码
-     * Verify password
-     */
     public function verifyPassword(User $user, string $password): bool
     {
         return Hash::check($password, $user->password);
+    }
+
+    public function addPoints(User $user, int $points, string $type = 'earning', string $description = ''): void
+    {
+        DB::transaction(function () use ($user, $points, $type, $description) {
+            $originalPoints = $user->points ?? 0;
+            $user->increment('points', $points);
+            
+            UserPointsHistory::create([
+                'user_id' => $user->id,
+                'points' => $points,
+                'type' => $type,
+                'description' => $description ?: '积分增加',
+            ]);
+
+            $this->updateUserLevel($user);
+        });
+    }
+
+    public function deductPoints(User $user, int $points, string $description = ''): void
+    {
+        DB::transaction(function () use ($user, $points, $description) {
+            $user->decrement('points', $points);
+            
+            UserPointsHistory::create([
+                'user_id' => $user->id,
+                'points' => -$points,
+                'type' => 'spending',
+                'description' => $description ?: '积分减少',
+            ]);
+
+            $this->updateUserLevel($user);
+        });
+    }
+
+    public function updateUserLevel(User $user): void
+    {
+        $level = UserLevel::getLevelForPoints($user->points ?? 0);
+        
+        if ($level && $user->level_id !== $level->id) {
+            $user->update(['level_id' => $level->id]);
+        }
+    }
+
+    public function getPointsHistory(User $user, int $perPage = 20): LengthAwarePaginator
+    {
+        return $user->pointsHistory()
+            ->latest('created_at')
+            ->paginate($perPage);
     }
 }

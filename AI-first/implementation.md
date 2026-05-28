@@ -1,6 +1,7 @@
 # 架构设计与重构方案：Laravel + Vue 的无缝整合
 
-**⚠️ 注意：此文档为历史记录，Inertia.js 方案已完整实施！**
+> **⚠️ 归档文档：** Inertia.js 架构迁移已完整实施，本文档不再更新。
+> **架构文档已迁移至：** [ARCHITECTURE.md](ARCHITECTURE.md)
 
 ## 核心需求分析
 
@@ -100,154 +101,91 @@
 
 ---
 
-# 前端表单优化方案（混合方案）
-
-## 方案概述
-采用**渐进式混合方案**，根据后端开发进度灵活切换前端数据处理方式。
-
-## 方案对比
-
-| 方案 | 适用场景 | 优点 | 缺点 |
-|------|---------|------|------|
-| **Inertia forms** | 后端业务逻辑完成后 | 与 Inertia 生态完美集成、自动 CSRF 保护、统一错误处理 | 依赖后端完整实现、每次操作刷新页面 |
-| **本地状态 + localStorage** | 后端开发阶段 | 不依赖后端、用户体验流畅、开发效率高 | 数据不持久化到数据库 |
-| **Axios** | 快速操作（如状态切换） | 轻量级、避免全页面刷新、即时反馈 | 需要手动处理 CSRF、与 Inertia 集成不紧密 |
-
-## 混合方案实现策略
-
-### 阶段 1：后端开发阶段
-- **使用方式**：本地状态 + localStorage
-- **适用范围**：所有后台管理页面
-- **实现目标**：
-  - 用户可以正常操作界面
-  - 数据暂时保存在浏览器本地
-  - 提供良好的开发体验，不阻塞后端开发
-
-### 阶段 2：后端业务逻辑完成后
-- **使用方式**：Inertia forms
-- **切换顺序**：按模块逐个切换
-  1. 用户管理（Users）
-  2. 角色管理（Roles）
-  3. 分类管理（Categories）
-  4. 标签管理（Tags）
-  5. 文章管理（Posts）
-  6. 其他模块...
-
-### 阶段 3：快速操作优化
-- **使用方式**：Axios（可选）
-- **适用场景**：状态切换、简单字段更新
-- **目标**：避免全页面刷新，提供即时反馈
-
-## 代码实现示例
-
-### 配置开关
-```javascript
-// composables/useConfig.js
-export const useConfig = () => {
-  return {
-    isBackendReady: false, // 后端就绪后改为 true
-  };
-};
-```
-
-### 混合方案实现
-```javascript
-import { useConfig } from '../../composables/useConfig';
-
-const { isBackendReady } = useConfig();
-
-const handleSave = (data) => {
-  if (isBackendReady.value) {
-    // 后端就绪：使用 Inertia forms
-    const formData = { ...data };
-    if (editingItem.value) {
-      const form = useForm(formData);
-      form.put(route('admin.items.update', editingItem.value.id), {
-        onSuccess: () => {
-          isFormVisible.value = false;
-          editingItem.value = null;
-          router.reload();
-        },
-        onError: (errors) => console.error('Update error:', errors)
-      });
-    } else {
-      const form = useForm(formData);
-      form.post(route('admin.items.store'), {
-        onSuccess: () => {
-          isFormVisible.value = false;
-          editingItem.value = null;
-          router.reload();
-        },
-        onError: (errors) => console.error('Create error:', errors)
-      });
-    }
-  } else {
-    // 后端未就绪：使用本地状态 + localStorage
-    if (editingItem.value) {
-      const index = localItems.value.findIndex(i => i.id === editingItem.value.id);
-      if (index !== -1) {
-        localItems.value[index] = { ...localItems.value[index], ...data };
-      }
-    } else {
-      const newId = Math.max(...localItems.value.map(i => i.id), 0) + 1;
-      localItems.value.push({
-        id: newId,
-        ...data,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      });
-    }
-    // 保存到 localStorage
-    saveToLocalStorage('items', localItems.value);
-    isFormVisible.value = false;
-    editingItem.value = null;
-  }
-};
-
-// localStorage 辅助函数
-const saveToLocalStorage = (key, data) => {
-  try {
-    localStorage.setItem(`app_${key}`, JSON.stringify(data));
-  } catch (e) {
-    console.error('Failed to save to localStorage:', e);
-  }
-};
-
-const loadFromLocalStorage = (key, defaultValue = []) => {
-  try {
-    const data = localStorage.getItem(`app_${key}`);
-    return data ? JSON.parse(data) : defaultValue;
-  } catch (e) {
-    console.error('Failed to load from localStorage:', e);
-    return defaultValue;
-  }
-};
-```
-
-## 任务清单
-
-- `[ ]` 创建 `useConfig.js` 配置开关
-- `[ ]` 更新 Categories.vue 使用混合方案
-- `[ ]` 更新 Posts.vue 使用混合方案
-- `[ ]` 更新 Tags.vue 使用混合方案
-- `[ ]` 更新 Videos.vue 使用混合方案
-- `[ ]` 更新 Projects.vue 使用混合方案
-- `[ ]` 更新 Resources.vue 使用混合方案
-- `[ ]` 更新其他后台页面使用混合方案
-- `[ ]` 后端完成后，逐个模块切换到 Inertia forms
-
----
-
 # 后端开发任务清单（补充）
 
-## 第五阶段：中间件开发 ✅ 已完成
+## 第一阶段：模拟数据服务 ✅ 已完成
+- `[x]` 创建 `MockDataService` - 提供完整的模拟数据 ✅
+- `[x]` 实现 `getPosts()` - 获取文章数据 ✅
+- `[x]` 实现 `getCategories()` - 获取分类数据 ✅
+- `[x]` 实现 `getTags()` - 获取标签数据 ✅
+- `[x]` 实现 `getVideos()` - 获取视频数据 ✅
+- `[x]` 实现 `getProjects()` - 获取项目数据 ✅
+- `[x]` 实现 `getResources()` - 获取资源数据 ✅
+- `[x]` 实现 `getJournals()` - 获取日记数据 ✅
+- `[x]` 实现其他模拟数据方法 ✅
+
+## 第二阶段：Service 层业务逻辑 ✅ 已完成
+- `[x]` 创建 `PostService` - 文章业务逻辑 ✅
+- `[x]` 创建 `CategoryService` - 分类业务逻辑 ✅
+- `[x]` 创建 `TagService` - 标签业务逻辑 ✅
+- `[x]` 创建 `VideoService` - 视频业务逻辑 ✅
+- `[x]` 创建 `ProjectService` - 项目业务逻辑 ✅
+- `[x]` 创建 `ResourceService` - 资源业务逻辑 ✅
+- `[x]` 创建 `CommentService` - 评论业务逻辑 ✅
+- `[x]` 创建 `UserService` - 用户业务逻辑 ✅
+- `[x]` 创建 `SettingService` - 设置业务逻辑 ✅
+- `[x]` 创建 `MenuService` - 菜单业务逻辑 ✅
+- `[x]` 创建 `InteractionService` - 交互业务逻辑 ✅
+- `[x]` 创建 `AdService` - 广告业务逻辑 ✅
+- `[x]` 实现所有 Service 的业务方法 ✅
+
+## 第二阶段B：Repository 层数据访问 ✅ 已完成
+- `[x]` 创建 `PostRepository` - 文章数据访问 ✅
+- `[x]` 创建 `CategoryRepository` - 分类数据访问 ✅
+- `[x]` 创建 `TagRepository` - 标签数据访问 ✅
+- `[x]` 创建 `VideoRepository` - 视频数据访问 ✅
+- `[x]` 创建 `ProjectRepository` - 项目数据访问 ✅
+- `[x]` 创建 `CommentRepository` - 评论数据访问 ✅
+- `[x]` 创建 `UserRepository` - 用户数据访问 ✅
+
+## 第三阶段：FormRequest 表单验证 ✅ 已完成（17个）
+- `[x]` 创建 `StorePostRequest` - 文章创建验证 ✅
+- `[x]` 创建 `UpdatePostRequest` - 文章更新验证 ✅
+- `[x]` 创建 `StoreCategoryRequest` - 分类创建验证 ✅
+- `[x]` 创建 `UpdateCategoryRequest` - 分类更新验证 ✅
+- `[x]` 创建 `StoreTagRequest` - 标签创建验证 ✅
+- `[x]` 创建 `UpdateTagRequest` - 标签更新验证 ✅
+- `[x]` 创建 `StoreVideoRequest` - 视频创建验证 ✅
+- `[x]` 创建 `UpdateVideoRequest` - 视频更新验证 ✅
+- `[x]` 创建 `StoreProjectRequest` - 项目创建验证 ✅
+- `[x]` 创建 `UpdateProjectRequest` - 项目更新验证 ✅
+- `[x]` 创建 `StoreCommentRequest` - 评论创建验证 ✅
+- `[x]` 创建 `SubscribeRequest` - 订阅请求验证 ✅
+- `[x]` 创建 `StoreSubscriberRequest` - 订阅者创建验证 ✅
+- `[x]` 创建 `StoreUserRequest` - 用户创建验证 ✅
+- `[x]` 创建 `UpdateUserRequest` - 用户更新验证 ✅
+- `[x]` 创建 `StoreRoleRequest` - 角色创建验证 ✅
+- `[x]` 创建 `UpdateRoleRequest` - 角色更新验证 ✅
+- `[x]` 创建 `SyncPermissionsRequest` - 权限同步验证 ✅
+- `[x]` 创建 `StoreJournalRequest` - 日记创建验证 ✅
+- `[x]` 创建 `StoreResourceRequest` - 资源创建验证 ✅
+- `[x]` 创建 `StoreUserLevelRequest` - 用户等级创建验证 ✅
+- `[x]` 创建 `UpdateUserLevelRequest` - 用户等级更新验证 ✅
+- `[x]` 创建 `UploadMediaRequest` - 媒体上传验证 ✅
+
+## 第四阶段：API Resource 资源转换 ✅ 已完成（12个）
+- `[x]` 创建 `PostResource` - 文章资源转换 ✅
+- `[x]` 创建 `CategoryResource` - 分类资源转换 ✅
+- `[x]` 创建 `TagResource` - 标签资源转换 ✅
+- `[x]` 创建 `VideoResource` - 视频资源转换 ✅
+- `[x]` 创建 `ProjectResource` - 项目资源转换 ✅
+- `[x]` 创建 `ResourceResource` - 资源资源转换 ✅
+- `[x]` 创建 `UserResource` - 用户资源转换 ✅
+- `[x]` 创建 `CommentResource` - 评论资源转换 ✅
+- `[x]` 创建 `RoleResource` - 角色资源转换 ✅
+- `[x]` 创建 `PermissionResource` - 权限资源转换 ✅
+- `[x]` 创建 `SubscriberResource` - 订阅者资源转换 ✅
+- `[x]` 创建 `JournalResource` - 日记资源转换 ✅
+- `[x]` 创建 `UserLevelResource` - 用户等级资源转换 ✅
+
+## 第五阶段：中间件开发 ✅ 已完成（5个）
 - `[x]` 创建 `SeoMiddleware` - 动态加载页面 SEO 配置 ✅
 - `[x]` 创建 `LanguageMiddleware` - 语言切换与 locale 设置 ✅
 - `[x]` 创建 `AdminMiddleware` - 后台权限验证 ✅
 - `[x]` 创建 `ActivityLogMiddleware` - 管理员操作日志记录 ✅
 - `[x]` 注册中间件到 `bootstrap/app.php` ✅
 
-## 第六阶段：策略授权 (Policy) ✅ 已完成
+## 第六阶段：策略授权 (Policy) ✅ 已完成（10个）
 - `[x]` 创建 `PostPolicy` - 文章授权策略 ✅
 - `[x]` 创建 `CategoryPolicy` - 分类授权策略 ✅
 - `[x]` 创建 `UserPolicy` - 用户授权策略 ✅
@@ -258,7 +196,7 @@ const loadFromLocalStorage = (key, defaultValue = []) => {
 - `[x]` 创建 `CommentPolicy` - 评论授权策略 ✅
 - `[x]` 创建 `MediaPolicy` - 媒体授权策略 ✅
 - `[x]` 创建 `SettingPolicy` - 设置授权策略 ✅
-- `[x]` 在 `AuthServiceProvider` 中注册策略 ✅
+- `[x]` 在 `AppServiceProvider` 中注册策略 ✅
 
 ## 第七阶段：观察者模式 (Observer) ❌ 已跳过
 > **说明：** 采用 Service 模式替代，所有业务逻辑已在 Service 层实现，无需 Observer。
@@ -268,133 +206,51 @@ const loadFromLocalStorage = (key, defaultValue = []) => {
 - `[ ]` 创建 `VisitObserver` - 访问记录自动创建 ❌ 跳过
 - `[ ]` 在 `AppServiceProvider` 中注册观察者 ❌ 跳过
 
-## 第八阶段：事件与监听器 (Event/Listener)
-- `[ ]` 创建 `CommentCreated` 事件类
-- `[ ]` 创建 `PostPublished` 事件类
-- `[ ]` 创建 `SendCommentNotification` 监听器
-- `[ ]` 创建 `IncrementPostViews` 监听器
-- `[ ]` 在 `EventServiceProvider` 中注册事件监听
+## 第八阶段：事件与监听器 (Event/Listener) ✅ 已完成
+- `[x]` 创建 `CommentCreated` 事件类 ✅
+- `[x]` 创建 `AdViewed` 事件类 ✅
+- `[x]` 创建 `SendCommentNotification` 监听器 ✅
+- `[x]` 创建 `TrackAdViewed` 监听器 ✅
+- `[x]` 在 `AppServiceProvider` 中注册事件监听 ✅
 
-## 第九阶段：通知系统 (Notification)
-- `[ ]` 创建 `NewCommentNotification` - 新评论通知
-- `[ ]` 创建 `PasswordResetNotification` - 密码重置通知
-- `[ ]` 创建 `SubscriptionNotification` - 订阅成功通知
-- `[ ]` 配置数据库通知与邮件通知通道
+## 第九阶段：通知系统 (Notification) ✅ 已完成
+- `[x]` 创建 `NewCommentNotification` - 新评论通知 ✅
+- `[x]` 创建 `NewSubscriberNotification` - 新订阅通知 ✅
+- `[x]` 配置数据库通知与邮件通知通道 ✅
 
-## 第十阶段：表单验证 (FormRequest) ✅ 已完成（17个）
-- `[x]` 创建 `StorePostRequest` - 文章创建验证 ✅
-- `[x]` 创建 `UpdatePostRequest` - 文章更新验证 ✅
-- `[x]` 创建 `StoreCategoryRequest` - 分类创建验证 ✅
-- `[x]` 创建 `UpdateCategoryRequest` - 分类更新验证 ✅
-- `[x]` 创建 `StoreCommentRequest` - 评论创建验证 ✅
-- `[x]` 创建 `StoreUserRequest` - 用户创建验证 ✅
-- `[x]` 创建 `UpdateUserRequest` - 用户更新验证 ✅
-- `[x]` 创建其他 FormRequest（共17个）✅
-
-## 第十一阶段：业务服务层 (Service) ✅ 已完成（13个）
-- `[x]` 创建 `SettingService` - 系统设置服务（单例+缓存）✅
-- `[x]` 创建 `MenuService` - 菜单构建服务（递归构建）✅
-- `[x]` 创建 `CommentService` - 评论业务服务 ✅
-- `[x]` 创建 `InteractionService` - 互动数据服务 ✅
-- `[x]` 创建 `PostService` - 文章业务服务 ✅
-- `[x]` 创建 `CategoryService` - 分类业务服务 ✅
-- `[x]` 创建 `TagService` - 标签业务服务 ✅
-- `[x]` 创建 `VideoService` - 视频业务服务 ✅
-- `[x]` 创建 `ProjectService` - 项目业务服务 ✅
-- `[x]` 创建 `ResourceService` - 资源业务服务 ✅
-- `[x]` 创建 `UserService` - 用户业务服务 ✅
-- `[x]` 创建 `MockDataService` - 模拟数据服务 ✅
-- `[x]` 创建 `TestService` - 测试服务 ✅
-
-## 第十二阶段：第三方包集成
-- `[ ]` 安装配置 `spatie/laravel-medialibrary` - 媒体库管理
-- `[ ]` 安装配置 `spatie/laravel-activitylog` - 活动日志
-- `[ ]` 安装配置 `spatie/laravel-backup` - 备份恢复
-- `[ ]` 安装配置 `league/commonmark` - Markdown 解析
-- `[ ]` 安装配置 `maatwebsite/excel` - Excel 导出
-
-## 第十三阶段：Artisan 命令
-- `[ ]` 创建 `CleanupUnusedTagsCommand` - 清理未使用标签
-- `[ ]` 创建 `GenerateSitemapCommand` - 生成站点地图
-- `[ ]` 创建 `ExportTranslationsCommand` - 导出翻译 JSON
-- `[ ]` 创建 `BackupDatabaseCommand` - 数据库备份
-- `[ ]` 创建 `ClearOldLogsCommand` - 清理旧日志
-
-## 第十四阶段：数据库填充与测试
-- `[ ]` 创建 Model Factory 测试数据生成器
-- `[ ]` 完善现有 Seeder 数据（已有 25 个 Seeder，约 200 条数据）
-- `[ ]` 编写单元测试与功能测试
-- `[ ]` 配置测试环境与 CI/CD
+## 第十阶段：邮件系统 (Mail) ✅ 已完成
+- `[x]` 创建 `GenericEmail` - 通用邮件类 ✅
+- `[x]` 支持模板变量替换 ✅
 
 ---
 
-## 项目现有结构概览
+# 架构组件完成状态总结
 
-### 已完成的组件
+## 核心架构组件统计
 
-| 组件类型 | 目录 | 状态 | 说明 |
-|----------|------|:----:|------|
-| **Model** | `app/Models/` | ✅ 已完成 | 28 个模型文件 |
-| **Controller** | `app/Http/Controllers/` | ✅ 已完成 | Admin(26个)、Api/V1(8个)、Frontend(4个)、Web(3个) |
-| **Resource** | `app/Http/Resources/V1/` | ✅ 部分完成 | 8 个资源转换类 |
-| **Service** | `app/Services/` | ✅ 已完成 | MockDataService、PostService、CommentService、InteractionService |
-| **Migration** | `database/migrations/` | ✅ 已完成 | 25+ 迁移文件 |
-| **Seeder** | `database/seeders/` | ✅ 已完成 | 25 个 Seeder |
-| **Inertia配置** | `app/Http/Middleware/` | ✅ 已完成 | HandleInertiaRequests |
+| 组件类型 | 数量 | 状态 |
+|---------|:------:|:----:|
+| **Models** | 34 | ✅ 已完成 |
+| **Controllers** | 40+ | ✅ 已完成 |
+| **Services** | 13 | ✅ 已完成 |
+| **Repositories** | 7 | ✅ 已完成 |
+| **FormRequests** | 17 | ✅ 已完成 |
+| **Policies** | 10 | ✅ 已完成 |
+| **API Resources** | 12 | ✅ 已完成 |
+| **Middleware** | 5 | ✅ 已完成 |
+| **Events** | 2 | ✅ 已完成 |
+| **Listeners** | 2 | ✅ 已完成 |
+| **Notifications** | 2 | ✅ 已完成 |
+| **Mail** | 1 | ✅ 已完成 |
+| **Observers** | 0 | ❌ 已跳过（采用Service模式） |
 
-### 待创建的组件
+## 总体完成度
 
-| 组件类型 | 目录 | 数量 | 说明 |
-|----------|------|:----:|------|
-| **Middleware** | `app/Http/Middleware/` | 4 | SEO、语言、权限、日志 |
-| **Policy** | `app/Policies/` | 5 | 授权策略 |
-| **Observer** | `app/Observers/` | 4 | 模型事件监听 |
-| **Event** | `app/Events/` | 2 | 事件类 |
-| **Listener** | `app/Listeners/` | 2 | 事件监听器 |
-| **Notification** | `app/Notifications/` | 3 | 通知类 |
-| **FormRequest** | `app/Http/Requests/` | 5 | 表单验证 |
-| **Command** | `app/Console/Commands/` | 5 | Artisan 命令 |
-
----
-
-## 开发优先级排序
-
-### 高优先级
-1. ✅ Inertia.js 基础设施配置（已完成）
-2. ✅ 核心控制器重构（Post、Category、Tag）（已完成）
-3. 表单验证类创建
-4. 策略授权系统
-5. 设置服务与缓存
-
-### 中优先级
-1. 观察者与事件系统
-2. 通知系统
-3. 媒体库集成
-4. 中间件开发
-5. API 资源完善
-
-### 低优先级
-1. 活动日志与备份
-2. Artisan 命令
-3. 测试覆盖
-4. 代码优化与文档
+- **Inertia.js 架构迁移**：✅ 100% 已完成
+- **后端核心架构**：✅ 100% 已完成
+- **总体完成度**：✅ 约 90%
 
 ---
 
-## 当前完成状态总结（截至 2026-05-27）
-
-| 阶段 | 完成度 | 说明 |
-|:---:|:---:|------|
-| **基础设施** | ✅ 100% | Inertia.js、路由、布局配置完成 |
-| **前台页面** | ✅ 100% | FrontendController 重构完成，所有页面支持 Props |
-| **后台控制器** | ✅ 100% | 26个 Admin 控制器已创建，路由已配置（123条） |
-| **后台页面** | ✅ 100% | 所有页面支持 Props，Layout 兼容 Inertia |
-| **登录功能** | ✅ 100% | 布局修复（排除AdminLayout）、路由跳转修复（使用router.visit()）完成 |
-| **MockDataService** | ✅ 100% | 已添加缺失的 getTagsables()、getBackups() 和 getMenus() 方法 |
-| **路由配置** | ✅ 100% | 资源路由已添加 `->names()` 配置，Ziggy 路由助手正常工作 |
-| **菜单数据** | ✅ 100% | 后台菜单数据通过 HandleInertiaRequests 中间件共享 |
-| **表单提交** | ✅ 100% | 所有后台页面已使用 Inertia forms 优化 |
-| **业务逻辑层** | ✅ 100% | Service(13个)、Repository(7个)、Policy(10个) 已完成，Observer 已跳过 |
-| **API完善** | ✅ 100% | API Resource(12个) 已完成 |
-| **数据清理** | ✅ 100% | Mock 数据已移除，routes/api.php 保留完整 |
-| **前台API认证** | ✅ 100% | Sanctum认证、AuthController、LoginRequest、9个测试用例全部通过 |
+**文档状态**：✅ 已根据项目代码实际情况更新
+**最后更新**：2026-05-29

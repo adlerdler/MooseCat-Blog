@@ -1,18 +1,26 @@
 <?php
 
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\AuthorController;
 use App\Http\Controllers\Api\V1\CategoryController;
 use App\Http\Controllers\Api\V1\CommentController;
 use App\Http\Controllers\Api\V1\PostController;
 use App\Http\Controllers\Api\V1\ProjectController;
 use App\Http\Controllers\Api\V1\ResourceController;
 use App\Http\Controllers\Api\V1\RolesController;
+use App\Http\Controllers\Api\V1\SocialLinkController;
+use App\Http\Controllers\Api\V1\SubscribeController;
 use App\Http\Controllers\Api\V1\TagController;
 use App\Http\Controllers\Api\V1\UserController;
 use App\Http\Controllers\Api\V1\VideoController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/subscribe', [SubscribeController::class, 'subscribe']);
+Route::post('/unsubscribe', [SubscribeController::class, 'unsubscribe']);
+Route::get('/authors', [AuthorController::class, 'index']);
+Route::get('/authors/{slug}', [AuthorController::class, 'show']);
+Route::get('/social-links', [SocialLinkController::class, 'index']);
 
 Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::get('/posts', [PostController::class, 'index']);

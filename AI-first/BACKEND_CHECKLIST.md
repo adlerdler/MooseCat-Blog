@@ -2,7 +2,7 @@
 
 **重要说明：** 此文档为主要真实来源！其他文档请以此为准！
 
-**最后更新：** 2026-05-27 (新增前台API认证系统，9个测试用例全部通过)
+**最后更新：** 2026-05-29 (完成备份系统 + 活动日志系统)
 **Laravel版本：** 11 (精简模式)
 **版本：** 2.2
 **状态说明：** ✅ 已完成 | 🔄 进行中 | ⚠️ 待处理 | ❌ 阻塞
@@ -34,8 +34,8 @@
 | **FormRequest** | `app/Http/Requests/` | ✅ 已有 | 表单验证（17个FormRequest） |
 | **Policy** | `app/Policies/` | ✅ 已有 | 授权策略（10个：Post, Category, Tag, Video, Project, User, Role, Comment, Media, Setting） |
 | **Observer** | `app/Observers/` | ❌ 已跳过 | 模型事件（采用Service模式替代） |
-| **Event/Listener** | `app/Events/`, `app/Listeners/` | ⚠️ 待创建 | 事件驱动 |
-| **Notification** | `app/Notifications/` | ⚠️ 待创建 | 通知系统 |
+| **Event/Listener** | `app/Events/`, `app/Listeners/` | ✅ 已完成 | 事件驱动（CommentCreated + SendCommentNotification） |
+| **Notification** | `app/Notifications/` | ✅ 已完成 | 通知系统（NewCommentNotification + NewSubscriberNotification） |
 | **Middleware** | `app/Http/Middleware/` | ✅ 已有 | 中间件（HandleInertiaRequests等） |
 | **Command** | `app/Console/Commands/` | ⚠️ 待创建 | Artisan命令 |
 | **Factory** | `database/factories/` | ⚠️ 待创建 | 测试数据 |
@@ -79,18 +79,42 @@
 | API-06 | 编写认证测试用例 | Test | ✅ 已完成 | tests/Feature/Api/V1/AuthTest.php |
 
 **前台API端点：**
-| 端点 | 方法 | 认证 | 说明 |
-|------|:----:|:----:|------|
-| `/api/login` | POST | 🔓 公开 | 用户登录，返回 Bearer Token |
-| `/api/logout` | POST | 🔐 需认证 | 用户登出，撤销 Token |
-| `/api/v1/posts` | GET | 🔐 需认证 | 获取文章列表 |
-| `/api/v1/posts/{slug}` | GET | 🔐 需认证 | 获取文章详情 |
-| `/api/v1/videos` | GET | 🔐 需认证 | 获取视频列表 |
-| `/api/v1/projects` | GET | 🔐 需认证 | 获取项目列表 |
-| `/api/v1/resources` | GET | 🔐 需认证 | 获取资源列表 |
-| `/api/v1/categories` | GET | 🔐 需认证 | 获取分类列表 |
-| `/api/v1/tags` | GET | 🔐 需认证 | 获取标签列表 |
-| `/api/v1/me` | GET | 🔐 需认证 | 获取当前用户信息 |
+
+> **重要说明：** 后台管理使用 Inertia.js，不走 API。以下 API 仅供移动端 APP 和第三方系统使用。
+
+#### 公开接口（无需认证）
+| 端点 | 方法 | 说明 |
+|------|:----:|------|
+| `/api/login` | POST | 用户登录，返回 Bearer Token |
+| `/api/subscribe` | POST | 订阅邮件 |
+| `/api/unsubscribe` | POST | 取消订阅 |
+| `/api/authors` | GET | 获取作者列表 |
+| `/api/authors/{slug}` | GET | 获取作者详情 |
+
+#### 受保护接口（需要 `auth:sanctum` 认证）
+| 端点 | 方法 | 说明 |
+|------|:----:|------|
+| `/api/logout` | POST | 用户登出，撤销 Token |
+| `/api/v1/posts` | GET | 获取文章列表 |
+| `/api/v1/posts/{slug}` | GET | 获取文章详情 |
+| `/api/v1/posts/{post}/comments` | GET | 获取文章评论 |
+| `/api/v1/posts/{post}/comments` | POST | 发表评论 |
+| `/api/v1/videos` | GET | 获取视频列表 |
+| `/api/v1/videos/{video}` | GET | 获取视频详情 |
+| `/api/v1/projects` | GET | 获取项目列表 |
+| `/api/v1/projects/{project}` | GET | 获取项目详情 |
+| `/api/v1/resources` | GET | 获取资源列表 |
+| `/api/v1/resources/{resource}` | GET | 获取资源详情 |
+| `/api/v1/categories` | GET | 获取分类列表 |
+| `/api/v1/categories/{slug}` | GET | 获取分类详情 |
+| `/api/v1/tags` | GET | 获取标签列表 |
+| `/api/v1/tags/{slug}` | GET | 获取标签详情 |
+| `/api/v1/users/{user}` | GET | 获取用户信息 |
+| `/api/v1/me` | GET | 获取当前用户信息 |
+| `/api/v1/roles` | GET | 获取角色列表 |
+| `/api/v1/roles/{role}` | GET | 获取角色详情 |
+| `/api/v1/permissions` | GET | 获取权限列表 |
+| `/api/v1/roles/{role}/permissions` | PUT | 同步角色权限 |
 
 ### 2. 设置与配置
 
@@ -180,70 +204,82 @@
 | ID | 任务 | 组件类型 | 状态 | 依赖 | Laravel实现 |
 |----|------|----------|:----:|------|------------|
 | USER-01 | 创建 user_levels 表迁移 | Migration | ✅ 已完成 | - | level, icon, color, benefits |
-| USER-02 | 创建 UserLevel Model | Model | ⚠️ 待处理 | USER-01 | JSON Cast benefits |
-| USER-03 | 创建 UserLevelController | Controller | ⚠️ 待处理 | USER-02 | Admin API |
-| USER-04 | 创建 UserLevelResource | Resource | ⚠️ 待处理 | USER-03 | API响应 |
+| USER-02 | 创建 UserLevel Model | Model | ✅ 已完成 | USER-01 | JSON Cast benefits |
+| USER-03 | 创建 UserLevelController | Controller | ✅ 已完成 | USER-02 | Admin API |
+| USER-04 | 创建 UserLevelResource | Resource | ✅ 已完成 | USER-03 | API响应 |
 | USER-05 | 创建 user_points_history 表 | Migration | ✅ 已完成 | - | points change log |
-| USER-06 | 创建 UserObserver | Observer | ⚠️ 待处理 | AUTH-11 | 积分更新监听 |
+| USER-06 | 创建 UserService 积分管理 | Service | ✅ 已完成 | AUTH-11 | 积分更新/等级更新 |
 | USER-07 | 创建 subscribers 表迁移 | Migration | ✅ 已完成 | - | email, subscribed_at, status |
-| USER-08 | 创建 Subscriber Model | Model | ⚠️ 待处理 | USER-07 | Notifiable |
-| USER-09 | 创建 SubscriberController | Controller | ⚠️ 待处理 | USER-08 | Admin API |
-| USER-10 | 创建 public 订阅API | Controller | ⚠️ 待处理 | USER-09 | /api/subscribe |
+| USER-08 | 创建 Subscriber Model | Model | ✅ 已完成 | USER-07 | Notifiable |
+| USER-09 | 创建 SubscriberController | Controller | ✅ 已完成 | USER-08 | Admin API |
+| USER-10 | 创建 public 订阅API | Controller | ✅ 已完成 | USER-09 | /api/subscribe |
 | USER-11 | 创建 author_profiles 表迁移 | Migration | ✅ 已完成 | AUTH-05 | user_id唯一 |
-| USER-12 | 创建 AuthorProfile Model | Model | ⚠️ 待处理 | USER-11 | JSON Cast |
-| USER-13 | 创建 AuthorProfileController | Controller | ⚠️ 待处理 | USER-12 | Admin API |
+| USER-12 | 创建 AuthorProfile Model | Model | ✅ 已完成 | USER-11 | JSON Cast |
+| USER-13 | 创建 AuthorProfileController | Controller | ✅ 已完成 | USER-12 | Admin Inertia (数据库) |
 
 ### 6. SEO与国际化
 
 | ID | 任务 | 组件类型 | 状态 | 依赖 | Laravel实现 |
 |----|------|----------|:----:|------|------------|
 | SEO-01 | 创建 page_seo 表迁移 | Migration | ✅ 已完成 | - | route_name唯一 |
-| SEO-02 | 创建 PageSeo Model | Model | ⚠️ 待处理 | SEO-01 | 标准Model |
-| SEO-03 | 创建 SeoController | Controller | ⚠️ 待处理 | SEO-02 | Admin API |
+| SEO-02 | 创建 PageSeo Model | Model | ✅ 已完成 | SEO-01 | 标准Model |
+| SEO-03 | 创建 SeoController | Controller | ✅ 已完成 | SEO-02 | Admin Inertia |
+| SEO-03-1 | 页面SEO CRUD路由 | Route | ✅ 已完成 | SEO-03 | store/update/destroy |
+| SEO-03-2 | PageSeoSeeder | Seeder | ✅ 已完成 | SEO-02 | 5条页面SEO数据 |
 | SEO-04 | 创建 SeoMiddleware | Middleware | ✅ 已完成 | SEO-03 | 动态加载SEO |
 | SEO-05 | 创建 languages 表迁移 | Migration | ✅ 已完成 | - | code, name, is_default |
-| SEO-06 | 创建 Language Model | Model | ⚠️ 待处理 | SEO-05 | 标准Model |
+| SEO-06 | 创建 Language Model | Model | ✅ 已完成 | SEO-05 | 标准Model |
 | SEO-07 | 创建 translations 表迁移 | Migration | ✅ 已完成 | SEO-05 | key, locale, value |
-| SEO-08 | 创建 Translation Model | Model | ⚠️ 待处理 | SEO-07 | 标准Model |
-| SEO-09 | 创建 I18nController | Controller | ⚠️ 待处理 | SEO-06, SEO-08 | Admin API |
+| SEO-08 | 创建 Translation Model | Model | ✅ 已完成 | SEO-07 | 标准Model |
+| SEO-09 | 创建 I18nController | Controller | ✅ 已完成 | SEO-06, SEO-08 | Admin Inertia (模拟数据) |
 | SEO-10 | 创建语言切换Middleware | Middleware | ✅ 已完成 | SEO-06 | locale设置 |
-| SEO-11 | 创建导出JSON命令 | Command | ⚠️ 待处理 | SEO-09 | vue-i18n同步 |
+| SEO-11 | 创建导出JSON命令 | Command | ⏸️ 已跳过 | SEO-09 | vue-i18n同步 |
+
+> **国际化架构决策（SEO-11 已跳过）：**
+> - 采用 **纯文件管理 + languages 表 + translations 表作为默认语言** 方案
+> - `languages` 表：存储语言配置（代码、名称、默认状态）
+> - `translations` 表：存储默认语言翻译（作为源数据备份）
+> - `public/locales/*.json`：所有语言的翻译文件（前端直接使用）
+> - SEO-11 导出命令暂不实现，后续按需开发
 
 ### 7. 社交与互动
 
 | ID | 任务 | 组件类型 | 状态 | 依赖 | Laravel实现 |
 |----|------|----------|:----:|------|------------|
 | SOC-01 | 创建 social_links 表迁移 | Migration | ✅ 已完成 | - | platform, url, icon |
-| SOC-02 | 创建 SocialLink Model | Model | ⚠️ 待处理 | SOC-01 | 标准Model |
-| SOC-03 | 创建 SocialLinkController | Controller | ⚠️ 待处理 | SOC-02 | Admin API |
-| SOC-04 | 创建 public 社交链接API | Controller | ⚠️ 待处理 | SOC-03 | /api/social-links |
-| SOC-05 | 创建 comments 表迁移 | Migration | ✅ 已完成 | AUTH-05 | 多态关联 |
+| SOC-02 | 创建 SocialLink Model | Model | ✅ 已完成 | SOC-01 | 标准Model |
+| SOC-03 | 创建 SocialLinksController | Controller | ✅ 已完成 | SOC-02 | Admin Inertia |
+| SOC-03-1 | 社交链接 CRUD 路由 | Route | ✅ 已完成 | SOC-03 | store/update/destroy |
+| SOC-04 | 公开社交链接 API | Controller | ✅ 已完成 | SOC-02 | Api/V1/SocialLinkController |
+| SOC-05 | SocialLinkSeeder | Seeder | ✅ 已完成 | SOC-02 | 5条社交链接数据 |
+| SOC-06 | 创建 comments 表迁移 | Migration | ✅ 已完成 | AUTH-05 | 多态关联 |
 | SOC-06 | 创建 Comment Model | Model | ✅ 已完成 | SOC-05 | MorphTo |
 | SOC-07 | 创建 CommentService | Service | ✅ 已完成 | SOC-06 | 业务逻辑 |
 | SOC-08 | 创建 CommentController | Controller | ✅ 已完成 | SOC-07 | Admin + Public API |
 | SOC-09 | 创建 CommentResource | Resource | ✅ 已完成 | SOC-08 | API响应 |
 | SOC-09-1 | StoreCommentRequest | FormRequest | ✅ 已完成 | SOC-08 | 验证规则 |
 | SOC-09-2 | CommentRepository | Repository | ✅ 已完成 | SOC-06 | 数据访问层 |
-| SOC-10 | 创建 CommentCreated Event | Event | ⚠️ 待处理 | SOC-06 | 事件类 |
-| SOC-11 | 创建 SendCommentNotification Listener | Listener | ⚠️ 待处理 | SOC-10 | 通知发送 |
-| SOC-12 | 创建 comments 索引 | Migration | ⚠️ 待处理 | SOC-05 | 多态查询优化 |
+| SOC-10 | 创建 CommentCreated Event | Event | ✅ 已完成 | SOC-06 | 事件类 |
+| SOC-11 | 创建 SendCommentNotification Listener | Listener | ✅ 已完成 | SOC-10 | 通知发送 |
+| SOC-12 | 创建 comments 索引 | Migration | ✅ 已完成 | SOC-05 | 多态查询优化 |
 
 ### 8. 邮件与通知
 
 | ID | 任务 | 组件类型 | 状态 | 依赖 | Laravel实现 |
 |----|------|----------|:----:|------|------------|
 | MAIL-01 | 创建 mail_configs 表迁移 | Migration | ✅ 已完成 | - | driver, host, credentials |
-| MAIL-02 | 创建 MailConfig Model | Model | ⚠️ 待处理 | MAIL-01 | 标准Model |
-| MAIL-03 | 创建 MailConfigController | Controller | ⚠️ 待处理 | MAIL-02 | Admin API |
-| MAIL-04 | 创建测试邮件功能 | Mailable | ⚠️ 待处理 | MAIL-03 | Mailable类 |
+| MAIL-02 | 创建 MailConfig Model | Model | ✅ 已完成 | MAIL-01 | 标准Model |
+| MAIL-03 | 创建 MailConfigController | Controller | ✅ 已完成 | MAIL-02 | Admin Inertia (模拟数据) |
+| MAIL-04 | 创建测试邮件功能 | Mailable | ✅ 已完成 | MAIL-03 | Mailable类 |
 | MAIL-05 | 创建 email_templates 表迁移 | Migration | ✅ 已完成 | - | subject, body, variables |
-| MAIL-06 | 创建 EmailTemplate Model | Model | ⚠️ 待处理 | MAIL-05 | 标准Model |
-| MAIL-07 | 创建 EmailTemplateController | Controller | ⚠️ 待处理 | MAIL-06 | Admin API |
-| MAIL-08 | 创建通用 Mailable | Mailable | ⚠️ 待处理 | MAIL-07 | 变量替换 |
+| MAIL-06 | 创建 EmailTemplate Model | Model | ✅ 已完成 | MAIL-05 | 标准Model |
+| MAIL-07 | 创建 EmailTemplateController | Controller | ✅ 已完成 | MAIL-06 | Admin Inertia (模拟数据) |
+| MAIL-08 | 创建通用 Mailable | Mailable | ✅ 已完成 | MAIL-07 | GenericEmail |
 | MAIL-09 | 创建 notifications 表迁移 | Migration | ✅ Laravel内置 | AUTH-05 | 数据库通知 |
-| MAIL-10 | 创建通知Model | Model | ⚠️ 待处理 | MAIL-09 | Notifiable |
-| MAIL-11 | 创建 NotificationController | Controller | ⚠️ 待处理 | MAIL-10 | Admin API |
-| MAIL-12 | 创建 NewCommentNotification | Notification | ⚠️ 待处理 | SOC-10 | 邮件/数据库通知 |
+| MAIL-10 | 创建通知Model | Model | ✅ 已完成 | MAIL-09 | Notifiable |
+| MAIL-11 | 创建 NotificationController | Controller | ✅ 已完成 | MAIL-10 | Admin Inertia (数据库) |
+| MAIL-12 | 创建 NewCommentNotification | Notification | ✅ 已完成 | SOC-10 | 邮件/数据库通知 |
+| MAIL-13 | 创建 NewSubscriberNotification | Notification | ✅ 已完成 | - | 邮件/数据库通知 |
 
 ---
 
@@ -254,26 +290,26 @@
 | ID | 任务 | 组件类型 | 状态 | 依赖 | Laravel实现 |
 |----|------|----------|:----:|------|------------|
 | AD-01 | 创建 ad_positions 表迁移 | Migration | ✅ 已完成 | - | key, name, size |
-| AD-02 | 创建 AdPosition Model | Model | ⚠️ 待处理 | AD-01 | hasMany advertisements |
-| AD-03 | 创建 Advertisement Model | Model | ⚠️ 待处理 | AD-01 | BelongsTo AdPosition |
-| AD-04 | 创建 AdvertisementController | Controller | ⚠️ 待处理 | AD-03 | Admin API |
-| AD-05 | 创建广告轮换逻辑 | Service | ⚠️ 待处理 | AD-04 | 权重随机 |
-| AD-06 | 创建 AdViewed Event | Event | ⚠️ 待处理 | AD-05 | 展示追踪 |
+| AD-02 | 创建 AdPosition Model | Model | ✅ 已完成 | AD-01 | hasMany advertisements |
+| AD-03 | 创建 Advertisement Model | Model | ✅ 已完成 | AD-01 | BelongsTo AdPosition |
+| AD-04 | 创建 AdvertisementController | Controller | ✅ 已完成 | AD-03 | Admin Inertia (模拟数据) |
+| AD-05 | 创建广告轮换逻辑 | Service | ✅ 已完成 | AD-04 | 权重随机 |
+| AD-06 | 创建 AdViewed Event | Event | ✅ 已完成 | AD-05 | 展示追踪 |
 | AD-07 | 创建 interactions 表迁移 | Migration | ✅ 已完成 | - | 多态关联 |
 
 ### 10. 系统与维护
 
 | ID | 任务 | 组件类型 | 状态 | 依赖 | Laravel实现 |
 |----|------|----------|:----:|------|------------|
-| SYS-01 | 安装 spatie/laravel-activitylog | Package | ⚠️ 待处理 | - | composer |
-| SYS-02 | 配置 activitylog | Config | ⚠️ 待处理 | SYS-01 | Activityable Trait |
-| SYS-03 | 创建 LogController | Controller | ⚠️ 待处理 | SYS-02 | Admin API |
-| SYS-04 | 创建日志清理命令 | Command | ⚠️ 待处理 | SYS-03 | Schedule |
-| SYS-05 | 安装 spatie/laravel-backup | Package | ⚠️ 待处理 | - | composer |
-| SYS-06 | 创建 BackupController | Controller | ⚠️ 待处理 | SYS-05 | Admin API |
-| SYS-07 | 创建 RestoreController | Controller | ⚠️ 待处理 | SYS-05 | Admin API |
-| SYS-08 | 创建定时备份任务 | Command | ⚠️ 待处理 | SYS-06 | Schedule |
-| SYS-09 | 创建 CleanupUnusedTagsCommand | Command | ⚠️ 待处理 | CONT-07 | 清理未使用标签 |
+| SYS-01 | 安装 spatie/laravel-activitylog | Package | ✅ 已完成 | - | composer |
+| SYS-02 | 配置 activitylog | Config | ✅ 已完成 | SYS-01 | 配置文件已发布 |
+| SYS-03 | 创建 LogController | Controller | ✅ 已完成 | SYS-02 | Admin Inertia (数据库) |
+| SYS-04 | 创建日志清理命令 | Command | ⏸️ 已跳过 | SYS-03 | 使用 Controller clear 方法 |
+| SYS-05 | 安装 spatie/laravel-backup | Package | ✅ 已完成 | - | composer |
+| SYS-06 | 创建 BackupController | Controller | ✅ 已完成 | SYS-05 | Admin Inertia |
+| SYS-07 | 创建 RestoreController | Controller | ✅ 已完成 | SYS-05 | Admin Inertia |
+| SYS-08 | 创建定时备份任务 | Schedule | ✅ 已完成 | SYS-06 | 每日凌晨2点备份数据库 |
+| SYS-09 | 创建 CleanupUnusedTagsCommand | Command | ⏸️ 已跳过 | CONT-07 | 清理未使用标签 |
 
 ### 11. 额外迁移（已完成）
 
@@ -283,7 +319,7 @@
 | EXT-02 | 创建 themes 表迁移 | Migration | ✅ 已完成 | - | 主题配置 |
 | EXT-03 | 创建 visits 表迁移 | Migration | ✅ 已完成 | - | 多态访问记录 |
 | EXT-04 | 创建 backups 表迁移 | Migration | ✅ 已完成 | - | 备份记录 |
-| EXT-05 | 创建 admin_logs 表迁移 | Migration | ✅ 已完成 | - | 管理员日志 |
+| EXT-05 | 创建 admin_logs 表迁移 | Migration | ⏸️ 已合并 | - | 已合并到 activity_log |
 | EXT-06 | 创建 seo 表迁移 | Migration | ✅ 已完成 | - | SEO配置 key-value |
 | EXT-07 | 创建 ad_interactions 表迁移 | Migration | ✅ 已完成 | AD-01 | 广告互动追踪 |
 
@@ -318,20 +354,22 @@
 | 高 | 55 | 55 | 1 | 2 |
 | 中 | 25 | 10 | 0 | 15 |
 | 低 | 23 | 9 | 0 | 14 |
-| **总计** | **103** | **74** | **1** | **31** |
+| **总计** | **103** | **81** | **1** | **24** |
 
-> **注：** 截至 2026-05-27，所有数据库迁移已完成，25个 Seeder 已优化完毕，约200条高质量模拟数据已填充。
+> **注：** 截至 2026-05-28，所有数据库迁移已完成，25个 Seeder 已优化完毕，约200条高质量模拟数据已填充。
 >
 > **核心架构组件已完成：**
-> - ✅ Service Layer (13个Service)
+> - ✅ Service Layer (14个Service)
 > - ✅ Repository Layer (7个Repository)
-> - ✅ API Resource (12个)
-> - ✅ FormRequest (18个)
+> - ✅ API Resource (13个)
+> - ✅ FormRequest (20个)
 > - ✅ Policy (10个)
 > - ✅ Middleware (5个)
-> - ✅ Controller (41个)
-> - ✅ Feature Test (9个测试用例)
+> - ✅ Controller (42个)
 > - ❌ Observer (已跳过，采用Service模式)
+> - ✅ Event/Listener (1对：CommentCreated + SendCommentNotification)
+> - ✅ Notification (2个：NewCommentNotification + NewSubscriberNotification)
+> - ✅ Feature Test (9个测试用例)
 >
 > **前台API认证系统已完成：**
 > - ✅ Laravel Sanctum 集成
@@ -354,6 +392,63 @@
 
 ---
 
+## 应该存在的全部数据表
+
+> **重要：** 以下为项目完整数据库表清单，共 **48 张表**。按表名字母顺序排列。
+
+| 序号 | 表名 | 说明 |
+|:---:|------|------|
+| 1 | `activity_log` | 活动日志表（spatie/laravel-activitylog） |
+| 2 | `ad_interactions` | 广告互动表 |
+| 3 | `ad_positions` | 广告位配置表 |
+| 4 | `advertisements` | 广告表 |
+| 5 | `author_profiles` | 作者资料表 |
+| 6 | `backups` | 备份记录表（记录+文件状态追踪） |
+| 7 | `cache` | 缓存表 |
+| 8 | `cache_locks` | 缓存锁表 |
+| 9 | `categories` | 分类表 |
+| 10 | `comments` | 评论表 |
+| 11 | `email_templates` | 邮件模板表 |
+| 12 | `failed_jobs` | 失败任务表 |
+| 13 | `footer_links` | 页脚链接表 |
+| 14 | `interactions` | 用户互动表（点赞/收藏） |
+| 15 | `job_batches` | 任务批次表 |
+| 16 | `jobs` | 队列表 |
+| 17 | `journals` | 日志表 |
+| 18 | `languages` | 语言配置表 |
+| 19 | `mail_configs` | 邮件配置表 |
+| 20 | `media` | 媒体文件表（Spatie Media Library） |
+| 21 | `menus` | 菜单配置表 |
+| 22 | `migrations` | 迁移记录表（Laravel 内置） |
+| 23 | `model_has_permissions` | 模型-权限关联表（Spatie） |
+| 24 | `model_has_roles` | 模型-角色关联表（Spatie） |
+| 25 | `notifications` | 通知表（Laravel 内置） |
+| 26 | `page_seo` | 页面SEO表 |
+| 27 | `password_reset_tokens` | 密码重置令牌表 |
+| 28 | `permissions` | 权限定义表 |
+| 29 | `personal_access_tokens` | API 令牌表（Sanctum） |
+| 30 | `posts` | 文章表 |
+| 31 | `projects` | 项目表 |
+| 32 | `resources` | 资源表 |
+| 33 | `role_has_permissions` | 角色-权限关联表（Spatie） |
+| 34 | `roles` | 角色定义表 |
+| 35 | `seo` | SEO配置表 |
+| 36 | `sessions` | 会话表 |
+| 37 | `settings` | 系统设置表 |
+| 38 | `social_links` | 社交链接表 |
+| 39 | `subscribers` | 订阅者表 |
+| 40 | `taggables` | 标签多态关联表 |
+| 41 | `tags` | 标签表 |
+| 42 | `themes` | 主题配置表 |
+| 43 | `translations` | 翻译数据表 |
+| 44 | `user_levels` | 用户等级表 |
+| 45 | `user_points_history` | 积分历史表 |
+| 46 | `users` | 用户表 |
+| 47 | `videos` | 视频表 |
+| 48 | `visits` | 访问记录表 |
+
+---
+
 ## 已完成迁移清单
 
 | 序号 | 迁移文件 | 表名 | 说明 |
@@ -371,7 +466,7 @@
 | 11 | `2026_05_23_080110_create_mail_configs_table.php` | mail_configs | 邮件配置表 |
 | 12 | `2026_05_23_080111_create_email_templates_table.php` | email_templates | 邮件模板表 |
 | 13 | `2026_05_23_080112_create_social_links_table.php` | social_links | 社交链接表 |
-| 14 | `2026_05_23_080113_create_admin_logs_table.php` | admin_logs | 管理员日志表 |
+| 14 | `2026_05_28_190456_create_activity_log_table.php` | activity_log | 活动日志表（合并版） |
 | 15 | `2026_05_23_080114_create_backups_table.php` | backups | 备份记录表 |
 | 16 | `2026_05_23_080115_create_footer_links_table.php` | footer_links | 页脚链接表 |
 | 17 | `2026_05_23_080116_create_themes_table.php` | themes | 主题配置表 |
@@ -383,6 +478,7 @@
 | 23 | `2026_05_23_080202_create_user_points_history_table.php` | user_points_history | 积分历史表 |
 | 24 | `2026_05_23_080203_create_ad_interactions_table.php` | ad_interactions | 广告互动表 |
 | 25 | `2026_05_23_080207_add_status_to_categories_table.php` | categories (扩展) | 添加 status 字段 |
+| 26 | `2026_05_28_173825_add_indexes_to_comments_table.php` | comments (索引) | 添加复合索引 |
 
 **已有迁移（Laravel 内置）**：users, password_reset_tokens, sessions, cache, cache_locks, jobs, job_batches, failed_jobs, notifications, personal_access_tokens
 
@@ -407,19 +503,19 @@
 | 组件类型 | 数量 | 说明 |
 |----------|:----:|------|
 | Migration | 25+ | 数据库表结构（包含扩展迁移） |
-| Model | 27 | Eloquent模型（新增 Medium） |
-| Controller | 42 | 控制器（Admin:22 + Api/V1:10 + Frontend:4 + Web:6） |
+| Model | 34 | Eloquent模型（完整列表） |
+| Controller | 40+ | 控制器（Admin:22 + Api/V1:10 + Frontend:4 + Web:6） |
 | Service | 13 | 业务逻辑（Category, Comment, Interaction, Menu, MockData, Post, Project, Resource, Setting, Tag, Test, User, Video） |
 | Repository | 7 | 数据访问层（轻量级模式） |
 | Resource | 12 | API响应格式化（V1版本：Post, Category, Tag, Video, Project, User, Comment, Role, Permission, Subscriber, Journal, Resource） |
-| FormRequest | 20 | 表单验证（Store*:11 + Update*:6 + LoginRequest + SyncPermissionsRequest + UploadMediaRequest） |
+| FormRequest | 17 | 表单验证（Store* + Update* + LoginRequest + SyncPermissionsRequest + UploadMediaRequest） |
 | Policy | 10 | 授权策略（Post, Category, Tag, Video, Project, User, Role, Comment, Media, Setting） |
 | Middleware | 5 | 中间件（HandleInertiaRequests, Seo, Language, Admin, ActivityLog） |
 | Observer | 0 | ❌ 已跳过（采用 Service 模式） |
-| Event/Listener | 0 | 事件驱动（待创建） |
-| Notification | 0 | 通知系统（待创建） |
+| Event/Listener | 2/2 | 事件驱动（CommentCreated, AdViewed + SendCommentNotification, TrackAdViewed） |
+| Notification | 2 | 通知系统（NewCommentNotification + NewSubscriberNotification） |
 | Command | 0 | Artisan命令（待创建） |
-| Mailable | 0 | 邮件模板（待创建） |
+| Mailable | 1 | 邮件模板（GenericEmail已创建） |
 | Test | 9 | Feature测试（AuthTest: 9个测试用例） |
 
 ---

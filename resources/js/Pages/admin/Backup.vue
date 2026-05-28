@@ -21,6 +21,7 @@ import { formatToShort } from '../../utils/dateUtils';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import Pagination from '../../components/admin/Pagination.vue';
 import SearchFilterModal from '../../components/admin/SearchFilterModal.vue';
+import { router, useForm } from '@inertiajs/vue3';
 
 const props = defineProps({
   backups: { type: Array, default: () => [] },
@@ -34,15 +35,19 @@ const typeFilter = ref('all');
 const currentPage = ref(1);
 const itemsPerPage = ref(6);
 const showCreateModal = ref(false);
-const newBackupType = ref('full');
-const newBackupNote = ref('');
 const showDeleteConfirm = ref(false);
 const deletingBackup = ref(null);
 
-const backups = computed(() => props.backups || []);
+// 使用 Inertia form
+const createBackupForm = useForm({
+  type: 'full',
+  note: '',
+});
+
+const backupList = computed(() => props.backups || []);
 
 const filteredBackups = computed(() => {
-  return backups.value.filter(backup => {
+  return backupList.value.filter(backup => {
     const matchesSearch = backup.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
                          backup.note.toLowerCase().includes(searchQuery.value.toLowerCase());
     const matchesType = typeFilter.value === 'all' || backup.type === typeFilter.value;
@@ -115,29 +120,16 @@ const getStatusColor = (status) => {
 };
 
 const handleCreateBackup = () => {
-  const now = new Date();
-  const timestamp = now.toISOString().replace(/[-:T]/g, '').slice(0, 14);
-  const newId = Math.max(...backups.value.map(b => b.id), 0) + 1;
-  const typeLabels = { full: 'full', database: 'db', files: 'files', incremental: 'incremental' };
-
-  const newBackup = {
-    id: newId,
-    name: `${typeLabels[newBackupType.value]}_backup_${timestamp}`,
-    type: newBackupType.value,
-    status: 'completed',
-    size: newBackupType.value === 'full' ? '256 MB' : newBackupType.value === 'database' ? '48 MB' : newBackupType.value === 'files' ? '180 MB' : '12 MB',
-    path: `/backups/${typeLabels[newBackupType.value]}_backup_${timestamp}.zip`,
-    createdAt: now.toISOString(),
-    completedAt: now.toISOString(),
-    note: newBackupNote.value || t('admin_backup_' + newBackupType.value)
-  };
-
-  backups.value.unshift(newBackup);
-  showCreateModal.value = false;
-  newBackupNote.value = '';
+  createBackupForm.post(route('admin.backup.create'), {
+    onSuccess: () => {
+      showCreateModal.value = false;
+      createBackupForm.note = '';
+    },
+  });
 };
 
 const handleDownload = (backup) => {
+  // TODO: 后续对接真实下载功能
   console.log('Download backup:', backup.path);
 };
 
@@ -148,10 +140,8 @@ const handleDelete = (backup) => {
 
 const confirmDelete = () => {
   if (deletingBackup.value !== null) {
-    const index = backups.value.findIndex(b => b.id === deletingBackup.value.id);
-    if (index !== -1) {
-      backups.value.splice(index, 1);
-    }
+    // TODO: 后续对接真实删除功能
+    console.log('Delete backup:', deletingBackup.value.id);
     deletingBackup.value = null;
   }
   showDeleteConfirm.value = false;
@@ -337,10 +327,10 @@ const handleFilterChange = ({ key, value }) => {
                   <button
                     v-for="type in ['full', 'database', 'files', 'incremental']"
                     :key="type"
-                    @click="newBackupType = type"
+                    @click="createBackupForm.type = type"
                     :class="[
                       'p-4 border rounded-lg transition-all text-left',
-                      newBackupType === type
+                      createBackupForm.type === type
                         ? 'border-construct-red bg-construct-red/10'
                         : (isDarkMode ? 'border-gray-700 hover:border-gray-600' : 'border-gray-200 hover:border-gray-300')
                     ]"
@@ -354,7 +344,7 @@ const handleFilterChange = ({ key, value }) => {
               <div class="mb-6">
                 <label :class="['block mb-2 text-sm font-bold', isDarkMode ? 'text-gray-300' : 'text-gray-700']">{{ t('admin_backup_note') }}</label>
                 <textarea
-                  v-model="newBackupNote"
+                  v-model="createBackupForm.note"
                   rows="3"
                   :class="[
                     'w-full px-4 py-3 border rounded-lg focus:border-construct-red focus:outline-none transition-colors resize-none',

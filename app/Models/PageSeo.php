@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class PageSeo extends Model
 {
+    protected $table = 'page_seo';
+
     protected $fillable = [
         'page_key',
         'title',

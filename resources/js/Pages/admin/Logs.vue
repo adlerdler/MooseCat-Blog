@@ -43,16 +43,16 @@ const itemsPerPage = ref(6);
 const selectedLog = ref(null);
 const showDetailModal = ref(false);
 
-const logs = computed(() => props.logs || []);
+const logList = computed(() => props.logs || []);
 
 // Get all module types
 const moduleTypes = computed(() => {
-  return ['all', ...new Set(logs.value.map(log => log.module))];
+  return ['all', ...new Set(logList.value.map(log => log.module))];
 });
 
 // Get action types based on module filter
 const actionTypes = computed(() => {
-  let sourceLogs = logs.value;
+  let sourceLogs = logList.value;
   if (moduleFilter.value !== 'all') {
     sourceLogs = sourceLogs.filter(log => log.module === moduleFilter.value);
   }
@@ -60,7 +60,7 @@ const actionTypes = computed(() => {
 });
 
 const filteredLogs = computed(() => {
-  return logs.value.filter(log => {
+  return logList.value.filter(log => {
     const matchesSearch = log.user.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
                          log.details.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
                          log.ip.includes(searchQuery.value);
@@ -221,7 +221,7 @@ const handleFilterChange = ({ key, value }) => {
                   <span :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'">{{ log.ip }}</span>
                 </div>
                 <div :class="['hidden sm:flex items-center gap-2', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
-                  <span class="truncate max-w-xs">{{ log.userAgent }}</span>
+                  <span class="truncate max-w-xs">{{ log.user_agent }}</span>
                 </div>
               </div>
               

@@ -26,6 +26,7 @@ import { formatToShort } from '../../utils/dateUtils';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import Pagination from '../../components/admin/Pagination.vue';
 import SearchFilterModal from '../../components/admin/SearchFilterModal.vue';
+import { router } from '@inertiajs/vue3';
 
 const props = defineProps({
   backups: { type: Array, default: () => [] },
@@ -45,10 +46,10 @@ const isRestoring = ref(false);
 const expandedBackup = ref(null);
 const selectedItems = ref([]);
 
-const backups = computed(() => (props.backups || []).filter(b => b.status === 'completed'));
+const backupList = computed(() => (props.backups || []).filter(b => b.status === 'completed'));
 
 const filteredBackups = computed(() => {
-  return backups.value.filter(backup => {
+  return backupList.value.filter(backup => {
     const matchesSearch = backup.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
                          backup.note.toLowerCase().includes(searchQuery.value.toLowerCase());
     const matchesType = typeFilter.value === 'all' || backup.type === typeFilter.value;
@@ -140,6 +141,16 @@ const confirmRestore = async () => {
   restoreProgress.value = 0;
   showRestoreConfirm.value = false;
   
+  // 使用 Inertia 发送恢复请求
+  router.post(route('admin.restore.execute', { id: restoringBackup.value.id }), {}, {
+    onSuccess: () => {
+      isRestoring.value = false;
+      restoreProgress.value = 0;
+      restoringBackup.value = null;
+    },
+  });
+  
+  // 模拟进度条（保留原有的进度条效果）
   const interval = setInterval(() => {
     restoreProgress.value += Math.random() * 15;
     if (restoreProgress.value >= 100) {

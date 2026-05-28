@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web;
 
+use App\Events\CommentCreated;
 use App\Http\Controllers\Controller;
 use App\Models\Post;
 use App\Services\CommentService;
@@ -32,7 +33,9 @@ class CommentController extends Controller
         $validated['user_agent'] = $request->userAgent();
         $validated['user_id'] = $request->user()?->id;
 
-        $this->commentService->createComment($post, $validated);
+        $comment = $this->commentService->createComment($post, $validated);
+
+        event(new CommentCreated($comment));
 
         return back()->with('success', '评论提交成功，审核后将显示。');
     }

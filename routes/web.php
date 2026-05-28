@@ -26,6 +26,7 @@ use App\Http\Controllers\Admin\SubscribersController;
 use App\Http\Controllers\Admin\UserLevelsController;
 use App\Http\Controllers\Admin\CommentsController;
 use App\Http\Controllers\Admin\AdvertisementsController;
+use App\Http\Controllers\Admin\AuthorProfileController;
 use App\Http\Controllers\Frontend\FrontendController;
 use App\Http\Controllers\Web\PostController;
 use App\Http\Controllers\Web\CommentController;
@@ -82,6 +83,9 @@ Route::prefix('admin')->group(function () {
     Route::put('/social-links', [SocialLinksController::class, 'update'])->name('admin.social-links.update');
     Route::get('/seo', [SeoController::class, 'index'])->name('admin.seo');
     Route::put('/seo', [SeoController::class, 'update'])->name('admin.seo.update');
+    Route::post('/seo/page-seo', [SeoController::class, 'storePageSeo'])->name('admin.seo.page-seo.store');
+    Route::put('/seo/page-seo/{pageSeo}', [SeoController::class, 'updatePageSeo'])->name('admin.seo.page-seo.update');
+    Route::delete('/seo/page-seo/{pageSeo}', [SeoController::class, 'destroyPageSeo'])->name('admin.seo.page-seo.destroy');
     Route::get('/i18n', [I18nController::class, 'index'])->name('admin.i18n');
     Route::put('/i18n', [I18nController::class, 'update'])->name('admin.i18n.update');
     Route::get('/media', [MediaController::class, 'index'])->name('admin.media');
@@ -130,11 +134,14 @@ Route::prefix('admin')->group(function () {
     ]);
     Route::get('/notifications', [NotificationsController::class, 'index'])->name('admin.notifications');
     Route::patch('/notifications/{id}/mark-as-read', [NotificationsController::class, 'markAsRead'])->name('admin.notifications.mark-as-read');
+    Route::post('/notifications/mark-all-as-read', [NotificationsController::class, 'markAllAsRead'])->name('admin.notifications.mark-all-as-read');
+    Route::delete('/notifications/{id}', [NotificationsController::class, 'destroy'])->name('admin.notifications.destroy');
     Route::delete('/notifications', [NotificationsController::class, 'clear'])->name('admin.notifications.clear');
     Route::get('/mail-config', [MailConfigController::class, 'index'])->name('admin.mail-config');
     Route::put('/mail-config', [MailConfigController::class, 'update'])->name('admin.mail-config.update');
     Route::post('/mail-config/test', [MailConfigController::class, 'test'])->name('admin.mail-config.test');
     Route::get('/logs', [LogsController::class, 'index'])->name('admin.logs');
+    Route::delete('/logs/{id}', [LogsController::class, 'destroy'])->name('admin.logs.destroy');
     Route::delete('/logs', [LogsController::class, 'clear'])->name('admin.logs.clear');
     Route::get('/backup', [BackupController::class, 'index'])->name('admin.backup');
     Route::post('/backup', [BackupController::class, 'create'])->name('admin.backup.create');
@@ -147,4 +154,10 @@ Route::prefix('admin')->group(function () {
     // 其他管理
     Route::resource('comments', CommentsController::class)->only(['index', 'update', 'destroy']);
     Route::resource('advertisements', AdvertisementsController::class);
+    Route::resource('author-profiles', AuthorProfileController::class)->names([
+        'index' => 'admin.author-profiles.index',
+        'store' => 'admin.author-profiles.store',
+        'update' => 'admin.author-profiles.update',
+        'destroy' => 'admin.author-profiles.destroy',
+    ]);
 });

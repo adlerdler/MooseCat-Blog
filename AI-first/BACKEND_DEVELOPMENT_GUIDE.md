@@ -1,8 +1,8 @@
 # 后端功能开发指南
 
 **项目名称：** ARCHYX - Laravel Vue.js 混合应用
-**最后更新：** 2026-05-27 (新增前台API认证系统，9个测试用例全部通过)
-**版本：** 3.4
+**最后更新：** 2026-05-28 (完成作者资料系统：AuthorProfile Model/Controller + 公开API)
+**版本：** 3.5
 **Laravel版本：** 11 (精简模式)
 
 ---
@@ -84,6 +84,37 @@
 | **后台管理** | Inertia.js + Vue 3 | Inertia Props | `App\Http\Controllers\Admin\` | 26 |
 | **API接口** | JSON响应 | RESTful API | `App\Http\Controllers\Api\V1\` | 10 |
 | **Web兼容** | Blade/JSON | 混合模式 | `App\Http\Controllers\Web\` | 3 |
+
+#### 1.1.3 API 设计规范
+
+> **核心原则：** 后台管理使用 Inertia.js，不走 API。API 仅供移动端 APP 和第三方系统使用。
+
+**公开接口（无需认证）：**
+| 端点 | 方法 | 说明 |
+|------|:----:|------|
+| `/api/login` | POST | 用户登录，返回 Bearer Token |
+| `/api/logout` | POST | 用户登出，撤销 Token |
+| `/api/subscribe` | POST | 订阅邮件 |
+| `/api/unsubscribe` | POST | 取消订阅 |
+| `/api/authors` | GET | 获取作者列表 |
+| `/api/authors/{slug}` | GET | 获取作者详情 |
+
+**受保护接口（需要 `auth:sanctum` 认证）：**
+| 端点 | 方法 | 说明 |
+|------|:----:|------|
+| `/api/v1/posts` | GET | 获取文章列表 |
+| `/api/v1/posts/{slug}` | GET | 获取文章详情 |
+| `/api/v1/posts/{post}/comments` | GET/POST | 评论列表/发表 |
+| `/api/v1/videos` | GET | 获取视频列表 |
+| `/api/v1/projects` | GET | 获取项目列表 |
+| `/api/v1/resources` | GET | 获取资源列表 |
+| `/api/v1/categories` | GET | 获取分类列表 |
+| `/api/v1/tags` | GET | 获取标签列表 |
+| `/api/v1/users/{user}` | GET | 获取用户信息 |
+| `/api/v1/me` | GET | 获取当前用户信息 |
+| `/api/v1/roles` | GET | 获取角色列表 |
+| `/api/v1/permissions` | GET | 获取权限列表 |
+| `/api/v1/roles/{role}/permissions` | PUT | 同步角色权限 |
 
 ### 1.2 技术栈
 
@@ -271,7 +302,6 @@ resources/
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 5篇高质量文章 | 完整Markdown、封面图、SEO |
 | 前台 Inertia Controller | 高 | ✅ 已完成 | FrontendController::blog() | Inertia::render('front/Blog') |
 | 后台 Inertia Controller | 高 | ✅ 已完成 | Admin/PostController | Inertia::render('admin/Posts') |
-| API CRUD接口 (Admin) | 高 | ⚠️ 待处理 | /api/admin/posts | API V1版本控制 |
 | FormRequest验证 | 高 | ⚠️ 待处理 | StorePostRequest | 独立验证类 |
 | API Resource | 高 | ✅ 已完成 | PostResource | 统一响应格式 |
 | 分类/标签关联 | 高 | ⚠️ 待处理 | 多态关联taggables | morphToMany |
@@ -284,7 +314,6 @@ resources/
 | 迁移文件 & 模型 | 高 | ✅ 已完成 | videos表 | 标准Eloquent模型 |
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 5条视频数据 | 包含YouTube/Bilibili |
 | 后台 Inertia Controller | 高 | ✅ 已完成 | Admin/VideoController | Inertia::render('admin/Videos') |
-| API CRUD接口 | 高 | ⚠️ 待处理 | /api/admin/videos | Resource+Service模式 |
 | 平台集成 | 中 | ⚠️ 待处理 | YouTube/Bilibili | 自定义Service封装 |
 
 #### 4.1.3 项目 (Projects)
@@ -293,7 +322,6 @@ resources/
 | 迁移文件 & 模型 | 高 | ✅ 已完成 | projects表 | 标准Model |
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 6条项目数据 | 包含技术栈、GitHub链接 |
 | 后台 Inertia Controller | 高 | ✅ 已完成 | Admin/ProjectController | Inertia::render('admin/Projects') |
-| API CRUD接口 | 高 | ⚠️ 待处理 | /api/admin/projects | Repository模式 |
 
 #### 4.1.4 资源 (Resources)
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
@@ -301,7 +329,6 @@ resources/
 | 迁移文件 & 模型 | 高 | ✅ 已完成 | resources表 | download_count字段 |
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 5条资源数据 | 包含下载链接、文件大小 |
 | 后台 Inertia Controller | 高 | ✅ 已完成 | Admin/ResourceController | Inertia::render('admin/Resources') |
-| API CRUD接口 | 高 | ⚠️ 待处理 | /api/admin/resources | 标准CRUD |
 
 #### 4.1.5 日记 (Journals)
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
@@ -309,7 +336,6 @@ resources/
 | 迁移文件 & 模型 | 高 | ✅ 已完成 | journals表 | mood/weather JSON |
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 5条详细日志 | 含title、date、likes_count字段 |
 | 后台 Inertia Controller | 高 | ✅ 已完成 | Admin/JournalsController | Inertia::render('admin/Journals') |
-| API CRUD接口 | 高 | ⚠️ 待处理 | /api/admin/journals | 标准CRUD |
 
 #### 4.1.6 分类 (Categories)
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
@@ -317,7 +343,6 @@ resources/
 | 迁移文件 & 模型 | 高 | ✅ 已完成 | categories表 | 层级结构 |
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 6条专业分类 | THEORY, DESIGN, CULTURE等 |
 | 后台 Inertia Controller | 高 | ✅ 已完成 | Admin/CategoryController | Inertia::render('admin/Categories') |
-| API CRUD接口 | 高 | ⚠️ 待处理 | /api/admin/categories | 树形构建器 |
 | 树形结构 | 中 | ⚠️ 待处理 | 递归关系 | NestedSetModel |
 
 #### 4.1.7 标签 (Tags)
@@ -326,7 +351,6 @@ resources/
 | 迁移文件 & 模型 | 高 | ✅ 已完成 | tags表 | usage_count |
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 15条专业标签 | Architecture, Design等 |
 | 后台 Inertia Controller | 高 | ✅ 已完成 | Admin/TagController | Inertia::render('admin/Tags') |
-| API CRUD接口 | 高 | ⚠️ 待处理 | /api/admin/tags | 标准CRUD |
 
 ---
 
@@ -337,7 +361,7 @@ resources/
 |------|:------:|:----:|----------|-----------------|
 | users表扩展 | 高 | ✅ 已完成 | 通过 model_has_roles 关联 | Spatie RBAC |
 | User Policy | 高 | ⚠️ 待处理 | 授权逻辑 | Policy类 |
-| 用户资料更新 | 高 | ⚠️ 待处理 | /api/admin/users/{id} | FormRequest验证 |
+| 用户资料更新 | 高 | ⚠️ 待处理 | Admin/UsersController | FormRequest验证 |
 | 密码重置 | 高 | ⚠️ 待处理 | Laravel内置 | 邮件通知 |
 | 测试用户数据 | 高 | ✅ 已完成 | 4个用户 | Admin, Editor, Author, Subscriber |
 
@@ -347,7 +371,6 @@ resources/
 | 迁移文件 & 模型 | 高 | ✅ 已完成 | subscribers表 | email唯一性 |
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 5条订阅数据 | 包含邮箱、状态 |
 | 后台 Inertia Controller | 高 | ✅ 已完成 | Admin/SubscribersController | Inertia响应 |
-| API CRUD接口 | 高 | ⚠️ 待处理 | /api/admin/subscribers | 标准CRUD |
 | 订阅控制器 | 中 | ⚠️ 待处理 | /api/subscribe | 邮件验证 |
 
 #### 4.2.3 用户等级 (VIP)
@@ -365,7 +388,6 @@ resources/
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 7角色+权限 | Administrator, Editor, Author等 |
 | Roles Controller | 高 | ✅ 已完成 | Admin/RolesController | Inertia响应 |
 | Role Policy | 高 | ⚠️ 待处理 | 角色授权 | 自定义Gate |
-| Permission CRUD | 高 | ⚠️ 待处理 | /api/admin/permissions | 标准CRUD |
 
 ---
 
@@ -378,7 +400,6 @@ resources/
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 10条配置数据 | 站点名称、品牌等 |
 | Settings Controller | 高 | ✅ 已完成 | Admin/SettingsController | Inertia响应 |
 | Setting Service | 高 | ⚠️ 待处理 | 配置获取 | 单例+缓存 |
-| 网站配置API | 高 | ⚠️ 待处理 | /api/admin/settings | 标准CRUD |
 
 #### 4.3.2 SEO管理器
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
@@ -386,7 +407,6 @@ resources/
 | 迁移文件 & 模型 | 高 | ✅ 已完成 | seo表 | key-value JSON |
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 3条SEO数据 | 首页、博客、关于 |
 | SEO Controller | 高 | ✅ 已完成 | Admin/SeoController | Inertia响应 |
-| SEO API | 高 | ⚠️ 待处理 | /api/admin/seo | 标准CRUD |
 
 #### 4.3.3 国际化 (I18n)
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
@@ -394,14 +414,12 @@ resources/
 | languages表 | 高 | ✅ 已完成 | 语言配置 | Seeder 5条数据 |
 | translations表 | 高 | ✅ 已完成 | 翻译存储 | Seeder 20条数据 |
 | I18n Controller | 高 | ✅ 已完成 | Admin/I18nController | Inertia响应 |
-| I18n API | 高 | ⚠️ 待处理 | /api/admin/i18n | 标准CRUD |
 
 #### 4.3.4 媒体库
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
 | 迁移文件 & 模型 | 高 | ✅ 已完成 | media表 | 标准结构 |
 | Media Controller | 高 | ✅ 已完成 | Admin/MediaController | Inertia响应 |
-| API CRUD接口 | 高 | ⚠️ 待处理 | /api/admin/media | 标准CRUD |
 | Spatie Media Library | 高 | ⚠️ 待处理 | 完整配置 | Trait |
 
 ---
@@ -448,7 +466,7 @@ resources/
 
 ## 5. 核心代码示例
 
-### 5.1 Inertia Controller 示例
+### 1.1 Inertia Controller 示例
 
 ```php
 // app/Http/Controllers/Frontend/FrontendController.php
@@ -720,11 +738,11 @@ class PostResource extends JsonResource
 - [ ] Videos, Projects, Resources CRUD
 - [ ] Spatie Media Library集成
 
-### 第三阶段：用户功能 (待开始)
+### 第三阶段：用户功能 (进行中) ⚠️
 - [ ] User CRUD + Policy + avatar上传
 - [ ] UserLevels + 积分系统 + Observer
 - [ ] Subscribers + 邮件订阅
-- [ ] AuthorProfile + 评论系统
+- [x] AuthorProfile + 公开API
 
 ### 第四阶段：系统功能 (待开始)
 - [ ] SEO Manager + Middleware

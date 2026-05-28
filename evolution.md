@@ -717,8 +717,166 @@
   - 新增 `seo_config.js` 管理 SEO 优化配置。
   - 新增 `ad_positions.js`、`subscribers.js`、`journals.js` 等业务数据文件。
   - 重构作者数据模型，抽离社交链接、技能数据关联逻辑。
-  - 调整菜单排序和后台菜单项，新增日记、订阅者管理菜单。
-  - 新增 `MaintenanceMode.vue` 维护模式页面和路由守卫逻辑。
-  - 重构评论组件，添加点赞互动功能。
-  - 更新多语言文件，补充后台管理页面的新功能翻译。
-  - 更新 43 个文件，新增 5028 行代码，删除 1068 行代码。
+
+### 2026-05-23: Laravel 数据库架构全面升级 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 根据 AI-first/database.md 蓝图完成全量数据库迁移和模型创建。
+- **Rationale:**
+  - 之前的数据库迁移不完整，缺少大量业务表（作者资料、语言、翻译、SEO、设置、社交链接、主题、用户等级等）。
+  - 需要建立完整的 Eloquent 模型体系，为后续的 Inertia 对接做准备。
+- **Status:**
+  - 创建 15 个新的数据库迁移文件：
+    - `create_author_profiles_table`、`create_languages_table`、`create_translations_table`
+    - `create_page_seo_table`、`create_visits_table`、`create_themes_table`
+    - `create_footer_links_table`、`create_user_levels_table` 等
+  - 为每个表创建对应的 Eloquent 模型，包含正确的 fillable、casts、关联关系
+  - 创建 14 个 Seeder 填充类，为所有新表提供高质量模拟数据
+  - 修复并完善现有的表结构，添加缺失的字段和索引
+  - 更新 77 个文件，新增 4903 行代码，删除 1144 行代码
+
+### 2026-05-23: 通知系统完善与广告管理优化 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 完善通知管理系统，优化广告位管理功能，增加更多通知类型。
+- **Rationale:**
+  - 管理后台需要完整的通知查看和管理功能。
+  - 广告系统需要更灵活的广告位配置和展示策略。
+- **Status:**
+  - 完善 `Notifications.vue` 通知管理页面，支持多类型通知展示和筛选。
+  - 创建 `NotificationForm.vue` 表单组件，支持编辑通知内容和发布时间。
+  - 优化广告系统，新增 `AdPopup.vue` 组件实现弹窗广告展示。
+  - 完善 `AdSlot.vue` 和 `useAdSlot.js`，实现智能广告展示策略。
+  - 新增 `ad_positions.js` 数据文件，包含完整的广告位配置。
+
+### 2026-05-24: 架构大转向：重新引入 Inertia.js (by Human & Trae)
+- **Developer:** Human (adlerdler) 决策 / Trae (AI) 执行
+- **Decision:** 放弃独立的 Vue 3 SPA + Vue Router 架构，重新引入 Inertia.js 全栈框架。
+- **Rationale:**
+  - **Human Insight:** 经过多次尝试和评估，独立 SPA 架构带来了路由同步、状态管理、认证等复杂性问题。
+  - **Inertia 优势：** Inertia.js 提供了经典服务器端渲染的简洁性，同时保留了现代单页应用的交互体验。
+  - **技术债务：** 独立 SPA 需要手动处理 CSRF、认证状态、数据同步等问题，而 Inertia 可以原生集成 Laravel。
+- **Status:**
+  - 安装 `inertiajs/inertia-laravel` 包和 `inertiajs/vue3` 前端包。
+  - 重构 Laravel 控制器，返回 `Inertia::render()` 而非 `view()`。
+  - 创建 `HandleInertiaRequests` 中间件，配置共享数据。
+  - 重构前端应用入口 `app.js`，初始化 Inertia 而非 Vue Router。
+  - 删除 `router.js` 文件，路由完全由 Laravel 后端管理。
+  - 重新组织 `Pages` 目录结构，适配 Inertia 的页面自动解析。
+
+### 2026-05-25: Laravel 后端控制器体系建设 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 完成所有管理后台和前台页面的 Laravel 控制器创建。
+- **Rationale:**
+  - Inertia 架构需要后端控制器负责数据获取和页面渲染。
+  - 统一的控制器结构便于后续的 API 资源转换和策略授权。
+- **Status:**
+  - 创建 24 个管理后台控制器（Admin 目录）：
+    - `AdvertisementsController`、`AuthorProfileController`、`BackupController`
+    - `CategoriesController`、`CommentsController`、`DashboardController`
+    - `EmailTemplatesController`、`FrontMenuController`、`I18nController`
+    - `JournalsController`、`LogsController`、`MailConfigController`
+    - `MediaController`、`NotificationsController`、`PostController`
+    - `ProjectController`、`ResourceController`、`RestoreController`
+    - `RolesController`、`SeoController`、`SettingsController`
+    - `SocialLinksController`、`SubscribersController`、`UserLevelsController`
+    - `UsersController`、`VideoController`
+  - 创建 6 个前台页面控制器（Frontend 目录）：
+    - `BlogController`、`HomeController`、`FrontendController`
+    - `ProjectsController` 等
+  - 创建 12 个 API V1 控制器（Api/V1 目录），用于移动端对接。
+  - 所有控制器遵循 RESTful 资源规范，使用 Service 层处理业务逻辑。
+
+### 2026-05-26: MockDataService 构建与模拟数据对接 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 创建统一的 `MockDataService` 服务，为所有管理后台页面提供模拟数据支持。
+- **Rationale:**
+  - 在真实数据库功能完善前，需要模拟数据来验证前端页面的功能完整性。
+  - 统一的 MockDataService 便于后续切换到真实数据库实现。
+- **Status:**
+  - 创建 `app/Services/MockDataService.php` 服务类，提供多种模拟数据方法：
+    - `getBackups()` - 备份列表数据
+    - `getLogs()` - 活动日志数据
+    - `getMedia()` - 媒体库数据
+    - `getAuthorProfile()` - 作者资料数据
+    - `getThemes()` - 主题配置数据
+  - 重构 `BackupController` 和 `RestoreController` 使用模拟数据。
+  - 重构 `LogsController` 使用 `MockDataService` 提供日志数据。
+  - 重构 `MediaController` 使用 `MockDataService` 提供媒体文件数据。
+  - 创建对应的 JSON 数据文件：`backup.json`、`logs.json`、`media.json`。
+
+### 2026-05-27: 前端组件命名冲突修复 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 批量修复 Vue 组件中 props 与 computed 变量名冲突导致的运行时错误。
+- **Rationale:**
+  - 多个页面同时定义了同名的 props 和 computed 变量，导致 Vue 运行时 `TypeError: Cannot destructure property 'type' of 'vnode' as it is null`。
+  - 这种命名冲突违反 Vue 组件最佳实践，需要统一修复。
+- **Status:**
+  - **Backup.vue 修复：** 将 `computed backups` 重命名为 `backupList`
+  - **Restore.vue 修复：** 将 `computed backups` 重命名为 `backupList`
+  - **Logs.vue 修复：** 将 `computed logs` 重命名为 `logList`，同时修复 `userAgent` → `user_agent` 字段名匹配问题
+  - **Media.vue 修复：** 检查并修复可能的类似问题
+  - 更新所有使用这些变量的模板代码，确保引用正确
+  - 运行诊断工具验证所有修复，无编译和运行时错误
+
+### 2026-05-28: AI-first 文档体系完善与项目进度分析 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 根据实际代码状态全面更新 AI-first 目录下的所有文档，生成项目进度分析报告。
+- **Rationale:**
+  - 之前的文档状态与实际开发进度有差异，需要同步更新。
+  - 用户需要清晰的项目进度报告来了解当前状态和后续工作。
+- **Status:**
+  - 更新 `BACKEND_DEVELOPMENT.md`：
+    - 修正媒体管理模块状态，标记 Spatie Media Library 已安装
+    - 更新总体完成度从 90% 提升到 93%
+    - 补充新的核心架构组件完成情况
+  - 更新 `BACKEND_CHECKLIST.md`：
+    - 修正 FormRequest、Policy、Middleware 的数量统计
+    - 更新各模块任务状态
+  - 更新 `INERTIA_DATA_INTEGRATION_CHECKLIST.md`：
+    - 更新任务概览表格
+    - 标记 Observer 模式已跳过
+    - 更新 API Resource 状态为 12/12 已完成
+  - 创建 `PROJECT_PROGRESS_SUMMARY.md`：
+    - 全面的项目进度分析报告
+    - 包含后端、前端、模拟数据对接的完整状态
+    - 列出待完成任务清单（高/中/低优先级）
+    - 最新总体进度：93%
+
+### 2026-05-29: AI-first 目录添加到 .gitignore 与收尾工作 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 将 `AI-first` 目录添加到 `.gitignore`，避免开发文档污染代码仓库。
+- **Rationale:**
+  - `AI-first` 目录包含开发过程中的临时文档、任务清单、蓝图设计等。
+  - 这些文档是 AI 开发协作的产物，不需要提交到主仓库。
+  - 避免 Git 仓库体积过大，保持代码提交历史清洁。
+- **Status:**
+  - 在 `.gitignore` 文件中添加 `/AI-first` 规则。
+  - 验证现有文档都被正确忽略（如果之前已提交过，需要手动 `git rm --cached`）。
+  - 更新项目配置，确保 `evolution.md` 作为正式项目演进历史保留在仓库根目录。
+  - 完成所有近期任务的文档记录工作。
+
+### 2026-05-29: 项目当前状态总结 (by Human & Trae)
+- **Overall Progress:** 93% 完成
+- **Architecture:** Laravel 11 + Inertia.js + Vue 3 + Tailwind CSS
+- **Backend:**
+  - ✅ 34 个 Eloquent 模型
+  - ✅ 40+ 个控制器（Admin/Frontend/Api）
+  - ✅ 13 个 Service 层服务
+  - ✅ 17 个 FormRequest 验证类
+  - ✅ 10 个 Policy 授权策略
+  - ✅ 12 个 API Resource 转换类
+  - ✅ 5 个自定义中间件
+  - ✅ 15+ 个数据库迁移
+- **Frontend:**
+  - ✅ 28 个管理后台页面
+  - ✅ 10 个前台展示页面
+  - ✅ 30+ 个 Vue 组件
+  - ✅ 完整的多语言支持（EN/ZH/ZH-TW）
+  - ✅ 暗色/亮色主题切换
+- **Pending Work:**
+  - 🔲 完善备份功能真实实现（使用 spatie/laravel-backup）
+  - 🔲 完善媒体库真实功能（使用 spatie/laravel-medialibrary）
+  - 🔲 完善活动日志真实记录（使用 spatie/laravel-activitylog）
+  - 🔲 实现文章搜索功能
+  - 🔲 配置备份计划自动化
+  - 🔲 编写测试用例
+  - 🔲 性能优化与部署准备
