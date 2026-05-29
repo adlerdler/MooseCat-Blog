@@ -66,21 +66,14 @@ const handlePreview = (file) => {
 };
 
 const handleUploadSuccess = (newFiles) => {
-  // In a real app, we would refresh from API
-  // Here we just mock adding to the list
-  newFiles.forEach(f => {
-    mediaFiles.value.unshift({
-      id: Math.max(...mediaFiles.value.map(m => m.id)) + 1,
-      name: f.name,
-      type: f.type,
-      size: f.size,
-      date: new Date().toISOString().split('T')[0],
-      url: null // Local files won't have URLs in this mock
-    });
-  });
+  // Refresh page to get latest data from server
+  window.location.reload();
 };
 
-const mediaFiles = computed(() => [...(props.media || [])]);
+const mediaFiles = computed(() => {
+  const data = props.media?.data || props.media || [];
+  return Array.isArray(data) ? [...data] : [];
+});
 
 const filteredMedia = computed(() => {
   return mediaFiles.value.filter(file => {

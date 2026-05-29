@@ -2,7 +2,7 @@
 
 namespace App\Policies;
 
-use App\Models\Medium;
+use App\Models\Media;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
 
@@ -13,7 +13,7 @@ class MediaPolicy
         return $user->can('view-media');
     }
 
-    public function view(User $user, Medium $medium): bool
+    public function view(User $user, Media $media): bool
     {
         return $user->can('view-media');
     }
@@ -23,22 +23,22 @@ class MediaPolicy
         return $user->can('upload-media');
     }
 
-    public function update(User $user, Medium $medium): bool
+    public function update(User $user, Media $media): bool
     {
         return $user->can('edit-media');
     }
 
-    public function delete(User $user, Medium $medium): bool
+    public function delete(User $user, Media $media): bool
     {
         return $user->can('delete-media');
     }
 
-    public function restore(User $user, Medium $medium): bool
+    public function restore(User $user, Media $media): bool
     {
         return $user->can('delete-media');
     }
 
-    public function forceDelete(User $user, Medium $medium): bool
+    public function forceDelete(User $user, Media $media): bool
     {
         return $user->can('delete-media');
     }

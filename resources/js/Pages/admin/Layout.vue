@@ -113,7 +113,12 @@ const confirmLogout = () => {
   localStorage.removeItem('admin_email');
   localStorage.removeItem('admin_login_time');
   showLogoutConfirm.value = false;
-  inertiaRouter.visit('/admin/login');
+  
+  inertiaRouter.post('/admin/logout', {}, {
+    onSuccess: () => {
+      inertiaRouter.visit('/admin/login');
+    },
+  });
 };
 
 const handleResize = () => {
@@ -263,7 +268,7 @@ const clearCache = () => {
 <template>
   <div :class="['min-h-screen transition-colors', isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900 admin-layout']">
     <!-- Header -->
-    <header :class="['fixed top-0 left-0 right-0 h-16 flex items-center justify-between px-6 z-50 transition-colors', isDarkMode ? 'bg-gray-800 border-b border-gray-700' : 'bg-white border-b border-gray-200 admin-header']">
+    <header :class="['fixed top-0 right-0 h-16 flex items-center justify-between px-6 z-50 transition-all duration-300', isDarkMode ? 'bg-gray-800 border-b border-gray-700' : 'bg-white border-b border-gray-200 admin-header', isSidebarOpen && !isSidebarCollapsed ? 'lg:left-56' : 'lg:left-16']">
       <div class="flex items-center gap-4">
         <button
           @click="toggleSidebar"
@@ -272,14 +277,6 @@ const clearCache = () => {
           <Menu v-if="!isSidebarOpen" size="24" />
           <X v-else size="24" />
         </button>
-        
-        <!-- Logo -->
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 bg-construct-red flex items-center justify-center">
-            <span class="text-xl font-bold tracking-tight text-white">A</span>
-          </div>
-          <span class="font-display text-xl tracking-tighter hidden sm:block">ARCHYX</span>
-        </div>
       </div>
       
       <!-- Actions -->
@@ -308,59 +305,13 @@ const clearCache = () => {
         >
           <Zap size="20" class="group-hover:scale-110 transition-transform" />
         </button>
-
-        <button
-          @click="toggleUserMenu"
-          class="flex items-center gap-3 transition-colors rounded-lg px-2 py-1"
-          :class="isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'"
-        >
-          <div class="hidden md:flex flex-col items-end">
-            <span class="text-sm font-bold text-construct-red">ADMIN</span>
-            <span :class="['text-xs', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ adminEmail }}</span>
-          </div>
-          <div :class="['w-10 h-10 rounded-full flex items-center justify-center', isDarkMode ? 'bg-gray-700' : 'bg-gray-100']">
-            <User :size="18" :class="isDarkMode ? 'text-gray-300' : 'text-gray-600'" />
-          </div>
-          <ChevronDown :size="16" :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'" />
-        </button>
-
-        <!-- User Dropdown Menu -->
-        <Transition name="dropdown">
-          <div
-            v-if="isUserMenuOpen"
-            class="absolute right-0 top-full mt-2 w-56 rounded-lg shadow-xl border z-50"
-            :class="isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'"
-          >
-            <div :class="['p-4 border-b', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
-              <p :class="['text-sm font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">{{ adminEmail }}</p>
-              <p :class="['text-xs mt-1', isDarkMode ? 'text-gray-400' : 'text-gray-500']">Administrator</p>
-            </div>
-            <div class="p-2">
-              <!-- Logout Button -->
-              <button
-                @click="handleLogout"
-                :class="['w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors mt-1',
-                  isDarkMode ? 'text-gray-300 hover:bg-gray-700 hover:text-red-400' : 'text-gray-700 hover:bg-gray-100 hover:text-red-500']"
-              >
-                <LogOut :size="18" />
-                <span>{{ t('login_logout') }}</span>
-              </button>
-            </div>
-          </div>
-        </Transition>
       </div>
-      <!-- Click outside to close menu -->
-      <div
-        v-if="isUserMenuOpen"
-        class="fixed inset-0 z-40"
-        @click="closeUserMenu"
-      ></div>
     </header>
     
     <!-- Sidebar -->
     <aside
       :class="[
-        'fixed left-0 top-16 bottom-0 transition-all duration-300 z-40 admin-sidebar overflow-visible',
+        'fixed left-0 top-0 bottom-0 transition-all duration-300 z-40 admin-sidebar overflow-visible',
         isDarkMode ? 'bg-gray-800' : 'bg-white',
         isSidebarOpen ? (isDarkMode ? 'border-r border-gray-700' : 'border-r border-gray-200') : '',
         isSidebarOpen && !isSidebarCollapsed ? 'w-56 lg:w-56' : '',
@@ -370,6 +321,16 @@ const clearCache = () => {
       ]"
     >
       <div class="flex flex-col h-full">
+        <!-- Logo at top-left -->
+        <div class="p-2 border-b pt-4" :class="isDarkMode ? 'border-gray-700' : 'border-gray-200'">
+          <div class="flex items-center gap-2 px-2 py-2">
+            <div class="w-8 h-8 bg-construct-red flex items-center justify-center flex-shrink-0">
+              <span class="text-sm font-bold tracking-tight text-white">A</span>
+            </div>
+            <span v-if="!isSidebarCollapsed" class="font-display text-sm tracking-tighter truncate">ARCHYX</span>
+          </div>
+        </div>
+        
         <nav class="p-2 space-y-1 flex-1 overflow-y-auto">
           <template v-for="item in menuItems" :key="item.id">
             <!-- Parent menu item with children -->
@@ -505,6 +466,53 @@ const clearCache = () => {
         
         </nav>
         
+        <!-- Sidebar Footer: User Info -->
+        <div class="p-2 border-t" :class="isDarkMode ? 'border-gray-700' : 'border-gray-200'">
+          <!-- User Info -->
+          <div 
+            @click="toggleUserMenu"
+            :class="[
+              'flex items-center gap-2 px-2 py-2 rounded-lg cursor-pointer transition-colors',
+              isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
+            ]"
+          >
+            <div :class="['w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0', isDarkMode ? 'bg-gray-700' : 'bg-gray-100']">
+              <User :size="16" :class="isDarkMode ? 'text-gray-300' : 'text-gray-600'" />
+            </div>
+            <div v-if="!isSidebarCollapsed" class="flex-1 min-w-0">
+              <p :class="['text-xs font-bold truncate', isDarkMode ? 'text-white' : 'text-gray-900']">{{ adminEmail }}</p>
+              <p :class="['text-xs truncate', isDarkMode ? 'text-gray-400' : 'text-gray-500']">Administrator</p>
+            </div>
+          </div>
+          
+          <!-- User Dropdown Menu -->
+          <Transition name="dropdown">
+            <div
+              v-if="isUserMenuOpen"
+              :class="[
+                'absolute bottom-20 left-2 w-56 rounded-lg shadow-xl border z-50',
+                isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+              ]"
+            >
+              <div :class="['p-4 border-b', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
+                <p :class="['text-sm font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">{{ adminEmail }}</p>
+                <p :class="['text-xs mt-1', isDarkMode ? 'text-gray-400' : 'text-gray-500']">Administrator</p>
+              </div>
+              <div class="p-2">
+                <!-- Logout Button -->
+                <button
+                  @click="handleLogout"
+                  :class="['w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors mt-1',
+                    isDarkMode ? 'text-gray-300 hover:bg-gray-700 hover:text-red-400' : 'text-gray-700 hover:bg-gray-100 hover:text-red-500']"
+                >
+                  <LogOut :size="18" />
+                  <span>{{ t('login_logout') }}</span>
+                </button>
+              </div>
+            </div>
+          </Transition>
+        </div>
+        
         <!-- Collapse Toggle Button (hidden on mobile) -->
         <div class="hidden lg:block p-2 border-t" :class="isDarkMode ? 'border-gray-700' : 'border-gray-200'">
           <button
@@ -522,6 +530,13 @@ const clearCache = () => {
         </div>
       </div>
     </aside>
+    
+    <!-- Click outside to close user menu -->
+    <div
+      v-if="isUserMenuOpen"
+      class="fixed inset-0 z-40"
+      @click="closeUserMenu"
+    ></div>
     
     <!-- Collapsed Sidebar Floating Menu -->
     <div class="hidden lg:block">

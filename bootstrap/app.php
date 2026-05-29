@@ -17,5 +17,15 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        $exceptions->dontReport([
+            //
+        ]);
+        
+        $exceptions->render(function (Throwable $e, $request) {
+            if ($request->header('X-Inertia')) {
+                if ($e instanceof \Illuminate\Auth\AuthenticationException) {
+                    return redirect()->guest(route('login'));
+                }
+            }
+        });
     })->create();

@@ -9,12 +9,8 @@
  * - 支持记住密码功能
  * - 支持密码显示/隐藏切换
  * - 支持中英文国际化
- *
- * 凭据：
- * - 邮箱：Archyx@admin.com
- * - 密码：Archyx_admin123
  */
-import { ref, onMounted } from 'vue';
+import { ref } from 'vue';
 import { router } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import { Lock, Mail, AlertCircle, Eye, EyeOff } from 'lucide-vue-next';
@@ -27,57 +23,20 @@ const email = ref('');
 const password = ref('');
 const rememberMe = ref(false);
 const showPassword = ref(false);
-const error = ref('');
 const isLoading = ref(false);
 
-const ADMIN_EMAIL = 'Archyx@admin.com';
-const ADMIN_PASSWORD = 'Archyx_admin123';
-
-onMounted(() => {
-  const savedEmail = localStorage.getItem('admin_remembered_email');
-  const savedPassword = localStorage.getItem('admin_remembered_password');
-  const rememberStatus = localStorage.getItem('admin_remember_me');
-
-  if (rememberStatus === 'true' && savedEmail && savedPassword) {
-    email.value = savedEmail;
-    password.value = savedPassword;
-    rememberMe.value = true;
-  }
-});
-
-const handleLogin = async () => {
-  error.value = '';
-
-  if (!email.value || !password.value) {
-    error.value = t('login_error_empty');
-    return;
-  }
-
+const handleLogin = () => {
   isLoading.value = true;
 
-  await new Promise(resolve => setTimeout(resolve, 500));
-
-  if (email.value === ADMIN_EMAIL && password.value === ADMIN_PASSWORD) {
-    localStorage.setItem('admin_logged_in', 'true');
-    localStorage.setItem('admin_email', email.value);
-    localStorage.setItem('admin_login_time', new Date().toISOString());
-
-    if (rememberMe.value) {
-      localStorage.setItem('admin_remember_me', 'true');
-      localStorage.setItem('admin_remembered_email', email.value);
-      localStorage.setItem('admin_remembered_password', password.value);
-    } else {
-      localStorage.removeItem('admin_remember_me');
-      localStorage.removeItem('admin_remembered_email');
-      localStorage.removeItem('admin_remembered_password');
-    }
-
-    router.visit('/admin/index');
-  } else {
-    error.value = t('login_error_invalid');
-  }
-
-  isLoading.value = false;
+  router.post('/admin/login', {
+    email: email.value,
+    password: password.value,
+    remember: rememberMe.value,
+  }, {
+    onFinish: () => {
+      isLoading.value = false;
+    },
+  });
 };
 
 const togglePasswordVisibility = () => {
@@ -152,9 +111,9 @@ const togglePasswordVisibility = () => {
           </div>
 
           <!-- 错误提示 -->
-          <div v-if="error" class="flex items-center gap-2 text-red-600 text-sm">
+          <div v-if="$page.props.errors && $page.props.errors.email" class="flex items-center gap-2 text-red-600 text-sm">
             <AlertCircle class="w-4 h-4" />
-            <span>{{ error }}</span>
+            <span>{{ $page.props.errors.email }}</span>
           </div>
 
           <!-- 登录按钮 -->

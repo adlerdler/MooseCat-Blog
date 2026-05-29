@@ -2,27 +2,61 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media as SpatieMedia;
 
-class Media extends Model
+class Media extends Model implements HasMedia
 {
+    use HasFactory;
+    use InteractsWithMedia;
+
+    protected $table = 'medias';
+
     protected $fillable = [
         'user_id',
-        'filename',
-        'original_name',
-        'mime_type',
-        'file_size',
-        'url',
-        'thumbnail_url',
+        'title',
+        'description',
         'alt_text',
+        'tags',
+        'is_public',
     ];
 
-    /**
-     * Get the user that owns the media.
-     */
+    protected $casts = [
+        'tags' => 'array',
+        'is_public' => 'boolean',
+    ];
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('default')
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'application/pdf'])
+            ->withResponsiveImages();
+    }
+
+    public function registerMediaConversions(SpatieMedia $media = null): void
+    {
+        $this->addMediaConversion('thumb')
+            ->width(200)
+            ->height(200)
+            ->sharpen(10);
+
+        $this->addMediaConversion('preview')
+            ->width(800)
+            ->height(600)
+            ->withResponsiveImages();
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function media(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(SpatieMedia::class, 'model');
     }
 }

@@ -100,14 +100,13 @@ const startUpload = async () => {
     
     item.status = 'uploading';
     
-    // Simulate upload progress
     try {
-      await simulateUpload(item);
+      await uploadFile(item);
       item.status = 'success';
       item.progress = 100;
     } catch (err) {
       item.status = 'error';
-      item.error = 'Upload failed';
+      item.error = err.message || 'Upload failed';
     }
   }
   
@@ -122,19 +121,36 @@ const startUpload = async () => {
   }
 };
 
-const simulateUpload = (item) => {
+const uploadFile = (item) => {
   return new Promise((resolve, reject) => {
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += Math.random() * 30;
-      if (progress >= 100) {
-        item.progress = 100;
-        clearInterval(interval);
-        resolve();
-      } else {
-        item.progress = Math.floor(progress);
+    const formData = new FormData();
+    formData.append('file', item.file);
+    formData.append('title', item.name);
+    
+    const xhr = new XMLHttpRequest();
+    
+    xhr.upload.addEventListener('progress', (e) => {
+      if (e.lengthComputable) {
+        item.progress = Math.round((e.loaded / e.total) * 100);
       }
-    }, 300);
+    });
+    
+    xhr.addEventListener('load', () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve(JSON.parse(xhr.responseText));
+      } else {
+        reject(new Error('Upload failed'));
+      }
+    });
+    
+    xhr.addEventListener('error', () => {
+      reject(new Error('Network error'));
+    });
+    
+    xhr.open('POST', '/admin/media');
+    xhr.setRequestHeader('X-CSRF-TOKEN', document.querySelector('meta[name="csrf-token"]')?.content || '');
+    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+    xhr.send(formData);
   });
 };
 

@@ -67,11 +67,14 @@ Route::get('/categories/{category:slug}', [CategoryController::class, 'show'])->
 Route::get('/tags/{tag:slug}', [CategoryController::class, 'tag'])->name('tags.show');
 
 // 管理后台登录路由
-Route::get('/admin/login', [DashboardController::class, 'login'])->name('login');
-Route::post('/admin/login', [DashboardController::class, 'handleLogin'])->name('login.handle');
+Route::get('/admin/login', [DashboardController::class, 'login'])->name('login')->middleware('guest');
+Route::post('/admin/login', [DashboardController::class, 'handleLogin'])->name('login.handle')->middleware('guest');
 
-// 管理后台路由（临时无认证）
-Route::prefix('admin')->group(function () {
+// 管理后台路由（需要认证）
+Route::middleware(['auth'])->prefix('admin')->group(function () {
+    // 登出
+    Route::post('/logout', [DashboardController::class, 'logout'])->name('logout');
+    
     // 首页
     Route::get('/', [DashboardController::class, 'index'])->name('admin');
     Route::get('/index', [DashboardController::class, 'index']);

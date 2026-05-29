@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Services\MockDataService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -78,11 +80,41 @@ class DashboardController extends Controller
     /**
      * Handle login request
      *
+     * @param Request $request
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function handleLogin()
+    public function handleLogin(Request $request)
     {
-        return redirect()->route('admin');
+        $credentials = $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
+
+        if (Auth::attempt($credentials, $request->filled('remember'))) {
+            $request->session()->regenerate();
+
+            return redirect()->intended(route('admin'));
+        }
+
+        return back()->withErrors([
+            'email' => '邮箱或密码错误',
+        ])->onlyInput('email');
+    }
+
+    /**
+     * Handle logout request
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function logout(Request $request)
+    {
+        Auth::logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('login');
     }
 
     /**

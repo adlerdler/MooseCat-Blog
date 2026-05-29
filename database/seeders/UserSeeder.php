@@ -12,7 +12,7 @@ class UserSeeder extends Seeder
     {
         $admin = User::firstOrCreate(
             ['email' => 'admin@archyx.com'],
-            ['name' => 'Admin User', 'password' => Hash::make('password')]
+            ['name' => 'Admin User', 'password' => Hash::make('Archyx_admin123')]
         );
         $admin->assignRole('Administrator');
 
