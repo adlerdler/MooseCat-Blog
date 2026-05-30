@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
+use App\Models\FooterLink;
 use App\Services\MockDataService;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -16,6 +17,58 @@ class FrontendController extends Controller
         $this->mockDataService = $mockDataService;
     }
 
+    private function getFooterConfig(): array
+    {
+        $socialLinks = FooterLink::socialLinks()
+            ->active()
+            ->get()
+            ->map(function ($link) {
+                return [
+                    'id' => $link->id,
+                    'platform' => $link->platform,
+                    'url' => $link->url,
+                    'icon_name' => $link->icon_name ?? $link->icon,
+                    'label' => $link->label,
+                    'sort_order' => $link->sort_order,
+                    'is_active' => $link->is_active,
+                ];
+            });
+
+        $categoryLinks = FooterLink::categoryLinks()
+            ->active()
+            ->get()
+            ->map(function ($link) {
+                return [
+                    'id' => $link->id,
+                    'label' => $link->label,
+                    'url' => $link->url,
+                    'sort_order' => $link->sort_order,
+                    'is_active' => $link->is_active,
+                ];
+            });
+
+        $dataLinks = FooterLink::dataLinks()
+            ->active()
+            ->get()
+            ->map(function ($link) {
+                return [
+                    'id' => $link->id,
+                    'label' => $link->label,
+                    'url' => $link->url,
+                    'sort_order' => $link->sort_order,
+                    'is_active' => $link->is_active,
+                ];
+            });
+
+        return [
+            'social_links' => $socialLinks,
+            'nav_links' => [
+                'categories' => $categoryLinks,
+                'data' => $dataLinks,
+            ],
+        ];
+    }
+
     public function home(): Response
     {
         $posts = $this->mockDataService->getPosts(3);
@@ -23,7 +76,7 @@ class FrontendController extends Controller
         $videos = $this->mockDataService->getVideos(3);
         $menu = $this->mockDataService->getMenu();
         $siteConfig = $this->mockDataService->getSiteConfig();
-        $footerConfig = $this->mockDataService->getFooterConfig();
+        $footerConfig = $this->getFooterConfig();
         $themes = $this->mockDataService->getThemes();
 
         return Inertia::render('front/Home', [
@@ -42,7 +95,7 @@ class FrontendController extends Controller
         return [
             'menus' => $this->mockDataService->getMenu(),
             'siteConfig' => $this->mockDataService->getSiteConfig(),
-            'footerConfig' => $this->mockDataService->getFooterConfig(),
+            'footerConfig' => $this->getFooterConfig(),
             'themes' => $this->mockDataService->getThemes(),
         ];
     }

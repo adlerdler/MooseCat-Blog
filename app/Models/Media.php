@@ -33,7 +33,15 @@ class Media extends Model implements HasMedia
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('default')
-            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'application/pdf'])
+            ->acceptsMimeTypes([
+                'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml',
+                'video/mp4', 'video/webm', 'video/ogg',
+                'audio/mp3', 'audio/mpeg', 'audio/ogg', 'audio/wav',
+                'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'text/plain', 'text/csv', 'text/html',
+                'application/zip', 'application/x-zip-compressed', 'application/x-rar-compressed',
+            ])
             ->withResponsiveImages();
     }
 

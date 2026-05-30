@@ -136,10 +136,22 @@ const uploadFile = (item) => {
     });
     
     xhr.addEventListener('load', () => {
+      console.log('Upload response:', xhr.status, xhr.responseText);
       if (xhr.status >= 200 && xhr.status < 300) {
-        resolve(JSON.parse(xhr.responseText));
+        try {
+          resolve(JSON.parse(xhr.responseText));
+        } catch (e) {
+          resolve({});
+        }
       } else {
-        reject(new Error('Upload failed'));
+        let errorMsg = 'Upload failed';
+        try {
+          const response = JSON.parse(xhr.responseText);
+          errorMsg = response.message || response.error || errorMsg;
+        } catch (e) {
+          errorMsg = xhr.responseText.substring(0, 200);
+        }
+        reject(new Error(errorMsg));
       }
     });
     
@@ -147,9 +159,13 @@ const uploadFile = (item) => {
       reject(new Error('Network error'));
     });
     
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+    console.log('CSRF Token:', csrfToken);
+    
     xhr.open('POST', '/admin/media');
-    xhr.setRequestHeader('X-CSRF-TOKEN', document.querySelector('meta[name="csrf-token"]')?.content || '');
+    xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken || '');
     xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+    xhr.setRequestHeader('Accept', 'application/json');
     xhr.send(formData);
   });
 };

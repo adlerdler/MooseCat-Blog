@@ -30,9 +30,9 @@ class StoreVideoRequest extends FormRequest
             'duration' => ['nullable', 'integer', 'min:0'],
             'category_id' => ['nullable', 'integer', 'exists:categories,id'],
             'tags' => ['nullable', 'array'],
-            'tags.*' => ['integer', 'exists:tags,id'],
+            'tags.*' => ['string'],
             'status' => ['nullable', 'in:draft,published'],
-            'published_at' => ['nullable', 'date', 'after_or_equal:now'],
+            'published_at' => ['nullable', 'date'],
             'seo_title' => ['nullable', 'string', 'max:255'],
             'seo_description' => ['nullable', 'string', 'max:500'],
         ];

@@ -10,6 +10,7 @@
 import {
   ref,
   computed,
+  watch,
   useI18n,
   useTheme,
   formatToShort,
@@ -26,13 +27,18 @@ import {
   ConfirmDialog,
   PostForm,
   Pagination,
-  SearchFilterModal
+  SearchFilterModal,
+  router
 } from '../../composables/useAdminImports';
 
 const props = defineProps({
   posts: {
     type: Array,
     default: () => []
+  },
+  post: {
+    type: Object,
+    default: null
   },
   categories: {
     type: Array,
@@ -129,8 +135,28 @@ const handleAdd = () => {
 };
 
 const handleEdit = (post) => {
-  editingPost.value = { ...post };
+  const author = props.users.find(u => u.id === post.author_id);
+  editingPost.value = {
+    id: post.id,
+    title: post.title,
+    slug: post.slug,
+    excerpt: post.excerpt,
+    content: post.content,
+    thumbnail: post.cover_image || '',
+    author: author ? (author.pen_name || author.name) : '',
+    category: post.category_id,
+    date: post.published_at ? new Date(post.published_at).toISOString().split('T')[0].replace(/-/g, '.') : new Date().toISOString().split('T')[0].replace(/-/g, '.'),
+    tags: Array.isArray(post.tags) ? post.tags.join(', ') : (post.tags || ''),
+    color: post.color || 'red',
+  };
   isFormVisible.value = true;
+};
+
+const handleEditFromProp = () => {
+  if (props.post) {
+    editingPost.value = { ...props.post };
+    isFormVisible.value = true;
+  }
 };
 
 const handleDelete = (id) => {
@@ -140,15 +166,41 @@ const handleDelete = (id) => {
 
 const confirmDelete = () => {
   if (deletingPostId.value !== null) {
-    posts.value = posts.value.filter(p => p.id !== deletingPostId.value);
-    deletingPostId.value = null;
+    router.delete(route('posts.destroy', deletingPostId.value), {
+      onSuccess: () => {
+        deletingPostId.value = null;
+      }
+    });
   }
   showDeleteConfirm.value = false;
 };
 
 const handleSave = (data) => {
-  console.log('Save post:', data);
+  const category = props.categories.find(c => c.name === data.category || c.id === data.category);
+  const payload = {
+    title: data.title,
+    excerpt: data.excerpt,
+    content: data.content,
+    cover_image: data.thumbnail,
+    category_id: category ? category.id : null,
+    tags: data.tags,
+    published_at: data.date.replace(/\./g, '-'),
+    color: data.color,
+  };
+
+  if (editingPost.value && editingPost.value.id) {
+    router.put(route('posts.update', editingPost.value.id), payload, {
+      onError: (errors) => console.error('Update errors:', errors),
+      onSuccess: () => console.log('Update success'),
+    });
+  } else {
+    router.post(route('posts.store'), payload, {
+      onError: (errors) => console.error('Store errors:', errors),
+      onSuccess: () => console.log('Store success'),
+    });
+  }
   isFormVisible.value = false;
+  editingPost.value = null;
 };
 
 const handleCancel = () => {
@@ -162,6 +214,13 @@ const handleFilterChange = ({ key, value }) => {
   }
   currentPage.value = 1;
 };
+
+watch(() => props.post, (newPost) => {
+  if (newPost) {
+    editingPost.value = { ...newPost };
+    isFormVisible.value = true;
+  }
+}, { immediate: true });
 </script>
 
 <template>

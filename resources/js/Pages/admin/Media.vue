@@ -40,6 +40,7 @@ import {
   useToast
 } from '../../composables/useAdminImports';
 import { Motion, AnimatePresence } from 'motion-v';
+import axios from 'axios';
 
 const props = defineProps({
   media: { type: Array, default: () => [] },
@@ -77,7 +78,8 @@ const mediaFiles = computed(() => {
 
 const filteredMedia = computed(() => {
   return mediaFiles.value.filter(file => {
-    const matchesSearch = file.name.toLowerCase().includes(searchQuery.value.toLowerCase());
+    const name = file.name || file.title || '';
+    const matchesSearch = name.toLowerCase().includes(searchQuery.value.toLowerCase());
     const matchesType = typeFilter.value === 'all' || file.type === typeFilter.value;
     return matchesSearch && matchesType;
   });
@@ -120,12 +122,29 @@ const handleDelete = (file) => {
   showDeleteConfirm.value = true;
 };
 
-const confirmDelete = () => {
+const handleDownload = (file) => {
+  if (!file.url) return;
+  const link = document.createElement('a');
+  link.href = file.url;
+  link.download = file.name || 'download';
+  link.target = '_blank';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
+const confirmDelete = async () => {
   if (!deletingFile.value) return;
-  mediaFiles.value = mediaFiles.value.filter(f => f.id !== deletingFile.value.id);
-  showDeleteConfirm.value = false;
-  deletingFile.value = null;
-  success(t('admin_delete') + ' ' + t('confirm'));
+  
+  try {
+    await axios.delete(`/admin/media/${deletingFile.value.id}`);
+    window.location.reload();
+  } catch (error) {
+    console.error('Delete failed:', error);
+  } finally {
+    showDeleteConfirm.value = false;
+    deletingFile.value = null;
+  }
 };
 </script>
 
@@ -219,7 +238,10 @@ const confirmDelete = () => {
                   >
                     <Eye size="16" />
                   </button>
-                  <button class="p-2 bg-white text-gray-900 rounded-full hover:bg-construct-red hover:text-white transition-colors">
+                  <button 
+                    @click.stop="handleDownload(file)"
+                    class="p-2 bg-white text-gray-900 rounded-full hover:bg-construct-red hover:text-white transition-colors"
+                  >
                     <Download size="16" />
                   </button>
                   <button 
@@ -313,7 +335,7 @@ const confirmDelete = () => {
       :file="previewFile"
       @close="showPreview = false"
       @delete="(file) => handleDelete(file)"
-      @download="(file) => console.log('Download file:', file)"
+      @download="(file) => handleDownload(file)"
     />
 
     <!-- Media Upload Modal -->

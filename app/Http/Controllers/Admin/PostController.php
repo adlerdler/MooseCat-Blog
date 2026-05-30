@@ -3,133 +3,135 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Services\MockDataService;
+use App\Http\Requests\StorePostRequest;
+use App\Http\Requests\UpdatePostRequest;
+use App\Models\Category;
+use App\Models\Post;
+use App\Models\Tag;
+use App\Models\User;
+use App\Services\PostService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/**
- * Post Controller
- * 
- * Handles blog post management operations.
- * Provides CRUD functionality for blog posts.
- */
 class PostController extends Controller
 {
-    protected $mockDataService;
-
-    /**
-     * Constructor
-     * 
-     * @param MockDataService $mockDataService
-     */
-    public function __construct(MockDataService $mockDataService)
+    public function __construct(protected PostService $postService)
     {
-        $this->mockDataService = $mockDataService;
     }
 
-    /**
-     * Display a listing of the posts.
-     * 
-     * @return Response
-     */
     public function index(): Response
     {
-        $posts = $this->mockDataService->getPosts();
-        $categories = $this->mockDataService->getCategories();
-        $users = $this->mockDataService->getUsers();
-        
+        $postsData = $this->postService->getPaginatedPosts(100, request()->only('category', 'tag', 'status'));
+        $posts = collect($postsData->items())->map(function ($post) {
+            return [
+                'id' => $post->id,
+                'title' => $post->title,
+                'slug' => $post->slug,
+                'excerpt' => $post->excerpt,
+                'content' => $post->content,
+                'cover_image' => $post->cover_image,
+                'status' => $post->status,
+                'category_id' => $post->category_id,
+                'author_id' => $post->author_id,
+                'published_at' => $post->published_at,
+                'tags' => $post->tags->pluck('name')->toArray(),
+                'created_at' => $post->created_at,
+                'updated_at' => $post->updated_at,
+            ];
+        })->toArray();
+        $categories = Category::orderBy('sort_order')->get();
+        $users = User::whereHas('roles')->get();
+
         return Inertia::render('admin/Posts', [
             'posts' => $posts,
             'categories' => $categories,
             'users' => $users,
+            'total' => $postsData->total(),
         ]);
     }
 
-    /**
-     * Show the form for creating a new post.
-     * 
-     * @return Response
-     */
     public function create(): Response
     {
-        $posts = $this->mockDataService->getPosts();
-        $categories = $this->mockDataService->getCategories();
-        $tags = $this->mockDataService->getTags();
-        $users = $this->mockDataService->getUsers();
-        
+        $categories = Category::orderBy('sort_order')->get(['id', 'name']);
+        $tags = Tag::orderBy('name')->get(['id', 'name']);
+        $users = User::whereHas('roles')->get(['id', 'name']);
+
         return Inertia::render('admin/Posts', [
-            'posts' => $posts,
             'categories' => $categories,
             'tags' => $tags,
             'users' => $users,
         ]);
     }
 
-    /**
-     * Store a newly created post in storage.
-     * 
-     * @param Request $request
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function store(Request $request)
+    public function store(StorePostRequest $request)
     {
-        // Handle post creation
-    }
-
-    /**
-     * Display the specified post.
-     * 
-     * @param string $id
-     */
-    public function show(string $id)
-    {
-        // Show post details
-    }
-
-    /**
-     * Show the form for editing the specified post.
-     * 
-     * @param string $id
-     * @return Response
-     */
-    public function edit(string $id): Response
-    {
-        $posts = $this->mockDataService->getPosts();
-        $post = collect($posts)->firstWhere('id', $id);
-        $categories = $this->mockDataService->getCategories();
-        $tags = $this->mockDataService->getTags();
-        $users = $this->mockDataService->getUsers();
+        $data = $request->validated();
+        $data['author_id'] = $request->user()->id;
         
+        $this->postService->createPost($data);
+
+        return redirect()->route('posts.index')->with('success', '文章已创建');
+    }
+
+    public function show(Post $post): Response
+    {
+        $post->load(['author', 'category', 'tags']);
+
         return Inertia::render('admin/Posts', [
-            'posts' => $posts,
             'post' => $post,
+        ]);
+    }
+
+    public function edit(Post $post): Response
+    {
+        $post->load(['tags', 'author']);
+        $categories = Category::orderBy('sort_order')->get(['id', 'name']);
+        $tags = Tag::orderBy('name')->get(['id', 'name']);
+        $users = User::whereHas('roles')->get(['id', 'name']);
+
+        $postData = [
+            'id' => $post->id,
+            'title' => $post->title,
+            'slug' => $post->slug,
+            'excerpt' => $post->excerpt,
+            'content' => $post->content,
+            'thumbnail' => $post->cover_image,
+            'author' => $post->author ? ($post->author->pen_name ?? $post->author->name) : '',
+            'category' => $post->category_id,
+            'date' => $post->published_at ? date('Y.m.d', strtotime($post->published_at)) : date('Y.m.d'),
+            'tags' => $post->tags->pluck('name')->join(', '),
+            'is_featured' => $post->is_featured,
+            'seo_title' => $post->seo_title,
+            'seo_description' => $post->seo_description,
+        ];
+
+        return Inertia::render('admin/Posts', [
+            'post' => $postData,
             'categories' => $categories,
             'tags' => $tags,
             'users' => $users,
         ]);
     }
 
-    /**
-     * Update the specified post in storage.
-     * 
-     * @param Request $request
-     * @param string $id
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function update(Request $request, string $id)
+    public function update(UpdatePostRequest $request, Post $post)
     {
-        // Handle post update
+        $this->postService->updatePost($post, $request->validated());
+
+        return redirect()->route('posts.index')->with('success', '文章已更新');
     }
 
-    /**
-     * Remove the specified post from storage.
-     * 
-     * @param string $id
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function destroy(string $id)
+    public function destroy(Post $post)
     {
-        // Handle post deletion
+        $post->delete();
+
+        return redirect()->route('posts.index')->with('success', '文章已删除');
+    }
+
+    public function publish(Post $post)
+    {
+        $this->postService->publishPost($post);
+
+        return redirect()->route('posts.index')->with('success', '文章已发布');
     }
 }

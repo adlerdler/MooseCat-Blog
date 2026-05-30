@@ -122,8 +122,8 @@ const getLinkStyle = (index) => {
       </h4>
       <ul class="text-xs space-y-3 font-bold tracking-widest uppercase">
         <li v-for="link in categoryLinks" :key="link.id">
-          <Link :href="link.route" class="hover:text-accent hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
-            / {{ t(link.label_key) || link.label_default }}
+          <Link :href="link.url" class="hover:text-accent hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
+            / {{ link.label }}
           </Link>
         </li>
       </ul>
@@ -135,10 +135,10 @@ const getLinkStyle = (index) => {
       <ul class="text-xs space-y-3 font-bold tracking-widest uppercase">
         <li v-for="link in dataLinks" :key="link.id">
           <a v-if="link.url" :href="link.url" target="_blank" rel="noopener noreferrer" class="hover:text-accent hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
-            {{ t(link.label_key) || link.label_default }}
+            {{ link.label }}
           </a>
           <Link v-else :href="link.route" class="hover:text-accent hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
-            / {{ t(link.label_key) || link.label_default }}
+            / {{ link.label }}
           </Link>
         </li>
       </ul>

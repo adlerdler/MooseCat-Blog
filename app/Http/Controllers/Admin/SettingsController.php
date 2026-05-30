@@ -39,15 +39,40 @@ class SettingsController extends Controller
         $themes = $this->mockDataService->getThemes();
         $seoConfig = $this->mockDataService->getSeoConfig();
         $i18nConfig = $this->mockDataService->getI18nConfig();
-        $media = $this->mockDataService->getMedia();
+        
+        $mediaItems = \App\Models\Media::with('media')
+            ->latest()
+            ->get()
+            ->map(function ($item) {
+                $file = $item->media->first();
+                return [
+                    'id' => $item->id,
+                    'title' => $item->title,
+                    'name' => $file?->file_name ?? $item->title ?? 'Untitled',
+                    'type' => str_starts_with($file?->mime_type ?? '', 'image/') ? 'image' : 
+                             (str_starts_with($file?->mime_type ?? '', 'video/') ? 'video' : 'document'),
+                    'size' => $file ? $this->formatSize($file?->size ?? 0) : '0 B',
+                    'url' => $file?->getUrl() ?? '',
+                    'date' => $item->created_at->format('Y-m-d'),
+                ];
+            });
 
         return Inertia::render('admin/Settings', [
             'siteConfig' => $siteConfig,
             'themes' => $themes,
             'seoConfig' => $seoConfig,
             'i18nConfig' => $i18nConfig,
-            'media' => $media,
+            'media' => $mediaItems,
         ]);
+    }
+
+    private function formatSize(int $bytes): string
+    {
+        if ($bytes === 0) return '0 B';
+        $k = 1024;
+        $sizes = ['B', 'KB', 'MB', 'GB'];
+        $i = floor(log($bytes) / log($k));
+        return round($bytes / pow($k, $i), 2) . ' ' . $sizes[$i];
     }
 
     /**

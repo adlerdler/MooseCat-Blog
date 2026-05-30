@@ -28,7 +28,7 @@ class PostService
             ->with(['author', 'category', 'tags'])
             ->when($filters['category'] ?? null, fn($q, $slug) => $q->whereHas('category', fn($q) => $q->where('slug', $slug)))
             ->when($filters['tag'] ?? null, fn($q, $slug) => $q->whereHas('tags', fn($q) => $q->where('slug', $slug)))
-            ->when($filters['status'] ?? 'published', fn($q, $status) => $q->where('status', $status))
+            ->when($filters['status'] ?? null, fn($q, $status) => $q->where('status', $status))
             ->latest('published_at')
             ->paginate($perPage);
     }
@@ -41,11 +41,21 @@ class PostService
     {
         return DB::transaction(function () use ($data) {
             $data['slug'] = $data['slug'] ?? Str::slug($data['title']);
+            $data['status'] = $data['status'] ?? 'draft';
+            
+            $tags = $data['tags'] ?? [];
+            unset($data['tags']);
             
             $post = Post::create($data);
 
-            if (isset($data['tags'])) {
-                $post->tags()->sync($data['tags']);
+            if (!empty($tags)) {
+                $tagIds = collect($tags)->map(function ($tag) {
+                    if (is_numeric($tag)) {
+                        return (int) $tag;
+                    }
+                    return \App\Models\Tag::firstOrCreate(['name' => $tag])->id;
+                })->toArray();
+                $post->tags()->sync($tagIds);
             }
 
             return $post;
@@ -63,10 +73,19 @@ class PostService
                 $data['slug'] = Str::slug($data['title']);
             }
 
+            $tags = $data['tags'] ?? [];
+            unset($data['tags']);
+
             $post->update($data);
 
-            if (isset($data['tags'])) {
-                $post->tags()->sync($data['tags']);
+            if (!empty($tags)) {
+                $tagIds = collect($tags)->map(function ($tag) {
+                    if (is_numeric($tag)) {
+                        return (int) $tag;
+                    }
+                    return \App\Models\Tag::firstOrCreate(['name' => $tag])->id;
+                })->toArray();
+                $post->tags()->sync($tagIds);
             }
 
             return $post;

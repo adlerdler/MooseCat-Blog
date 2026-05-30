@@ -45,4 +45,20 @@ class FooterLink extends Model
     {
         return $query->where('type', 'nav_link');
     }
+
+    /**
+     * Scope for category navigation links.
+     */
+    public function scopeCategoryLinks($query)
+    {
+        return $query->where('type', 'nav_link')->where('platform', 'categories');
+    }
+
+    /**
+     * Scope for data links.
+     */
+    public function scopeDataLinks($query)
+    {
+        return $query->where('type', 'nav_link')->where('platform', 'data');
+    }
 }

@@ -83,7 +83,10 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::get('/settings', [SettingsController::class, 'index'])->name('admin.settings');
     Route::put('/settings', [SettingsController::class, 'update'])->name('admin.settings.update');
     Route::get('/social-links', [SocialLinksController::class, 'index'])->name('admin.social-links');
+    Route::post('/social-links', [SocialLinksController::class, 'store'])->name('admin.social-links.store');
     Route::put('/social-links', [SocialLinksController::class, 'update'])->name('admin.social-links.update');
+    Route::put('/social-links/{id}', [SocialLinksController::class, 'update'])->name('admin.social-links.update-item');
+    Route::delete('/social-links/{id}', [SocialLinksController::class, 'destroy'])->name('admin.social-links.destroy');
     Route::get('/seo', [SeoController::class, 'index'])->name('admin.seo');
     Route::put('/seo', [SeoController::class, 'update'])->name('admin.seo.update');
     Route::post('/seo/page-seo', [SeoController::class, 'storePageSeo'])->name('admin.seo.page-seo.store');
@@ -93,7 +96,7 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::put('/i18n', [I18nController::class, 'update'])->name('admin.i18n.update');
     Route::get('/media', [MediaController::class, 'index'])->name('admin.media');
     Route::post('/media', [MediaController::class, 'store'])->name('admin.media.store');
-    Route::delete('/media/{id}', [MediaController::class, 'destroy'])->name('admin.media.destroy');
+    Route::delete('/media/{media}', [MediaController::class, 'destroy'])->name('admin.media.destroy');
     Route::get('/email-templates', [EmailTemplatesController::class, 'index'])->name('admin.email-templates');
     Route::get('/email-templates/{id}/edit', [EmailTemplatesController::class, 'edit'])->name('admin.email-templates.edit');
     Route::put('/email-templates/{id}', [EmailTemplatesController::class, 'update'])->name('admin.email-templates.update');

@@ -1,16 +1,15 @@
 <script setup>
 /**
- * FooterManager.vue - 页脚管理页面
+ * SocialLinks.vue - 社交链接管理页面
  * 
  * 功能说明：
- * - 管理前台页脚的所有可配置内容
- * - 社交链接管理（添加、编辑、删除、排序）
- * - 导航链接管理（分类、数据链接）
- * - 品牌信息管理
- * - 数据保存到 footer_config.js
+ * - 管理社交链接（添加、编辑、删除、排序）
+ * - 管理分类导航链接
+ * - 管理数据链接
  */
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { router } from '@inertiajs/vue3';
 import {
   LayoutPanelLeft,
   Plus,
@@ -34,7 +33,7 @@ import {
   X
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
-import { useFooterData } from '../../composables/useFooterData';
+import { useToast } from '../../composables/useToast';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import Pagination from '../../components/admin/Pagination.vue';
 import SearchFilterModal from '../../components/admin/SearchFilterModal.vue';
@@ -46,15 +45,13 @@ const props = defineProps({
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
-const { getFooterSocialLinks, getFooterNavLinks, footerConfig } = useFooterData({
-  footerConfig: { social_links: props.socialLinks, nav_links: props.navLinks }
-});
+const { success, error } = useToast();
 
 const activeTab = ref('social');
 
-const socialLinksList = ref(getFooterSocialLinks().map(link => ({ ...link })));
-const categoryLinksList = ref(getFooterNavLinks('categories').map(link => ({ ...link })));
-const dataLinksList = ref(getFooterNavLinks('data').map(link => ({ ...link })));
+const socialLinksList = ref([...props.socialLinks]);
+const categoryLinksList = ref(props.navLinks.categories || []);
+const dataLinksList = ref(props.navLinks.data || []);
 
 const searchQuery = ref('');
 const currentPage = ref(1);
@@ -69,6 +66,7 @@ const showSaveConfirm = ref(false);
 const showAddLinkModal = ref(false);
 const newLinkPlatform = ref('');
 const newLinkUrl = ref('');
+const newLinkIcon = ref('');
 const detectedPlatform = ref('');
 
 const showEditModal = ref(false);
@@ -125,12 +123,12 @@ const filteredSocialLinks = computed(() => {
   if (searchQuery.value && activeTab.value === 'social') {
     const query = searchQuery.value.toLowerCase();
     result = result.filter(link =>
-      link.label.toLowerCase().includes(query) ||
-      link.platform.toLowerCase().includes(query) ||
-      link.url.toLowerCase().includes(query)
+      (link.label || '').toLowerCase().includes(query) ||
+      (link.platform || '').toLowerCase().includes(query) ||
+      (link.url || '').toLowerCase().includes(query)
     );
   }
-  return result.sort((a, b) => a.sort_order - b.sort_order);
+  return result.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
 });
 
 const filteredNavLinks = computed(() => {
@@ -139,12 +137,12 @@ const filteredNavLinks = computed(() => {
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase();
     result = result.filter(link =>
-      (link.label_key || '').toLowerCase().includes(query) ||
+      (link.label_key || link.label || '').toLowerCase().includes(query) ||
       (link.label_default || '').toLowerCase().includes(query) ||
       (link.route || link.url || '').toLowerCase().includes(query)
     );
   }
-  return result.sort((a, b) => a.sort_order - b.sort_order);
+  return result.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
 });
 
 const filteredList = computed(() => {
@@ -162,6 +160,7 @@ const openAddLinkModal = () => {
   showAddLinkModal.value = true;
   newLinkPlatform.value = '';
   newLinkUrl.value = '';
+  newLinkIcon.value = '';
   detectedPlatform.value = '';
 };
 
@@ -169,46 +168,72 @@ const cancelAddLink = () => {
   showAddLinkModal.value = false;
   newLinkPlatform.value = '';
   newLinkUrl.value = '';
+  newLinkIcon.value = '';
   detectedPlatform.value = '';
 };
 
 const confirmAddLink = () => {
-  if (!newLinkPlatform.value.trim()) {
-    alert('请输入平台名称');
-    return;
-  }
-  if (!newLinkUrl.value.trim()) {
-    alert('请输入链接地址');
-    return;
-  }
-  
-  const platform = newLinkPlatform.value.trim().toLowerCase().replace(/\s+/g, '_');
-  const exists = socialLinksList.value.some(l => l.platform === platform);
-  if (exists) {
-    alert('该平台已存在');
-    return;
-  }
-  
-  const newId = Math.max(...socialLinksList.value.map(l => l.id), 0) + 1;
-  socialLinksList.value.push({
-    id: newId,
-    platform,
-    icon_name: platform.charAt(0).toUpperCase() + platform.slice(1),
-    label: platform.toUpperCase(),
-    url: newLinkUrl.value.trim(),
-    sort_order: socialLinksList.value.length + 1,
-    is_active: true,
-    style: {
-      bg: 'bg-construct-black',
-      text: 'text-white',
-      hover_bg: 'hover:bg-construct-red',
-      hover_text: 'hover:text-white',
-      border: 'border-black',
-      hover_border: 'hover:border-construct-red'
+  if (activeTab.value === 'social') {
+    if (!newLinkPlatform.value.trim()) {
+      error('错误', '请输入平台名称');
+      return;
     }
-  });
-  
-  cancelAddLink();
+    if (!newLinkUrl.value.trim()) {
+      error('错误', '请输入链接地址');
+      return;
+    }
+    
+    const platform = newLinkPlatform.value.trim().toLowerCase().replace(/\s+/g, '_');
+    const exists = socialLinksList.value.some(l => l.platform === platform);
+    if (exists) {
+      error('错误', '该平台已存在');
+      return;
+    }
+    
+    router.post('/admin/social-links', {
+      platform,
+      url: newLinkUrl.value.trim(),
+      icon: newLinkIcon.value || platform,
+      sort_order: socialLinksList.value.length + 1,
+      is_active: true,
+    }, {
+      onSuccess: () => {
+        cancelAddLink();
+        success('成功', '链接已创建');
+        window.location.reload();
+      },
+      onError: () => {
+        error('错误', '创建链接失败');
+      }
+    });
+  } else {
+    if (!newLinkPlatform.value.trim()) {
+      error('错误', '请输入名称');
+      return;
+    }
+    if (!newLinkUrl.value.trim()) {
+      error('错误', '请输入链接地址');
+      return;
+    }
+    
+    const list = activeTab.value === 'categories' ? categoryLinksList.value : dataLinksList.value;
+    router.post('/admin/social-links', {
+      type: activeTab.value,
+      label: newLinkPlatform.value.trim(),
+      url: newLinkUrl.value.trim(),
+      sort_order: list.length + 1,
+      is_active: true,
+    }, {
+      onSuccess: () => {
+        cancelAddLink();
+        success('成功', '链接已创建');
+        window.location.reload();
+      },
+      onError: () => {
+        error('错误', '创建链接失败');
+      }
+    });
+  }
 };
 
 const handleDelete = (id, type) => {
@@ -219,15 +244,33 @@ const handleDelete = (id, type) => {
 
 const confirmDelete = () => {
   if (deletingItemType.value === 'social') {
-    socialLinksList.value = socialLinksList.value.filter(l => l.id !== deletingItemId.value);
-  } else if (deletingItemType.value === 'categories') {
-    categoryLinksList.value = categoryLinksList.value.filter(l => l.id !== deletingItemId.value);
-  } else if (deletingItemType.value === 'data') {
-    dataLinksList.value = dataLinksList.value.filter(l => l.id !== deletingItemId.value);
+    router.delete(`/admin/social-links/${deletingItemId.value}`, {
+      onSuccess: () => {
+        showDeleteConfirm.value = false;
+        deletingItemId.value = null;
+        deletingItemType.value = '';
+        success('成功', '链接已删除');
+        window.location.reload();
+      },
+      onError: () => {
+        error('错误', '删除链接失败');
+      }
+    });
+  } else {
+    router.delete(`/admin/social-links/${deletingItemId.value}`, {
+      data: { type: deletingItemType.value },
+      onSuccess: () => {
+        showDeleteConfirm.value = false;
+        deletingItemId.value = null;
+        deletingItemType.value = '';
+        success('成功', '链接已删除');
+        window.location.reload();
+      },
+      onError: () => {
+        error('错误', '删除链接失败');
+      }
+    });
   }
-  showDeleteConfirm.value = false;
-  deletingItemId.value = null;
-  deletingItemType.value = '';
 };
 
 const moveUp = (link, list) => {
@@ -254,10 +297,18 @@ const handleSaveAll = () => {
 
 const confirmSave = () => {
   showSaveConfirm.value = false;
-  console.log('Social links saved:', socialLinksList.value);
-  console.log('Category links saved:', categoryLinksList.value);
-  console.log('Data links saved:', dataLinksList.value);
-  alert('页脚配置已保存');
+  
+  const data = {
+    social_links: socialLinksList.value,
+    nav_links: {
+      categories: categoryLinksList.value,
+      data: dataLinksList.value,
+    }
+  };
+  
+  router.put('/admin/social-links', data, {
+    preserveScroll: true,
+  });
 };
 
 const openEditModal = (link) => {
@@ -266,6 +317,8 @@ const openEditModal = (link) => {
     label: link.label || link.label_default || '',
     url: link.url || '',
     route: link.route || '',
+    platform: link.platform || '',
+    icon: link.icon || '',
     is_active: link.is_active !== undefined ? link.is_active : true
   };
   showEditModal.value = true;
@@ -288,12 +341,24 @@ const saveEdit = () => {
     alert('请输入链接地址或路由');
     return;
   }
-  link.label = editForm.value.label;
-  link.label_default = editForm.value.label;
-  link.url = editForm.value.url;
-  link.route = editForm.value.route;
-  link.is_active = editForm.value.is_active;
-  closeEditModal();
+  
+  const data = {
+    label: editForm.value.label,
+    url: editForm.value.url,
+    route: editForm.value.route,
+    is_active: editForm.value.is_active,
+  };
+  
+  if (activeTab.value === 'social') {
+    data.platform = editForm.value.platform;
+    data.icon = editForm.value.icon;
+  }
+  
+  router.put(`/admin/social-links/${link.id}`, data, {
+    onSuccess: () => {
+      closeEditModal();
+    }
+  });
 };
 
 const tabs = [
@@ -370,7 +435,6 @@ const getPlatformGradient = (platform) => {
       </button>
       <div class="flex-1" />
       <button
-        v-if="activeTab === 'social'"
         @click="openAddLinkModal"
         class="flex items-center gap-3 mb-1 px-8 py-3 bg-construct-red text-white font-black text-xs uppercase tracking-[0.2em] transition-all hover:scale-105 active:scale-95 shadow-lg shadow-construct-red/20 rounded-xl"
       >

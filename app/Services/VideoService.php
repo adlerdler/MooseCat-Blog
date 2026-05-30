@@ -28,7 +28,7 @@ class VideoService
         return Video::query()
             ->with(['category', 'tags'])
             ->when($filters['category'] ?? null, fn($q, $slug) => $q->whereHas('category', fn($q) => $q->where('slug', $slug)))
-            ->when($filters['status'] ?? 'published', fn($q, $status) => $q->where('status', $status))
+            ->when($filters['status'] ?? null, fn($q, $status) => $q->where('status', $status))
             ->latest('published_at')
             ->paginate($perPage);
     }
@@ -62,28 +62,49 @@ class VideoService
     {
         return DB::transaction(function () use ($data) {
             $data['slug'] = $data['slug'] ?? Str::slug($data['title']);
+            $data['status'] = $data['status'] ?? 'draft';
+            
+            $tags = $data['tags'] ?? [];
+            unset($data['tags']);
+            
             $video = Video::create($data);
-            if (isset($data['tags'])) {
-                $video->tags()->sync($data['tags']);
+
+            if (!empty($tags)) {
+                $tagIds = collect($tags)->map(function ($tag) {
+                    if (is_numeric($tag)) {
+                        return (int) $tag;
+                    }
+                    return \App\Models\Tag::firstOrCreate(['name' => $tag])->id;
+                })->toArray();
+                $video->tags()->sync($tagIds);
             }
+
             return $video;
         });
     }
 
-    /**
-     * 更新视频
-     * Update video
-     */
     public function updateVideo(Video $video, array $data): Video
     {
         return DB::transaction(function () use ($video, $data) {
             if (isset($data['title']) && !isset($data['slug'])) {
                 $data['slug'] = Str::slug($data['title']);
             }
+
+            $tags = $data['tags'] ?? [];
+            unset($data['tags']);
+
             $video->update($data);
-            if (isset($data['tags'])) {
-                $video->tags()->sync($data['tags']);
+
+            if (!empty($tags)) {
+                $tagIds = collect($tags)->map(function ($tag) {
+                    if (is_numeric($tag)) {
+                        return (int) $tag;
+                    }
+                    return \App\Models\Tag::firstOrCreate(['name' => $tag])->id;
+                })->toArray();
+                $video->tags()->sync($tagIds);
             }
+
             return $video;
         });
     }

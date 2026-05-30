@@ -14,13 +14,27 @@ class MediaController extends Controller
 {
     public function index(Request $request): Response
     {
-        $media = Media::with('user')
+        $media = Media::with(['user', 'media'])
             ->when($request->search, function ($query, $search) {
                 $query->where('title', 'like', "%{$search}%")
                     ->orWhere('alt_text', 'like', "%{$search}%");
             })
             ->latest()
             ->paginate(20);
+
+        $media->getCollection()->transform(function ($item) {
+            $file = $item->media->first();
+            return [
+                'id' => $item->id,
+                'title' => $item->title,
+                'name' => $file?->file_name ?? $item->title ?? 'Untitled',
+                'type' => $this->getFileType($file?->mime_type ?? ''),
+                'size' => $this->formatSize($file?->size ?? 0),
+                'url' => $file?->getUrl() ?? '',
+                'thumb_url' => $file?->getUrl('thumb') ?? '',
+                'date' => $item->created_at->format('Y-m-d'),
+            ];
+        });
 
         return Inertia::render('admin/Media', [
             'media' => $media,
@@ -30,14 +44,16 @@ class MediaController extends Controller
     public function store(Request $request): JsonResponse
     {
         $request->validate([
-            'file' => 'required|file|max:10240',
+            'file' => 'required|file|max:102400',
             'title' => 'nullable|string|max:255',
             'alt_text' => 'nullable|string|max:255',
             'tags' => 'nullable|array',
         ]);
 
+        $user = auth()->user();
+        
         $media = Media::create([
-            'user_id' => auth()->id(),
+            'user_id' => $user->id,
             'title' => $request->title,
             'alt_text' => $request->alt_text,
             'tags' => $request->tags,
@@ -46,7 +62,7 @@ class MediaController extends Controller
 
         if ($request->hasFile('file')) {
             $media->addMedia($request->file('file'))
-                ->toMediaCollection('default');
+                ->toMediaCollection('default', 'public');
         }
 
         $media->load('media');
@@ -104,7 +120,7 @@ class MediaController extends Controller
 
     public function destroy(Media $media): JsonResponse
     {
-        $media->mediaFiles()->each(fn ($file) => $file->delete());
+        $media->clearMediaCollection('default');
         $media->delete();
 
         return response()->json([

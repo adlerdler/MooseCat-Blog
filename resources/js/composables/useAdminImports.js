@@ -8,6 +8,9 @@
 // Vue 组合式 API
 export { ref, computed, watch } from 'vue';
 
+// Inertia router
+export { router } from '@inertiajs/vue3';
+
 // Vue I18n
 export { useI18n } from 'vue-i18n';
 

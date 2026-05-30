@@ -97,7 +97,10 @@ const fileTypesInput = computed({
 
 const handleMediaSelect = (file) => {
   if (file.url) {
-    site.value.favicon = file.url;
+    // Extract relative path from full URL
+    const url = new URL(file.url, window.location.origin);
+    const relativePath = url.pathname;
+    site.value.favicon = relativePath;
   }
 };
 

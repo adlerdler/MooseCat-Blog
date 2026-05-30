@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Services\MockDataService;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -16,18 +16,6 @@ use Inertia\Response;
  */
 class CategoryController extends Controller
 {
-    protected $mockDataService;
-
-    /**
-     * Constructor
-     * 
-     * @param MockDataService $mockDataService
-     */
-    public function __construct(MockDataService $mockDataService)
-    {
-        $this->mockDataService = $mockDataService;
-    }
-
     /**
      * Display a listing of the categories.
      * 
@@ -35,7 +23,9 @@ class CategoryController extends Controller
      */
     public function index(): Response
     {
-        $categories = $this->mockDataService->getCategories();
+        $categories = Category::with('parent')
+            ->orderBy('sort_order')
+            ->get();
         
         return Inertia::render('admin/Categories', [
             'categories' => $categories,
@@ -49,7 +39,11 @@ class CategoryController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('admin/Categories');
+        $parentCategories = Category::orderBy('sort_order')->get(['id', 'name']);
+        
+        return Inertia::render('admin/Categories', [
+            'parentCategories' => $parentCategories,
+        ]);
     }
 
     /**
@@ -60,7 +54,18 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
-        // Handle category creation
+        $validated = $request->validate([
+            'parent_id' => 'nullable|exists:categories,id',
+            'name' => 'required|string|max:255',
+            'slug' => 'required|string|max:255|unique:categories,slug',
+            'description' => 'nullable|string',
+            'status' => 'required|in:active,inactive',
+            'sort_order' => 'nullable|integer',
+        ]);
+
+        Category::create($validated);
+
+        return back()->with('success', '分类已创建');
     }
 
     /**
@@ -70,7 +75,11 @@ class CategoryController extends Controller
      */
     public function show(string $id)
     {
-        // Show category details
+        $category = Category::with(['parent', 'children', 'posts'])->findOrFail($id);
+        
+        return Inertia::render('admin/Categories', [
+            'category' => $category,
+        ]);
     }
 
     /**
@@ -81,11 +90,14 @@ class CategoryController extends Controller
      */
     public function edit(string $id): Response
     {
-        $categories = $this->mockDataService->getCategories();
-        $category = collect($categories)->firstWhere('id', $id);
+        $category = Category::with('parent')->findOrFail($id);
+        $parentCategories = Category::where('id', '!=', $id)
+            ->orderBy('sort_order')
+            ->get(['id', 'name']);
         
         return Inertia::render('admin/Categories', [
             'category' => $category,
+            'parentCategories' => $parentCategories,
         ]);
     }
 
@@ -96,9 +108,20 @@ class CategoryController extends Controller
      * @param string $id
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Category $category)
     {
-        // Handle category update
+        $validated = $request->validate([
+            'parent_id' => 'nullable|exists:categories,id',
+            'name' => 'required|string|max:255',
+            'slug' => 'required|string|max:255|unique:categories,slug,' . $category->id,
+            'description' => 'nullable|string',
+            'status' => 'required|in:active,inactive',
+            'sort_order' => 'nullable|integer',
+        ]);
+
+        $category->update($validated);
+
+        return back()->with('success', '分类已更新');
     }
 
     /**
@@ -107,8 +130,10 @@ class CategoryController extends Controller
      * @param string $id
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function destroy(string $id)
+    public function destroy(Category $category)
     {
-        // Handle category deletion
+        $category->delete();
+
+        return back()->with('success', '分类已删除');
     }
 }

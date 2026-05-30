@@ -9,6 +9,7 @@
  */
 import { ref, computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { router } from '@inertiajs/vue3';
 import {
   Play,
   Plus,
@@ -31,6 +32,14 @@ const props = defineProps({
   videos: {
     type: Array,
     default: () => []
+  },
+  categories: {
+    type: Array,
+    default: () => []
+  },
+  video: {
+    type: Object,
+    default: null
   }
 });
 
@@ -58,6 +67,24 @@ const localVideos = ref([...props.videos]);
 
 watch(() => props.videos, (newVideos) => {
   localVideos.value = [...newVideos];
+}, { immediate: true });
+
+watch(() => props.video, (newVideo) => {
+  if (newVideo) {
+    editingVideo.value = {
+      id: newVideo.id,
+      title: newVideo.title,
+      description: newVideo.description,
+      thumbnail: newVideo.cover_image,
+      url: newVideo.video_url,
+      duration: newVideo.duration,
+      category: newVideo.category,
+      date: newVideo.published_at,
+      tags: newVideo.tags,
+      status: newVideo.status,
+    };
+    isFormVisible.value = true;
+  }
 }, { immediate: true });
 
 const platforms = ['all', 'YouTube', 'Vimeo', 'Bilibili'];
@@ -106,10 +133,13 @@ const handleDelete = (id) => {
 
 const confirmDelete = () => {
   if (deletingVideoId.value !== null) {
-    localVideos.value = localVideos.value.filter(v => v.id !== deletingVideoId.value);
-    deletingVideoId.value = null;
+    router.delete(route('videos.destroy', deletingVideoId.value), {
+      onSuccess: () => {
+        showDeleteConfirm.value = false;
+        deletingVideoId.value = null;
+      },
+    });
   }
-  showDeleteConfirm.value = false;
 };
 
 const handleEdit = (video) => {
@@ -117,11 +147,14 @@ const handleEdit = (video) => {
     id: video.id,
     title: video.title,
     description: video.description,
-    thumbnail: video.thumbnail,
-    url: video.videoId,
-    platform: video.platform.toLowerCase(),
-    date: video.date,
-    status: 'published'
+    thumbnail: video.cover_image,
+    url: video.video_url,
+    video_id: video.video_id,
+    duration: video.duration,
+    category: video.category_id,
+    date: video.published_at ? new Date(video.published_at).toISOString().split('T')[0].replace(/-/g, '.') : '',
+    tags: Array.isArray(video.tags) ? video.tags.join(', ') : video.tags,
+    status: video.status,
   };
   isFormVisible.value = true;
 };
@@ -132,10 +165,30 @@ const handleAdd = () => {
 };
 
 const handleSave = (data) => {
-  if (editingVideo.value) {
-    console.log('Update video:', data);
+  const category = props.categories.find(c => c.name === data.category || c.id === data.category);
+  const payload = {
+    title: data.title,
+    description: data.description,
+    video_url: data.url || null,
+    video_id: data.video_id || null,
+    cover_image: data.thumbnail,
+    duration: data.duration ? parseInt(data.duration) : null,
+    category_id: category ? category.id : null,
+    tags: data.tags,
+    published_at: data.date ? data.date.replace(/\./g, '-') : null,
+    status: data.status || 'draft',
+  };
+
+  if (editingVideo.value && editingVideo.value.id) {
+    router.put(route('videos.update', editingVideo.value.id), payload, {
+      onError: (errors) => console.error('Update errors:', errors),
+      onSuccess: () => console.log('Update success'),
+    });
   } else {
-    console.log('Create video:', data);
+    router.post(route('videos.store'), payload, {
+      onError: (errors) => console.error('Store errors:', errors),
+      onSuccess: () => console.log('Store success'),
+    });
   }
   isFormVisible.value = false;
   editingVideo.value = null;
@@ -206,16 +259,16 @@ const handleFilterChange = ({ key, value }) => {
         <!-- Video Thumbnail -->
         <div class="relative aspect-video bg-gray-900">
           <img
-            v-if="video.thumbnail"
-            :src="video.thumbnail"
+            v-if="video.cover_image"
+            :src="video.cover_image"
             :alt="video.title"
             class="w-full h-full object-cover"
           />
           <div v-else class="w-full h-full flex items-center justify-center">
-            <component :is="getPlatformIcon(video.platform)" class="w-12 h-12 text-gray-600" />
+            <Play class="w-12 h-12 text-gray-600" />
           </div>
           <div class="absolute bottom-2 right-2 px-2 py-1 bg-black/80 text-white text-xs font-bold uppercase">
-            {{ video.platform }}
+            {{ video.status }}
           </div>
         </div>
         
@@ -270,6 +323,7 @@ const handleFilterChange = ({ key, value }) => {
     <VideoForm
       :edit-data="editingVideo"
       :visible="isFormVisible"
+      :categories="categories"
       @save="handleSave"
       @cancel="handleCancel"
     />

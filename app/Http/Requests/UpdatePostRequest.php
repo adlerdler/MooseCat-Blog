@@ -39,7 +39,7 @@ class UpdatePostRequest extends FormRequest
             'excerpt' => ['nullable', 'string', 'max:500'],
             'category_id' => ['nullable', 'integer', 'exists:categories,id'],
             'tags' => ['nullable', 'array'],
-            'tags.*' => ['integer', 'exists:tags,id'],
+            'tags.*' => ['string'],
             'cover_image' => ['nullable', 'string', 'max:500'],
             'status' => ['nullable', 'in:draft,published,scheduled'],
             'published_at' => ['nullable', 'date'],

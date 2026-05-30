@@ -3,22 +3,37 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
 class Video extends Model
 {
     protected $fillable = [
         'title',
+        'slug',
         'description',
-        'video_id',
-        'platform',
-        'thumbnail',
+        'video_url',
+        'cover_image',
         'duration',
+        'status',
         'views_count',
         'likes_count',
+        'category_id',
         'published_at',
     ];
 
     protected $casts = [
         'published_at' => 'datetime',
+        'duration' => 'integer',
     ];
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+    public function tags(): MorphToMany
+    {
+        return $this->morphToMany(Tag::class, 'taggable');
+    }
 }
