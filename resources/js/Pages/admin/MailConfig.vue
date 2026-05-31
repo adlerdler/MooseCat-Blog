@@ -11,6 +11,7 @@ import {
   User,
   X,
   useToast,
+  router,
   ConfirmDialog
 } from '../../composables/useAdminImports';
 
@@ -19,15 +20,10 @@ const props = defineProps({
 });
 
 const { t } = useI18n();
-
-const getDefaultMailConfig = () => {
-  const configs = props.mailConfig?.configs || [];
-  return configs.find(config => config.is_default) || configs[0] || {};
-};
 const { isDarkMode } = useTheme();
 const { success } = useToast();
 
-const mailSettings = ref({ ...getDefaultMailConfig() });
+const mailSettings = ref({ ...props.mailConfig });
 const isSaving = ref(false);
 const showSaveConfirm = ref(false);
 
@@ -44,15 +40,20 @@ const saveSettings = () => {
 const confirmSave = () => {
   showSaveConfirm.value = false;
   isSaving.value = true;
-  setTimeout(() => {
-    console.log('Mail settings saved:', mailSettings.value);
-    isSaving.value = false;
-    success(t('admin_save') + ' ' + t('confirm'));
-  }, 500);
+  router.put('/admin/mail-config', mailSettings.value, {
+    preserveState: false,
+    preserveScroll: true,
+    onFinish: () => {
+      isSaving.value = false;
+    },
+  });
 };
 
 const sendTestEmail = () => {
-  success(t('admin_send_test') + ' ' + t('confirm'));
+  router.post('/admin/mail-config/test', mailSettings.value, {
+    preserveState: true,
+    preserveScroll: true,
+  });
 };
 </script>
 

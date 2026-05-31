@@ -1,7 +1,4 @@
 @extends('errors.layout')
 
-@section('title', '403 - Forbidden')
-
-@section('content')
-    <error-page :error-code="403" />
-@endsection
+@section('title', '访问被拒绝')
+@section('message', '抱歉，您没有权限访问此页面。如需获取访问权限，请联系管理员。')

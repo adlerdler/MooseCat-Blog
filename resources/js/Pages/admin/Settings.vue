@@ -13,6 +13,7 @@
 import {
   ref,
   computed,
+  watch,
   useI18n,
   useTheme,
   Settings,
@@ -36,13 +37,14 @@ import {
   useToast
 } from '../../composables/useAdminImports';
 import { Plus, Edit2, Trash2 } from 'lucide-vue-next';
+import { router } from '@inertiajs/vue3';
 
 const props = defineProps({
   siteConfig: { type: Object, default: () => ({}) },
-  themes: { type: Array, default: () => [] },
   seoConfig: { type: Object, default: () => ({}) },
-  i18nConfig: { type: Object, default: () => ({}) },
+  commentConfig: { type: Object, default: () => ({}) },
   media: { type: Array, default: () => [] },
+  themes: { type: Array, default: () => [] },
 });
 
 const { t: originalT } = useI18n();
@@ -54,10 +56,13 @@ const t = (key, fallback = '') => {
     return fallback;
   }
 };
-const { isDarkMode, toggleTheme } = useTheme();
+const { isDarkMode, toggleTheme } = useTheme({ themesData: props.themes });
 
-const getThemes = () => [...(props.themes || [])];
-const getDefaultTheme = () => (props.themes || []).find(th => th.is_default) || (props.themes || [])[0];
+const getThemes = () => props.themes || [];
+const getDefaultTheme = () => {
+  const themes = props.themes || [];
+  return themes.find(t => t.is_default) || null;
+};
 const { success } = useToast();
 
 const tabsConfig = [
@@ -76,7 +81,34 @@ const userNotifications = ref({
   digest_email: true,
   digest_frequency: 'weekly'
 });
-const site = ref({ ...(props.siteConfig || {}) });
+const site = ref({
+  name: '',
+  title: '',
+  description: '',
+  keywords: '',
+  logo: '',
+  favicon: '',
+  site_url: '',
+  copyright: '',
+  timezone: 'Asia/Shanghai',
+  maintenance: false,
+  author_bio: false,
+  comments: true,
+  registration: true,
+  comment_approval: false,
+  newsletter: true,
+  social_login: false,
+  search: true,
+  cache: true,
+  cache_duration: 3600,
+  minification: true,
+  lazy_load: true,
+  cdn: false,
+  cdn_url: '',
+  max_upload_size: 10,
+  file_types: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf', 'doc', 'docx'],
+  ...(props.siteConfig || {}),
+});
 const seo = ref({ ...(props.seoConfig || {}) });
 const activeTab = ref('site');
 const isSaving = ref(false);
@@ -84,12 +116,11 @@ const showSaveConfirm = ref(false);
 const showMediaPicker = ref(false);
 const mediaFiles = ref([...(props.media || [])]);
 
-const availableLanguages = computed(() => {
-  return (props.i18nConfig?.languages || []).filter(lang => lang.is_active);
-});
-
 const fileTypesInput = computed({
-  get: () => site.value.file_types.join(', '),
+  get: () => {
+    const ft = site.value.file_types;
+    return Array.isArray(ft) ? ft.join(', ') : ft;
+  },
   set: (value) => {
     site.value.file_types = value.split(',').map(t => t.trim()).filter(t => t);
   }
@@ -97,11 +128,27 @@ const fileTypesInput = computed({
 
 const handleMediaSelect = (file) => {
   if (file.url) {
-    // Extract relative path from full URL
     const url = new URL(file.url, window.location.origin);
     const relativePath = url.pathname;
-    site.value.favicon = relativePath;
+    if (pickingField.value === 'logo') {
+      site.value.logo = relativePath;
+    } else {
+      site.value.favicon = relativePath;
+    }
   }
+  showMediaPicker.value = false;
+};
+
+const pickingField = ref('favicon');
+
+const openLogoPicker = () => {
+  pickingField.value = 'logo';
+  showMediaPicker.value = true;
+};
+
+const openFaviconPicker = () => {
+  pickingField.value = 'favicon';
+  showMediaPicker.value = true;
 };
 
 const iconMap = {
@@ -124,10 +171,15 @@ const availableThemes = computed(() => {
   return getThemes().filter(t => t.is_active);
 });
 
-const themeList = ref(getThemes().map(t => ({ ...t })));
+const themeList = ref([]);
+
+watch(() => props.themes, (newThemes) => {
+  themeList.value = (newThemes || []).map(t => ({ ...t }));
+}, { immediate: true, deep: true });
 const showThemeForm = ref(false);
 const editingTheme = ref(null);
 const themeForm = ref({ id: null, name: '', label: '', color: '#CF202E', sort_order: 1, is_active: true, is_default: false });
+const isSavingTheme = ref(false);
 
 const openAddTheme = () => {
   editingTheme.value = null;
@@ -154,21 +206,44 @@ const saveTheme = () => {
     return;
   }
   
+  isSavingTheme.value = true;
   if (editingTheme.value) {
-    const index = themeList.value.findIndex(t => t.id === editingTheme.value.id);
-    if (index !== -1) {
-      themeList.value[index] = { ...themeForm.value };
-    }
+    router.put(route('admin.settings.themes.update', editingTheme.value.id), themeForm.value, {
+      onSuccess: () => {
+        isSavingTheme.value = false;
+        success(t('admin_update') + ' ' + t('confirm'));
+        showThemeForm.value = false;
+      },
+      onError: (errors) => {
+        isSavingTheme.value = false;
+        console.error('更新失败:', errors);
+      }
+    });
   } else {
-    themeList.value.push({ ...themeForm.value });
+    router.post(route('admin.settings.themes.store'), themeForm.value, {
+      onSuccess: () => {
+        isSavingTheme.value = false;
+        success(t('admin_create') + ' ' + t('confirm'));
+        showThemeForm.value = false;
+      },
+      onError: (errors) => {
+        isSavingTheme.value = false;
+        console.error('创建失败:', errors);
+      }
+    });
   }
-  
-  showThemeForm.value = false;
 };
 
 const deleteTheme = (theme) => {
   if (confirm(`确定要删除主题 "${theme.label}" 吗？`)) {
-    themeList.value = themeList.value.filter(t => t.id !== theme.id);
+    router.delete(route('admin.settings.themes.destroy', theme.id), {
+      onSuccess: () => {
+        success(t('admin_delete') + ' ' + t('confirm'));
+      },
+      onError: (errors) => {
+        console.error('删除失败:', errors);
+      }
+    });
   }
 };
 
@@ -183,11 +258,55 @@ const saveSettings = () => {
 const confirmSave = () => {
   showSaveConfirm.value = false;
   isSaving.value = true;
-  setTimeout(() => {
-    console.log('Settings saved:', settings.value);
-    isSaving.value = false;
-    success(t('admin_save') + ' ' + t('confirm'));
-  }, 500);
+  
+  router.put(route('admin.settings.update'), {
+    name: site.value.name,
+    description: site.value.description,
+    site_url: site.value.site_url,
+    copyright: site.value.copyright,
+    logo: site.value.logo,
+    favicon: site.value.favicon,
+    timezone: site.value.timezone,
+    maintenance: site.value.maintenance,
+    author_bio: site.value.author_bio,
+    comments: site.value.comments,
+    registration: site.value.registration,
+    comment_approval: site.value.comment_approval,
+    newsletter: site.value.newsletter,
+    social_login: site.value.social_login,
+    search: site.value.search,
+    cache: site.value.cache,
+    cache_duration: site.value.cache_duration,
+    minification: site.value.minification,
+    lazy_load: site.value.lazy_load,
+    cdn: site.value.cdn,
+    cdn_url: site.value.cdn_url,
+    max_upload_size: site.value.max_upload_size,
+    file_types: site.value.file_types,
+    // SEO fields
+    meta_title: seo.value.meta_title,
+    meta_description: seo.value.meta_description,
+    meta_keywords: seo.value.meta_keywords,
+    google_analytics: seo.value.google_analytics,
+    baidu_analytics: seo.value.baidu_analytics,
+    canonical_url: seo.value.canonical_url,
+    og_image: seo.value.og_image,
+    og_type: seo.value.og_type,
+    twitter_card: seo.value.twitter_card,
+    sitemap: seo.value.sitemap,
+    robots: seo.value.robots,
+    llm_txt: seo.value.llm_txt,
+  }, {
+    preserveScroll: true,
+    onSuccess: () => {
+      isSaving.value = false;
+      success(t('admin_save') + ' ' + t('confirm'));
+    },
+    onError: (errors) => {
+      isSaving.value = false;
+      console.error('保存失败:', errors);
+    },
+  });
 };
 
 const resetSettings = () => {
@@ -260,7 +379,7 @@ const resetSettings = () => {
             <div>
               <label :class="['block text-sm font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_site_url') }}</label>
               <input
-                v-model="site.siteUrl"
+                v-model="site.site_url"
                 type="url"
                 :placeholder="t('admin_site_url_placeholder')"
                 :class="[
@@ -281,10 +400,42 @@ const resetSettings = () => {
               />
             </div>
             <div>
+              <label :class="['block text-sm font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_site_logo') }}</label>
+              <div class="flex items-start gap-4">
+                <div 
+                  @click="openLogoPicker"
+                  :class="[
+                    'w-16 h-16 border-2 border-dashed rounded-xl flex items-center justify-center flex-shrink-0 transition-all cursor-pointer hover:border-construct-red',
+                    isDarkMode ? 'border-gray-600 bg-gray-700 hover:bg-gray-600' : 'border-gray-300 bg-gray-50 hover:bg-gray-100'
+                  ]"
+                >
+                  <img
+                    v-if="site.logo"
+                    :src="site.logo"
+                    alt="Site Logo"
+                    class="w-12 h-12 object-contain"
+                  />
+                  <Image v-else size="24" :class="isDarkMode ? 'text-gray-500' : 'text-gray-400'" />
+                </div>
+                <div class="flex-1">
+                  <input
+                    v-model="site.logo"
+                    type="text"
+                    :placeholder="t('admin_site_logo_placeholder')"
+                    :class="[
+                      'w-full px-4 py-3 border focus:border-construct-red focus:outline-none transition-all mb-2',
+                      isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
+                    ]"
+                  />
+                  <p :class="['text-xs', isDarkMode ? 'text-gray-500' : 'text-gray-400']">{{ t('admin_site_logo_hint') }}</p>
+                </div>
+              </div>
+            </div>
+            <div>
               <label :class="['block text-sm font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_site_icon') }}</label>
               <div class="flex items-start gap-4">
                 <div 
-                  @click="showMediaPicker = true"
+                  @click="openFaviconPicker"
                   :class="[
                     'w-16 h-16 border-2 border-dashed rounded-xl flex items-center justify-center flex-shrink-0 transition-all cursor-pointer hover:border-construct-red',
                     isDarkMode ? 'border-gray-600 bg-gray-700 hover:bg-gray-600' : 'border-gray-300 bg-gray-50 hover:bg-gray-100'
@@ -323,20 +474,6 @@ const resetSettings = () => {
                   isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
                 ]"
               />
-            </div>
-            <div>
-              <label :class="['block text-sm font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_default_language') }}</label>
-              <select
-                v-model="site.defaultLanguage"
-                :class="[
-                  'w-full px-4 py-3 border focus:border-construct-red focus:outline-none transition-all',
-                  isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'
-                ]"
-              >
-                <option v-for="lang in availableLanguages" :key="lang.code" :value="lang.code">
-                  {{ lang.flag }} {{ lang.native_name }}
-                </option>
-              </select>
             </div>
             <div>
               <label :class="['block text-sm font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_timezone') }}</label>
@@ -799,12 +936,12 @@ const resetSettings = () => {
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label :class="['flex items-center gap-3 cursor-pointer']">
-                    <div :class="['w-12 h-6 rounded-full relative transition-colors', site.enableCache ? 'bg-construct-red' : 'bg-gray-600']">
-                      <div :class="['absolute top-1 w-4 h-4 rounded-full bg-white transition-transform', site.enableCache ? 'left-7' : 'left-1']"></div>
+                    <div :class="['w-12 h-6 rounded-full relative transition-colors', site.cache ? 'bg-construct-red' : 'bg-gray-600']">
+                      <div :class="['absolute top-1 w-4 h-4 rounded-full bg-white transition-transform', site.cache ? 'left-7' : 'left-1']"></div>
                     </div>
                     <span class="font-bold tracking-wider">{{ t('admin_enable_cache') }}</span>
                     <input
-                      v-model="site.enableCache"
+                      v-model="site.cache"
                       type="checkbox"
                       class="hidden"
                     />
@@ -813,7 +950,7 @@ const resetSettings = () => {
                 <div>
                   <label :class="['block text-sm font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_cache_duration') }} ({{ t('admin_seconds') }})</label>
                   <input
-                    v-model.number="site.cacheDuration"
+                    v-model.number="site.cache_duration"
                     type="number"
                     :class="[
                       'w-full px-4 py-3 border focus:border-construct-red focus:outline-none transition-all',
@@ -830,12 +967,12 @@ const resetSettings = () => {
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label :class="['flex items-center gap-3 cursor-pointer']">
-                    <div :class="['w-12 h-6 rounded-full relative transition-colors', site.enableMinification ? 'bg-construct-red' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-400')]">
-                      <div :class="['absolute top-1 w-4 h-4 rounded-full bg-white transition-transform', site.enableMinification ? 'left-7' : 'left-1']"></div>
+                    <div :class="['w-12 h-6 rounded-full relative transition-colors', site.minification ? 'bg-construct-red' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-400')]">
+                      <div :class="['absolute top-1 w-4 h-4 rounded-full bg-white transition-transform', site.minification ? 'left-7' : 'left-1']"></div>
                     </div>
                     <span :class="['font-bold tracking-wider', isDarkMode ? 'text-gray-300' : 'text-gray-700']">{{ t('admin_minification') }}</span>
                     <input
-                      v-model="site.enableMinification"
+                      v-model="site.minification"
                       type="checkbox"
                       class="hidden"
                     />
@@ -843,12 +980,12 @@ const resetSettings = () => {
                 </div>
                 <div>
                   <label :class="['flex items-center gap-3 cursor-pointer']">
-                    <div :class="['w-12 h-6 rounded-full relative transition-colors', site.lazyLoadImages ? 'bg-construct-red' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-400')]">
-                      <div :class="['absolute top-1 w-4 h-4 rounded-full bg-white transition-transform', site.lazyLoadImages ? 'left-7' : 'left-1']"></div>
+                    <div :class="['w-12 h-6 rounded-full relative transition-colors', site.lazy_load ? 'bg-construct-red' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-400')]">
+                      <div :class="['absolute top-1 w-4 h-4 rounded-full bg-white transition-transform', site.lazy_load ? 'left-7' : 'left-1']"></div>
                     </div>
                     <span :class="['font-bold tracking-wider', isDarkMode ? 'text-gray-300' : 'text-gray-700']">{{ t('admin_lazy_load_images') }}</span>
                     <input
-                      v-model="site.lazyLoadImages"
+                      v-model="site.lazy_load"
                       type="checkbox"
                       class="hidden"
                     />
@@ -863,12 +1000,12 @@ const resetSettings = () => {
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label :class="['flex items-center gap-3 cursor-pointer']">
-                    <div :class="['w-12 h-6 rounded-full relative transition-colors', site.enableCDN ? 'bg-construct-red' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-400')]">
-                      <div :class="['absolute top-1 w-4 h-4 rounded-full bg-white transition-transform', site.enableCDN ? 'left-7' : 'left-1']"></div>
+                    <div :class="['w-12 h-6 rounded-full relative transition-colors', site.cdn ? 'bg-construct-red' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-400')]">
+                      <div :class="['absolute top-1 w-4 h-4 rounded-full bg-white transition-transform', site.cdn ? 'left-7' : 'left-1']"></div>
                     </div>
                     <span :class="['font-bold tracking-wider', isDarkMode ? 'text-gray-300' : 'text-gray-700']">{{ t('admin_enable_cdn') }}</span>
                     <input
-                      v-model="site.enableCDN"
+                      v-model="site.cdn"
                       type="checkbox"
                       class="hidden"
                     />
@@ -877,7 +1014,7 @@ const resetSettings = () => {
                 <div>
                   <label :class="['block text-sm font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_cdn_url') }}</label>
                   <input
-                    v-model="site.cdnUrl"
+                    v-model="site.cdn_url"
                     type="url"
                     :placeholder="t('admin_cdn_url_placeholder')"
                     :class="[
@@ -896,7 +1033,7 @@ const resetSettings = () => {
                 <div>
                   <label :class="['block text-sm font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_max_upload_size') }} (MB)</label>
                   <input
-                    v-model.number="site.maxUploadSize"
+                    v-model.number="site.max_upload_size"
                     type="number"
                     min="1"
                     max="100"

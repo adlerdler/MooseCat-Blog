@@ -18,6 +18,7 @@ class PostController extends Controller
 {
     public function __construct(protected PostService $postService)
     {
+        $this->middleware('permission:manage_posts');
     }
 
     public function index(): Response

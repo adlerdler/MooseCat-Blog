@@ -32,7 +32,9 @@ use App\Http\Controllers\Web\PostController;
 use App\Http\Controllers\Web\CommentController;
 use App\Http\Controllers\Web\CategoryController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media as SpatieMedia;
 
 // 测试路由（不涉及数据库）
 Route::get('/test', function () {
@@ -41,30 +43,48 @@ Route::get('/test', function () {
     ]);
 });
 
-// 前台页面路由（Inertia.js）
-Route::get('/', [FrontendController::class, 'home'])->name('home');
-Route::get('/blog', [FrontendController::class, 'blog'])->name('blog');
-Route::get('/projects', [FrontendController::class, 'projects'])->name('projects');
-Route::get('/projects/{id}', [FrontendController::class, 'projectDetail'])->name('projects.detail');
-Route::get('/resources', [FrontendController::class, 'resources'])->name('resources');
-Route::get('/videos', [FrontendController::class, 'videos'])->name('videos');
-Route::get('/videos/{id}', [FrontendController::class, 'videoDetail'])->name('videos.detail');
-Route::get('/blog/{id}', [FrontendController::class, 'postDetail'])->name('posts.detail');
-Route::get('/author', [FrontendController::class, 'author'])->name('author');
+// 前台公共路由（受维护模式控制）
+Route::middleware(['maintenance'])->group(function () {
+    // 前台页面路由（Inertia.js）
+    Route::get('/', [FrontendController::class, 'home'])->name('home');
+    Route::get('/blog', [FrontendController::class, 'blog'])->name('blog');
+    Route::get('/projects', [FrontendController::class, 'projects'])->name('projects');
+    Route::get('/projects/{id}', [FrontendController::class, 'projectDetail'])->name('projects.detail');
+    Route::get('/resources', [FrontendController::class, 'resources'])->name('resources');
+    Route::get('/videos', [FrontendController::class, 'videos'])->name('videos');
+    Route::get('/videos/{id}', [FrontendController::class, 'videoDetail'])->name('videos.detail');
+    Route::get('/blog/{id}', [FrontendController::class, 'postDetail'])->name('posts.detail');
+    Route::get('/author', [FrontendController::class, 'author'])->name('author');
 
-// 文章相关路由
-Route::get('/posts', [PostController::class, 'index'])->name('posts.index');
-Route::get('/posts/{post:slug}', [PostController::class, 'show'])->name('posts.show');
+    // 文章相关路由
+    Route::get('/posts', [PostController::class, 'index'])->name('posts.index');
+    Route::get('/posts/{post:slug}', [PostController::class, 'show'])->name('posts.show');
 
-// 评论相关路由
-Route::post('/posts/{post}/comments', [CommentController::class, 'store'])->name('comments.store');
+    // 评论相关路由
+    Route::post('/posts/{post}/comments', [CommentController::class, 'store'])->name('comments.store');
 
-// 分类相关路由
-Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
-Route::get('/categories/{category:slug}', [CategoryController::class, 'show'])->name('categories.show');
+    // 分类相关路由
+    Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
+    Route::get('/categories/{category:slug}', [CategoryController::class, 'show'])->name('categories.show');
 
-// 标签相关路由
-Route::get('/tags/{tag:slug}', [CategoryController::class, 'tag'])->name('tags.show');
+    // 标签相关路由
+    Route::get('/tags/{tag:slug}', [CategoryController::class, 'tag'])->name('tags.show');
+});
+
+// 媒体文件服务路由（UUID 访问，无需认证）
+Route::get('/media/{uuid}.{ext}', function ($uuid, $ext) {
+    $media = SpatieMedia::findByUuid($uuid);
+    if (!$media) abort(404);
+
+    $disk = Storage::disk($media->disk);
+    $path = $media->getPathRelativeToRoot();
+
+    if (!$disk->exists($path)) abort(404);
+
+    return response()->file($disk->path($path), [
+        'Content-Type' => $media->mime_type ?? 'application/octet-stream',
+    ]);
+});
 
 // 管理后台登录路由
 Route::get('/admin/login', [DashboardController::class, 'login'])->name('login')->middleware('guest');
@@ -74,14 +94,23 @@ Route::post('/admin/login', [DashboardController::class, 'handleLogin'])->name('
 Route::middleware(['auth'])->prefix('admin')->group(function () {
     // 登出
     Route::post('/logout', [DashboardController::class, 'logout'])->name('logout');
-    
     // 首页
-    Route::get('/', [DashboardController::class, 'index'])->name('admin');
+    Route::get('/', fn () => redirect('/admin/index'))->name('admin');
     Route::get('/index', [DashboardController::class, 'index']);
     
+    // 无权限页面（通过正常 Inertia 流程渲染）
+    Route::get('/forbidden', function () {
+        return Inertia::render('Forbidden', [
+            'title' => '访问被拒绝',
+            'message' => '抱歉，您没有权限访问此页面。如需获取访问权限，请联系管理员。',
+        ]);
+    })->name('admin.forbidden');
     // 常规选项
     Route::get('/settings', [SettingsController::class, 'index'])->name('admin.settings');
     Route::put('/settings', [SettingsController::class, 'update'])->name('admin.settings.update');
+    Route::post('/settings/themes', [SettingsController::class, 'storeTheme'])->name('admin.settings.themes.store');
+    Route::put('/settings/themes/{id}', [SettingsController::class, 'updateTheme'])->name('admin.settings.themes.update');
+    Route::delete('/settings/themes/{id}', [SettingsController::class, 'deleteTheme'])->name('admin.settings.themes.destroy');
     Route::get('/social-links', [SocialLinksController::class, 'index'])->name('admin.social-links');
     Route::post('/social-links', [SocialLinksController::class, 'store'])->name('admin.social-links.store');
     Route::put('/social-links', [SocialLinksController::class, 'update'])->name('admin.social-links.update');
@@ -96,11 +125,11 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::put('/i18n', [I18nController::class, 'update'])->name('admin.i18n.update');
     Route::get('/media', [MediaController::class, 'index'])->name('admin.media');
     Route::post('/media', [MediaController::class, 'store'])->name('admin.media.store');
-    Route::delete('/media/{media}', [MediaController::class, 'destroy'])->name('admin.media.destroy');
+    Route::delete('/media/{media:uuid}', [MediaController::class, 'destroy'])->name('admin.media.destroy');
     Route::get('/email-templates', [EmailTemplatesController::class, 'index'])->name('admin.email-templates');
+    Route::post('/email-templates', [EmailTemplatesController::class, 'store'])->name('admin.email-templates.store');
     Route::get('/email-templates/{id}/edit', [EmailTemplatesController::class, 'edit'])->name('admin.email-templates.edit');
     Route::put('/email-templates/{id}', [EmailTemplatesController::class, 'update'])->name('admin.email-templates.update');
-    
     // 内容管理
     Route::resource('posts', AdminPostController::class);
     Route::resource('videos', AdminVideoController::class);
@@ -116,12 +145,13 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     ]);
     
     // 用户管理
-    Route::resource('users', UsersController::class)->names([
-        'index' => 'admin.users.index',
-        'store' => 'admin.users.store',
-        'update' => 'admin.users.update',
-        'destroy' => 'admin.users.destroy',
-    ]);
+    Route::get('/users', [UsersController::class, 'index'])->name('admin.users.index');
+    Route::get('/users/create', [UsersController::class, 'create'])->name('admin.users.create');
+    Route::post('/users', [UsersController::class, 'store'])->name('admin.users.store');
+    Route::get('/users/{slug}', [UsersController::class, 'show'])->name('admin.users.show');
+    Route::get('/users/{slug}/edit', [UsersController::class, 'edit'])->name('admin.users.edit');
+    Route::put('/users/{user}', [UsersController::class, 'update'])->name('admin.users.update');
+    Route::delete('/users/{user}', [UsersController::class, 'destroy'])->name('admin.users.destroy');
     Route::resource('subscribers', SubscribersController::class)->names([
         'index' => 'admin.subscribers.index',
         'store' => 'admin.subscribers.store',
@@ -150,6 +180,7 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
         'destroy' => 'admin.roles.destroy',
     ]);
     Route::get('/notifications', [NotificationsController::class, 'index'])->name('admin.notifications');
+    Route::post('/notifications', [NotificationsController::class, 'store'])->name('admin.notifications.store');
     Route::patch('/notifications/{id}/mark-as-read', [NotificationsController::class, 'markAsRead'])->name('admin.notifications.mark-as-read');
     Route::post('/notifications/mark-all-as-read', [NotificationsController::class, 'markAllAsRead'])->name('admin.notifications.mark-all-as-read');
     Route::delete('/notifications/{id}', [NotificationsController::class, 'destroy'])->name('admin.notifications.destroy');

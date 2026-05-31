@@ -1,113 +1,75 @@
 <script setup>
 /**
  * Notification Management Page
- * 
+ *
  * Features:
  * - Notification list display with pagination
  * - Search and filter functionality
- * - Notification CRUD operations
- * - Notification types (info, warning, error, success)
- * - Mark notifications as read
+ * - Create new system notifications
+ * - Mark notifications as read (single / all)
+ * - Delete notifications (single)
+ * - Connected to Laravel's database notification system
  */
 import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { router, useForm } from '@inertiajs/vue3';
 import { useTheme } from '../../composables/useTheme';
 import {
   Bell,
   Eye,
-  Edit3,
   Trash2,
-  Calendar,
   CheckCircle,
   Plus,
   Info,
   AlertTriangle,
   AlertCircle,
   X,
-  Check,
   Clock,
   Link,
-  FileText,
   Pagination,
   SearchFilterModal
 } from '../../composables/useAdminImports';
-import { findById, findIndexById } from '../../utils/typeConvert';
 import { formatToShort } from '../../utils/dateUtils';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import NotificationForm from '../../components/admin/NotificationForm.vue';
 
 const props = defineProps({
   notifications: { type: Array, default: () => [] },
+  unreadCount:  { type: Number, default: 0 },
+  pagination:   { type: Object, default: () => ({}) },
 });
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
 
 const typeOptions = [
-  { value: 'info', label: 'Info' },
-  { value: 'warning', label: 'Warning' },
-  { value: 'error', label: 'Error' },
-  { value: 'success', label: 'Success' }
+  { value: 'info',    label: t('admin_notification_type_info') },
+  { value: 'warning', label: t('admin_notification_type_warning') },
+  { value: 'error',   label: t('admin_notification_type_error') },
+  { value: 'success', label: t('admin_notification_type_success') },
 ];
 
-const getTypeLabel = (type) => {
-  const labels = {
-    info: 'Info',
-    warning: 'Warning',
-    error: 'Error',
-    success: 'Success'
-  };
-  return labels[type] || type;
-};
-
 const getTypeIcon = (type) => {
-  const icons = {
-    info: Info,
-    warning: AlertTriangle,
-    error: AlertCircle,
-    success: CheckCircle
-  };
+  const icons = { info: Info, warning: AlertTriangle, error: AlertCircle, success: CheckCircle };
   return icons[type] || Info;
 };
 
 const getTypeColor = (type) => {
+  const colors = { info: 'text-blue-500', warning: 'text-yellow-500', error: 'text-red-500', success: 'text-green-500' };
   if (isDarkMode.value) {
-    const colors = {
-      info: 'text-blue-400',
-      warning: 'text-yellow-400',
-      error: 'text-red-400',
-      success: 'text-green-400'
-    };
-    return colors[type] || 'text-blue-400';
-  } else {
-    const colors = {
-      info: 'text-blue-500',
-      warning: 'text-yellow-500',
-      error: 'text-red-500',
-      success: 'text-green-500'
-    };
-    return colors[type] || 'text-blue-500';
+    const dc = { info: 'text-blue-400', warning: 'text-yellow-400', error: 'text-red-400', success: 'text-green-400' };
+    return dc[type] || 'text-blue-400';
   }
+  return colors[type] || 'text-blue-500';
 };
 
 const getTypeBgColor = (type) => {
   if (isDarkMode.value) {
-    const colors = {
-      info: 'bg-blue-400/20',
-      warning: 'bg-yellow-400/20',
-      error: 'bg-red-400/20',
-      success: 'bg-green-400/20'
-    };
+    const colors = { info: 'bg-blue-400/20', warning: 'bg-yellow-400/20', error: 'bg-red-400/20', success: 'bg-green-400/20' };
     return colors[type] || 'bg-blue-400/20';
-  } else {
-    const colors = {
-      info: 'bg-blue-100',
-      warning: 'bg-yellow-100',
-      error: 'bg-red-100',
-      success: 'bg-green-100'
-    };
-    return colors[type] || 'bg-blue-100';
   }
+  const colors = { info: 'bg-blue-100', warning: 'bg-yellow-100', error: 'bg-red-100', success: 'bg-green-100' };
+  return colors[type] || 'bg-blue-100';
 };
 
 const searchQuery = ref('');
@@ -124,10 +86,10 @@ const viewingNotification = ref(null);
 const notifications = computed(() => (props.notifications || []).map(n => ({ ...n })));
 
 const filteredNotifications = computed(() => {
-  return notifications.value.filter(notification => {
-    const matchesSearch = notification.title.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-                         notification.message.toLowerCase().includes(searchQuery.value.toLowerCase());
-    const matchesType = typeFilter.value === 'all' || notification.type === typeFilter.value;
+  return notifications.value.filter(n => {
+    const matchesSearch = n.title.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+                         n.message.toLowerCase().includes(searchQuery.value.toLowerCase());
+    const matchesType = typeFilter.value === 'all' || n.type === typeFilter.value;
     return matchesSearch && matchesType;
   });
 });
@@ -144,65 +106,78 @@ const handleView = (notification) => {
   showDetailModal.value = true;
 };
 
-const handleEdit = (notification) => {
-  editingNotification.value = { ...notification, action: 'edit' };
-  isFormVisible.value = true;
-};
-
 const handleAdd = () => {
   editingNotification.value = {
     action: 'add',
     title: '',
     message: '',
     type: 'info',
-    read: false,
-    link: ''
+    link: '',
   };
   isFormVisible.value = true;
 };
 
+// 创建通知 → POST 到后端
 const handleSave = (data) => {
-  if (data.action === 'edit') {
-    const index = findIndexById(notifications.value, data.id);
-    if (index !== -1) {
-      notifications.value[index] = { ...data };
-    }
-  } else if (data.action === 'add') {
-    const newId = notifications.value.length > 0
-      ? Math.max(...notifications.value.map(n => n.id)) + 1
-      : 1;
-    notifications.value.unshift({
-      ...data,
-      id: newId,
-      created_at: new Date().toISOString()
-    });
-  }
-  isFormVisible.value = false;
-  editingNotification.value = null;
+  const form = useForm({
+    title:   data.title,
+    message: data.message,
+    type:    data.type,
+    link:    data.link || '',
+  });
+
+  form.post(route('admin.notifications.store'), {
+    onSuccess: () => {
+      isFormVisible.value = false;
+      editingNotification.value = null;
+    },
+    onError: (errors) => {
+      console.error('Notification create error:', errors);
+    },
+  });
 };
 
+// 删除通知 → DELETE 到后端
 const handleDelete = (id) => {
   deletingNotificationId.value = id;
   showDeleteConfirm.value = true;
 };
 
 const confirmDelete = () => {
-  notifications.value = notifications.value.filter(n => n.id !== deletingNotificationId.value);
-  showDeleteConfirm.value = false;
-  deletingNotificationId.value = null;
-};
-
-const markAsRead = (notification) => {
-  const index = findIndexById(notifications.value, notification.id);
-  if (index !== -1) {
-    notifications.value[index].read = true;
+  if (deletingNotificationId.value !== null) {
+    router.delete(route('admin.notifications.destroy', deletingNotificationId.value), {
+      preserveScroll: true,
+      onSuccess: () => {
+        showDeleteConfirm.value = false;
+        deletingNotificationId.value = null;
+      },
+      onError: (errors) => {
+        console.error('Delete error:', errors);
+        showDeleteConfirm.value = false;
+        deletingNotificationId.value = null;
+      },
+    });
+  } else {
+    showDeleteConfirm.value = false;
   }
 };
 
+// 标记单条已读
+const markAsRead = (id) => {
+  router.patch(
+    route('admin.notifications.mark-as-read', id),
+    {},
+    { preserveScroll: true, preserveState: true }
+  );
+};
+
+// 全部标记已读
 const markAllAsRead = () => {
-  notifications.value.forEach(n => {
-    n.read = true;
-  });
+  router.post(
+    route('admin.notifications.mark-all-as-read'),
+    {},
+    { preserveScroll: true, preserveState: true }
+  );
 };
 
 const handleFilterChange = ({ key, value }) => {
@@ -256,6 +231,9 @@ const handleFilterChange = ({ key, value }) => {
       >
         {{ t('admin_mark_all_read') }}
       </button>
+      <span v-if="props.unreadCount > 0" :class="['text-xs font-bold', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
+        ({{ props.unreadCount }} {{ t('admin_pending').toLowerCase() }})
+      </span>
     </div>
 
     <!-- Notification List -->
@@ -266,7 +244,7 @@ const handleFilterChange = ({ key, value }) => {
         :class="[
           'p-6 border transition-all hover:border-construct-red',
           isDarkMode ? 'bg-gray-800/50 border-gray-700' : 'bg-white border-gray-200',
-          !notification.read && (isDarkMode ? 'border-l-4 border-l-construct-red' : 'border-l-4 border-l-construct-red')
+          !notification.read && 'border-l-4 border-l-construct-red'
         ]"
       >
         <div class="flex items-start gap-4">
@@ -300,7 +278,7 @@ const handleFilterChange = ({ key, value }) => {
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-4">
                 <span :class="['px-2 py-1 text-xs font-bold uppercase rounded', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600']">
-                  {{ getTypeLabel(notification.type) }}
+                  {{ notification.type }}
                 </span>
                 <a
                   v-if="notification.link"
@@ -309,14 +287,14 @@ const handleFilterChange = ({ key, value }) => {
                   :class="['flex items-center gap-1 text-xs', isDarkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-500']"
                 >
                   <Link size="12" />
-                  {{ t('admin_view_link') || 'View Link' }}
+                  {{ t('admin_view_link') }}
                 </a>
               </div>
 
               <div class="flex items-center gap-2">
                 <button
                   v-if="!notification.read"
-                  @click="markAsRead(notification)"
+                  @click="markAsRead(notification.id)"
                   :class="['p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-gray-700 text-green-400' : 'hover:bg-gray-100 text-green-600']"
                   :title="t('admin_mark_read')"
                 >
@@ -328,13 +306,6 @@ const handleFilterChange = ({ key, value }) => {
                   :title="t('admin_view')"
                 >
                   <Eye size="16" />
-                </button>
-                <button
-                  @click="handleEdit(notification)"
-                  :class="['p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500']"
-                  :title="t('admin_edit')"
-                >
-                  <Edit3 size="16" />
                 </button>
                 <button
                   @click="handleDelete(notification.id)"
@@ -377,7 +348,7 @@ const handleFilterChange = ({ key, value }) => {
         <div :class="['w-full max-w-lg rounded-xl shadow-xl', isDarkMode ? 'bg-gray-800' : 'bg-white']">
           <div :class="['flex items-center justify-between px-6 py-4 border-b', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
             <h2 :class="['font-display text-lg tracking-tight', isDarkMode ? 'text-white' : 'text-gray-900']">
-              {{ editingNotification?.action === 'add' ? t('admin_add_notification') : t('admin_edit_notification') }}
+              {{ t('admin_add_notification') }}
             </h2>
             <button
               @click="isFormVisible = false"
@@ -424,7 +395,7 @@ const handleFilterChange = ({ key, value }) => {
           <div class="space-y-4">
             <div>
               <span :class="['px-2 py-1 text-xs font-bold uppercase rounded', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600']">
-                {{ getTypeLabel(viewingNotification?.type) }}
+                {{ viewingNotification?.type }}
               </span>
               <span v-if="!viewingNotification?.read" class="ml-2 px-2 py-1 text-xs font-bold bg-construct-red text-white rounded">
                 UNREAD
@@ -466,7 +437,7 @@ const handleFilterChange = ({ key, value }) => {
             </button>
             <button
               v-if="!viewingNotification?.read"
-              @click="markAsRead(viewingNotification); showDetailModal = false"
+              @click="markAsRead(viewingNotification.id); showDetailModal = false"
               class="flex items-center gap-2 px-6 py-2 bg-green-600 text-white font-bold tracking-widest uppercase text-sm hover:bg-green-700 transition-colors rounded"
             >
               <CheckCircle size="16" />

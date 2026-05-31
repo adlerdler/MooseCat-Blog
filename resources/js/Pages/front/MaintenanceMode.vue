@@ -8,10 +8,15 @@
  * - 提供预计恢复时间
  */
 import { ref, onMounted } from 'vue';
-import { useSiteConfig } from '../../composables/useSiteConfig';
 
-const { getSiteName } = useSiteConfig();
-const siteName = getSiteName();
+const props = defineProps({
+  siteConfig: {
+    type: Object,
+    default: () => ({})
+  }
+});
+
+const siteName = props.siteConfig?.name || 'ARCHYX';
 const currentTime = ref(new Date());
 
 onMounted(() => {

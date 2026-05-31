@@ -18,6 +18,7 @@ class TagController extends Controller
     public function __construct(TagService $tagService)
     {
         $this->tagService = $tagService;
+        $this->middleware('permission:manage_tags');
     }
 
     public function index(): Response

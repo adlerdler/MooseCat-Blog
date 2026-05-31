@@ -13,6 +13,7 @@ return new class extends Migration
             $table->string('name')->unique()->comment('标识符');
             $table->string('subject')->comment('主题');
             $table->longText('content')->comment('内容');
+            $table->string('description')->nullable()->comment('模板描述');
             $table->json('variables')->nullable()->comment('变量');
             $table->boolean('is_active')->default(true)->comment('启用');
             $table->timestamps();

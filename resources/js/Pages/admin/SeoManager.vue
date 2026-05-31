@@ -9,6 +9,7 @@
  */
 import { ref, computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { router } from '@inertiajs/vue3';
 import {
   Search,
   Edit3,
@@ -53,7 +54,7 @@ const filteredPages = computed(() => {
   if (!searchQuery.value) return pageSeoListRef.value;
   const query = searchQuery.value.toLowerCase();
   return pageSeoListRef.value.filter(
-    p => p.pageKey.toLowerCase().includes(query) ||
+    p => p.page_key.toLowerCase().includes(query) ||
          p.title.toLowerCase().includes(query) ||
          p.description.toLowerCase().includes(query)
   );
@@ -65,7 +66,7 @@ const openEditModal = (page) => {
     title: page.title,
     description: page.description,
     keywords: page.keywords,
-    ogImage: page.ogImage
+    ogImage: page.og_image
   };
   showEditModal.value = true;
 };
@@ -79,16 +80,22 @@ const closeEditModal = () => {
 const saveEdit = () => {
   const page = editingPage.value;
   if (!page) return;
-  updatePageSeo(page.id, editForm.value);
-  const index = pageSeoListRef.value.findIndex(p => p.id === page.id);
-  if (index !== -1) {
-    pageSeoListRef.value[index] = {
-      ...pageSeoListRef.value[index],
-      ...editForm.value,
-      updatedAt: new Date().toISOString()
-    };
-  }
-  closeEditModal();
+  
+  router.put(route('admin.seo.page-seo.update', page.id), {
+    page_key: page.page_key,
+    title: editForm.value.title,
+    description: editForm.value.description,
+    keywords: editForm.value.keywords,
+    og_image: editForm.value.ogImage,
+  }, {
+    preserveScroll: true,
+    onSuccess: () => {
+      closeEditModal();
+    },
+    onError: (errors) => {
+      console.error('保存失败:', errors);
+    },
+  });
 };
 
 const getRouteColor = (pageKey) => {
@@ -140,8 +147,8 @@ const getRouteColor = (pageKey) => {
           <div class="flex items-start justify-between mb-4">
             <div class="flex-1">
               <div class="flex items-center gap-2 mb-2">
-                <span :class="['text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider bg-gradient-to-r', getRouteColor(page.pageKey)]">
-                  {{ page.pageKey }}
+                <span :class="['text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider bg-gradient-to-r', getRouteColor(page.page_key)]">
+                  {{ page.page_key }}
                 </span>
               </div>
             </div>
@@ -154,7 +161,7 @@ const getRouteColor = (pageKey) => {
             <span class="font-bold">关键词：</span>{{ page.keywords }}
           </p>
           <p class="text-xs mt-2" :class="isDarkMode ? 'text-gray-600' : 'text-gray-400'">
-            <span class="font-bold">OG图片：</span>{{ page.ogImage || '无' }}
+            <span class="font-bold">OG图片：</span>{{ page.og_image || '无' }}
           </p>
 
           <!-- Actions -->
@@ -180,8 +187,8 @@ const getRouteColor = (pageKey) => {
         <div :class="['w-full max-w-lg mx-4 rounded-lg shadow-xl border', isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200']">
           <div :class="['flex justify-between items-center p-6 border-b', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
             <div class="flex items-center gap-3">
-              <span :class="['text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider bg-gradient-to-r', getRouteColor(editingPage?.pageKey)]">
-                {{ editingPage?.pageKey }}
+              <span :class="['text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider bg-gradient-to-r', getRouteColor(editingPage?.page_key)]">
+                {{ editingPage?.page_key }}
               </span>
               <h3 :class="['text-xl font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">编辑 SEO 配置</h3>
             </div>

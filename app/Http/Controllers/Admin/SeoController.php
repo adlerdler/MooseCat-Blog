@@ -6,11 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Models\Seo;
 use App\Models\PageSeo;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class SeoController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:manage_seo');
+    }
     public function index(): Response
     {
         $globalSeo = Seo::getGlobalSeo();
@@ -66,7 +71,7 @@ class SeoController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'required|string|max:500',
             'keywords' => 'nullable|string|max:500',
-            'og_image' => 'nullable|url',
+            'og_image' => 'nullable|string|max:500',
         ]);
 
         $pageSeo->update($validated);

@@ -4,9 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Advertisement extends Model
 {
+    use LogsActivity;
     protected $fillable = [
         'title',
         'image_url',
@@ -57,5 +60,14 @@ class Advertisement extends Model
     public function incrementClicks(): void
     {
         $this->increment('clicks_count');
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logAll()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('advertisements');
     }
 }

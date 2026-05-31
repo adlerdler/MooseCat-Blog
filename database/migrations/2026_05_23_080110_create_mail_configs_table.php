@@ -14,7 +14,7 @@ return new class extends Migration
             $table->string('host')->nullable()->comment('主机');
             $table->integer('port')->nullable()->comment('端口');
             $table->string('username')->nullable()->comment('用户名');
-            $table->string('password')->nullable()->comment('密码');
+            $table->text('password')->nullable()->comment('密码');
             $table->string('encryption', 20)->nullable()->comment('加密');
             $table->string('from_address')->comment('发件地址');
             $table->string('from_name')->comment('发件名称');

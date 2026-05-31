@@ -185,6 +185,7 @@ watch(isFooterVisible, (newVal) => {
       :menus="menus"
       :site-config="siteConfig"
       :footer-config="footerConfig"
+      :themes="themes"
     />
     <!-- Main Content -->
     <div class="ml-16">

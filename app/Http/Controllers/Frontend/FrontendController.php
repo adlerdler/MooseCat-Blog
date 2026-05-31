@@ -8,16 +8,19 @@ use App\Models\Project;
 use App\Models\Resource;
 use App\Models\Category;
 use App\Services\MockDataService;
+use App\Services\SettingService;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class FrontendController extends Controller
 {
     protected $mockDataService;
+    protected $settingService;
 
-    public function __construct(MockDataService $mockDataService)
+    public function __construct(MockDataService $mockDataService, SettingService $settingService)
     {
         $this->mockDataService = $mockDataService;
+        $this->settingService = $settingService;
     }
 
     private function getFooterConfig(): array
@@ -94,9 +97,21 @@ class FrontendController extends Controller
             ]);
         $videos = $this->mockDataService->getVideos(3);
         $menu = $this->mockDataService->getMenu();
-        $siteConfig = $this->mockDataService->getSiteConfig();
+        $siteConfig = $this->settingService->getSiteConfig();
         $footerConfig = $this->getFooterConfig();
-        $themes = $this->mockDataService->getThemes();
+        $themes = \App\Models\Theme::where('is_active', true)
+            ->orderBy('sort_order')
+            ->get()
+            ->map(fn($t) => [
+                'id' => $t->id,
+                'name' => $t->name,
+                'label' => $t->label,
+                'color' => $t->color,
+                'sort_order' => $t->sort_order,
+                'is_active' => $t->is_active,
+                'is_default' => $t->is_default,
+                'preview_image' => $t->preview_image,
+            ]);
 
         return Inertia::render('front/Home', [
             'posts' => $posts,
@@ -111,11 +126,25 @@ class FrontendController extends Controller
 
     private function getConfigData(): array
     {
+        $themes = \App\Models\Theme::where('is_active', true)
+            ->orderBy('sort_order')
+            ->get()
+            ->map(fn($t) => [
+                'id' => $t->id,
+                'name' => $t->name,
+                'label' => $t->label,
+                'color' => $t->color,
+                'sort_order' => $t->sort_order,
+                'is_active' => $t->is_active,
+                'is_default' => $t->is_default,
+                'preview_image' => $t->preview_image,
+            ]);
+
         return [
             'menus' => $this->mockDataService->getMenu(),
-            'siteConfig' => $this->mockDataService->getSiteConfig(),
+            'siteConfig' => $this->settingService->getSiteConfig(),
             'footerConfig' => $this->getFooterConfig(),
-            'themes' => $this->mockDataService->getThemes(),
+            'themes' => $themes,
         ];
     }
 

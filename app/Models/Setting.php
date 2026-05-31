@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Setting extends Model
 {
+    use LogsActivity;
     protected $fillable = [
         // 基本信息
         'name',
@@ -82,5 +85,14 @@ class Setting extends Model
             $settings = static::create($data);
         }
         return $settings;
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logAll()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('settings');
     }
 }

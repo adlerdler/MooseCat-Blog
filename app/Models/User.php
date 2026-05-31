@@ -6,12 +6,16 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable
+class User extends Authenticatable implements HasMedia
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasApiTokens, HasFactory, Notifiable, HasRoles;
+    use HasApiTokens, HasFactory, Notifiable, HasRoles, LogsActivity, InteractsWithMedia;
 
     /**
      * The attributes that are mass assignable.
@@ -47,6 +51,14 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+
+    /**
+     * 禁止自动加载 notifications 关系（与 notifications 布尔列冲突）。
+     * 关系仅通过 $user->notifications() 显式查询获取。
+     *
+     * @var array<int, string>
+     */
+    protected $with = [];
 
     /**
      * Get the attributes that should be cast.
@@ -108,6 +120,23 @@ class User extends Authenticatable
     }
 
     /**
+     * 覆盖 toArray() 确保 notifications 列不与 Notifiable trait 的关系冲突。
+     */
+    public function toArray(): array
+    {
+        // 先调用父类 toArray，它内部 merge 了 attributes + relations
+        $data = parent::toArray();
+
+        // 如果 relations 中存在 notifications（多态通知关系），
+        // 用 attributes 中的布尔值覆盖，避免关系集合覆盖布尔首选项
+        if (isset($data['notifications']) && !is_bool($data['notifications'])) {
+            $data['notifications'] = $this->getAttribute('notifications');
+        }
+
+        return $data;
+    }
+
+    /**
      * Get the user level for the user.
      */
     public function userLevel(): \Illuminate\Database\Eloquent\Relations\BelongsTo
@@ -121,5 +150,15 @@ class User extends Authenticatable
     public function pointsHistory(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(UserPointsHistory::class);
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logAll()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('users')
+            ->logExcept(['password', 'password_confirmation', 'remember_token']);
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\MenuService;
 use App\Services\MockDataService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,15 +19,18 @@ use Inertia\Response;
 class DashboardController extends Controller
 {
     protected $mockDataService;
+    protected $menuService;
 
     /**
      * Constructor
      *
      * @param MockDataService $mockDataService
+     * @param MenuService $menuService
      */
-    public function __construct(MockDataService $mockDataService)
+    public function __construct(MockDataService $mockDataService, MenuService $menuService)
     {
         $this->mockDataService = $mockDataService;
+        $this->menuService = $menuService;
     }
 
     /**
@@ -36,6 +40,7 @@ class DashboardController extends Controller
      */
     public function index(): Response
     {
+        $this->requirePermission('view_analytics');
         $posts = $this->mockDataService->getPosts();
         $projects = $this->mockDataService->getProjects();
         $videos = $this->mockDataService->getVideos();
@@ -93,7 +98,23 @@ class DashboardController extends Controller
         if (Auth::attempt($credentials, $request->filled('remember'))) {
             $request->session()->regenerate();
 
-            return redirect()->intended(route('admin'));
+            $user = Auth::user();
+
+            // Admin 或拥有 dashboard 权限的用户 → 跳转仪表盘
+            if ($user->hasRole('Administrator') || $user->hasPermissionTo('view_analytics')) {
+                return redirect()->intended(route('admin'));
+            }
+
+            // 其他用户 → 智能跳转到第一个可访问的后台页面
+            $menus = $this->menuService->getFilteredAdminMenus($user);
+            $firstPath = $this->findFirstMenuPath($menus);
+
+            if ($firstPath) {
+                return redirect()->intended($firstPath);
+            }
+
+            // 没有任何可访问页面 → 跳转 403
+            return redirect()->intended(route('admin.forbidden'));
         }
 
         return back()->withErrors([
@@ -125,5 +146,27 @@ class DashboardController extends Controller
     public function about(): Response
     {
         return Inertia::render('admin/About');
+    }
+
+    /**
+     * 从过滤后的菜单树中查找第一个有效路径
+     *
+     * @param array $menus
+     * @return string|null
+     */
+    protected function findFirstMenuPath(array $menus): ?string
+    {
+        foreach ($menus as $menu) {
+            if (!empty($menu['path'])) {
+                return $menu['path'];
+            }
+            if (!empty($menu['children'])) {
+                $found = $this->findFirstMenuPath($menu['children']);
+                if ($found) {
+                    return $found;
+                }
+            }
+        }
+        return null;
     }
 }

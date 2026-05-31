@@ -25,7 +25,6 @@ class MockDataService
     private array $notifications = [];
     private array $advertisements = [];
     private array $adPositions = [];
-    private array $media = [];
     private array $resources = [];
     private array $tagsables = [];
     private array $subscribers = [];
@@ -90,7 +89,6 @@ class MockDataService
         $this->notifications = $this->loadJson('notifications.json');
         $this->advertisements = $this->loadJson('advertisements.json');
         $this->adPositions = $this->loadJson('ad_positions.json');
-        $this->media = $this->loadJson('media.json');
         $this->resources = $this->loadJson('resources.json');
         $this->tagsables = $this->loadJson('taggables.json');
         $this->subscribers = $this->loadJson('subscribers.json');
@@ -311,15 +309,6 @@ class MockDataService
     public function getAdPositions(): array
     {
         return $this->adPositions;
-    }
-
-    /**
-     * 获取媒体文件列表
-     * Get media
-     */
-    public function getMedia(): array
-    {
-        return $this->media;
     }
 
     /**

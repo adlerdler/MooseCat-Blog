@@ -208,6 +208,7 @@ const generateMockCalendarData = () => {
       :menus="menus"
       :site-config="siteConfig"
       :footer-config="footerConfig"
+      :themes="themes"
     />
 
     <!-- Main Content with left margin for sidebar -->

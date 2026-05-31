@@ -13,6 +13,10 @@ use Inertia\Response;
 
 class AdvertisementsController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:manage_ads');
+    }
     public function index(): Response
     {
         $ads = Advertisement::with('adPosition')
@@ -33,7 +37,7 @@ class AdvertisementsController extends Controller
                 'created_at' => $ad->created_at?->format('Y-m-d'),
             ]);
 
-        $adPositions = AdPosition::orderBy('sort_order')->get(['id', 'name', 'label_key']);
+        $adPositions = AdPosition::orderBy('sort_order')->get(['id', 'name', 'label_key', 'is_active', 'sort_order']);
 
         return Inertia::render('admin/Advertisements', [
             'ads' => $ads,

@@ -30,8 +30,8 @@ class NewCommentNotification extends Notification implements ShouldQueue
         
         return (new MailMessage)
             ->subject('新评论通知')
-            ->line("用户 {$this->comment->author_name} 在文章上发表了评论：")
-            ->line("\"{$this->comment->content}\"")
+            ->line("用户 {$this->comment->name} 在文章上发表了评论：")
+            ->line("\"{$this->comment->body}\"")
             ->action('查看文章', $postUrl)
             ->line('感谢使用 Archyx 博客系统！');
     }
@@ -39,11 +39,11 @@ class NewCommentNotification extends Notification implements ShouldQueue
     public function toArray(object $notifiable): array
     {
         return [
-            'comment_id' => $this->comment->id,
-            'post_id' => $this->comment->post_id,
-            'author_name' => $this->comment->author_name,
-            'content' => $this->comment->content,
-            'type' => 'new_comment',
+            'comment_id'  => $this->comment->id,
+            'post_id'     => $this->comment->post_id,
+            'author_name' => $this->comment->name,
+            'content'     => $this->comment->body,
+            'type'        => 'new_comment',
         ];
     }
 }

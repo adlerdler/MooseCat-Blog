@@ -24,41 +24,82 @@ const isDarkMode = ref(true);
 const themes = ref([]);
 const currentTheme = ref(null);
 
+const updateAccentColor = () => {
+  if (currentTheme.value) {
+    document.documentElement.style.setProperty('--accent', currentTheme.value.color);
+  }
+};
+
+const safeGetItem = (key) => {
+  try { return localStorage.getItem(key); } catch { return null; }
+};
+
+const safeSetItem = (key, value) => {
+  try { localStorage.setItem(key, value); } catch { /* noop */ }
+};
+
+const initAccentTheme = () => {
+  const savedAccentTheme = safeGetItem('accent_theme');
+  const savedAccentColor = safeGetItem('accent_color');
+  if (savedAccentTheme) {
+    const found = themes.value.find(t => t.name === savedAccentTheme);
+    if (found) {
+      currentTheme.value = found;
+    } else if (savedAccentColor) {
+      // Fallback: theme data not loaded yet, but we have the saved color
+      currentTheme.value = { name: savedAccentTheme, color: savedAccentColor };
+    }
+  }
+  updateAccentColor();
+};
+
 export function useTheme(options = {}) {
   const themesData = options.themesData || [];
 
   if (!globalThemesData && themesData.length > 0) {
     globalThemesData = themesData;
     themes.value = getActiveThemes(globalThemesData);
-    currentTheme.value = getDefaultTheme(globalThemesData);
+    // If a fallback theme was set from localStorage, update it with full data
+    if (currentTheme.value && currentTheme.value.name) {
+      const fullTheme = getActiveThemes(globalThemesData).find(
+        t => t.name === currentTheme.value.name
+      );
+      if (fullTheme) {
+        currentTheme.value = fullTheme;
+      } else {
+        currentTheme.value = getDefaultTheme(globalThemesData);
+      }
+    } else {
+      currentTheme.value = getDefaultTheme(globalThemesData);
+    }
+    updateAccentColor();
   } else if (options.themesData && themesData.length > 0) {
     globalThemesData = themesData;
     themes.value = getActiveThemes(globalThemesData);
-    const newDefault = getDefaultTheme(globalThemesData);
-    if (newDefault) {
-      currentTheme.value = newDefault;
-    }
-  }
-
-  const updateAccentColor = () => {
-    if (currentTheme.value) {
-      document.documentElement.style.setProperty('--accent', currentTheme.value.color);
-    }
-  };
-
-  const initAccentTheme = () => {
-    const savedAccentTheme = localStorage.getItem('accent_theme');
-    if (savedAccentTheme) {
-      const found = themes.value.find(t => t.name === savedAccentTheme);
-      if (found) {
-        currentTheme.value = found;
+    // If a fallback theme was set from localStorage, update it with full data
+    if (currentTheme.value && currentTheme.value.name) {
+      const fullTheme = getActiveThemes(globalThemesData).find(
+        t => t.name === currentTheme.value.name
+      );
+      if (fullTheme) {
+        currentTheme.value = fullTheme;
+      } else {
+        const newDefault = getDefaultTheme(globalThemesData);
+        if (newDefault) {
+          currentTheme.value = newDefault;
+        }
+      }
+    } else {
+      const newDefault = getDefaultTheme(globalThemesData);
+      if (newDefault) {
+        currentTheme.value = newDefault;
       }
     }
     updateAccentColor();
-  };
+  }
 
   const initTheme = () => {
-    const savedTheme = localStorage.getItem('admin_theme');
+    const savedTheme = safeGetItem('admin_theme');
     isDarkMode.value = savedTheme !== 'light';
 
     if (isDarkMode.value) {
@@ -74,17 +115,18 @@ export function useTheme(options = {}) {
     isDarkMode.value = !isDarkMode.value;
 
     if (isDarkMode.value) {
-      localStorage.setItem('admin_theme', 'dark');
+      safeSetItem('admin_theme', 'dark');
       document.documentElement.classList.remove('light');
     } else {
-      localStorage.setItem('admin_theme', 'light');
+      safeSetItem('admin_theme', 'light');
       document.documentElement.classList.add('light');
     }
   };
 
   const setTheme = (theme) => {
     currentTheme.value = theme;
-    localStorage.setItem('accent_theme', theme.name);
+    safeSetItem('accent_theme', theme.name);
+    safeSetItem('accent_color', theme.color);
     updateAccentColor();
   };
 

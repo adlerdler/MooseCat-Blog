@@ -19,19 +19,23 @@ import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTheme } from '../composables/useTheme'
 import { setLocale } from '../i18n'
-import { useSiteConfig } from '../composables/useSiteConfig';
+import { usePage } from '@inertiajs/vue3'
 
-defineProps({
+const props = defineProps({
   isMobile: {
     type: Boolean,
     default: false
+  },
+  themes: {
+    type: Array,
+    default: () => []
   }
 })
 
 const { t, locale } = useI18n()
-const { themes, currentTheme, setTheme } = useTheme()
-const { getSiteCopyright } = useSiteConfig();
-const siteCopyright = getSiteCopyright();
+const { themes, currentTheme, setTheme } = useTheme({ themesData: props.themes })
+const siteConfig = usePage().props.siteConfig || {}
+const siteCopyright = siteConfig.copyright || ''
 
 const languages = [
   { code: 'en', label: 'EN' },

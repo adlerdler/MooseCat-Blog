@@ -19,6 +19,7 @@ class ResourceController extends Controller
 
     public function __construct(ResourceService $resourceService)
     {
+        $this->middleware('permission:manage_resources');
         $this->resourceService = $resourceService;
     }
 

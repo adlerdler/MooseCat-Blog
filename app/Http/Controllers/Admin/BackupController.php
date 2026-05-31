@@ -15,6 +15,7 @@ class BackupController extends Controller
 
     public function __construct(MockDataService $mockDataService)
     {
+        $this->middleware('permission:manage_backup');
         $this->mockDataService = $mockDataService;
     }
 

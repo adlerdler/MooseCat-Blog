@@ -13,9 +13,13 @@ const messages = {
 const SUPPORTED_LOCALES = ['en', 'zh', 'zh-TW']
 
 function getLocale() {
-  const storedLocale = localStorage.getItem('locale')
-  if (storedLocale && SUPPORTED_LOCALES.includes(storedLocale)) {
-    return storedLocale
+  try {
+    const storedLocale = localStorage.getItem('locale')
+    if (storedLocale && SUPPORTED_LOCALES.includes(storedLocale)) {
+      return storedLocale
+    }
+  } catch (e) {
+    // localStorage unavailable (sandboxed iframe, etc.)
   }
 
   const browserLocale = navigator.language || navigator.userLanguage
@@ -54,7 +58,11 @@ export function setLocale(locale) {
     return
   }
   i18n.global.locale.value = locale
-  localStorage.setItem('locale', locale)
+  try {
+    localStorage.setItem('locale', locale)
+  } catch (e) {
+    // localStorage unavailable (sandboxed iframe, etc.)
+  }
 }
 
 export function getSupportedLocales() {

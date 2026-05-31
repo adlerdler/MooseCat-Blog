@@ -12,6 +12,10 @@ use Spatie\Permission\Models\Permission;
 
 class RolesController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:manage_roles');
+    }
     public function index(): Response
     {
         $roles = Role::with('permissions')

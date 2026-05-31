@@ -63,6 +63,10 @@ const props = defineProps({
   footerConfig: {
     type: Object,
     default: () => ({})
+  },
+  themes: {
+    type: Array,
+    default: () => []
   }
 });
 
@@ -188,7 +192,7 @@ const showSidebar = computed(() => true);
     <!-- Top: Branding -->
     <div class="flex flex-col items-center gap-8">
       <Link href="/" class="font-display font-black text-2xl tracking-tighter hover:text-accent transition-colors">
-        AS
+        {{ siteName.substring(0, 2).toUpperCase() }}
       </Link>
     </div>
 
@@ -227,7 +231,7 @@ const showSidebar = computed(() => true);
   <!-- Mobile Header -->
   <header v-if="showSidebar" class="fixed top-0 left-0 w-full h-16 bg-black text-white px-4 flex items-center justify-between z-50 md:hidden">
     <Link href="/" class="font-display font-black text-xl tracking-tighter">
-      AS
+      {{ siteName }}
     </Link>
     <div class="flex items-center gap-3">
       <Search class="w-5 h-5 cursor-pointer" @click="toggleSearch" />
@@ -280,7 +284,7 @@ const showSidebar = computed(() => true);
             <!-- Mobile Footer Info -->
             <div class="mt-auto pt-8 md:hidden">
               <p class="text-white font-display text-xs tracking-[0.3em] uppercase">
-                Archyx
+                {{ siteName }}
               </p>
               <p class="text-white/40 text-[10px] uppercase tracking-[0.2em] mt-2">
                 {{ siteCopyright }}
@@ -298,7 +302,7 @@ const showSidebar = computed(() => true);
           </div>
 
           <div class="space-y-6">
-            <SettingsPanel />
+            <SettingsPanel :themes="themes" />
           </div>
         </div>
 
@@ -317,7 +321,7 @@ const showSidebar = computed(() => true);
                   <X class="w-6 h-6" />
                 </button>
               </div>
-              <SettingsPanel :is-mobile="true" />
+              <SettingsPanel :is-mobile="true" :themes="themes" />
             </div>
           </div>
         </Transition>

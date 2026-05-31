@@ -141,6 +141,7 @@ const mixedResourcesWithAds = computed(() => {
       :menus="menus"
       :site-config="siteConfig"
       :footer-config="footerConfig"
+      :themes="themes"
     />
 
     <!-- Main Content with left margin for sidebar -->

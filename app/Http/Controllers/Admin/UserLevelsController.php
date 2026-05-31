@@ -11,6 +11,10 @@ use Inertia\Response;
 
 class UserLevelsController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:manage_user_levels');
+    }
     public function index(): Response
     {
         $levels = UserLevel::orderBy('sort_order')

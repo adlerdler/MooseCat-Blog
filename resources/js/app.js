@@ -17,6 +17,7 @@ import { ZiggyVue } from 'ziggy-js';
 import { i18n } from './i18n';
 import { useTheme } from './composables/useTheme';
 import AdminLayout from './Pages/admin/Layout.vue';
+import ErrorPage from './components/ErrorPage.vue';
 
 const { initTheme } = useTheme();
 initTheme();
@@ -69,7 +70,7 @@ createInertiaApp({
             
             // 使用持久化布局：所有 admin/ 开头的页面使用 AdminLayout，但排除登录页面
             page.then((module) => {
-                if (name.startsWith('admin/') && name !== 'admin/Login') {
+                if ((name.startsWith('admin/') && name !== 'admin/Login') || name === 'Forbidden') {
                     module.default.layout = AdminLayout;
                 }
             });
@@ -89,6 +90,7 @@ createInertiaApp({
                 .use(plugin)
                 .use(ZiggyVue)
                 .use(i18n)
+                .component('ErrorPage', ErrorPage)
                 .mount(el);
         } catch (error) {
             console.error('[ERROR] Failed to setup Inertia app:', error);

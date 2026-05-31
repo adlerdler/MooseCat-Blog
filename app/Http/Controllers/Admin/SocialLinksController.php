@@ -5,11 +5,17 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\FooterLink;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class SocialLinksController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:manage_social_links');
+    }
+
     public function index(): Response
     {
         $socialLinks = FooterLink::socialLinks()
@@ -125,21 +131,21 @@ class SocialLinksController extends Controller
             'is_active' => $validated['is_active'] ?? $footerLink->is_active,
         ];
         
-        if ($validated['platform']) {
+        if (!empty($validated['platform'] ?? null)) {
             $updateData['platform'] = $validated['platform'];
             $updateData['icon_name'] = $validated['platform'];
         }
         
-        if ($validated['icon']) {
+        if (!empty($validated['icon'] ?? null)) {
             $updateData['icon'] = $validated['icon'];
         }
         
-        if ($validated['label']) {
+        if (!empty($validated['label'] ?? null)) {
             $updateData['label'] = $validated['label'];
         }
         
-        if ($validated['sort_order'] !== null) {
-            $updateData['sort_order'] = $validated['sort_order'];
+        if (array_key_exists('sort_order', $validated) && $validated['sort_order'] !== null) {
+            $updateData['sort_order'] = (int) $validated['sort_order'];
         }
 
         $footerLink->update($updateData);

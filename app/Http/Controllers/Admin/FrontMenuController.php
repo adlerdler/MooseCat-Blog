@@ -11,6 +11,10 @@ use Inertia\Response;
 
 class FrontMenuController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:manage_menu');
+    }
     public function index(): Response
     {
         $menus = Menu::orderBy('sort_order')

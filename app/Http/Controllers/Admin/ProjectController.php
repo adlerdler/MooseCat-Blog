@@ -19,6 +19,7 @@ class ProjectController extends Controller
     public function __construct(ProjectService $projectService)
     {
         $this->projectService = $projectService;
+        $this->middleware('permission:manage_projects');
     }
 
     public function index(Request $request): Response

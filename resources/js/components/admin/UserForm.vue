@@ -54,6 +54,7 @@ const initFormData = () => {
     name: '',
     email: '',
     password: '',
+    password_confirmation: '',
     role_id: 5,
     status: 'active'
   };
@@ -65,7 +66,8 @@ watch(() => props.visible, (newVal) => {
     if (props.editData) {
       formData.value = {
         ...props.editData,
-        password: ''
+        password: '',
+        password_confirmation: ''
       };
     }
   }
@@ -76,8 +78,13 @@ const handleSubmit = () => {
     return;
   }
   
-  if (!isEditMode.value && !formData.value.password.trim()) {
-    return;
+  if (!isEditMode.value) {
+    if (!formData.value.password.trim()) {
+      return;
+    }
+    if (formData.value.password !== formData.value.password_confirmation) {
+      return;
+    }
   }
   
   const data = { ...formData.value };
@@ -87,6 +94,7 @@ const handleSubmit = () => {
   
   if (isEditMode.value && !data.password) {
     delete data.password;
+    delete data.password_confirmation;
   }
   
   emit('save', data);
@@ -188,6 +196,24 @@ const toggleStatus = () => {
                   : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
               ]"
               :placeholder="isEditMode ? '留空则不修改密码' : '输入密码...'"
+            />
+          </div>
+
+          <!-- Confirm Password (only for new user) -->
+          <div v-if="!isEditMode">
+            <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
+              {{ t('admin_user_form_confirm_password') }} *
+            </label>
+            <input
+              v-model="formData.password_confirmation"
+              type="password"
+              :class="[
+                'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
+                isDarkMode 
+                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+              ]"
+              placeholder="确认密码..."
             />
           </div>
 

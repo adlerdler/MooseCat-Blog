@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Subscriber extends Model
 {
+    use LogsActivity;
     protected $fillable = [
         'email',
         'name',
@@ -18,4 +21,13 @@ class Subscriber extends Model
         'is_active' => 'boolean',
         'subscribed_at' => 'datetime',
     ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logAll()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('subscribers');
+    }
 }

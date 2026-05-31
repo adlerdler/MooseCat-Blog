@@ -67,6 +67,11 @@ const adminMenuItems = computed(() => {
   return Array.isArray(menus) ? menus : [];
 });
 
+// 从全局共享数据中读取站点配置
+const siteConfig = computed(() => page.props.siteConfig || {});
+const siteName = computed(() => siteConfig.value.name || 'Admin');
+const siteLogo = computed(() => siteConfig.value.logo || '');
+
 const { t: originalT } = useI18n();
 const t = (key, fallback = '') => {
   if (!key) return fallback || '';
@@ -77,7 +82,11 @@ const t = (key, fallback = '') => {
   }
 };
 
-const adminEmail = ref('');
+// 当前登录用户信息
+const currentUser = computed(() => page.props.auth?.user || {});
+const adminDisplayName = computed(() => currentUser.value.name || '用户');
+const adminEmail = computed(() => currentUser.value.email || '');
+const adminRole = computed(() => currentUser.value.roles?.[0]?.name || 'User');
 const isSidebarOpen = ref(true);
 const isSidebarCollapsed = ref(false);
 const isUserMenuOpen = ref(false);
@@ -112,9 +121,11 @@ const handleLogout = () => {
 };
 
 const confirmLogout = () => {
-  localStorage.removeItem('admin_logged_in');
-  localStorage.removeItem('admin_email');
-  localStorage.removeItem('admin_login_time');
+  try {
+    localStorage.removeItem('admin_logged_in');
+    localStorage.removeItem('admin_email');
+    localStorage.removeItem('admin_login_time');
+  } catch { /* noop */ }
   showLogoutConfirm.value = false;
   
   inertiaRouter.post('/admin/logout', {}, {
@@ -139,14 +150,15 @@ const handleResize = () => {
 };
 
 onMounted(() => {
-  adminEmail.value = localStorage.getItem('admin_email') || 'Archyx@admin.com';
-  const collapsed = localStorage.getItem('sidebar_collapsed');
-  if (collapsed !== null) {
-    isSidebarCollapsed.value = collapsed === 'true';
-    if (isSidebarCollapsed.value) {
-      expandedMenus.value.clear();
+  try {
+    const collapsed = localStorage.getItem('sidebar_collapsed');
+    if (collapsed !== null) {
+      isSidebarCollapsed.value = collapsed === 'true';
+      if (isSidebarCollapsed.value) {
+        expandedMenus.value.clear();
+      }
     }
-  }
+  } catch { /* noop */ }
   
   handleResize();
   window.addEventListener('resize', handleResize);
@@ -162,7 +174,7 @@ onUnmounted(() => {
 
 const toggleSidebarCollapse = () => {
   isSidebarCollapsed.value = !isSidebarCollapsed.value;
-  localStorage.setItem('sidebar_collapsed', isSidebarCollapsed.value.toString());
+  try { localStorage.setItem('sidebar_collapsed', isSidebarCollapsed.value.toString()); } catch { /* noop */ }
   if (isSidebarCollapsed.value) {
     expandedMenus.value.clear();
   }
@@ -261,9 +273,11 @@ const handleMouseLeave = (menuId) => {
 };
 
 const clearCache = () => {
-  localStorage.removeItem('accent_theme');
-  localStorage.removeItem('admin_theme');
-  sessionStorage.clear();
+  try {
+    localStorage.removeItem('accent_theme');
+    localStorage.removeItem('admin_theme');
+    sessionStorage.clear();
+  } catch { /* noop */ }
   location.reload();
 };
 </script>
@@ -327,10 +341,46 @@ const clearCache = () => {
         <!-- Logo at top-left -->
         <div class="p-2 border-b pt-4" :class="isDarkMode ? 'border-gray-700' : 'border-gray-200'">
           <div class="flex items-center gap-2 px-2 py-2">
-            <div class="w-8 h-8 bg-construct-red flex items-center justify-center flex-shrink-0">
-              <span class="text-sm font-bold tracking-tight text-white">A</span>
+            <!-- Logo area: collapsed时 hover 显示展开图标 -->
+            <div
+              class="relative w-8 h-8 flex-shrink-0 cursor-pointer group/logo"
+              @click="isSidebarCollapsed ? toggleSidebarCollapse() : null"
+            >
+              <img
+                v-if="siteLogo"
+                :src="siteLogo"
+                :alt="siteName"
+                class="w-8 h-8 object-contain transition-opacity group-hover/logo:opacity-20"
+              />
+              <div
+                v-else
+                class="w-8 h-8 bg-construct-red flex items-center justify-center transition-opacity group-hover/logo:opacity-20"
+              >
+                <span class="text-sm font-bold tracking-tight text-white">{{ siteName.charAt(0) }}</span>
+              </div>
+              <!-- Expand icon: only visible on hover when collapsed -->
+              <div
+                v-if="isSidebarCollapsed"
+                class="absolute inset-0 flex items-center justify-center opacity-0 group-hover/logo:opacity-100 transition-opacity"
+                :class="isDarkMode ? 'text-white' : 'text-gray-600'"
+              >
+                <ChevronRight :size="18" />
+              </div>
             </div>
-            <span v-if="!isSidebarCollapsed" class="font-display text-sm tracking-tighter truncate">ARCHYX</span>
+
+            <!-- Site name (hidden when collapsed) -->
+            <span v-if="!isSidebarCollapsed" class="font-display text-sm tracking-tighter truncate flex-1">{{ siteName }}</span>
+
+            <!-- Collapse button (hidden when collapsed or on mobile) -->
+            <button
+              v-if="!isSidebarCollapsed"
+              @click="toggleSidebarCollapse"
+              class="hidden lg:block ml-auto p-1 rounded transition-colors flex-shrink-0"
+              :class="isDarkMode ? 'text-gray-400 hover:text-white hover:bg-gray-700' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'"
+              :title="t('admin_collapse_sidebar')"
+            >
+              <ChevronLeft :size="16" />
+            </button>
           </div>
         </div>
         
@@ -479,33 +529,20 @@ const clearCache = () => {
               isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
             ]"
           >
-            <div :class="['w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0', isDarkMode ? 'bg-gray-700' : 'bg-gray-100']">
-              <User :size="16" :class="isDarkMode ? 'text-gray-300' : 'text-gray-600'" />
+            <div :class="['w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden', isDarkMode ? 'bg-gray-700' : 'bg-gray-100']">
+              <img v-if="currentUser.avatar" :src="currentUser.avatar" alt="" class="w-full h-full object-cover" />
+              <User v-else :size="16" :class="isDarkMode ? 'text-gray-300' : 'text-gray-600'" />
             </div>
             <div v-if="!isSidebarCollapsed" class="flex-1 min-w-0">
-              <p :class="['text-xs font-bold truncate', isDarkMode ? 'text-white' : 'text-gray-900']">{{ adminEmail }}</p>
-              <p :class="['text-xs truncate', isDarkMode ? 'text-gray-400' : 'text-gray-500']">Administrator</p>
+              <p :class="['text-xs font-bold truncate', isDarkMode ? 'text-white' : 'text-gray-900']">{{ adminDisplayName }}</p>
+              <p :class="['text-xs truncate', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ adminEmail }}</p>
             </div>
           </div>
           
           <!-- User Dropdown Menu (moved outside aside to avoid stacking context issues) -->
         </div>
         
-        <!-- Collapse Toggle Button (hidden on mobile) -->
-        <div class="hidden lg:block p-2 border-t" :class="isDarkMode ? 'border-gray-700' : 'border-gray-200'">
-          <button
-            @click="toggleSidebarCollapse"
-            :class="[
-              'w-full flex items-center justify-center py-3 transition-colors rounded-lg',
-              isDarkMode ? 'text-gray-400 hover:bg-gray-700/50 hover:text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-            ]"
-            :title="isSidebarCollapsed ? t('admin_expand_sidebar') : t('admin_collapse_sidebar')"
-          >
-            <ChevronLeft v-if="!isSidebarCollapsed" :size="isSidebarCollapsed ? 20 : 18" />
-            <ChevronRight v-else :size="isSidebarCollapsed ? 20 : 18" />
-            <span v-if="!isSidebarCollapsed" class="ml-2 text-xs">{{ isSidebarCollapsed ? t('admin_expand') : t('admin_collapse') }}</span>
-          </button>
-        </div>
+
       </div>
     </aside>
     
@@ -520,8 +557,8 @@ const clearCache = () => {
         style="bottom: 80px; left: 8px;"
       >
         <div :class="['p-4 border-b', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
-          <p :class="['text-sm font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">{{ adminEmail }}</p>
-          <p :class="['text-xs mt-1', isDarkMode ? 'text-gray-400' : 'text-gray-500']">Administrator</p>
+          <p :class="['text-sm font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">{{ adminDisplayName }}</p>
+          <p :class="['text-xs mt-1', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ adminEmail }}</p>
         </div>
         <div class="p-2">
           <!-- Logout Button -->

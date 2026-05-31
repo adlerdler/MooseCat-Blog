@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Services\MockDataService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 
 class RestoreController extends Controller
@@ -13,6 +14,7 @@ class RestoreController extends Controller
 
     public function __construct(MockDataService $mockDataService)
     {
+        $this->middleware('permission:manage_restore');
         $this->mockDataService = $mockDataService;
     }
 

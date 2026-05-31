@@ -17,6 +17,7 @@ class VideoController extends Controller
 {
     public function __construct(protected VideoService $videoService)
     {
+        $this->middleware('permission:manage_videos');
     }
 
     public function index(): Response

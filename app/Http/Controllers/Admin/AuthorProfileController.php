@@ -11,6 +11,10 @@ use Inertia\Response;
 
 class AuthorProfileController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:manage_users');
+    }
     public function index(): Response
     {
         $profiles = AuthorProfile::with('user')

@@ -18,6 +18,7 @@ class CategoryController extends Controller
     public function __construct(CategoryService $categoryService)
     {
         $this->categoryService = $categoryService;
+        $this->middleware('permission:manage_categories');
     }
 
     public function index(): Response

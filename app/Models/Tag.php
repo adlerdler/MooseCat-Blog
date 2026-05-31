@@ -4,9 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Tag extends Model
 {
+    use LogsActivity;
     protected $fillable = [
         'name',
         'slug',
@@ -42,5 +45,14 @@ class Tag extends Model
     public function videos(): MorphToMany
     {
         return $this->morphedByMany(Video::class, 'taggable');
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logAll()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('tags');
     }
 }

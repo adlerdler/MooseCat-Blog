@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class FooterLink extends Model
 {
+    use LogsActivity;
     protected $fillable = [
         'type',
         'platform',
@@ -60,5 +63,14 @@ class FooterLink extends Model
     public function scopeDataLinks($query)
     {
         return $query->where('type', 'nav_link')->where('platform', 'data');
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logAll()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('footer-links');
     }
 }

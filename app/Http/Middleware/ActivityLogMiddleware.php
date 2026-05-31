@@ -105,7 +105,7 @@ class ActivityLogMiddleware
         // 记录到日志文件
         Log::channel('activity')->info('User activity', $logData);
 
-        // 如果有 ActivityLog 模型，也可以保存到数据库
+        // 记录到 spatie activity_log 表
         $this->saveToDatabase($logData);
     }
 
@@ -118,26 +118,33 @@ class ActivityLogMiddleware
     protected function getActionDescription(Request $request): string
     {
         $routeName = $request->route() ? $request->route()->getName() : '';
-        
-        $actions = [
-            'admin.posts.store' => '创建文章',
-            'admin.posts.update' => '更新文章',
-            'admin.posts.destroy' => '删除文章',
-            'admin.categories.store' => '创建分类',
-            'admin.categories.update' => '更新分类',
-            'admin.categories.destroy' => '删除分类',
-            'admin.tags.store' => '创建标签',
-            'admin.tags.update' => '更新标签',
-            'admin.tags.destroy' => '删除标签',
-            'admin.users.store' => '创建用户',
-            'admin.users.update' => '更新用户',
-            'admin.users.destroy' => '删除用户',
-            'admin.roles.store' => '创建角色',
-            'admin.roles.update' => '更新角色',
-            'admin.roles.destroy' => '删除角色',
+
+        // 动态路由名称映射方案
+        $moduleMap = [
+            'posts' => '文章', 'categories' => '分类', 'tags' => '标签',
+            'videos' => '视频', 'projects' => '项目', 'resources' => '资源',
+            'users' => '用户', 'roles' => '角色', 'comments' => '评论',
+            'advertisements' => '广告', 'journals' => '日记', 'subscribers' => '订阅者',
+            'user-levels' => '用户等级', 'author-profiles' => '作者资料', 'media' => '媒体',
+            'settings' => '设置', 'seo' => 'SEO', 'social-links' => '社交链接',
+            'i18n' => '国际化', 'email-templates' => '邮件模板', 'mail-config' => '邮件配置',
+            'menus' => '菜单', 'front-menu' => '前台菜单',
         ];
 
-        return $actions[$routeName] ?? "执行操作: {$routeName}";
+        $methodMap = [
+            'store' => '创建', 'update' => '更新', 'destroy' => '删除',
+        ];
+
+        // 匹配 admin.{module}.{method} 格式
+        if (preg_match('/^admin\.([^.]+)\.(store|update|destroy)$/', $routeName, $matches)) {
+            $module = $matches[1];
+            $method = $matches[2];
+            $moduleLabel = $moduleMap[$module] ?? $module;
+            $methodLabel = $methodMap[$method] ?? $method;
+            return "{$methodLabel}{$moduleLabel}";
+        }
+
+        return "{$request->method()} {$routeName}";
     }
 
     /**
@@ -162,24 +169,18 @@ class ActivityLogMiddleware
     }
 
     /**
-     * 保存到数据库（如果存在 ActivityLog 模型）
+     * 保存到 spatie/activitylog 的 activity_log 表
      *
      * @param array $logData
      * @return void
      */
     protected function saveToDatabase(array $logData): void
     {
-        if (class_exists('\App\Models\ActivityLog')) {
-            \App\Models\ActivityLog::create([
-                'user_id' => $logData['user_id'],
-                'action' => $logData['action'],
-                'url' => $logData['url'],
-                'method' => $logData['method'],
-                'ip_address' => $logData['ip_address'],
-                'user_agent' => $logData['user_agent'],
-                'status_code' => $logData['status_code'],
-                'meta' => json_encode($logData),
-            ]);
-        }
+        activity()
+            ->causedBy(Auth::user())
+            ->withProperties($logData)
+            ->inLog('http')
+            ->event('http_request')
+            ->log($logData['action']);
     }
 }

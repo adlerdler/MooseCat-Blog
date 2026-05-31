@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Services\MockDataService;
+use App\Services\SettingService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
+use Spatie\MediaLibrary\MediaCollections\Models\Media as SpatieMedia;
 
 /**
  * Settings Controller
@@ -16,16 +18,17 @@ use Inertia\Response;
  */
 class SettingsController extends Controller
 {
-    protected $mockDataService;
+    protected $settingService;
 
     /**
      * Constructor
      * 
-     * @param MockDataService $mockDataService
+     * @param SettingService $settingService
      */
-    public function __construct(MockDataService $mockDataService)
+    public function __construct(SettingService $settingService)
     {
-        $this->mockDataService = $mockDataService;
+        $this->middleware('permission:manage_settings');
+        $this->settingService = $settingService;
     }
 
     /**
@@ -35,33 +38,52 @@ class SettingsController extends Controller
      */
     public function index(): Response
     {
-        $siteConfig = $this->mockDataService->getSiteConfig();
-        $themes = $this->mockDataService->getThemes();
-        $seoConfig = $this->mockDataService->getSeoConfig();
-        $i18nConfig = $this->mockDataService->getI18nConfig();
+        $siteConfig = $this->settingService->getSiteConfig();
+        $seoConfig = $this->settingService->getSeoConfig();
+        $commentConfig = $this->settingService->getCommentConfig();
+        $allSettings = $this->settingService->getAll();
         
-        $mediaItems = \App\Models\Media::with('media')
+        $mediaItems = SpatieMedia::where('collection_name', 'default')
             ->latest()
             ->get()
-            ->map(function ($item) {
-                $file = $item->media->first();
+            ->map(function (SpatieMedia $item) {
+                $ext = pathinfo($item->file_name, PATHINFO_EXTENSION);
                 return [
-                    'id' => $item->id,
-                    'title' => $item->title,
-                    'name' => $file?->file_name ?? $item->title ?? 'Untitled',
-                    'type' => str_starts_with($file?->mime_type ?? '', 'image/') ? 'image' : 
-                             (str_starts_with($file?->mime_type ?? '', 'video/') ? 'video' : 'document'),
-                    'size' => $file ? $this->formatSize($file?->size ?? 0) : '0 B',
-                    'url' => $file?->getUrl() ?? '',
+                    'id'   => $item->uuid,
+                    'name' => $item->name,
+                    'type' => str_starts_with($item->mime_type ?? '', 'image/') ? 'image' :
+                             (str_starts_with($item->mime_type ?? '', 'video/') ? 'video' : 'document'),
+                    'size' => $this->formatSize($item->size ?? 0),
+                    'url'  => url("/media/{$item->uuid}" . ($ext ? ".{$ext}" : '')),
                     'date' => $item->created_at->format('Y-m-d'),
                 ];
             });
 
         return Inertia::render('admin/Settings', [
-            'siteConfig' => $siteConfig,
-            'themes' => $themes,
+            'siteConfig' => array_merge($siteConfig, [
+                'site_url' => $allSettings['site_url'] ?? '',
+                'copyright' => $allSettings['copyright'] ?? '',
+                'timezone' => $allSettings['timezone'] ?? 'Asia/Shanghai',
+                'maintenance' => (bool) ($allSettings['maintenance'] ?? false),
+                'author_bio' => (bool) ($allSettings['author_bio'] ?? false),
+                'comments' => (bool) ($allSettings['comments'] ?? true),
+                'registration' => (bool) ($allSettings['registration'] ?? true),
+                'comment_approval' => (bool) ($allSettings['comment_approval'] ?? false),
+                'newsletter' => (bool) ($allSettings['newsletter'] ?? true),
+                'social_login' => (bool) ($allSettings['social_login'] ?? false),
+                'search' => (bool) ($allSettings['search'] ?? true),
+                'cache' => (bool) ($allSettings['cache'] ?? true),
+                'cache_duration' => (int) ($allSettings['cache_duration'] ?? 3600),
+                'minification' => (bool) ($allSettings['minification'] ?? true),
+                'lazy_load' => (bool) ($allSettings['lazy_load'] ?? true),
+                'cdn' => (bool) ($allSettings['cdn'] ?? false),
+                'cdn_url' => $allSettings['cdn_url'] ?? '',
+                'max_upload_size' => (int) ($allSettings['max_upload_size'] ?? 10),
+                'file_types' => $allSettings['file_types'] ?? ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf', 'doc', 'docx'],
+            ]),
             'seoConfig' => $seoConfig,
-            'i18nConfig' => $i18nConfig,
+            'commentConfig' => $commentConfig,
+            'themes' => \App\Models\Theme::orderBy('sort_order')->get(),
             'media' => $mediaItems,
         ]);
     }
@@ -84,14 +106,138 @@ class SettingsController extends Controller
     public function update(Request $request)
     {
         $validated = $request->validate([
-            'site_name' => 'required|string|max:255',
-            'site_description' => 'nullable|string',
-            'site_logo' => 'nullable|url',
-            'favicon' => 'nullable|url',
-            'default_language' => 'required|string|max:10',
-            'timezone' => 'required|string',
+            'name' => 'nullable|string|max:255',
+            'title' => 'nullable|string|max:255',
+            'description' => 'nullable|string|max:500',
+            'keywords' => 'nullable|string|max:500',
+            'logo' => 'nullable|string|max:500',
+            'favicon' => 'nullable|string|max:500',
+            'site_url' => 'nullable|string|max:500',
+            'copyright' => 'nullable|string|max:500',
+            'timezone' => 'nullable|string|max:100',
+            'maintenance' => 'nullable',
+            'author_bio' => 'nullable',
+            'comments' => 'nullable',
+            'registration' => 'nullable',
+            'comment_approval' => 'nullable',
+            'newsletter' => 'nullable',
+            'social_login' => 'nullable',
+            'search' => 'nullable',
+            'cache' => 'nullable',
+            'cache_duration' => 'nullable|integer',
+            'minification' => 'nullable',
+            'lazy_load' => 'nullable',
+            'cdn' => 'nullable',
+            'cdn_url' => 'nullable|string|max:500',
+            'max_upload_size' => 'nullable|integer',
+            'file_types' => 'nullable',
+            // SEO fields
+            'meta_title' => 'nullable|string|max:255',
+            'meta_description' => 'nullable|string|max:500',
+            'meta_keywords' => 'nullable|string|max:500',
+            'google_analytics' => 'nullable|string|max:500',
+            'baidu_analytics' => 'nullable|string|max:500',
+            'canonical_url' => 'nullable|string|max:500',
+            'og_image' => 'nullable|string|max:500',
+            'og_type' => 'nullable|string|max:50',
+            'twitter_card' => 'nullable|string|max:50',
+            'sitemap' => 'nullable',
+            'robots' => 'nullable',
+            'llm_txt' => 'nullable',
         ]);
 
+        $settingsToSave = [];
+        $seoToSave = [];
+        $booleanFields = [
+            'maintenance', 'author_bio', 'comments', 'registration',
+            'comment_approval', 'newsletter', 'social_login', 'search',
+            'cache', 'minification', 'lazy_load', 'cdn',
+        ];
+        $seoFields = [
+            'meta_title', 'meta_description', 'meta_keywords',
+            'google_analytics', 'baidu_analytics', 'canonical_url',
+            'og_image', 'og_type', 'twitter_card',
+        ];
+        $seoBooleanFields = ['sitemap', 'robots', 'llm_txt'];
+
+        foreach ($validated as $key => $value) {
+            if ($value === null || $value === '') {
+                continue;
+            }
+
+            if (in_array($key, $seoFields)) {
+                $seoToSave[$key] = $value;
+            } elseif (in_array($key, $seoBooleanFields)) {
+                $seoToSave[$key] = filter_var($value, FILTER_VALIDATE_BOOLEAN);
+            } elseif (in_array($key, $booleanFields)) {
+                $settingsToSave[$key] = filter_var($value, FILTER_VALIDATE_BOOLEAN);
+            } elseif (is_array($value)) {
+                $settingsToSave[$key] = json_encode($value);
+            } else {
+                $settingsToSave[$key] = $value;
+            }
+        }
+
+        if (!empty($settingsToSave)) {
+            $this->settingService->setMany($settingsToSave);
+        }
+
+        if (!empty($seoToSave)) {
+            \App\Models\Seo::updateGlobalSeo($seoToSave);
+        }
+
         return back()->with('success', '设置已更新');
+    }
+
+    public function storeTheme(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:100|unique:themes,name',
+            'label' => 'required|string|max:255',
+            'color' => 'required|string|max:50',
+            'sort_order' => 'nullable|integer',
+            'is_active' => 'nullable|boolean',
+            'is_default' => 'nullable|boolean',
+            'preview_image' => 'nullable|string|max:500',
+        ]);
+
+        if ($validated['is_default']) {
+            \App\Models\Theme::where('is_default', true)->update(['is_default' => false]);
+        }
+
+        $theme = \App\Models\Theme::create($validated);
+
+        return back()->with('success', '主题已添加');
+    }
+
+    public function updateTheme(Request $request, $id)
+    {
+        $theme = \App\Models\Theme::findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:100|unique:themes,name,' . $id,
+            'label' => 'required|string|max:255',
+            'color' => 'required|string|max:50',
+            'sort_order' => 'nullable|integer',
+            'is_active' => 'nullable|boolean',
+            'is_default' => 'nullable|boolean',
+            'preview_image' => 'nullable|string|max:500',
+        ]);
+
+        if ($validated['is_default']) {
+            \App\Models\Theme::where('is_default', true)->where('id', '!=', $id)->update(['is_default' => false]);
+        }
+
+        $theme->update($validated);
+
+        return back()->with('success', '主题已更新');
+    }
+
+    public function deleteTheme($id)
+    {
+        $theme = \App\Models\Theme::findOrFail($id);
+        $theme->delete();
+
+        return back()->with('success', '主题已删除');
     }
 }

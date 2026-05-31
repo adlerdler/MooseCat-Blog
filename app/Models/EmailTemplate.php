@@ -10,6 +10,7 @@ class EmailTemplate extends Model
         'name',
         'subject',
         'content',
+        'description',
         'variables',
         'is_active',
     ];

@@ -6,6 +6,7 @@ import { Motion, AnimatePresence } from 'motion-v'
 import { useTheme } from '../../composables/useTheme'
 import { useI18n } from 'vue-i18n'
 import { usePageSeo } from '../../composables/usePageSeo'
+import { usePageSeoData } from '../../composables/usePageSeoData'
 
 import SplashScreen from '../../components/SplashScreen.vue'
 import SidebarMenu from '../../components/SidebarMenu.vue'
@@ -34,9 +35,13 @@ console.log('[DEBUG] Home.vue props received:', {
 const marqueeText = 'ARCHYX VOL. 2026 // BUILDING SYSTEM // MINIMALISM //'
 const techStack = ['TYPESCRIPT', 'VUE', 'LARAVEL', 'TAILWIND', 'NODE.JS', 'POSTGRES']
 
+const { getSeoByPageKey } = usePageSeoData();
+const homeSeo = getSeoByPageKey('home') || {};
+
 const { SeoHead } = usePageSeo({
-  title: 'Archyx - Design & Technology Blog',
-  description: 'Exploring the intersection of design, technology, and human experience.'
+  title: homeSeo.title || 'Archyx - Design & Technology Blog',
+  description: homeSeo.description || 'Exploring the intersection of design, technology, and human experience.',
+  keywords: homeSeo.keywords || '',
 })
 
 const { t } = useI18n()
@@ -173,6 +178,7 @@ onUnmounted(() => {
       :posts="posts"
       :videos="videos"
       :projects="projects"
+      :themes="themes"
     />
 
     <!-- Main Content with left margin for sidebar -->

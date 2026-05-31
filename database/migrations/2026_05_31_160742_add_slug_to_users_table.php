@@ -11,15 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('media', function (Blueprint $table) {
-            $table->dropColumn('file_size');
+        Schema::table('users', function (Blueprint $table) {
+            //
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
-        Schema::table('media', function (Blueprint $table) {
-            $table->unsignedBigInteger('file_size')->nullable();
+        Schema::table('users', function (Blueprint $table) {
+            //
         });
     }
 };

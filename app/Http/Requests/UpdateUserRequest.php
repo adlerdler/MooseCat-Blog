@@ -37,6 +37,10 @@ class UpdateUserRequest extends FormRequest
             'role_id' => 'nullable|exists:roles,id',
             'roles' => 'nullable|array',
             'roles.*' => 'exists:roles,id',
+            'social_links' => 'nullable|array',
+            'skills' => 'nullable|array',
+            'manifestos' => 'nullable|array',
+            'expertise' => 'nullable|array',
         ];
     }
 

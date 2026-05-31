@@ -12,7 +12,7 @@
  * - role_id 已从数据库删除，改用 Spatie RBAC 管理角色
  * - 表单中的角色选择仅用于前端展示，实际角色分配通过 Spatie 方法
  */
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import {
   User,
@@ -32,9 +32,11 @@ import {
   Facebook,
   Video,
   Palette,
-  MessageCircle
+  MessageCircle,
+  Upload,
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
+import MediaPickerModal from './MediaPickerModal.vue';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
@@ -67,6 +69,10 @@ const props = defineProps({
   roles: {
     type: Array,
     default: () => []
+  },
+  media: {
+    type: Array,
+    default: () => []
   }
 });
 
@@ -82,6 +88,10 @@ const showAddLinkModal = ref(false);
 const newLinkPlatform = ref('');
 const newLinkUrl = ref('');
 const detectedPlatform = ref('');
+
+// 媒体选择器
+const showMediaPicker = ref(false);
+const mediaFiles = computed(() => props.media || []);
 
 const deepClone = (obj) => {
   if (!obj) return null;
@@ -217,6 +227,15 @@ const removeManifesto = (index) => {
   editingManifestos.value.splice(index, 1);
 };
 
+const openMediaPicker = () => {
+  showMediaPicker.value = true;
+};
+
+const handleMediaSelect = (file) => {
+  editingUser.value = { ...editingUser.value, avatar: file.url };
+  showMediaPicker.value = false;
+};
+
 const handleCancel = () => {
   emit('cancel');
 };
@@ -262,6 +281,18 @@ const handleSave = () => {
               <User :size="20" />
               用户信息
             </h4>
+            <!-- 头像 -->
+            <div class="flex justify-center mb-6">
+              <div class="relative group cursor-pointer" @click="openMediaPicker">
+                <div :class="['w-24 h-24 rounded-full flex items-center justify-center overflow-hidden border-2 border-dashed transition-colors', isDarkMode ? 'border-gray-500 hover:border-construct-red bg-gray-600' : 'border-gray-300 hover:border-construct-red bg-gray-100']">
+                  <img v-if="editingUser?.avatar" :src="editingUser.avatar" alt="头像" class="w-full h-full object-cover" />
+                  <User v-else :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'" size="40" />
+                </div>
+                <div class="absolute inset-0 rounded-full flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Upload :size="20" class="text-white" />
+                </div>
+              </div>
+            </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">用户名 *</label>
@@ -439,6 +470,14 @@ const handleSave = () => {
       </div>
     </div>
   </Transition>
+
+  <!-- 媒体选择器弹窗 -->
+  <MediaPickerModal
+    :visible="showMediaPicker"
+    :media="mediaFiles"
+    @select="handleMediaSelect"
+    @close="showMediaPicker = false"
+  />
 </template>
 
 <style scoped>

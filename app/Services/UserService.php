@@ -67,7 +67,26 @@ class UserService
             $roleId = $data['role_id'] ?? null;
             unset($data['role_id']);
             
+            // 提取 author_profiles 表专属字段
+            $profileFields = ['avatar', 'bio', 'social_links', 'skills', 'manifestos', 'expertise', 'role_label', 'role_title', 'status_label', 'status_text', 'is_active'];
+            $profileData = [];
+            foreach ($profileFields as $field) {
+                if (array_key_exists($field, $data)) {
+                    $profileData[$field] = $data[$field];
+                    unset($data[$field]);
+                }
+            }
+            
             $user->update($data);
+            
+            // 同步 author_profile
+            if (!empty($profileData)) {
+                $profileData['slug'] = $profileData['slug'] ?? ($user->authorProfile?->slug ?? \Illuminate\Support\Str::slug($user->name));
+                $user->authorProfile()->updateOrCreate(
+                    ['user_id' => $user->id],
+                    $profileData
+                );
+            }
             
             if ($roleId) {
                 $user->syncRoles([$roleId]);

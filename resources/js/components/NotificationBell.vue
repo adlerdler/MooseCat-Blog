@@ -3,44 +3,36 @@
  * NotificationBell.vue - 通知铃铛组件
  *
  * 功能说明：
- * - 显示通知铃铛图标和未读数量
+ * - 读取 Inertia 共享的 notifications + unreadCount
  * - 点击展开通知列表
  * - 支持标记已读/全部已读
  * - 通知类型区分（info/warning/error/success）
- * 
- * 使用示例：
- * <NotificationBell :notifications="notifications" />
  */
 import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { usePage, router } from '@inertiajs/vue3';
 import { Bell, Check, CheckCheck, Trash2, Info, AlertTriangle, AlertCircle, CheckCircle } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
 import { useTheme } from '../composables/useTheme';
 
-const props = defineProps({
-  notifications: {
-    type: Array,
-    default: () => []
-  }
-});
-
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
+const page = usePage();
 
-const localNotifications = ref(props.notifications.map(n => ({ ...n })));
 const isOpen = ref(false);
 const dropdownRef = ref(null);
 
-const unreadCount = computed(() => localNotifications.value.filter(n => !n.read).length);
+// 从 Inertia 共享 props 读取通知数据
+const notifications = computed(() => page.props.notifications || []);
+const unreadCount = computed(() => page.props.unreadCount ?? notifications.value.filter(n => !n.read).length);
 
 const typeConfig = {
-  info: { icon: Info, color: 'text-blue-500', bg: computed(() => isDarkMode ? 'bg-blue-900/20' : 'bg-blue-50') },
-  warning: { icon: AlertTriangle, color: 'text-yellow-500', bg: computed(() => isDarkMode ? 'bg-yellow-900/20' : 'bg-yellow-50') },
-  error: { icon: AlertCircle, color: 'text-red-500', bg: computed(() => isDarkMode ? 'bg-red-900/20' : 'bg-red-50') },
-  success: { icon: CheckCircle, color: 'text-green-500', bg: computed(() => isDarkMode ? 'bg-green-900/20' : 'bg-green-50') }
+  info:    { icon: Info,          color: 'text-blue-500' },
+  warning: { icon: AlertTriangle,  color: 'text-yellow-500' },
+  error:   { icon: AlertCircle,    color: 'text-red-500' },
+  success: { icon: CheckCircle,    color: 'text-green-500' },
 };
 
 const toggleDropdown = (e) => {
-  // 阻止事件冒泡，避免立即触发点击外部检测
   if (e) e.stopPropagation();
   isOpen.value = !isOpen.value;
 };
@@ -60,23 +52,30 @@ onUnmounted(() => {
 });
 
 const markAsRead = (id) => {
-  const notification = localNotifications.value.find(n => n.id === id);
-  if (notification) {
-    notification.read = true;
-  }
+  router.patch(
+    route('admin.notifications.mark-as-read', id),
+    {},
+    { preserveScroll: true, preserveState: true }
+  );
 };
 
 const markAllAsRead = () => {
-  localNotifications.value.forEach(n => {
-    n.read = true;
-  });
+  router.post(
+    route('admin.notifications.mark-all-as-read'),
+    {},
+    { preserveScroll: true, preserveState: true }
+  );
 };
 
 const deleteNotification = (id) => {
-  localNotifications.value = localNotifications.value.filter(n => n.id !== id);
+  router.delete(
+    route('admin.notifications.destroy', id),
+    { preserveScroll: true, preserveState: true }
+  );
 };
 
 const formatTime = (dateStr) => {
+  if (!dateStr) return '';
   const date = new Date(dateStr);
   const now = new Date();
   const diff = now - date;
@@ -121,61 +120,71 @@ const formatTime = (dateStr) => {
         <div class="flex items-center justify-between px-4 py-3"
           :class="isDarkMode ? 'border-b border-gray-700' : 'border-b border-gray-200'">
           <h3 class="font-display text-sm font-bold tracking-tight">
-            {{ t('admin_notifications_title') || 'Notifications' }}
+            {{ t('admin_notifications_title') }}
           </h3>
           <button
             v-if="unreadCount > 0"
             @click="markAllAsRead"
             class="text-xs font-bold tracking-widest text-construct-red hover:underline uppercase"
           >
-            {{ t('admin_mark_all_read') || 'Mark All Read' }}
+            {{ t('admin_mark_all_read') }}
           </button>
         </div>
 
         <!-- Notification List -->
         <div class="max-h-96 overflow-y-auto">
-          <div v-if="localNotifications.length === 0" class="p-8 text-center"
+          <div v-if="notifications.length === 0" class="p-8 text-center"
             :class="isDarkMode ? 'text-gray-500' : 'text-gray-400'">
             <Bell size="32" class="mx-auto mb-3 opacity-30" />
             <p class="text-xs font-bold tracking-widest uppercase">
-              {{ t('admin_no_notifications') || 'No Notifications' }}
+              {{ t('admin_no_notifications') }}
             </p>
           </div>
 
           <div
-            v-for="notification in localNotifications"
+            v-for="notification in notifications"
             :key="notification.id"
-            @click="markAsRead(notification.id)"
             class="group flex gap-3 px-4 py-3 transition-colors cursor-pointer"
             :class="[
               isDarkMode ? 'border-b border-gray-700/50 hover:bg-gray-700/50' : 'border-b border-gray-100 hover:bg-gray-50',
               !notification.read ? (isDarkMode ? 'bg-gray-700/30' : 'bg-gray-50/50') : ''
             ]"
           >
-            <!-- Icon -->
-            <div
-              class="shrink-0 w-8 h-8 rounded-full flex items-center justify-center"
-              :class="typeConfig[notification.type]?.bg.value || typeConfig.info.bg.value"
+            <!-- Read / Unread indicator -->
+            <button
+              v-if="!notification.read"
+              @click="markAsRead(notification.id)"
+              class="shrink-0 mt-0.5 p-0.5 rounded hover:bg-green-500/20 transition-colors"
+              title="Mark as read"
             >
-              <component
-                :is="typeConfig[notification.type]?.icon || typeConfig.info.icon"
-                :class="['w-4 h-4', typeConfig[notification.type]?.color || typeConfig.info.color]"
-              />
-            </div>
+              <div class="w-8 h-8 rounded-full flex items-center justify-center"
+                :class="isDarkMode ? 'bg-gray-700' : 'bg-gray-100'">
+                <component
+                  :is="typeConfig[notification.type]?.icon || typeConfig.info.icon"
+                  :class="['w-4 h-4', typeConfig[notification.type]?.color || typeConfig.info.color]"
+                />
+              </div>
+            </button>
+            <button
+              v-else
+              @click="() => {}"
+              class="shrink-0 mt-0.5 p-0.5 rounded"
+            >
+              <div class="w-8 h-8 rounded-full flex items-center justify-center opacity-50"
+                :class="isDarkMode ? 'bg-gray-700' : 'bg-gray-100'">
+                <Check class="w-4 h-4 text-gray-400" />
+              </div>
+            </button>
 
             <!-- Content -->
-            <div class="flex-1 min-w-0">
+            <div class="flex-1 min-w-0" @click="!notification.read && markAsRead(notification.id)">
               <div class="flex items-start justify-between gap-2">
                 <h4 class="text-sm font-bold truncate"
-                  :class="notification.read 
+                  :class="notification.read
                     ? (isDarkMode ? 'text-gray-400' : 'text-gray-600')
                     : (isDarkMode ? 'text-white' : 'text-gray-900')">
                   {{ notification.title }}
                 </h4>
-                <span
-                  v-if="!notification.read"
-                  class="shrink-0 w-2 h-2 bg-construct-red rounded-full mt-1.5"
-                />
               </div>
               <p class="text-xs mt-1 line-clamp-2"
                 :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'">
@@ -206,7 +215,7 @@ const formatTime = (dateStr) => {
             @click="isOpen = false"
             class="text-xs font-bold tracking-widest text-construct-red hover:underline uppercase text-center block"
           >
-            {{ t('admin_view_all_notifications') || 'View All Notifications' }}
+            {{ t('admin_view_all_notifications') }}
           </router-link>
         </div>
       </div>

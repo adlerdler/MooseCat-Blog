@@ -255,7 +255,7 @@ const handleFilterChange = ({ key, value }) => {
             <td :class="['px-6 py-4', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ formatToShort(user.created_at) }}</td>
             <td class="px-6 py-4">
               <div class="flex items-center justify-center gap-2">
-                <Link :href="`/admin/users/${user.id}`" :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:bg-gray-600' : 'text-gray-500 hover:bg-gray-100']">
+                <Link :href="`/admin/users/${user.slug}`" :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:bg-gray-600' : 'text-gray-500 hover:bg-gray-100']">
                   <Eye size="16" />
                 </Link>
                 <button @click="handleEdit(user)" :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:bg-gray-600' : 'text-gray-500 hover:bg-gray-100']">

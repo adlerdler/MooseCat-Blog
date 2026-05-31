@@ -2,8 +2,14 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Schema;
+use Spatie\Activitylog\Models\Activity;
+use Spatie\MediaLibrary\MediaCollections\Models\Media as SpatieMedia;
+use App\Events\CommentCreated;
+use App\Listeners\SendCommentNotification;
+use App\Observers\MediaObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -15,5 +21,23 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Schema::defaultStringLength(191);
+
+        // 模型 LogsActivity trait 事件触发时不会自动填写 IP/UA，
+        // 通过 saving 钩子统一补填（中间件通过 activity() helper 已自带）
+        Activity::saving(function (Activity $activity) {
+            if (request() && ! $activity->ip_address) {
+                $activity->ip_address = request()->ip();
+                $activity->user_agent = request()->userAgent();
+            }
+        });
+
+        // Spatie Media 创建时自动生成 UUID（用于文件路径和 URL）
+        SpatieMedia::observe(MediaObserver::class);
+
+        // 注册事件监听：评论创建时发送通知给文章作者
+        Event::listen(
+            CommentCreated::class,
+            SendCommentNotification::class,
+        );
     }
 }

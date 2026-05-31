@@ -11,6 +11,10 @@ use Inertia\Response;
 
 class SubscribersController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:manage_subscribers');
+    }
     public function index(): Response
     {
         $subscribers = Subscriber::orderBy('created_at', 'desc')

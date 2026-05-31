@@ -97,7 +97,7 @@ const colorOptions = [
   { value: 'pink', label: 'Pink', class: 'bg-pink-600 border-pink-500' }
 ];
 
-const guardOptions = ['web', 'api', 'admin'];
+const guardOptions = ['web', 'admin'];
 
 const initFormData = () => {
   formData.value = {
@@ -117,6 +117,7 @@ watch(() => props.visible, (newVal) => {
       const permIds = props.editData.permissions || [];
       formData.value = {
         ...props.editData,
+        guard_name: guardOptions.includes(props.editData.guard_name) ? props.editData.guard_name : 'web',
         permissions: [...permIds]
       };
     }

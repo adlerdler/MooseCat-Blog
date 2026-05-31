@@ -25,6 +25,7 @@ class I18nController extends Controller
      */
     public function __construct(MockDataService $mockDataService)
     {
+        $this->middleware('permission:manage_i18n');
         $this->mockDataService = $mockDataService;
     }
 

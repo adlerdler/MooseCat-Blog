@@ -31,6 +31,7 @@ import UserDetailForm from '../../components/admin/UserDetailForm.vue';
 const props = defineProps({
   user: { type: Object, default: () => ({}) },
   roles: { type: Array, default: () => [] },
+  media: { type: Array, default: () => [] },
 });
 
 const { t } = useI18n();
@@ -43,6 +44,7 @@ const authorInfo = computed(() => {
   if (!props.user) return null;
   return {
     bio: props.user.bio,
+    avatar: props.user.avatar,
     skills: props.user.skills || [],
     social_links: props.user.social_links || {},
     manifestos: props.user.manifestos || [],
@@ -129,7 +131,17 @@ const openEditForm = () => {
 };
 
 const handleSave = (data) => {
-  const form = useForm(data);
+  // 拆平 user 字段到顶层（后端 UpdateUserRequest 要求 name/email 在顶层）
+  // 排除 roles（名称数组），role_id 才是后端需要的角色 ID
+  const { roles: _roles, ...userFields } = data.user;
+  const payload = {
+    ...data.author,
+    ...userFields,
+    skills: data.skills,
+    social_links: data.social_links,
+    manifestos: data.manifestos,
+  };
+  const form = useForm(payload);
   form.put(route('admin.users.update', props.user.id), {
     onSuccess: () => {
       isFormVisible.value = false;
@@ -285,6 +297,7 @@ const handleCancel = () => {
       :manifestos-data="authorManifestos"
       :visible="isFormVisible"
       :roles="props.roles"
+      :media="props.media"
       @save="handleSave"
       @cancel="handleCancel"
     />

@@ -20,6 +20,7 @@ class JournalsController extends Controller
 
     public function __construct(JournalService $journalService)
     {
+        $this->middleware('permission:manage_journals');
         $this->journalService = $journalService;
     }
 

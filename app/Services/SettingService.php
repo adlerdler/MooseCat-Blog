@@ -7,7 +7,6 @@ namespace App\Services;
 use App\Models\Setting;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Database\Eloquent\Collection;
 
 /**
  * SettingService - 设置服务类
@@ -18,7 +17,7 @@ use Illuminate\Database\Eloquent\Collection;
  */
 class SettingService
 {
-    private const CACHE_KEY = 'settings_all';
+    private const CACHE_KEY = 'settings_single';
 
     /**
      * 获取所有设置（带缓存）
@@ -27,7 +26,12 @@ class SettingService
     public function getAll(): array
     {
         return Cache::rememberForever(self::CACHE_KEY, function () {
-            return Setting::pluck('value', 'key')->toArray();
+            $setting = Setting::first();
+            if (!$setting) {
+                Setting::create([]);
+                $setting = Setting::first();
+            }
+            return $setting ? $setting->toArray() : [];
         });
     }
 
@@ -48,7 +52,12 @@ class SettingService
     public function set(string $key, $value): void
     {
         DB::transaction(function () use ($key, $value) {
-            Setting::updateOrCreate(['key' => $key], ['value' => $value]);
+            $setting = Setting::first();
+            if ($setting) {
+                $setting->update([$key => $value]);
+            } else {
+                Setting::create([$key => $value]);
+            }
             Cache::forget(self::CACHE_KEY);
         });
     }
@@ -60,33 +69,40 @@ class SettingService
     public function setMany(array $settings): void
     {
         DB::transaction(function () use ($settings) {
-            foreach ($settings as $key => $value) {
-                Setting::updateOrCreate(['key' => $key], ['value' => $value]);
+            $setting = Setting::first();
+            if ($setting) {
+                $setting->update($settings);
+            } else {
+                Setting::create($settings);
             }
             Cache::forget(self::CACHE_KEY);
         });
     }
 
     /**
-     * 删除配置
-     * Delete setting
+     * 删除配置（重置为默认值）
+     * Delete setting (reset to default)
      */
     public function delete(string $key): bool
     {
         return DB::transaction(function () use ($key) {
-            $result = Setting::where('key', $key)->delete();
-            Cache::forget(self::CACHE_KEY);
-            return $result > 0;
+            $setting = Setting::first();
+            if ($setting) {
+                $setting->update([$key => null]);
+                Cache::forget(self::CACHE_KEY);
+                return true;
+            }
+            return false;
         });
     }
 
     /**
-     * 获取设置集合
-     * Get settings collection
+     * 获取设置模型实例
+     * Get setting model instance
      */
-    public function getSettingsCollection(): Collection
+    public function getSettingModel(): ?Setting
     {
-        return Setting::all();
+        return Setting::first();
     }
 
     /**
@@ -97,29 +113,39 @@ class SettingService
     {
         $settings = $this->getAll();
         return [
-            'name' => $settings['site_name'] ?? config('app.name'),
-            'title' => $settings['site_title'] ?? '',
-            'description' => $settings['site_description'] ?? '',
-            'keywords' => $settings['site_keywords'] ?? '',
-            'logo' => $settings['site_logo'] ?? '',
-            'favicon' => $settings['site_favicon'] ?? '',
+            'name' => $settings['name'] ?? config('app.name'),
+            'title' => $settings['description'] ?? '',
+            'description' => $settings['description'] ?? '',
+            'keywords' => $settings['description'] ?? '',
+            'logo' => $settings['logo'] ?? '',
+            'favicon' => $settings['favicon'] ?? '',
+            'copyright' => $settings['copyright'] ?? '',
+            'site_url' => $settings['site_url'] ?? '',
+            'maintenance' => (bool) ($settings['maintenance'] ?? false),
         ];
     }
 
     /**
-     * 获取SEO配置
-     * Get SEO configuration
+     * 获取SEO配置（从 seo 表读取真实数据）
+     * Get SEO configuration (from seo table)
      */
     public function getSeoConfig(): array
     {
-        $settings = $this->getAll();
+        $seo = \App\Models\Seo::getGlobalSeo();
+
         return [
-            'meta_title' => $settings['seo_meta_title'] ?? '',
-            'meta_description' => $settings['seo_meta_description'] ?? '',
-            'meta_keywords' => $settings['seo_meta_keywords'] ?? '',
-            'og_title' => $settings['seo_og_title'] ?? '',
-            'og_description' => $settings['seo_og_description'] ?? '',
-            'og_image' => $settings['seo_og_image'] ?? '',
+            'meta_title' => $seo->meta_title ?? '',
+            'meta_description' => $seo->meta_description ?? '',
+            'meta_keywords' => $seo->meta_keywords ?? '',
+            'google_analytics' => $seo->google_analytics ?? '',
+            'baidu_analytics' => $seo->baidu_analytics ?? '',
+            'sitemap' => (bool) ($seo->sitemap ?? false),
+            'robots' => (bool) ($seo->robots ?? false),
+            'llm_txt' => (bool) ($seo->llm_txt ?? false),
+            'canonical_url' => $seo->canonical_url ?? '',
+            'og_image' => $seo->og_image ?? '',
+            'og_type' => $seo->og_type ?? 'website',
+            'twitter_card' => $seo->twitter_card ?? 'summary_large_image',
         ];
     }
 
@@ -131,9 +157,9 @@ class SettingService
     {
         $settings = $this->getAll();
         return [
-            'auto_approve' => (bool) ($settings['comment_auto_approve'] ?? true),
-            'enabled' => (bool) ($settings['comment_enabled'] ?? true),
-            'max_depth' => (int) ($settings['comment_max_depth'] ?? 3),
+            'auto_approve' => (bool) ($settings['comment_approval'] ?? true),
+            'enabled' => (bool) ($settings['comments'] ?? true),
+            'max_depth' => 3,
         ];
     }
 
