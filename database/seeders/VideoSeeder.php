@@ -12,8 +12,13 @@ class VideoSeeder extends Seeder
         $videos = [
             [
                 'title' => 'Minimalist Design Principles',
+                'slug' => 'minimalist-design-principles',
                 'description' => 'A deep dive into why less is more.',
+                'video_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
                 'video_id' => 'dQw4w9WgXcQ',
+                'cover_image' => '/images/videos/minimalist-design-cover.jpg',
+                'status' => 'published',
+                'category_id' => null,
                 'platform' => 'youtube',
                 'thumbnail' => '/images/videos/minimalist-design.jpg',
                 'duration' => '15:30',
@@ -23,8 +28,13 @@ class VideoSeeder extends Seeder
             ],
             [
                 'title' => 'Laravel 11 Features',
+                'slug' => 'laravel-11-features',
                 'description' => 'Quick overview of what is new in Laravel 11.',
+                'video_url' => 'https://www.bilibili.com/video/BV6nO5K0vE8',
                 'video_id' => 'BV6nO5K0vE8',
+                'cover_image' => '/images/videos/laravel-11-cover.jpg',
+                'status' => 'published',
+                'category_id' => null,
                 'platform' => 'bilibili',
                 'thumbnail' => '/images/videos/laravel-11.jpg',
                 'duration' => '10:45',

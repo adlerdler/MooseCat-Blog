@@ -6,7 +6,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreResourceRequest extends FormRequest
+class UpdateResourceRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -17,8 +17,8 @@ class StoreResourceRequest extends FormRequest
     {
         return [
             'category_id' => ['nullable', 'integer', 'exists:categories,id'],
-            'title' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
+            'title' => ['sometimes', 'required', 'string', 'max:255'],
+            'description' => ['sometimes', 'required', 'string'],
             'format' => ['nullable', 'string', 'max:50'],
             'file_size' => ['nullable', 'string', 'max:50'],
             'image' => ['nullable', 'string', 'max:500'],

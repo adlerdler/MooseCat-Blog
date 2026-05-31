@@ -26,7 +26,7 @@ class UpdateUserRequest extends FormRequest
         return [
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $userId,
-            'password' => 'nullable|string|min:8|confirmed',
+            'password' => 'nullable|string|min:8',
             'avatar' => 'nullable|string|max:255',
             'bio' => 'nullable|string',
             'github' => 'nullable|string|max:255',
@@ -34,8 +34,16 @@ class UpdateUserRequest extends FormRequest
             'linkedin' => 'nullable|string|max:255',
             'status' => 'nullable|string|in:active,inactive',
             'level_id' => 'nullable|exists:user_levels,id',
-            'roles' => 'array',
+            'role_id' => 'nullable|exists:roles,id',
+            'roles' => 'nullable|array',
             'roles.*' => 'exists:roles,id',
         ];
+    }
+
+    public function withValidator($validator): void
+    {
+        $validator->sometimes('password', 'required|string|min:8', function ($input) {
+            return isset($input->password) && $input->password !== '';
+        });
     }
 }

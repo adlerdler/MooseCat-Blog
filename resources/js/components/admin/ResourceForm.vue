@@ -16,6 +16,10 @@ const props = defineProps({
   visible: {
     type: Boolean,
     default: false
+  },
+  categories: {
+    type: Array,
+    default: () => []
   }
 });
 
@@ -38,26 +42,24 @@ const resourceFormats = [
 const driveTypes = ['Google Drive', 'Dropbox', 'Baidu', 'OneDrive', 'AliCloud', 'Vimeo', 'Local', 'Other'];
 
 const formData = ref({
+  category_id: '',
   title: '',
-  category: 'DESIGN',
+  description: '',
   image: '',
-  format: 'PDF',
+  format: '',
   file_size: '',
-  downloads_count: '0',
-  date: new Date().toISOString().split('T')[0],
   direct_link: '',
   drives: []
 });
 
 const initFormData = () => {
   formData.value = {
+    category_id: '',
     title: '',
-    category: 'DESIGN',
+    description: '',
     image: '',
-    format: 'PDF',
+    format: '',
     file_size: '',
-    downloads_count: '0',
-    date: new Date().toISOString().split('T')[0],
     direct_link: '',
     drives: []
   };
@@ -121,13 +123,30 @@ const handleCancel = () => {
         />
       </div>
 
+      <div>
+        <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
+          {{ t('admin_resource_form_description') }}
+        </label>
+        <textarea
+          v-model="formData.description"
+          rows="3"
+          :class="[
+            'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red resize-none',
+            isDarkMode
+              ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+              : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+          ]"
+          placeholder="输入资源描述..."
+        />
+      </div>
+
       <div class="grid grid-cols-2 gap-4">
         <div>
           <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
             {{ t('admin_resource_form_category') }}
           </label>
           <select
-            v-model="formData.category"
+            v-model="formData.category_id"
             :class="[
               'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
               isDarkMode 
@@ -135,9 +154,10 @@ const handleCancel = () => {
                 : 'bg-white border-gray-300 text-gray-900'
             ]"
           >
-            <option value="DESIGN">Design</option>
-            <option value="THEORY">Theory</option>
-            <option value="PRACTICE">Practice</option>
+            <option value="">-- Select Category --</option>
+            <option v-for="cat in categories" :key="cat.id" :value="cat.id">
+              {{ cat.name }}
+            </option>
           </select>
         </div>
 

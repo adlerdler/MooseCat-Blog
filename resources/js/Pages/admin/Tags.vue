@@ -13,6 +13,7 @@ import {
   ref,
   computed,
   watch,
+  router,
   useI18n,
   useTheme,
   Tag,
@@ -92,20 +93,20 @@ const handleAdd = () => {
 
 const handleSave = (data) => {
   if (editingTag.value) {
-    const index = localTags.value.findIndex(t => t.id === editingTag.value.id);
-    if (index !== -1) {
-      localTags.value[index] = { ...localTags.value[index], ...data };
-    }
+    router.put(`/admin/tags/${editingTag.value.id}`, data, {
+      onSuccess: () => {
+        isFormVisible.value = false;
+        editingTag.value = null;
+      },
+    });
   } else {
-    const newId = Math.max(...localTags.value.map(t => t.id), 0) + 1;
-    localTags.value.push({
-      id: newId,
-      ...data,
-      usageCount: 0
+    router.post('/admin/tags', data, {
+      onSuccess: () => {
+        isFormVisible.value = false;
+        editingTag.value = null;
+      },
     });
   }
-  isFormVisible.value = false;
-  editingTag.value = null;
 };
 
 const handleCancel = () => {
@@ -120,8 +121,12 @@ const handleDelete = (id) => {
 
 const confirmDelete = () => {
   if (deletingTagId.value !== null) {
-    localTags.value = localTags.value.filter(t => t.id !== deletingTagId.value);
-    deletingTagId.value = null;
+    router.delete(`/admin/tags/${deletingTagId.value}`, {
+      onSuccess: () => {
+        localTags.value = localTags.value.filter(t => t.id !== deletingTagId.value);
+        deletingTagId.value = null;
+      },
+    });
   }
   showDeleteConfirm.value = false;
 };

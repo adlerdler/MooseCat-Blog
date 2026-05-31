@@ -6,13 +6,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-/**
- * StoreJournalRequest - 创建日志表单验证
- * 
- * 验证创建日志时的输入数据。
- * Validates input data when creating journals.
- */
-class StoreJournalRequest extends FormRequest
+class UpdateJournalRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -23,7 +17,7 @@ class StoreJournalRequest extends FormRequest
     {
         return [
             'title' => ['nullable', 'string', 'max:255'],
-            'content' => ['required', 'string'],
+            'content' => ['sometimes', 'required', 'string'],
             'mood' => ['nullable', 'string', 'max:50'],
             'weather' => ['nullable', 'string', 'max:50'],
             'date' => ['nullable', 'date'],
@@ -35,8 +29,6 @@ class StoreJournalRequest extends FormRequest
     {
         return [
             'content.required' => '日志内容不能为空',
-            'mood.min' => '心情指数最小为1',
-            'mood.max' => '心情指数最大为5',
         ];
     }
 }

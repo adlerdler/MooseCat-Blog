@@ -3,112 +3,115 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Services\MockDataService;
+use App\Http\Requests\StoreProjectRequest;
+use App\Http\Requests\UpdateProjectRequest;
+use App\Models\Project;
+use App\Services\ProjectService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/**
- * Project Controller
- * 
- * Handles project management operations.
- * Provides CRUD functionality for projects.
- */
 class ProjectController extends Controller
 {
-    protected $mockDataService;
+    protected ProjectService $projectService;
 
-    /**
-     * Constructor
-     * 
-     * @param MockDataService $mockDataService
-     */
-    public function __construct(MockDataService $mockDataService)
+    public function __construct(ProjectService $projectService)
     {
-        $this->mockDataService = $mockDataService;
+        $this->projectService = $projectService;
     }
 
-    /**
-     * Display a listing of the projects.
-     * 
-     * @return Response
-     */
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        $projects = $this->mockDataService->getProjects();
+        $filters = $request->only(['status', 'search']);
         
+        $projects = Project::query()
+            ->when($filters['status'] ?? null, fn($q, $status) => $q->where('status', $status))
+            ->when($filters['search'] ?? null, function ($q, $search) {
+                $q->where('title', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%");
+            })
+            ->orderBy('sort_order', 'asc')
+            ->orderBy('year', 'desc')
+            ->get()
+            ->map(function ($project) {
+                return [
+                    'id' => $project->id,
+                    'title' => $project->title,
+                    'description' => $project->description,
+                    'long_description' => $project->long_description,
+                    'client' => $project->client,
+                    'role' => $project->role,
+                    'year' => $project->year,
+                    'image' => $project->image,
+                    'url' => $project->url,
+                    'github_url' => $project->github_url,
+                    'technologies' => $project->technologies ?? [],
+                    'status' => $project->status,
+                    'sort_order' => $project->sort_order,
+                    'views_count' => $project->views_count,
+                    'likes_count' => $project->likes_count,
+                    'created_at' => $project->created_at?->format('Y-m-d'),
+                ];
+            });
+
         return Inertia::render('admin/Projects', [
             'projects' => $projects,
+            'filters' => $filters,
         ]);
     }
 
-    /**
-     * Show the form for creating a new project.
-     * 
-     * @return Response
-     */
-    public function create(): Response
+    public function store(StoreProjectRequest $request): RedirectResponse
     {
-        return Inertia::render('admin/Projects');
-    }
-
-    /**
-     * Store a newly created project in storage.
-     * 
-     * @param Request $request
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function store(Request $request)
-    {
-        // Handle project creation
-    }
-
-    /**
-     * Display the specified project.
-     * 
-     * @param string $id
-     */
-    public function show(string $id)
-    {
-        // Show project details
-    }
-
-    /**
-     * Show the form for editing the specified project.
-     * 
-     * @param string $id
-     * @return Response
-     */
-    public function edit(string $id): Response
-    {
-        $projects = $this->mockDataService->getProjects();
-        $project = collect($projects)->firstWhere('id', $id);
+        $data = $request->validated();
         
+        if (isset($data['technologies']) && is_string($data['technologies'])) {
+            $data['technologies'] = array_map('trim', explode(',', $data['technologies']));
+        }
+        
+        $this->projectService->createProject($data);
+
+        return back()->with('success', '项目创建成功');
+    }
+
+    public function edit(Project $project): Response
+    {
         return Inertia::render('admin/Projects', [
-            'project' => $project,
+            'project' => [
+                'id' => $project->id,
+                'title' => $project->title,
+                'description' => $project->description,
+                'long_description' => $project->long_description,
+                'client' => $project->client,
+                'role' => $project->role,
+                'year' => $project->year,
+                'image' => $project->image,
+                'url' => $project->url,
+                'github_url' => $project->github_url,
+                'technologies' => $project->technologies ? implode(', ', $project->technologies) : '',
+                'status' => $project->status,
+                'sort_order' => $project->sort_order,
+            ],
         ]);
     }
 
-    /**
-     * Update the specified project in storage.
-     * 
-     * @param Request $request
-     * @param string $id
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function update(Request $request, string $id)
+    public function update(UpdateProjectRequest $request, Project $project): RedirectResponse
     {
-        // Handle project update
+        $data = $request->validated();
+        
+        if (isset($data['technologies']) && is_string($data['technologies'])) {
+            $data['technologies'] = array_map('trim', explode(',', $data['technologies']));
+        }
+        
+        $this->projectService->updateProject($project, $data);
+
+        return back()->with('success', '项目更新成功');
     }
 
-    /**
-     * Remove the specified project from storage.
-     * 
-     * @param string $id
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function destroy(string $id)
+    public function destroy(Project $project): RedirectResponse
     {
-        // Handle project deletion
+        $this->projectService->deleteProject($project);
+
+        return back()->with('success', '项目删除成功');
     }
 }

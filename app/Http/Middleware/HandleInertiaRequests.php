@@ -4,14 +4,17 @@ namespace App\Http\Middleware;
 
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use App\Services\MenuService;
 use App\Services\MockDataService;
 
 class HandleInertiaRequests extends Middleware
 {
+    protected $menuService;
     protected $mockDataService;
 
-    public function __construct(MockDataService $mockDataService)
+    public function __construct(MenuService $menuService, MockDataService $mockDataService)
     {
+        $this->menuService = $menuService;
         $this->mockDataService = $mockDataService;
     }
 
@@ -43,14 +46,23 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $user = $request->user();
         $menus = [];
         $pageSeo = [];
 
         try {
-            $menus = $this->mockDataService->getMenus();
+            // 后台菜单使用真实数据并按权限过滤
+            if ($user && ($request->is('admin') || $request->is('admin/*'))) {
+                $menus = $this->menuService->getFilteredAdminMenus($user);
+            } else {
+                // 前台菜单使用模拟数据
+                $menus = $this->mockDataService->getMenus();
+            }
             $pageSeo = $this->mockDataService->getPageSeo();
         } catch (\Exception $e) {
-            // MockDataService might not be available in some contexts
+            // 降级到模拟数据
+            $menus = $this->mockDataService->getMenus();
+            $pageSeo = $this->mockDataService->getPageSeo();
         }
 
         return [

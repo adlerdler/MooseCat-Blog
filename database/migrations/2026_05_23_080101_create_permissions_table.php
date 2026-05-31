@@ -13,12 +13,13 @@ return new class extends Migration
     {
         Schema::create('permissions', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->unique()->comment('权限名');
-            $table->string('guard_name')->default('web')->comment('守卫');
+            $table->string('name', 125);
+            $table->string('guard_name', 125)->default('web')->comment('守卫');
             $table->string('label')->nullable()->comment('标签');
             $table->text('description')->nullable()->comment('描述');
             $table->string('program_id', 100)->nullable()->comment('模块标识');
             $table->timestamps();
+            $table->unique(['name', 'guard_name']);
         });
     }
 

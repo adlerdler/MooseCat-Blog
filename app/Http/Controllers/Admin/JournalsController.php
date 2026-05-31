@@ -3,104 +3,100 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Services\MockDataService;
+use App\Http\Requests\StoreJournalRequest;
+use App\Http\Requests\UpdateJournalRequest;
+use App\Models\Journal;
+use App\Models\User;
+use App\Services\JournalService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/**
- * Journals Controller
- * 
- * Handles journal management operations.
- * Provides CRUD functionality for user journals/diaries.
- */
 class JournalsController extends Controller
 {
-    protected $mockDataService;
+    protected JournalService $journalService;
 
-    /**
-     * Constructor
-     * 
-     * @param MockDataService $mockDataService
-     */
-    public function __construct(MockDataService $mockDataService)
+    public function __construct(JournalService $journalService)
     {
-        $this->mockDataService = $mockDataService;
+        $this->journalService = $journalService;
     }
 
-    /**
-     * Display the journal list
-     * 
-     * @return Response
-     */
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        $journals = $this->mockDataService->getJournals();
-        $users = $this->mockDataService->getUsers();
+        $filters = $request->only(['user_id', 'is_public', 'search']);
+
+        $journals = Journal::query()
+            ->with(['user'])
+            ->when($filters['user_id'] ?? null, fn($q, $id) => $q->where('user_id', $id))
+            ->when($filters['is_public'] ?? null, fn($q, $v) => $q->where('is_public', $v === 'true' || $v === true))
+            ->when($filters['search'] ?? null, fn($q, $s) => $q->where('title', 'like', "%{$s}%")->orWhere('content', 'like', "%{$s}%"))
+            ->latest('date')
+            ->get()
+            ->map(fn($j) => [
+                'id' => $j->id,
+                'user_id' => $j->user_id,
+                'user_name' => $j->user?->name,
+                'title' => $j->title,
+                'content' => $j->content,
+                'mood' => $j->mood,
+                'weather' => $j->weather,
+                'date' => $j->date?->format('Y-m-d'),
+                'is_public' => $j->is_public,
+                'likes_count' => $j->likes_count,
+                'created_at' => $j->created_at?->format('Y-m-d'),
+            ]);
+
+        $users = User::all()->map(fn($u) => ['id' => $u->id, 'name' => $u->name]);
 
         return Inertia::render('admin/Journals', [
             'journals' => $journals,
             'users' => $users,
+            'filters' => $filters,
         ]);
     }
 
-    /**
-     * Display the create journal form
-     * 
-     * @return Response
-     */
-    public function create(): Response
+    public function store(StoreJournalRequest $request): RedirectResponse
     {
-        return Inertia::render('admin/Journals');
+        $data = $request->validated();
+        $data['user_id'] = Auth::id();
+        $this->journalService->createJournal($data);
+
+        return back()->with('success', '日记创建成功');
     }
 
-    /**
-     * Store a newly created journal
-     * 
-     * @param Request $request
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function store(Request $request)
+    public function edit(Journal $journal): Response
     {
-        return back()->with('success', '日记已创建');
-    }
+        $users = User::all()->map(fn($u) => ['id' => $u->id, 'name' => $u->name]);
 
-    /**
-     * Display the edit journal form
-     * 
-     * @param string $id
-     * @return Response
-     */
-    public function edit(string $id): Response
-    {
-        $journals = $this->mockDataService->getJournals();
-        $journal = collect($journals)->firstWhere('id', $id);
-        
         return Inertia::render('admin/Journals', [
-            'journal' => $journal,
+            'journal' => [
+                'id' => $journal->id,
+                'user_id' => $journal->user_id,
+                'title' => $journal->title ?? '',
+                'content' => $journal->content,
+                'mood' => $journal->mood ?? '',
+                'weather' => $journal->weather ?? '',
+                'date' => $journal->date?->format('Y-m-d'),
+                'is_public' => $journal->is_public,
+            ],
+            'users' => $users,
         ]);
     }
 
-    /**
-     * Update the specified journal
-     * 
-     * @param Request $request
-     * @param string $id
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function update(Request $request, string $id)
+    public function update(UpdateJournalRequest $request, Journal $journal): RedirectResponse
     {
-        return back()->with('success', '日记已更新');
+        $data = $request->validated();
+        $this->journalService->updateJournal($journal, $data);
+
+        return back()->with('success', '日记更新成功');
     }
 
-    /**
-     * Remove the specified journal
-     * 
-     * @param string $id
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function destroy(string $id)
+    public function destroy(Journal $journal): RedirectResponse
     {
-        return back()->with('success', '日记已删除');
+        $this->journalService->deleteJournal($journal);
+
+        return back()->with('success', '日记删除成功');
     }
 }

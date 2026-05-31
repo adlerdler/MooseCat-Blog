@@ -45,8 +45,8 @@ const { permissions: permData, getPermissionIdsByRoleId, getRoleGuardName, GUARD
 const roles = computed(() => props.roles || []);
 const permissions = computed(() => props.permissions || permData);
 
-const getRolePermissions = (roleId) => {
-  const permissionIds = getPermissionIdsByRoleId(roleId);
+const getRolePermissions = (role) => {
+  const permissionIds = role.permissions || [];
   return permissionIds.map(id => {
     const permission = permissions.value.find(p => p.id === id);
     return permission ? permission.label : 'Unknown';
@@ -79,10 +79,11 @@ const showDeleteConfirm = ref(false);
 const deletingRoleId = ref(null);
 
 const filteredRoles = computed(() => {
+  if (!searchQuery.value) return roles.value;
   return roles.value.filter(role => {
-    return role.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-           role.description.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-           role.label.toLowerCase().includes(searchQuery.value.toLowerCase());
+    return role.name?.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+           role.description?.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+           role.label?.toLowerCase().includes(searchQuery.value.toLowerCase());
   });
 });
 
@@ -261,13 +262,13 @@ const getColorStyle = (role) => {
           <div :class="['text-xs font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_permissions') }}</div>
           <div class="flex flex-wrap gap-1">
             <span
-              v-for="(permission, index) in getRolePermissions(role.id)"
+              v-for="(permission, index) in getRolePermissions(role)"
               :key="index"
               :class="['px-2 py-0.5 text-xs rounded', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600']"
             >
               {{ permission }}
             </span>
-            <span v-if="getRolePermissions(role.id).length === 0" :class="['text-xs italic', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
+            <span v-if="getRolePermissions(role).length === 0" :class="['text-xs italic', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
               No permissions
             </span>
           </div>
@@ -285,6 +286,7 @@ const getColorStyle = (role) => {
 
     <RoleForm
       :edit-data="editingRole"
+      :permissions="permissions"
       :visible="isFormVisible"
       @save="handleSave"
       @cancel="handleCancel"

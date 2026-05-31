@@ -3,136 +3,68 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreCategoryRequest;
+use App\Http\Requests\UpdateCategoryRequest;
 use App\Models\Category;
-use Illuminate\Http\Request;
+use App\Services\CategoryService;
+use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/**
- * Category Controller
- * 
- * Handles category management operations.
- * Provides CRUD functionality for blog categories.
- */
 class CategoryController extends Controller
 {
-    /**
-     * Display a listing of the categories.
-     * 
-     * @return Response
-     */
-    public function index(): Response
+    protected CategoryService $categoryService;
+
+    public function __construct(CategoryService $categoryService)
     {
-        $categories = Category::with('parent')
-            ->orderBy('sort_order')
-            ->get();
-        
-        return Inertia::render('admin/Categories', [
-            'categories' => $categories,
-        ]);
+        $this->categoryService = $categoryService;
     }
 
-    /**
-     * Show the form for creating a new category.
-     * 
-     * @return Response
-     */
-    public function create(): Response
+    public function index(): Response
     {
+        $categories = Category::with(['parent', 'posts'])
+            ->orderBy('sort_order')
+            ->get()
+            ->map(fn($c) => [
+                'id' => $c->id,
+                'parent_id' => $c->parent_id,
+                'parent_name' => $c->parent?->name,
+                'name' => $c->name,
+                'slug' => $c->slug,
+                'description' => $c->description,
+                'status' => $c->status,
+                'sort_order' => $c->sort_order,
+                'posts_count' => $c->posts_count ?? $c->posts->count(),
+                'created_at' => $c->created_at?->format('Y-m-d'),
+            ]);
+
         $parentCategories = Category::orderBy('sort_order')->get(['id', 'name']);
-        
+
         return Inertia::render('admin/Categories', [
+            'categories' => $categories,
             'parentCategories' => $parentCategories,
         ]);
     }
 
-    /**
-     * Store a newly created category in storage.
-     * 
-     * @param Request $request
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function store(Request $request)
+    public function store(StoreCategoryRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'parent_id' => 'nullable|exists:categories,id',
-            'name' => 'required|string|max:255',
-            'slug' => 'required|string|max:255|unique:categories,slug',
-            'description' => 'nullable|string',
-            'status' => 'required|in:active,inactive',
-            'sort_order' => 'nullable|integer',
-        ]);
-
-        Category::create($validated);
+        $data = $request->validated();
+        $this->categoryService->createCategory($data);
 
         return back()->with('success', '分类已创建');
     }
 
-    /**
-     * Display the specified category.
-     * 
-     * @param string $id
-     */
-    public function show(string $id)
+    public function update(UpdateCategoryRequest $request, Category $category): RedirectResponse
     {
-        $category = Category::with(['parent', 'children', 'posts'])->findOrFail($id);
-        
-        return Inertia::render('admin/Categories', [
-            'category' => $category,
-        ]);
-    }
-
-    /**
-     * Show the form for editing the specified category.
-     * 
-     * @param string $id
-     * @return Response
-     */
-    public function edit(string $id): Response
-    {
-        $category = Category::with('parent')->findOrFail($id);
-        $parentCategories = Category::where('id', '!=', $id)
-            ->orderBy('sort_order')
-            ->get(['id', 'name']);
-        
-        return Inertia::render('admin/Categories', [
-            'category' => $category,
-            'parentCategories' => $parentCategories,
-        ]);
-    }
-
-    /**
-     * Update the specified category in storage.
-     * 
-     * @param Request $request
-     * @param string $id
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function update(Request $request, Category $category)
-    {
-        $validated = $request->validate([
-            'parent_id' => 'nullable|exists:categories,id',
-            'name' => 'required|string|max:255',
-            'slug' => 'required|string|max:255|unique:categories,slug,' . $category->id,
-            'description' => 'nullable|string',
-            'status' => 'required|in:active,inactive',
-            'sort_order' => 'nullable|integer',
-        ]);
-
-        $category->update($validated);
+        $data = $request->validated();
+        $this->categoryService->updateCategory($category, $data);
 
         return back()->with('success', '分类已更新');
     }
 
-    /**
-     * Remove the specified category from storage.
-     * 
-     * @param string $id
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function destroy(Category $category)
+    public function destroy(Category $category): RedirectResponse
     {
-        $category->delete();
+        $this->categoryService->deleteCategory($category);
 
         return back()->with('success', '分类已删除');
     }

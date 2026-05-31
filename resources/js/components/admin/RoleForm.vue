@@ -7,10 +7,10 @@
  * 功能说明：
  * - 支持角色的新增/编辑
  * - 包含角色名称(name)、标签(label)、描述(description)、颜色(color)、守卫(guard_name)字段
- * - 权限支持多选，按守卫分组显示
+ * - 权限支持多选，按 program_id 分组显示
  *
  * 使用示例：
- * <RoleForm :edit-data="editingRole" :visible="isFormVisible" @save="handleSave" @cancel="handleCancel" />
+ * <RoleForm :edit-data="editingRole" :permissions="permissions" :visible="isFormVisible" @save="handleSave" @cancel="handleCancel" />
  */
 import { ref, computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -18,9 +18,8 @@ import { X, Save, Check, Palette } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
 import { useRolePermissions } from '../../composables/useRolePermissions';
 
-const { availablePermissions, permissions, getPermissionIdsByRoleId, GUARD_LABELS, COLOR_MAP } = useRolePermissions();
-
 const { t } = useI18n();
+const { isDarkMode } = useTheme();
 
 const props = defineProps({
   editData: {
@@ -30,12 +29,53 @@ const props = defineProps({
   visible: {
     type: Boolean,
     default: false
+  },
+  permissions: {
+    type: Array,
+    default: () => []
   }
 });
 
 const emit = defineEmits(['save', 'cancel']);
 
-const { isDarkMode } = useTheme();
+const { availablePermissions, GUARD_LABELS, COLOR_MAP } = useRolePermissions({
+  permissions: props.permissions,
+});
+
+const PAGE_GROUPS = [
+  { key: 'dashboard', label: '仪表盘', permissions: ['view_analytics'] },
+  { key: 'posts', label: '文章管理', permissions: ['manage_posts'] },
+  { key: 'videos', label: '视频管理', permissions: ['manage_videos'] },
+  { key: 'projects', label: '项目管理', permissions: ['manage_projects'] },
+  { key: 'resources', label: '资源管理', permissions: ['manage_resources'] },
+  { key: 'journals', label: '日志管理', permissions: ['manage_journals'] },
+  { key: 'categories', label: '分类管理', permissions: ['manage_categories'] },
+  { key: 'tags', label: '标签管理', permissions: ['manage_tags'] },
+  { key: 'comments', label: '评论管理', permissions: ['manage_comments'] },
+  { key: 'ads', label: '广告管理', permissions: ['manage_ads'] },
+  { key: 'users', label: '用户管理', permissions: ['manage_users'] },
+  { key: 'subscribers', label: '订阅者管理', permissions: ['manage_subscribers'] },
+  { key: 'user_levels', label: '用户等级', permissions: ['manage_user_levels'] },
+  { key: 'roles', label: '角色权限', permissions: ['manage_roles'] },
+  { key: 'settings', label: '基本设置', permissions: ['manage_settings'] },
+  { key: 'social_links', label: '社交链接', permissions: ['manage_social_links'] },
+  { key: 'seo', label: 'SEO管理', permissions: ['manage_seo'] },
+  { key: 'i18n', label: '国际化', permissions: ['manage_i18n'] },
+  { key: 'media', label: '媒体管理', permissions: ['manage_media'] },
+  { key: 'email_templates', label: '邮件模板', permissions: ['manage_email_templates'] },
+  { key: 'menu', label: '菜单管理', permissions: ['manage_menu'] },
+  { key: 'notifications', label: '通知管理', permissions: ['manage_notifications'] },
+  { key: 'mail_config', label: '邮件配置', permissions: ['manage_mail_config'] },
+  { key: 'logs', label: '系统日志', permissions: ['manage_logs'] },
+  { key: 'backup', label: '备份管理', permissions: ['manage_backup'] },
+  { key: 'restore', label: '恢复管理', permissions: ['manage_restore'] },
+];
+
+const getPermissionsByPage = (pageKey) => {
+  const page = PAGE_GROUPS.find(p => p.key === pageKey);
+  if (!page) return [];
+  return availablePermissions.filter(p => page.permissions.includes(p.name));
+};
 
 const isEditMode = computed(() => props.editData !== null);
 
@@ -70,45 +110,30 @@ const initFormData = () => {
   };
 };
 
-const getRolePermissionIds = (roleId) => {
-  return getPermissionIdsByRoleId(roleId);
-};
-
-const getRolePermissionNames = (roleId) => {
-  const permissionIds = getRolePermissionIds(roleId);
-  return permissionIds.map(id => {
-    const permission = permissions.find(p => p.id === id);
-    return permission ? permission.name : '';
-  }).filter(Boolean);
-};
-
-const getPermissionsByGuard = (guardName) => {
-  return availablePermissions.filter(p => p.guard_name === guardName);
-};
-
 watch(() => props.visible, (newVal) => {
   if (newVal) {
     initFormData();
     if (props.editData) {
+      const permIds = props.editData.permissions || [];
       formData.value = {
         ...props.editData,
-        permissions: [...getRolePermissionNames(props.editData.id)]
+        permissions: [...permIds]
       };
     }
   }
 });
 
-const togglePermission = (permission) => {
-  const index = formData.value.permissions.indexOf(permission);
+const togglePermission = (permissionId) => {
+  const index = formData.value.permissions.indexOf(permissionId);
   if (index === -1) {
-    formData.value.permissions.push(permission);
+    formData.value.permissions.push(permissionId);
   } else {
     formData.value.permissions.splice(index, 1);
   }
 };
 
-const hasPermission = (permission) => {
-  return formData.value.permissions.includes(permission);
+const hasPermission = (permissionId) => {
+  return (formData.value.permissions || []).includes(permissionId);
 };
 
 const handleSubmit = () => {
@@ -155,7 +180,7 @@ const handleCancel = () => {
           </button>
         </div>
 
-        <div class="p-6 space-y-4 max-h-[calc(90vh-140px)] overflow-y-auto">
+        <div class="p-6 space-y-4 max-h-[calc(90vh-200px)] overflow-y-auto">
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
@@ -260,38 +285,41 @@ const handleCancel = () => {
           </div>
 
           <div>
-            <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
+            <label :class="['block text-sm font-bold mb-3', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
               {{ t('admin_role_form_permissions') }}
             </label>
 
-            <div v-for="guard in guardOptions" :key="guard" class="mb-4">
-              <div :class="['text-xs font-bold uppercase tracking-wider mb-2', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
-                {{ GUARD_LABELS[guard] || guard }} Permissions
-              </div>
-              <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
-                <button
-                  v-for="permission in getPermissionsByGuard(guard)"
-                  :key="permission.name"
-                  type="button"
-                  @click="togglePermission(permission.name)"
-                  :class="[
-                    'flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium transition-colors',
-                    hasPermission(permission.name)
-                      ? 'bg-construct-red border-construct-red text-white'
-                      : isDarkMode
-                        ? 'bg-gray-700 border-gray-600 text-gray-300 hover:border-gray-500'
-                        : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
-                  ]"
-                >
-                  <Check v-if="hasPermission(permission.name)" class="w-4 h-4 flex-shrink-0" />
-                  <div v-else class="w-4 h-4 flex-shrink-0" />
-                  <span class="truncate">{{ permission.label }}</span>
-                </button>
-              </div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              <button
+                v-for="permission in availablePermissions"
+                :key="permission.id"
+                type="button"
+                @click="togglePermission(permission.id)"
+                :class="[
+                  'flex items-center gap-2 px-3 py-2.5 rounded-lg border text-sm font-medium transition-all duration-200',
+                  hasPermission(permission.id)
+                    ? 'bg-construct-red/10 border-construct-red text-construct-red hover:bg-construct-red/20'
+                    : isDarkMode
+                      ? 'bg-gray-700/50 border-gray-600 text-gray-300 hover:border-gray-500 hover:bg-gray-700'
+                      : 'bg-white border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+                ]"
+              >
+                <div :class="[
+                  'w-4 h-4 rounded flex items-center justify-center border transition-colors',
+                  hasPermission(permission.id)
+                    ? 'bg-construct-red border-construct-red'
+                    : isDarkMode
+                      ? 'border-gray-500'
+                      : 'border-gray-300'
+                ]">
+                  <Check v-if="hasPermission(permission.id)" class="w-3 h-3 text-white" />
+                </div>
+                <span class="truncate">{{ permission.label }}</span>
+              </button>
             </div>
 
             <p :class="['text-xs mt-2', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
-              {{ t('admin_role_form_selected') }}: {{ formData.permissions.length }}
+              {{ t('admin_role_form_selected') }}: {{ formData.permissions?.length || 0 }}
             </p>
           </div>
         </div>

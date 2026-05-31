@@ -11,6 +11,7 @@
  */
 import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { router } from '@inertiajs/vue3';
 import {
   MessageSquare,
   Search,
@@ -63,8 +64,10 @@ const getPostTitle = (postId) => {
 const filteredComments = computed(() => {
   return comments.value.filter(comment => {
     const postTitle = getPostTitle(comment.post_id);
-    const matchesSearch = comment.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-                         comment.body.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+    const commentName = comment.name || '';
+    const commentBody = comment.body || '';
+    const matchesSearch = commentName.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+                         commentBody.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
                          postTitle.toLowerCase().includes(searchQuery.value.toLowerCase());
     const matchesStatus = statusFilter.value === 'all' || 
                           (statusFilter.value === 'approved' && comment.is_approved) ||
@@ -91,11 +94,19 @@ const getStatusLabel = (isApproved) => {
 };
 
 const approveComment = (comment) => {
-  comment.is_approved = true;
+  router.put(`/admin/comments/${comment.id}`, { is_approved: true }, {
+    onSuccess: () => {
+      comment.is_approved = true;
+    },
+  });
 };
 
 const rejectComment = (comment) => {
-  comment.is_approved = false;
+  router.put(`/admin/comments/${comment.id}`, { is_approved: false }, {
+    onSuccess: () => {
+      comment.is_approved = false;
+    },
+  });
 };
 
 const handleDeleteClick = (comment) => {
@@ -105,8 +116,12 @@ const handleDeleteClick = (comment) => {
 
 const confirmDelete = () => {
   if (commentToDelete.value) {
-    comments.value = comments.value.filter(c => c.id !== commentToDelete.value.id);
-    commentToDelete.value = null;
+    router.delete(`/admin/comments/${commentToDelete.value.id}`, {
+      onSuccess: () => {
+        comments.value = comments.value.filter(c => c.id !== commentToDelete.value.id);
+        commentToDelete.value = null;
+      },
+    });
   }
   showDeleteConfirm.value = false;
 };

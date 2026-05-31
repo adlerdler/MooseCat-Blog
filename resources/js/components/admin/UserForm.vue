@@ -81,6 +81,10 @@ const handleSubmit = () => {
   }
   
   const data = { ...formData.value };
+  
+  // 编辑模式下，删除 roles 数组（只用 role_id）
+  delete data.roles;
+  
   if (isEditMode.value && !data.password) {
     delete data.password;
   }

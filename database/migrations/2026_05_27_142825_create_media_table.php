@@ -10,8 +10,8 @@ return new class extends Migration
     {
         Schema::create('media', function (Blueprint $table) {
             $table->id();
-            $table->morphs('model');
             $table->uuid()->nullable()->unique();
+            $table->morphs('model');
             $table->string('collection_name');
             $table->string('name');
             $table->string('file_name');
@@ -50,8 +50,8 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfColumns('media_copies');
-        Schema::dropIfColumns('media_manipulations');
-        Schema::dropIfColumns('media');
+        Schema::dropIfExists('media_copies');
+        Schema::dropIfExists('media_manipulations');
+        Schema::dropIfExists('media');
     }
 };

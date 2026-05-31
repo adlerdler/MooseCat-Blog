@@ -6,12 +6,6 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-/**
- * StoreTagRequest - 创建标签表单验证
- * 
- * 验证创建标签时的输入数据。
- * Validates input data when creating tags.
- */
 class StoreTagRequest extends FormRequest
 {
     public function authorize(): bool
@@ -24,7 +18,6 @@ class StoreTagRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:50'],
             'slug' => ['nullable', 'string', 'max:50', 'unique:tags,slug'],
-            'description' => ['nullable', 'string', 'max:255'],
         ];
     }
 

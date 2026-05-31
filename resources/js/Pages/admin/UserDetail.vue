@@ -9,7 +9,7 @@
  * - Back navigation to user list
  */
 import { ref, computed } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import { Link, useForm } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import {
   User,
@@ -29,24 +29,9 @@ import { findById, findIndexById } from '../../utils/typeConvert';
 import UserDetailForm from '../../components/admin/UserDetailForm.vue';
 
 const props = defineProps({
-  users: { type: Array, default: () => [] },
+  user: { type: Object, default: () => ({}) },
   roles: { type: Array, default: () => [] },
-  authorProfiles: { type: Array, default: () => [] },
 });
-
-const getAuthorProfileByUserId = (userId) => (props.authorProfiles || []).find(p => p.user_id === userId) || null;
-const getAuthorSkills = (userId) => {
-  const profile = getAuthorProfileByUserId(userId);
-  return profile ? profile.skills : [];
-};
-const getAuthorSocialLinks = (userId) => {
-  const profile = getAuthorProfileByUserId(userId);
-  return profile ? profile.social_links : {};
-};
-const getAuthorManifestos = (userId) => {
-  const profile = getAuthorProfileByUserId(userId);
-  return profile ? profile.manifestos : [];
-};
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
@@ -54,24 +39,22 @@ const { isDarkMode } = useTheme();
 const isFormVisible = ref(false);
 const showSuccessMessage = ref(false);
 
-const user = computed(() => {
-  const userId = window.location.pathname.split('/').pop();
-  return findById(props.users || [], userId) || null;
-});
-
 const authorInfo = computed(() => {
-  if (!user.value) return null;
-  return getAuthorProfileByUserId(user.value.id);
+  if (!props.user) return null;
+  return {
+    bio: props.user.bio,
+    skills: props.user.skills || [],
+    social_links: props.user.social_links || {},
+    manifestos: props.user.manifestos || [],
+  };
 });
 
 const authorSkills = computed(() => {
-  if (!user.value) return [];
-  return getAuthorSkills(user.value.id);
+  return authorInfo.value?.skills || [];
 });
 
 const authorLinksObj = computed(() => {
-  if (!user.value) return {};
-  return getAuthorSocialLinks(user.value.id);
+  return authorInfo.value?.social_links || {};
 });
 
 const authorLinks = computed(() => {
@@ -102,8 +85,7 @@ const authorLinks = computed(() => {
 });
 
 const authorManifestos = computed(() => {
-  if (!user.value) return [];
-  return getAuthorManifestos(user.value.id);
+  return authorInfo.value?.manifestos || [];
 });
 
 const formatToShort = (dateStr) => {
@@ -111,8 +93,8 @@ const formatToShort = (dateStr) => {
   return date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'short', day: 'numeric' });
 };
 
-const getRoleStyle = (roleId) => {
-  const role = (props.roles || []).find(r => r.id === roleId);
+const getRoleStyle = (roleName) => {
+  const role = (props.roles || []).find(r => r.name === roleName);
   if (!role) return isDarkMode.value ? 'bg-gray-500/20 text-gray-400 border-gray-500/50' : 'bg-gray-100 text-gray-600 border-gray-300';
 
   const colorMap = {
@@ -127,8 +109,8 @@ const getRoleStyle = (roleId) => {
   return colorMap[role.color] || colorMap['gray'];
 };
 
-const getRoleLabel = (roleId) => {
-  const role = (props.roles || []).find(r => r.id === roleId);
+const getRoleLabel = (roleName) => {
+  const role = (props.roles || []).find(r => r.name === roleName);
   return role ? (role.label || role.name) : (t('admin_role_user') || '用户');
 };
 
@@ -147,34 +129,19 @@ const openEditForm = () => {
 };
 
 const handleSave = (data) => {
-  const userIndex = findIndexById(props.users, data.user.id);
-  if (userIndex !== -1) {
-    props.users[userIndex] = { ...data.user };
-  }
-
-  const profileIndex = findIndexById(props.authorProfiles, data.author.id);
-  if (profileIndex !== -1) {
-    props.authorProfiles[profileIndex] = {
-      ...data.author,
-      social_links: data.social_links,
-      skills: data.skills,
-      manifestos: data.manifestos
-    };
-  } else if (data.author) {
-    props.authorProfiles.push({
-      ...data.author,
-      social_links: data.social_links,
-      skills: data.skills,
-      manifestos: data.manifestos
-    });
-  }
-
-  isFormVisible.value = false;
-  showSuccessMessage.value = true;
-
-  setTimeout(() => {
-    showSuccessMessage.value = false;
-  }, 3000);
+  const form = useForm(data);
+  form.put(route('admin.users.update', props.user.id), {
+    onSuccess: () => {
+      isFormVisible.value = false;
+      showSuccessMessage.value = true;
+      setTimeout(() => {
+        showSuccessMessage.value = false;
+      }, 3000);
+    },
+    onError: (errors) => {
+      console.error('Update error:', errors);
+    }
+  });
 };
 
 const handleCancel = () => {
@@ -219,7 +186,8 @@ const handleCancel = () => {
               <h2 :class="['text-3xl font-bold mb-2', isDarkMode ? 'text-white' : 'text-gray-900']">{{ user.name }}</h2>
               <p :class="['text-lg', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ user.email }}</p>
               <div class="flex items-center gap-3 mt-3">
-                <span :class="['px-4 py-1.5 rounded-full text-sm font-bold border', getRoleStyle(user.role_id)]">{{ getRoleLabel(user.role_id) }}</span>
+                <span v-if="user.roles && user.roles.length > 0" :class="['px-4 py-1.5 rounded-full text-sm font-bold border', getRoleStyle(user.roles[0])]">{{ getRoleLabel(user.roles[0]) }}</span>
+                <span v-else :class="['px-4 py-1.5 rounded-full text-sm font-bold border bg-gray-500 text-white border-gray-400']">{{ t('admin_role_user') || '用户' }}</span>
                 <span :class="['px-4 py-1.5 rounded-full text-sm font-bold', user.status === 'active' ? (isDarkMode ? 'bg-green-500/20 text-green-400' : 'bg-green-100 text-green-600') : (isDarkMode ? 'bg-gray-600/50 text-gray-400' : 'bg-gray-100 text-gray-500')]">
                   {{ user.status === 'active' ? t('admin_active') : t('admin_inactive') }}
                 </span>
@@ -230,11 +198,12 @@ const handleCancel = () => {
           <div :class="['grid grid-cols-1 md:grid-cols-2 gap-4 mb-8', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
             <div class="flex items-center justify-between p-4 rounded-lg" :class="isDarkMode ? 'bg-gray-700' : 'bg-gray-50'">
               <span class="text-sm font-bold tracking-wider uppercase">{{ t('admin_table_joined') }}</span>
-              <span>{{ formatToShort(user.joined) }}</span>
+              <span>{{ formatToShort(user.created_at) }}</span>
             </div>
             <div class="flex items-center justify-between p-4 rounded-lg" :class="isDarkMode ? 'bg-gray-700' : 'bg-gray-50'">
               <span class="text-sm font-bold tracking-wider uppercase">{{ t('admin_table_role') }}</span>
-              <span>{{ getRoleLabel(user.role_id) }}</span>
+              <span v-if="user.roles && user.roles.length > 0">{{ getRoleLabel(user.roles[0]) }}</span>
+              <span v-else>{{ t('admin_role_user') || '用户' }}</span>
             </div>
           </div>
 
@@ -265,15 +234,15 @@ const handleCancel = () => {
               技能
             </h3>
             <div class="space-y-3">
-              <div v-for="skill in authorSkills" :key="skill.id" :class="['p-4 rounded-lg', isDarkMode ? 'bg-gray-700' : 'bg-gray-50']">
+              <div v-for="(skill, index) in authorSkills" :key="skill.id || index" :class="['p-4 rounded-lg', isDarkMode ? 'bg-gray-700' : 'bg-gray-50']">
                 <div class="flex justify-between items-center mb-2">
-                  <span class="font-medium">{{ t(skill.label) || skill.label }}</span>
+                  <span class="font-medium">{{ skill.label }}</span>
                   <span class="text-sm font-bold">{{ skill.value }}%</span>
                 </div>
                 <div :class="['w-full h-2 rounded-full', isDarkMode ? 'bg-gray-600' : 'bg-gray-200']">
                   <div class="h-2 rounded-full bg-construct-red transition-all" :style="{ width: skill.value + '%' }"></div>
                 </div>
-                <p v-if="skill.description" :class="['text-sm mt-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t(skill.description) || skill.description }}</p>
+                <p v-if="skill.description" :class="['text-sm mt-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ skill.description }}</p>
               </div>
             </div>
           </div>

@@ -8,6 +8,7 @@
  * - 支持资源的增删改查操作
  */
 import { ref, computed, watch } from 'vue';
+import { router } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import {
   BookOpen,
@@ -135,8 +136,12 @@ const handleDelete = (id) => {
 
 const confirmDelete = () => {
   if (deletingResourceId.value !== null) {
-    localResources.value = localResources.value.filter(r => r.id !== deletingResourceId.value);
-    deletingResourceId.value = null;
+    router.delete(`/admin/resources/${deletingResourceId.value}`, {
+      onSuccess: () => {
+        localResources.value = localResources.value.filter(r => r.id !== deletingResourceId.value);
+        deletingResourceId.value = null;
+      },
+    });
   }
   showDeleteConfirm.value = false;
 };
@@ -144,12 +149,14 @@ const confirmDelete = () => {
 const handleEdit = (resource) => {
   editingResource.value = {
     id: resource.id,
+    category_id: resource.category_id,
     title: resource.title,
     description: resource.description || '',
-    thumbnail: resource.thumbnail || '',
-    url: resource.url || '',
-    date: resource.date,
-    status: 'published'
+    format: resource.format || '',
+    file_size: resource.file_size || '',
+    image: resource.image || '',
+    direct_link: resource.direct_link || '',
+    drives: resource.drives || [],
   };
   isFormVisible.value = true;
 };
@@ -161,12 +168,20 @@ const handleAdd = () => {
 
 const handleSave = (data) => {
   if (editingResource.value) {
-    console.log('Update resource:', data);
+    router.put(`/admin/resources/${editingResource.value.id}`, data, {
+      onSuccess: () => {
+        isFormVisible.value = false;
+        editingResource.value = null;
+      },
+    });
   } else {
-    console.log('Create resource:', data);
+    router.post('/admin/resources', data, {
+      onSuccess: () => {
+        isFormVisible.value = false;
+        editingResource.value = null;
+      },
+    });
   }
-  isFormVisible.value = false;
-  editingResource.value = null;
 };
 
 const handleCancel = () => {
@@ -309,6 +324,7 @@ const handleFilterChange = ({ key, value }) => {
     <ResourceForm
       :edit-data="editingResource"
       :visible="isFormVisible"
+      :categories="props.categories"
       @save="handleSave"
       @cancel="handleCancel"
     />

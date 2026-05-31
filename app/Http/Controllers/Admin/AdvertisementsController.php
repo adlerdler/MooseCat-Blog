@@ -3,94 +3,64 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Services\MockDataService;
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreAdvertisementRequest;
+use App\Http\Requests\UpdateAdvertisementRequest;
+use App\Models\AdPosition;
+use App\Models\Advertisement;
+use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/**
- * Advertisements Controller
- * 
- * Handles advertisement management operations.
- * Provides CRUD functionality for advertisements.
- */
 class AdvertisementsController extends Controller
 {
-    protected $mockDataService;
-
-    /**
-     * Constructor
-     * 
-     * @param MockDataService $mockDataService
-     */
-    public function __construct(MockDataService $mockDataService)
-    {
-        $this->mockDataService = $mockDataService;
-    }
-
-    /**
-     * Display the advertisement list
-     * 
-     * @return Response
-     */
     public function index(): Response
     {
-        $ads = $this->mockDataService->getAdvertisements();
-        $adPositions = $this->mockDataService->getAdPositions();
-        
+        $ads = Advertisement::with('adPosition')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(fn($ad) => [
+                'id' => $ad->id,
+                'title' => $ad->title,
+                'image_url' => $ad->image_url,
+                'link_url' => $ad->link_url,
+                'position_id' => $ad->position_id,
+                'position_name' => $ad->adPosition?->label_key ?? $ad->adPosition?->name,
+                'is_active' => $ad->is_active,
+                'clicks_count' => $ad->clicks_count,
+                'views_count' => $ad->views_count,
+                'start_date' => $ad->start_date?->format('Y-m-d'),
+                'end_date' => $ad->end_date?->format('Y-m-d'),
+                'created_at' => $ad->created_at?->format('Y-m-d'),
+            ]);
+
+        $adPositions = AdPosition::orderBy('sort_order')->get(['id', 'name', 'label_key']);
+
         return Inertia::render('admin/Advertisements', [
             'ads' => $ads,
             'adPositions' => $adPositions,
         ]);
     }
 
-    /**
-     * Display the create advertisement form
-     * 
-     * @return Response
-     */
-    public function create(): Response
+    public function store(StoreAdvertisementRequest $request): RedirectResponse
     {
-        return Inertia::render('admin/Advertisements');
-    }
-
-    /**
-     * Store a newly created advertisement
-     * 
-     * @param Request $request
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'title' => 'required|string',
-            'url' => 'required|url',
-            'image' => 'nullable|url',
-        ]);
+        $data = $request->validated();
+        Advertisement::create($data);
 
         return back()->with('success', '广告已创建');
     }
 
-    /**
-     * Update the specified advertisement
-     * 
-     * @param Request $request
-     * @param string $id
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function update(Request $request, string $id)
+    public function update(UpdateAdvertisementRequest $request, Advertisement $advertisement): RedirectResponse
     {
+        $data = $request->validated();
+        $advertisement->update($data);
+
         return back()->with('success', '广告已更新');
     }
 
-    /**
-     * Remove the specified advertisement
-     * 
-     * @param string $id
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function destroy(string $id)
+    public function destroy(Advertisement $advertisement): RedirectResponse
     {
+        $advertisement->delete();
+
         return back()->with('success', '广告已删除');
     }
 }

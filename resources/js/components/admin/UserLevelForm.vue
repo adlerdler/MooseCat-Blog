@@ -47,6 +47,8 @@ const initFormData = () => {
     color: '#808080',
     description: '',
     discount: 0,
+    min_points: 0,
+    max_points: null,
     benefits: [],
     is_active: true,
     sort_order: 1
@@ -175,6 +177,42 @@ const handleCancel = () => {
                 />
                 <span :class="['absolute right-3 top-1/2 -translate-y-1/2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">%</span>
               </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
+                {{ t('admin_level_form_min_points') || '最低积分' }} *
+              </label>
+              <input
+                v-model.number="formData.min_points"
+                type="number"
+                min="0"
+                :class="[
+                  'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
+                  isDarkMode
+                    ? 'bg-gray-700 border-gray-600 text-white'
+                    : 'bg-white border-gray-300 text-gray-900'
+                ]"
+              />
+            </div>
+
+            <div>
+              <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
+                {{ t('admin_level_form_max_points') || '最高积分' }}
+              </label>
+              <input
+                v-model.number="formData.max_points"
+                type="number"
+                :min="formData.min_points"
+                :class="[
+                  'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
+                  isDarkMode
+                    ? 'bg-gray-700 border-gray-600 text-white'
+                    : 'bg-white border-gray-300 text-gray-900'
+                ]"
+              />
             </div>
           </div>
 

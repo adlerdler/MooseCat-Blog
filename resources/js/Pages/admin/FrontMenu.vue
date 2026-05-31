@@ -11,6 +11,7 @@
 import {
   ref,
   computed,
+  watch,
   useI18n,
   useTheme,
   Plus,
@@ -37,12 +38,14 @@ import {
   SearchFilterModal
 } from '../../composables/useAdminImports';
 import { useMenuItems } from '../../composables/useMenuItems';
+import { router } from '@inertiajs/vue3';
+import axios from 'axios';
 
 const props = defineProps({
-  menus: { type: Array, default: () => [] },
+  allMenus: { type: Array, default: () => [] },
 });
 
-const { frontMenuItems, adminMenuItems } = useMenuItems({ menus: props.menus });
+const { frontMenuItems, adminMenuItems } = useMenuItems({ menus: props.allMenus });
 
 const { t: originalT } = useI18n();
 const t = (key, fallback = '') => {
@@ -61,6 +64,12 @@ const frontMenuList = ref([...frontMenuItems]);
 const adminMenuList = ref([...adminMenuItems]);
 const searchQuery = ref('');
 const showInactive = ref(true);
+
+watch(() => props.allMenus, (newMenus) => {
+  const { frontMenuItems: newFront, adminMenuItems: newAdmin } = useMenuItems({ menus: newMenus });
+  frontMenuList.value = [...newFront];
+  adminMenuList.value = [...newAdmin];
+}, { deep: true });
 
 // 将树形菜单展平为列表
 const flattenAdminMenu = (menuTree) => {
@@ -126,15 +135,15 @@ const deleteConfirm = ref({ visible: false, item: null });
 const handleAdd = () => {
   const targetList = currentTab.value === 'front' ? frontMenuList : adminMenuList;
   const currentItems = currentTab.value === 'front' ? frontMenuItems : adminMenuItems;
-  const newId = Math.max(...currentItems.map(i => i.id || 0), ...targetList.value.map(i => i.id || 0)) + 1;
+  const newId = Math.max(...currentItems.map(i => i.id || 0), ...targetList.value.map(i => i.id || 0), 0) + 1;
   
   if (currentTab.value === 'front') {
     targetList.value.push({
       id: newId,
       type: 'front',
       parent_id: null,
-      label_key: '',
-      path: '/',
+      label_key: 'nav_new_item',
+      path: '/new',
       sort_order: targetList.value.length + 1,
       is_active: true
     });
@@ -143,9 +152,9 @@ const handleAdd = () => {
       id: newId,
       type: 'admin',
       parent_id: null,
-      label_key: '',
+      label_key: 'admin_new_item',
       icon_name: 'FileText',
-      path: '/admin/',
+      path: '/admin/new',
       sort_order: targetList.value.length + 1,
       is_active: true,
       children: []
@@ -159,23 +168,26 @@ const handleDelete = (item) => {
 
 const confirmDelete = () => {
   const item = deleteConfirm.value.item;
-  if (currentTab.value === 'front') {
-    frontMenuList.value = frontMenuList.value.filter(l => l.id !== item.id);
-  } else {
-    // 删除树形结构中的节点
-    const removeFromTree = (items) => {
-      return items.filter(i => {
-        if (i.id === item.id) return false;
-        if (i.children) {
-          i.children = removeFromTree(i.children);
-        }
-        return true;
-      });
-    };
-    adminMenuList.value = removeFromTree(adminMenuList.value);
-  }
+  router.delete(route('admin.front-menu.destroy', item.id), {
+    onSuccess: () => {
+      if (currentTab.value === 'front') {
+        frontMenuList.value = frontMenuList.value.filter(l => l.id !== item.id);
+      } else {
+        const removeFromTree = (items) => {
+          return items.filter(i => {
+            if (i.id === item.id) return false;
+            if (i.children) {
+              i.children = removeFromTree(i.children);
+            }
+            return true;
+          });
+        };
+        adminMenuList.value = removeFromTree(adminMenuList.value);
+      }
+      success(t('admin_delete') + ' ' + t('confirm'));
+    }
+  });
   deleteConfirm.value = { visible: false, item: null };
-  success(t('admin_delete') + ' ' + t('confirm'));
 };
 
 const handleSave = () => {
@@ -186,23 +198,45 @@ const confirmSave = () => {
   showSaveConfirm.value = false;
   isSaving.value = true;
   
-  // 验证必填字段
   const targetList = currentTab.value === 'front' ? frontMenuList.value : flattenedAdminMenu.value;
-  const invalidItems = targetList.filter(item => !item.label_key || !item.path);
+  const invalidItems = targetList.filter(item => {
+    const hasLabel = item.label_key?.trim();
+    const hasPath = item.path?.trim();
+    const isParentMenu = !item.parent_id;
+    return !hasLabel || (!hasPath && !isParentMenu);
+  });
   
   if (invalidItems.length > 0) {
     isSaving.value = false;
+    console.log('Invalid items detail:', invalidItems.map(i => ({ id: i.id, label_key: i.label_key, path: i.path })));
     error(t('admin_error_empty_fields') || '请填写所有必填字段');
     return;
   }
   
-  // 模拟保存过程
-  setTimeout(() => {
-    console.log('Saved Front Menu:', frontMenuList.value);
-    console.log('Saved Admin Menu:', adminMenuList.value);
-    isSaving.value = false;
-    success(t('admin_save') + ' ' + t('confirm'));
-  }, 800);
+  const menusData = targetList.map(item => ({
+    id: props.allMenus.some(m => m.id === item.id) ? item.id : null,
+    type: currentTab.value === 'front' ? 'front' : 'admin',
+    label_key: item.label_key,
+    path: item.path || null,
+    icon_name: item.icon_name || null,
+    component_name: item.component_name || null,
+    parent_id: item.parent_id || null,
+    sort_order: item.sort_order || 1,
+    is_active: item.is_active !== false,
+  }));
+  
+  router.post(route('admin.front-menu.batch-update'), { menus: menusData }, {
+    preserveScroll: true,
+    onSuccess: () => {
+      isSaving.value = false;
+      success(t('admin_save') + ' ' + t('confirm'));
+    },
+    onError: (errors) => {
+      isSaving.value = false;
+      console.error('Batch save error:', errors);
+      error('保存失败');
+    },
+  });
 };
 
 const handleReset = () => {

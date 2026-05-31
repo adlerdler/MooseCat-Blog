@@ -7,12 +7,6 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-/**
- * UpdateTagRequest - 更新标签表单验证
- * 
- * 验证更新标签时的输入数据。
- * Validates input data when updating tags.
- */
 class UpdateTagRequest extends FormRequest
 {
     public function authorize(): bool
@@ -27,7 +21,6 @@ class UpdateTagRequest extends FormRequest
         return [
             'name' => ['sometimes', 'required', 'string', 'max:50'],
             'slug' => ['nullable', 'string', 'max:50', Rule::unique('tags', 'slug')->ignore($tagId)],
-            'description' => ['nullable', 'string', 'max:255'],
         ];
     }
 

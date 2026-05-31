@@ -29,6 +29,7 @@ import {
   Pagination,
   SearchFilterModal
 } from '../../composables/useAdminImports';
+import { router, useForm } from '@inertiajs/vue3';
 
 const props = defineProps({
   levels: {
@@ -57,8 +58,8 @@ watch(() => props.levels, (newLevels) => {
 
 const filteredLevels = computed(() => {
   return levels.value.filter(level => {
-    const matchesSearch = level.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-                         level.description.toLowerCase().includes(searchQuery.value.toLowerCase());
+    const matchesSearch = level.name?.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+                         level.description?.toLowerCase().includes(searchQuery.value.toLowerCase());
     const matchesActive = activeFilter.value === 'all' || 
                          (activeFilter.value === 'active' && level.is_active) ||
                          (activeFilter.value === 'inactive' && !level.is_active);
@@ -85,16 +86,9 @@ const handleAdd = () => {
 
 const handleSave = (data) => {
   if (editingLevel.value) {
-    const index = levels.value.findIndex(l => l.id === editingLevel.value.id);
-    if (index !== -1) {
-      levels.value[index] = { ...levels.value[index], ...data };
-    }
+    router.put(route('admin.user-levels.update', editingLevel.value.id), data);
   } else {
-    const newId = Math.max(...levels.value.map(l => l.id), 0) + 1;
-    levels.value.push({
-      id: newId,
-      ...data
-    });
+    router.post(route('admin.user-levels.store'), data);
   }
   isFormVisible.value = false;
   editingLevel.value = null;
@@ -112,7 +106,7 @@ const handleDelete = (id) => {
 
 const confirmDelete = () => {
   if (deletingLevelId.value !== null) {
-    levels.value = levels.value.filter(l => l.id !== deletingLevelId.value);
+    router.delete(route('admin.user-levels.destroy', deletingLevelId.value));
     deletingLevelId.value = null;
   }
   showDeleteConfirm.value = false;
@@ -122,10 +116,13 @@ const moveUp = (level) => {
   const index = filteredLevels.value.findIndex(l => l.id === level.id);
   if (index > 0) {
     const actualIndex = levels.value.findIndex(l => l.id === level.id);
-    [levels.value[actualIndex], levels.value[actualIndex - 1]] =
-    [levels.value[actualIndex - 1], levels.value[actualIndex]];
-    levels.value[actualIndex].sort_order = actualIndex + 1;
-    levels.value[actualIndex - 1].sort_order = actualIndex;
+    const newSortOrder = levels.value[actualIndex - 1].sort_order;
+    router.put(route('admin.user-levels.update', level.id), {
+      sort_order: newSortOrder,
+    });
+    router.put(route('admin.user-levels.update', levels.value[actualIndex - 1].id), {
+      sort_order: level.sort_order,
+    });
   }
 };
 
@@ -133,10 +130,13 @@ const moveDown = (level) => {
   const index = filteredLevels.value.findIndex(l => l.id === level.id);
   if (index < filteredLevels.value.length - 1) {
     const actualIndex = levels.value.findIndex(l => l.id === level.id);
-    [levels.value[actualIndex], levels.value[actualIndex + 1]] =
-    [levels.value[actualIndex + 1], levels.value[actualIndex]];
-    levels.value[actualIndex].sort_order = actualIndex + 1;
-    levels.value[actualIndex + 1].sort_order = actualIndex + 2;
+    const newSortOrder = levels.value[actualIndex + 1].sort_order;
+    router.put(route('admin.user-levels.update', level.id), {
+      sort_order: newSortOrder,
+    });
+    router.put(route('admin.user-levels.update', levels.value[actualIndex + 1].id), {
+      sort_order: level.sort_order,
+    });
   }
 };
 

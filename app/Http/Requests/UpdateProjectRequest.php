@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 /**
  * UpdateProjectRequest - 更新项目表单验证
@@ -22,31 +21,32 @@ class UpdateProjectRequest extends FormRequest
 
     public function rules(): array
     {
-        $projectId = $this->route('project')?->id ?? $this->route('project');
-
         return [
-            'name' => ['sometimes', 'required', 'string', 'max:255'],
-            'slug' => ['nullable', 'string', 'max:255', Rule::unique('projects', 'slug')->ignore($projectId)],
-            'description' => ['nullable', 'string'],
-            'content' => ['nullable', 'string'],
-            'cover_image' => ['nullable', 'string', 'max:500'],
-            'project_url' => ['nullable', 'string', 'max:500'],
-            'repo_url' => ['nullable', 'string', 'max:500'],
-            'category_id' => ['nullable', 'integer', 'exists:categories,id'],
-            'tags' => ['nullable', 'array'],
-            'tags.*' => ['integer', 'exists:tags,id'],
-            'status' => ['nullable', 'in:draft,published'],
-            'order' => ['nullable', 'integer', 'min:0'],
+            'title' => ['sometimes', 'required', 'string', 'max:255'],
+            'description' => ['sometimes', 'required', 'string'],
+            'long_description' => ['nullable', 'string'],
+            'client' => ['nullable', 'string', 'max:255'],
+            'role' => ['nullable', 'string', 'max:255'],
+            'year' => ['sometimes', 'integer', 'min:2000', 'max:2100'],
+            'image' => ['nullable', 'string', 'max:500'],
+            'url' => ['nullable', 'string', 'max:500'],
+            'github_url' => ['nullable', 'string', 'max:500'],
+            'technologies' => ['nullable', 'array'],
+            'technologies.*' => ['string', 'max:100'],
+            'status' => ['sometimes', 'required', 'in:planning,in-progress,completed'],
+            'sort_order' => ['nullable', 'integer', 'min:0'],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'name.required' => '项目名称不能为空',
-            'slug.unique' => '该slug已被占用',
-            'category_id.exists' => '选择的分类不存在',
-            'tags.*.exists' => '选择的标签不存在',
+            'title.required' => '项目标题不能为空',
+            'description.required' => '项目描述不能为空',
+            'year.min' => '年份不能小于2000',
+            'year.max' => '年份不能大于2100',
+            'status.required' => '项目状态不能为空',
+            'status.in' => '状态必须是 planning、in-progress 或 completed',
         ];
     }
 }

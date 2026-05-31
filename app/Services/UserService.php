@@ -63,10 +63,18 @@ class UserService
             } else {
                 unset($data['password']);
             }
+            
+            $roleId = $data['role_id'] ?? null;
+            unset($data['role_id']);
+            
             $user->update($data);
-            if (isset($data['roles'])) {
+            
+            if ($roleId) {
+                $user->syncRoles([$roleId]);
+            } elseif (isset($data['roles'])) {
                 $user->syncRoles($data['roles']);
             }
+            
             return $user;
         });
     }

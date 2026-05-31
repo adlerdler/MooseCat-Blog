@@ -122,8 +122,18 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
         'update' => 'admin.users.update',
         'destroy' => 'admin.users.destroy',
     ]);
-    Route::resource('subscribers', SubscribersController::class)->only(['index', 'store', 'destroy']);
-    Route::resource('user-levels', UserLevelsController::class);
+    Route::resource('subscribers', SubscribersController::class)->names([
+        'index' => 'admin.subscribers.index',
+        'store' => 'admin.subscribers.store',
+        'update' => 'admin.subscribers.update',
+        'destroy' => 'admin.subscribers.destroy',
+    ]);
+    Route::resource('user-levels', UserLevelsController::class)->names([
+        'index' => 'admin.user-levels.index',
+        'store' => 'admin.user-levels.store',
+        'update' => 'admin.user-levels.update',
+        'destroy' => 'admin.user-levels.destroy',
+    ]);
     
     // 系统管理
     Route::resource('front-menu', FrontMenuController::class)->names([
@@ -132,6 +142,7 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
         'update' => 'admin.front-menu.update',
         'destroy' => 'admin.front-menu.destroy',
     ]);
+    Route::post('front-menu/batch-update', [FrontMenuController::class, 'batchUpdate'])->name('admin.front-menu.batch-update');
     Route::resource('roles', RolesController::class)->names([
         'index' => 'admin.roles.index',
         'store' => 'admin.roles.store',

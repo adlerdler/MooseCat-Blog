@@ -59,7 +59,8 @@ const filteredUsers = computed(() => {
   return users.value.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
                          user.email.toLowerCase().includes(searchQuery.value.toLowerCase());
-    const matchesRole = roleFilter.value === 'all' || user.role_id === parseInt(roleFilter.value);
+    const matchesRole = roleFilter.value === 'all' || 
+      (user.roles && user.roles.length > 0 && user.roles.includes(roleFilter.value));
     return matchesSearch && matchesRole;
   });
 });
@@ -72,7 +73,16 @@ const paginatedUsers = computed(() => {
 });
 
 const toggleStatus = (user) => {
-  user.status = user.status === 'active' ? 'inactive' : 'active';
+  const newStatus = user.status === 'active' ? 'inactive' : 'active';
+  const form = useForm({ status: newStatus });
+  form.put(route('admin.users.update', user.id), {
+    onSuccess: () => {
+      user.status = newStatus;
+    },
+    onError: (errors) => {
+      console.error('Status update error:', errors);
+    }
+  });
 };
 
 const handleEdit = (user) => {
@@ -226,7 +236,8 @@ const handleFilterChange = ({ key, value }) => {
               </div>
             </td>
             <td class="px-6 py-4">
-              <span :class="['role-tag px-3 py-1 rounded-full text-xs font-bold border', getRoleStyle(user.role_id)]">{{ getRoleLabel(user.role_id) }}</span>
+              <span v-if="user.roles && user.roles.length > 0" :class="['role-tag px-3 py-1 rounded-full text-xs font-bold border', getRoleStyle(user.roles[0])]">{{ getRoleLabel(user.roles[0]) }}</span>
+              <span v-else :class="['role-tag px-3 py-1 rounded-full text-xs font-bold border bg-gray-500 text-white border-gray-400']">{{ t('admin_no_role') || '无角色' }}</span>
             </td>
             <td class="px-6 py-4">
               <button
@@ -241,7 +252,7 @@ const handleFilterChange = ({ key, value }) => {
                 </span>
               </button>
             </td>
-            <td :class="['px-6 py-4', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ formatToShort(user.joined) }}</td>
+            <td :class="['px-6 py-4', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ formatToShort(user.created_at) }}</td>
             <td class="px-6 py-4">
               <div class="flex items-center justify-center gap-2">
                 <Link :href="`/admin/users/${user.id}`" :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:bg-gray-600' : 'text-gray-500 hover:bg-gray-100']">

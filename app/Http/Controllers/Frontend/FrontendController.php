@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Models\FooterLink;
+use App\Models\Project;
+use App\Models\Resource;
+use App\Models\Category;
 use App\Services\MockDataService;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -72,7 +75,23 @@ class FrontendController extends Controller
     public function home(): Response
     {
         $posts = $this->mockDataService->getPosts(3);
-        $projects = $this->mockDataService->getProjects(3);
+        $projects = Project::query()
+            ->where('status', 'completed')
+            ->orderBy('sort_order', 'asc')
+            ->orderBy('year', 'desc')
+            ->limit(3)
+            ->get()
+            ->map(fn($p) => [
+                'id' => $p->id,
+                'title' => $p->title,
+                'description' => $p->description,
+                'image' => $p->image,
+                'url' => $p->url,
+                'github_url' => $p->github_url,
+                'technologies' => $p->technologies ?? [],
+                'status' => $p->status,
+                'year' => $p->year,
+            ]);
         $videos = $this->mockDataService->getVideos(3);
         $menu = $this->mockDataService->getMenu();
         $siteConfig = $this->mockDataService->getSiteConfig();
@@ -126,7 +145,25 @@ class FrontendController extends Controller
 
     public function projects(): Response
     {
-        $projects = $this->mockDataService->getProjects();
+        $projects = Project::query()
+            ->orderBy('sort_order', 'asc')
+            ->orderBy('year', 'desc')
+            ->get()
+            ->map(fn($p) => [
+                'id' => $p->id,
+                'title' => $p->title,
+                'description' => $p->description,
+                'long_description' => $p->long_description,
+                'image' => $p->image,
+                'url' => $p->url,
+                'github_url' => $p->github_url,
+                'technologies' => $p->technologies ?? [],
+                'status' => $p->status,
+                'year' => $p->year,
+                'client' => $p->client,
+                'role' => $p->role,
+                'views_count' => $p->views_count,
+            ]);
 
         return Inertia::render('front/Projects', [
             'projects' => $projects,
@@ -136,9 +173,24 @@ class FrontendController extends Controller
 
     public function resources(): Response
     {
-        $resources = $this->mockDataService->getResources();
-        $categories = $this->mockDataService->getCategories();
-        
+        $resources = Resource::with('category')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(fn($r) => [
+                'id' => $r->id,
+                'title' => $r->title,
+                'description' => $r->description,
+                'format' => $r->format,
+                'file_size' => $r->file_size,
+                'image' => $r->image,
+                'direct_link' => $r->direct_link,
+                'drives' => $r->drives ?? [],
+                'category_name' => $r->category?->name,
+                'downloads_count' => $r->downloads_count,
+            ]);
+
+        $categories = Category::all()->map(fn($c) => ['id' => $c->id, 'name' => $c->name]);
+
         return Inertia::render('front/Resources', [
             'resources' => $resources,
             'categories' => $categories,
@@ -178,11 +230,28 @@ class FrontendController extends Controller
 
     public function projectDetail($id): Response
     {
-        $projects = $this->mockDataService->getProjects();
-        $project = collect($projects)->firstWhere('id', $id);
+        $project = Project::findOrFail($id);
+        $project->increment('views_count');
+
+        $projectData = [
+            'id' => $project->id,
+            'title' => $project->title,
+            'description' => $project->description,
+            'long_description' => $project->long_description,
+            'image' => $project->image,
+            'url' => $project->url,
+            'github_url' => $project->github_url,
+            'technologies' => $project->technologies ?? [],
+            'status' => $project->status,
+            'year' => $project->year,
+            'client' => $project->client,
+            'role' => $project->role,
+            'views_count' => $project->views_count,
+            'likes_count' => $project->likes_count,
+        ];
 
         return Inertia::render('front/ProjectDetail', [
-            'project' => $project,
+            'project' => $projectData,
             ...$this->getConfigData(),
         ]);
     }

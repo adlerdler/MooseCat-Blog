@@ -20,6 +20,8 @@ return new class extends Migration
             $table->string('ip_address', 45)->nullable()->comment('IP地址');
             $table->string('user_agent')->nullable()->comment('User-Agent');
             $table->timestamps();
+
+            $table->index(['post_id', 'is_approved', 'created_at'], 'idx_comments_post_approved_created');
         });
     }
 

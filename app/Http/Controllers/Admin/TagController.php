@@ -3,112 +3,63 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Services\MockDataService;
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreTagRequest;
+use App\Http\Requests\UpdateTagRequest;
+use App\Models\Tag;
+use App\Services\TagService;
+use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/**
- * Tag Controller
- * 
- * Handles tag management operations.
- * Provides CRUD functionality for blog tags.
- */
 class TagController extends Controller
 {
-    protected $mockDataService;
+    protected TagService $tagService;
 
-    /**
-     * Constructor
-     * 
-     * @param MockDataService $mockDataService
-     */
-    public function __construct(MockDataService $mockDataService)
+    public function __construct(TagService $tagService)
     {
-        $this->mockDataService = $mockDataService;
+        $this->tagService = $tagService;
     }
 
-    /**
-     * Display a listing of the tags.
-     * 
-     * @return Response
-     */
     public function index(): Response
     {
-        $tags = $this->mockDataService->getTags();
-        
+        $tags = Tag::withCount(['posts', 'projects', 'resources'])
+            ->orderBy('name')
+            ->get()
+            ->map(fn($t) => [
+                'id' => $t->id,
+                'name' => $t->name,
+                'slug' => $t->slug,
+                'posts_count' => $t->posts_count,
+                'projects_count' => $t->projects_count,
+                'resources_count' => $t->resources_count,
+                'created_at' => $t->created_at?->format('Y-m-d'),
+            ]);
+
         return Inertia::render('admin/Tags', [
             'tags' => $tags,
         ]);
     }
 
-    /**
-     * Show the form for creating a new tag.
-     * 
-     * @return Response
-     */
-    public function create(): Response
+    public function store(StoreTagRequest $request): RedirectResponse
     {
-        return Inertia::render('admin/Tags');
+        $data = $request->validated();
+        $this->tagService->createTag($data);
+
+        return back()->with('success', '标签已创建');
     }
 
-    /**
-     * Store a newly created tag in storage.
-     * 
-     * @param Request $request
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function store(Request $request)
+    public function update(UpdateTagRequest $request, Tag $tag): RedirectResponse
     {
-        // Handle tag creation
+        $data = $request->validated();
+        $this->tagService->updateTag($tag, $data);
+
+        return back()->with('success', '标签已更新');
     }
 
-    /**
-     * Display the specified tag.
-     * 
-     * @param string $id
-     */
-    public function show(string $id)
+    public function destroy(Tag $tag): RedirectResponse
     {
-        // Show tag details
-    }
+        $this->tagService->deleteTag($tag);
 
-    /**
-     * Show the form for editing the specified tag.
-     * 
-     * @param string $id
-     * @return Response
-     */
-    public function edit(string $id): Response
-    {
-        $tags = $this->mockDataService->getTags();
-        $tag = collect($tags)->firstWhere('id', $id);
-        
-        return Inertia::render('admin/Tags', [
-            'tag' => $tag,
-        ]);
-    }
-
-    /**
-     * Update the specified tag in storage.
-     * 
-     * @param Request $request
-     * @param string $id
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function update(Request $request, string $id)
-    {
-        // Handle tag update
-    }
-
-    /**
-     * Remove the specified tag from storage.
-     * 
-     * @param string $id
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function destroy(string $id)
-    {
-        // Handle tag deletion
+        return back()->with('success', '标签已删除');
     }
 }

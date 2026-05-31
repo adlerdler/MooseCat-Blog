@@ -872,6 +872,19 @@
   - ✅ 30+ 个 Vue 组件
   - ✅ 完整的多语言支持（EN/ZH/ZH-TW）
   - ✅ 暗色/亮色主题切换
+### 2026-05-30: Project 模块真实数据对接 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 完成 Project 模块前后端真实数据对接，修正 FormRequest 字段与数据库对齐。
+- **Rationale:**
+  - Admin ProjectController 原使用 MockDataService，需对接真实数据。
+  - FrontendController 的 projects 相关方法需对接真实数据。
+  - FormRequest 字段与数据库迁移不匹配，需要修正。
+- **Status:**
+  - 修正 StoreProjectRequest 和 UpdateProjectRequest 字段与数据库对齐。
+  - 重构 Admin ProjectController 使用 ProjectService 和真实数据。
+  - 重构 FrontendController 的 home()、projects()、projectDetail() 方法对接真实数据。
+  - 前端构建验证通过，路由正常。
+
 - **Pending Work:**
   - 🔲 完善备份功能真实实现（使用 spatie/laravel-backup）
   - 🔲 完善媒体库真实功能（使用 spatie/laravel-medialibrary）
@@ -880,3 +893,18 @@
   - 🔲 配置备份计划自动化
   - 🔲 编写测试用例
   - 🔲 性能优化与部署准备
+
+### 2026-05-30: Resource 模块真实数据对接 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 完成 Resource 模块前后端真实数据对接，修正 FormRequest 字段与数据库对齐。
+- **Rationale:**
+  - Admin ResourceController 原使用 MockDataService，需对接真实数据。
+  - FrontendController 的 resources 相关方法需对接真实数据。
+  - FormRequest 字段与数据库迁移不匹配，需要修正。
+- **Status:**
+  - 创建 UpdateResourceRequest，修正 StoreResourceRequest 字段与数据库对齐。
+  - 重构 Admin ResourceController 使用 ResourceService 和真实数据。
+  - 重构 FrontendController 的 resources() 方法对接真实数据。
+  - 更新 Resources.vue 前端组件使用 Inertia router 进行数据提交。
+  - 更新 ResourceForm.vue 使用 category_id 替代 category 字符串。
+  - 前端构建验证通过，路由正常。

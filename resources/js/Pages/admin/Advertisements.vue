@@ -13,6 +13,7 @@ import {
   ref,
   computed,
   watch,
+  router,
   useI18n,
   useTheme,
   Plus,
@@ -146,7 +147,12 @@ const getPositionLabel = (positionId) => {
 };
 
 const toggleStatus = (ad) => {
-  ad.is_active = !ad.is_active;
+  const newStatus = !ad.is_active;
+  router.put(`/admin/advertisements/${ad.id}`, { ...ad, is_active: newStatus }, {
+    onSuccess: () => {
+      ad.is_active = newStatus;
+    },
+  });
 };
 
 const handleEdit = (ad) => {
@@ -169,21 +175,20 @@ const handleAdd = () => {
 
 const handleSave = (data) => {
   if (editingAd.value && editingAd.value.id) {
-    const index = ads.value.findIndex(a => a.id === editingAd.value.id);
-    if (index !== -1) {
-      ads.value[index] = { ...ads.value[index], ...data };
-    }
+    router.put(`/admin/advertisements/${editingAd.value.id}`, data, {
+      onSuccess: () => {
+        showFormModal.value = false;
+        editingAd.value = null;
+      },
+    });
   } else {
-    const newId = Math.max(...ads.value.map(a => a.id), 0) + 1;
-    ads.value.push({
-      id: newId,
-      ...data,
-      clicks_count: 0,
-      views_count: 0
+    router.post('/admin/advertisements', data, {
+      onSuccess: () => {
+        showFormModal.value = false;
+        editingAd.value = null;
+      },
     });
   }
-  showFormModal.value = false;
-  editingAd.value = null;
 };
 
 const handleCancel = () => {
@@ -198,8 +203,12 @@ const handleDelete = (id) => {
 
 const confirmDelete = () => {
   if (deletingAdId.value !== null) {
-    ads.value = ads.value.filter(a => a.id !== deletingAdId.value);
-    deletingAdId.value = null;
+    router.delete(`/admin/advertisements/${deletingAdId.value}`, {
+      onSuccess: () => {
+        ads.value = ads.value.filter(a => a.id !== deletingAdId.value);
+        deletingAdId.value = null;
+      },
+    });
   }
   showDeleteConfirm.value = false;
 };

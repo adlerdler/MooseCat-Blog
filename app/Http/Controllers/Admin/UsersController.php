@@ -3,142 +3,122 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Services\MockDataService;
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreUserRequest;
+use App\Http\Requests\UpdateUserRequest;
+use App\Models\User;
+use App\Services\UserService;
+use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
+use Spatie\Permission\Models\Role;
 
-/**
- * Users Controller
- * 
- * Handles user management operations.
- * Provides CRUD functionality for system users.
- */
 class UsersController extends Controller
 {
-    protected $mockDataService;
+    protected UserService $userService;
 
-    /**
-     * Constructor
-     * 
-     * @param MockDataService $mockDataService
-     */
-    public function __construct(MockDataService $mockDataService)
+    public function __construct(UserService $userService)
     {
-        $this->mockDataService = $mockDataService;
+        $this->userService = $userService;
     }
 
-    /**
-     * Display the user list
-     * 
-     * @return Response
-     */
     public function index(): Response
     {
-        $users = $this->mockDataService->getUsers();
-        $roles = $this->mockDataService->getRoles();
-        
+        $users = User::with(['roles', 'userLevel'])
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(fn($u) => [
+                'id' => $u->id,
+                'name' => $u->name,
+                'email' => $u->email,
+                'avatar' => $u->avatar,
+                'status' => $u->status,
+                'points' => $u->points,
+                'level_name' => $u->userLevel?->name,
+                'roles' => $u->roles->pluck('name')->toArray(),
+                'posts_count' => $u->posts()->count(),
+                'comments_count' => $u->comments()->count(),
+                'created_at' => $u->created_at?->format('Y-m-d'),
+                'last_login_at' => $u->last_login_at?->format('Y-m-d'),
+            ]);
+
+        $roles = Role::orderBy('name')->get(['id', 'name'])->map(fn($r) => [
+            'id' => $r->id,
+            'name' => $r->name,
+            'label' => ucfirst($r->name),
+        ]);
+
         return Inertia::render('admin/Users', [
             'users' => $users,
             'roles' => $roles,
         ]);
     }
 
-    /**
-     * Display the create user form
-     * 
-     * @return Response
-     */
-    public function create(): Response
+    public function show(User $user): Response
     {
-        $roles = $this->mockDataService->getRoles();
-        
-        return Inertia::render('admin/Users', [
+        $user->load(['roles', 'userLevel', 'posts', 'comments', 'authorProfile']);
+
+        $profile = $user->authorProfile;
+
+        $userData = [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'avatar' => $user->avatar,
+            'bio' => $profile?->bio,
+            'github' => ($profile?->social_links ?? [])['github'] ?? null,
+            'twitter' => ($profile?->social_links ?? [])['twitter'] ?? null,
+            'linkedin' => ($profile?->social_links ?? [])['linkedin'] ?? null,
+            'status' => $user->status,
+            'points' => $user->points,
+            'level_name' => $user->userLevel?->name,
+            'roles' => $user->roles->pluck('name')->toArray(),
+            'posts_count' => $user->posts->count(),
+            'comments_count' => $user->comments->count(),
+            'created_at' => $user->created_at?->format('Y-m-d'),
+            'last_login_at' => $user->last_login_at?->format('Y-m-d'),
+            'skills' => is_array($profile?->skills) ? $profile->skills : (is_string($profile?->skills) ? json_decode($profile->skills, true) ?? [] : []),
+            'social_links' => is_array($profile?->social_links) ? $profile->social_links : (is_string($profile?->social_links) ? json_decode($profile->social_links, true) ?? [] : []),
+            'manifestos' => is_array($profile?->manifestos) ? $profile->manifestos : (is_string($profile?->manifestos) ? json_decode($profile->manifestos, true) ?? [] : []),
+            'posts' => $user->posts->map(fn($p) => [
+                'id' => $p->id,
+                'title' => $p->title,
+                'status' => $p->status,
+                'created_at' => $p->created_at?->format('Y-m-d'),
+            ])->toArray(),
+        ];
+
+        $roles = Role::orderBy('name')->get(['id', 'name'])->map(fn($r) => [
+            'id' => $r->id,
+            'name' => $r->name,
+            'label' => ucfirst($r->name),
+        ]);
+
+        return Inertia::render('admin/UserDetail', [
+            'user' => $userData,
             'roles' => $roles,
         ]);
     }
 
-    /**
-     * Store a newly created user
-     * 
-     * @param Request $request
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function store(Request $request)
+    public function store(StoreUserRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|min:8',
-            'role_id' => 'required|integer',
-        ]);
+        $data = $request->validated();
+        $this->userService->createUser($data);
 
         return back()->with('success', '用户已创建');
     }
 
-    /**
-     * Display the specified user
-     * 
-     * @param string $id
-     * @return Response
-     */
-    public function show(string $id): Response
+    public function update(UpdateUserRequest $request, User $user): RedirectResponse
     {
-        $users = $this->mockDataService->getUsers();
-        $roles = $this->mockDataService->getRoles();
-        $authorProfiles = $this->mockDataService->getAuthorProfiles();
-        
-        return Inertia::render('admin/UserDetail', [
-            'users' => $users,
-            'roles' => $roles,
-            'authorProfiles' => $authorProfiles,
-        ]);
-    }
-
-    /**
-     * Display the edit user form
-     * 
-     * @param string $id
-     * @return Response
-     */
-    public function edit(string $id): Response
-    {
-        $users = $this->mockDataService->getUsers();
-        $user = collect($users)->firstWhere('id', $id);
-        $roles = $this->mockDataService->getRoles();
-        
-        return Inertia::render('admin/Users', [
-            'user' => $user,
-            'roles' => $roles,
-        ]);
-    }
-
-    /**
-     * Update the specified user
-     * 
-     * @param Request $request
-     * @param string $id
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function update(Request $request, string $id)
-    {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email',
-            'role_id' => 'required|integer',
-        ]);
+        $data = $request->validated();
+        $this->userService->updateUser($user, $data);
 
         return back()->with('success', '用户已更新');
     }
 
-    /**
-     * Remove the specified user
-     * 
-     * @param string $id
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function destroy(string $id)
+    public function destroy(User $user): RedirectResponse
     {
+        $this->userService->deleteUser($user);
+
         return back()->with('success', '用户已删除');
     }
 }

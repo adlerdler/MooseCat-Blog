@@ -112,16 +112,16 @@ const handleCancel = () => {
 };
 
 const getConfirmButtonClasses = () => {
-  const baseClasses = 'flex-1 flex items-center justify-center gap-2 px-6 py-3 font-bold tracking-widest uppercase text-sm transition-colors rounded';
+  const baseClasses = 'flex-1 flex items-center justify-center gap-2 px-6 py-3 font-bold tracking-widest uppercase text-sm transition-colors rounded cursor-pointer';
 
   switch (displayVariant.value) {
     case 'danger':
-      return `${baseClasses} bg-construct-red text-white hover:bg-red-700`;
+      return `${baseClasses} bg-red-600 text-white hover:bg-red-700`;
     case 'warning':
       return `${baseClasses} bg-yellow-500 text-white hover:bg-yellow-600`;
     case 'primary':
     default:
-      return `${baseClasses} bg-construct-red text-white hover:bg-red-700`;
+      return `${baseClasses} bg-red-600 text-white hover:bg-red-700`;
   }
 };
 </script>

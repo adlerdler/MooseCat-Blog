@@ -8,6 +8,7 @@
  * - 支持项目的增删改查操作
  */
 import { ref, computed, watch } from 'vue';
+import { router } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import {
   FolderKanban,
@@ -114,13 +115,22 @@ const handleDelete = (id) => {
 
 const confirmDelete = () => {
   if (deletingProjectId.value !== null) {
-    localProjects.value = localProjects.value.filter(p => p.id !== deletingProjectId.value);
-    deletingProjectId.value = null;
+    router.delete(`/admin/projects/${deletingProjectId.value}`, {
+      onSuccess: () => {
+        localProjects.value = localProjects.value.filter(p => p.id !== deletingProjectId.value);
+        deletingProjectId.value = null;
+      },
+    });
   }
   showDeleteConfirm.value = false;
 };
 
 const handleEdit = (project) => {
+  const techValue = project.technologies;
+  const techString = Array.isArray(techValue) 
+    ? techValue.join(', ') 
+    : (typeof techValue === 'string' ? techValue : '');
+  
   editingProject.value = {
     id: project.id,
     title: project.title || '',
@@ -131,7 +141,7 @@ const handleEdit = (project) => {
     github_url: project.github_url || '',
     role: project.role || '',
     year: project.year || '',
-    technologies: project.technologies ? project.technologies.join(', ') : '',
+    technologies: techString,
     status: project.status || 'completed',
     sort_order: project.sort_order || 0
   };
@@ -145,12 +155,20 @@ const handleAdd = () => {
 
 const handleSave = (data) => {
   if (editingProject.value) {
-    console.log('Update project:', data);
+    router.put(`/admin/projects/${editingProject.value.id}`, data, {
+      onSuccess: () => {
+        isFormVisible.value = false;
+        editingProject.value = null;
+      },
+    });
   } else {
-    console.log('Create project:', data);
+    router.post('/admin/projects', data, {
+      onSuccess: () => {
+        isFormVisible.value = false;
+        editingProject.value = null;
+      },
+    });
   }
-  isFormVisible.value = false;
-  editingProject.value = null;
 };
 
 const handleCancel = () => {

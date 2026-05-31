@@ -13,6 +13,7 @@ import {
   ref,
   computed,
   watch,
+  router,
   useI18n,
   useTheme,
   Folder,
@@ -80,7 +81,12 @@ const paginatedCategories = computed(() => {
 });
 
 const toggleStatus = (category) => {
-  category.status = category.status === 'active' ? 'inactive' : 'active';
+  const newStatus = category.status === 'active' ? 'inactive' : 'active';
+  router.put(`/admin/categories/${category.id}`, { ...category, status: newStatus }, {
+    onSuccess: () => {
+      category.status = newStatus;
+    },
+  });
 };
 
 const handleEdit = (category) => {
@@ -95,20 +101,20 @@ const handleAdd = () => {
 
 const handleSave = (data) => {
   if (editingCategory.value) {
-    const index = localCategories.value.findIndex(c => c.id === editingCategory.value.id);
-    if (index !== -1) {
-      localCategories.value[index] = { ...localCategories.value[index], ...data };
-    }
+    router.put(`/admin/categories/${editingCategory.value.id}`, data, {
+      onSuccess: () => {
+        isFormVisible.value = false;
+        editingCategory.value = null;
+      },
+    });
   } else {
-    const newId = Math.max(...localCategories.value.map(c => c.id), 0) + 1;
-    localCategories.value.push({
-      id: newId,
-      ...data,
-      postCount: 0
+    router.post('/admin/categories', data, {
+      onSuccess: () => {
+        isFormVisible.value = false;
+        editingCategory.value = null;
+      },
     });
   }
-  isFormVisible.value = false;
-  editingCategory.value = null;
 };
 
 const handleCancel = () => {
@@ -123,8 +129,12 @@ const handleDelete = (id) => {
 
 const confirmDelete = () => {
   if (deletingCategoryId.value !== null) {
-    localCategories.value = localCategories.value.filter(c => c.id !== deletingCategoryId.value);
-    deletingCategoryId.value = null;
+    router.delete(`/admin/categories/${deletingCategoryId.value}`, {
+      onSuccess: () => {
+        localCategories.value = localCategories.value.filter(c => c.id !== deletingCategoryId.value);
+        deletingCategoryId.value = null;
+      },
+    });
   }
   showDeleteConfirm.value = false;
 };

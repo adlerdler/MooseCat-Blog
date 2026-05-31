@@ -61,8 +61,11 @@ import { useTheme } from '../../composables/useTheme';
 import { useMenuItems } from '../../composables/useMenuItems';
 
 const page = usePage();
-const sharedMenus = computed(() => page.props.menus || []);
-const { adminMenuItems } = useMenuItems({ menus: sharedMenus.value });
+// 后端已过滤权限，直接使用
+const adminMenuItems = computed(() => {
+  const menus = page.props.menus;
+  return Array.isArray(menus) ? menus : [];
+});
 
 const { t: originalT } = useI18n();
 const t = (key, fallback = '') => {
@@ -196,7 +199,7 @@ const iconMap = {
 };
 
 const menuItems = computed(() => {
-  return adminMenuItems.map(item => {
+  return adminMenuItems.value.map(item => {
     const mappedItem = {
       ...item,
       label: (item.label_key ? t(item.label_key) : item.label_key) || String(item.label_key || item.id),
@@ -485,32 +488,7 @@ const clearCache = () => {
             </div>
           </div>
           
-          <!-- User Dropdown Menu -->
-          <Transition name="dropdown">
-            <div
-              v-if="isUserMenuOpen"
-              :class="[
-                'absolute bottom-20 left-2 w-56 rounded-lg shadow-xl border z-50',
-                isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-              ]"
-            >
-              <div :class="['p-4 border-b', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
-                <p :class="['text-sm font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">{{ adminEmail }}</p>
-                <p :class="['text-xs mt-1', isDarkMode ? 'text-gray-400' : 'text-gray-500']">Administrator</p>
-              </div>
-              <div class="p-2">
-                <!-- Logout Button -->
-                <button
-                  @click="handleLogout"
-                  :class="['w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors mt-1',
-                    isDarkMode ? 'text-gray-300 hover:bg-gray-700 hover:text-red-400' : 'text-gray-700 hover:bg-gray-100 hover:text-red-500']"
-                >
-                  <LogOut :size="18" />
-                  <span>{{ t('login_logout') }}</span>
-                </button>
-              </div>
-            </div>
-          </Transition>
+          <!-- User Dropdown Menu (moved outside aside to avoid stacking context issues) -->
         </div>
         
         <!-- Collapse Toggle Button (hidden on mobile) -->
@@ -531,10 +509,39 @@ const clearCache = () => {
       </div>
     </aside>
     
+    <!-- User Dropdown Menu (fixed position outside aside to avoid stacking context issues) -->
+    <Transition name="dropdown">
+      <div
+        v-if="isUserMenuOpen"
+        :class="[
+          'fixed w-56 rounded-lg shadow-xl border z-[100]',
+          isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+        ]"
+        style="bottom: 80px; left: 8px;"
+      >
+        <div :class="['p-4 border-b', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
+          <p :class="['text-sm font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">{{ adminEmail }}</p>
+          <p :class="['text-xs mt-1', isDarkMode ? 'text-gray-400' : 'text-gray-500']">Administrator</p>
+        </div>
+        <div class="p-2">
+          <!-- Logout Button -->
+          <button
+            id="logout-btn"
+            @click.stop.prevent="handleLogout"
+            :class="['w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors mt-1 cursor-pointer',
+              isDarkMode ? 'text-gray-300 hover:bg-gray-700 hover:text-red-400' : 'text-gray-700 hover:bg-gray-100 hover:text-red-500']"
+          >
+            <LogOut :size="18" />
+            <span>{{ t('login_logout') }}</span>
+          </button>
+        </div>
+      </div>
+    </Transition>
+    
     <!-- Click outside to close user menu -->
     <div
       v-if="isUserMenuOpen"
-      class="fixed inset-0 z-40"
+      class="fixed inset-0 z-[90]"
       @click="closeUserMenu"
     ></div>
     

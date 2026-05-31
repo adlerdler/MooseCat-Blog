@@ -12,8 +12,9 @@ return new class extends Migration
             $table->id();
             $table->string('filename')->comment('文件名');
             $table->unsignedBigInteger('size')->comment('大小');
-            $table->enum('status', ['pending', 'running', 'completed', 'failed'])->comment('状态');
             $table->enum('type', ['full', 'database', 'files'])->comment('类型');
+            $table->enum('status', ['pending', 'running', 'completed', 'failed'])->comment('状态');
+            $table->boolean('is_scheduled')->default(false)->after('type')->comment('是否为定时备份');
             $table->timestamp('started_at')->comment('开始时间');
             $table->timestamp('completed_at')->nullable()->comment('完成时间');
             $table->text('error_message')->nullable()->comment('错误信息');

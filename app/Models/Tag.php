@@ -35,4 +35,12 @@ class Tag extends Model
     {
         return $this->morphedByMany(Resource::class, 'taggable');
     }
+
+    /**
+     * Get all the videos that are assigned this tag.
+     */
+    public function videos(): MorphToMany
+    {
+        return $this->morphedByMany(Video::class, 'taggable');
+    }
 }
