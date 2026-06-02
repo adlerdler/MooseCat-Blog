@@ -70,6 +70,10 @@ const props = defineProps({
     type: Array,
     default: () => []
   },
+  levels: {
+    type: Array,
+    default: () => []
+  },
   media: {
     type: Array,
     default: () => []
@@ -232,7 +236,7 @@ const openMediaPicker = () => {
 };
 
 const handleMediaSelect = (file) => {
-  editingUser.value = { ...editingUser.value, avatar: file.url };
+  editingAuthor.value = { ...editingAuthor.value, avatar: file.url };
   showMediaPicker.value = false;
 };
 
@@ -247,6 +251,14 @@ const handleSave = () => {
   }
   if (!editingUser.value?.email?.trim()) {
     alert('邮箱不能为空');
+    return;
+  }
+  if (!editingAuthor.value?.display_name?.trim()) {
+    alert('笔名不能为空');
+    return;
+  }
+  if (!editingAuthor.value?.company?.trim()) {
+    alert('公司名称不能为空');
     return;
   }
   
@@ -285,7 +297,7 @@ const handleSave = () => {
             <div class="flex justify-center mb-6">
               <div class="relative group cursor-pointer" @click="openMediaPicker">
                 <div :class="['w-24 h-24 rounded-full flex items-center justify-center overflow-hidden border-2 border-dashed transition-colors', isDarkMode ? 'border-gray-500 hover:border-construct-red bg-gray-600' : 'border-gray-300 hover:border-construct-red bg-gray-100']">
-                  <img v-if="editingUser?.avatar" :src="editingUser.avatar" alt="头像" class="w-full h-full object-cover" />
+                  <img v-if="editingAuthor?.avatar" :src="editingAuthor.avatar" alt="头像" class="w-full h-full object-cover" />
                   <User v-else :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'" size="40" />
                 </div>
                 <div class="absolute inset-0 rounded-full flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -295,18 +307,29 @@ const handleSave = () => {
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">用户名 *</label>
-                <input v-model="editingUser.name" type="text" :class="['w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red', isDarkMode ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300 text-gray-900']" />
+                <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']"><span class="text-construct-red">*</span> 用户名</label>
+                <input v-model="editingUser.name" type="text" required :class="['w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red', isDarkMode ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300 text-gray-900']" />
               </div>
               <div>
-                <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">邮箱 *</label>
-                <input v-model="editingUser.email" type="email" :class="['w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red', isDarkMode ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300 text-gray-900']" />
+                <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']"><span class="text-construct-red">*</span> 邮箱</label>
+                <input v-model="editingUser.email" type="email" required :class="['w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red', isDarkMode ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300 text-gray-900']" />
               </div>
               <div>
                 <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">角色</label>
                 <select v-model="editingUser.role_id" :class="['w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red', isDarkMode ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300 text-gray-900']">
                   <option v-for="role in roles" :key="role.id" :value="role.id">{{ role.label }}</option>
                 </select>
+              </div>
+              <div>
+                <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">等级</label>
+                <select v-model="editingUser.level_id" :class="['w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red', isDarkMode ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300 text-gray-900']">
+                  <option :value="null">未设置</option>
+                  <option v-for="level in levels" :key="level.id" :value="level.id">{{ level.name }} (≥{{ level.min_points }}积分)</option>
+                </select>
+              </div>
+              <div>
+                <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">积分</label>
+                <input v-model.number="editingUser.points" type="number" min="0" :class="['w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red', isDarkMode ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300 text-gray-900']" />
               </div>
               <div>
                 <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">状态</label>
@@ -323,6 +346,28 @@ const handleSave = () => {
               <FileText :size="20" />
               作者信息
             </h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']"><span class="text-construct-red">*</span> 笔名</label>
+                <input v-model="editingAuthor.display_name" type="text" required :class="['w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red', isDarkMode ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300 text-gray-900']" placeholder="笔名" />
+              </div>
+              <div>
+                <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']"><span class="text-construct-red">*</span> 公司/组织</label>
+                <input v-model="editingAuthor.company" type="text" required :class="['w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red', isDarkMode ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300 text-gray-900']" placeholder="公司或组织名称" />
+              </div>
+            </div>
+            <div class="mb-4">
+              <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">Slug <span :class="['text-xs font-normal ml-2', isDarkMode ? 'text-gray-500' : 'text-gray-400']">留空将自动生成 Ar_xxxxxxxxxxxx</span></label>
+              <div class="flex gap-2">
+                <input v-model="editingAuthor.slug" type="text" :class="['flex-1 px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red', isDarkMode ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300 text-gray-900']" placeholder="留空自动生成..." />
+                <button
+                  @click="editingAuthor.slug = 'Ar_' + Math.random().toString(36).substring(2, 14)"
+                  class="px-4 py-2 bg-construct-red text-white rounded-lg text-xs font-bold transition-colors hover:bg-red-700 flex-shrink-0"
+                >
+                  生成
+                </button>
+              </div>
+            </div>
             <div class="mb-4">
               <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">简介</label>
               <textarea v-model="editingAuthor.bio" rows="3" :class="['w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red', isDarkMode ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300 text-gray-900']"></textarea>

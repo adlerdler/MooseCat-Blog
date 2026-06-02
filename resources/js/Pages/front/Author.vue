@@ -77,6 +77,18 @@ const isLoading = ref(true);
 const githubLink = socialLinks.find(s => s.platform === 'github');
 const username = githubLink?.url?.split('/').pop() || 'adler-decht';
 
+// 从 author.display_name 拆分为两行标题
+const nameParts = computed(() => {
+  const name = props.author?.display_name || '';
+  const parts = name.split(' ');
+  return parts.length >= 2 ? parts : [name || 'ARCHYX', ''];
+});
+
+// 作者角色信息
+const authorRole = computed(() => props.author?.role_title || props.author?.role_label || '');
+const authorStatusLabel = computed(() => props.author?.status_label || 'STATUS');
+const authorStatusText = computed(() => props.author?.status_text || 'BUILDING');
+
 const getIconComponent = (iconName) => {
   const iconMap = {
     'Github': Github,
@@ -212,7 +224,7 @@ const generateMockCalendarData = () => {
     />
 
     <!-- Main Content with left margin for sidebar -->
-    <div class="ml-16">
+    <div class="md:ml-16 pt-16 md:pt-0">
     <div class="absolute top-0 right-0 w-[40vw] h-[100vh] bg-construct-black/5 -skew-x-12 translate-x-[20vw] z-[0]" />
     <div class="absolute top-20 left-10 w-96 h-96 border-[40px] border-construct-red opacity-5 rounded-full z-[0]" />
     <div class="absolute bottom-20 right-20 w-64 h-64 bg-construct-red opacity-10 z-[0] rotate-45" />
@@ -227,13 +239,13 @@ const generateMockCalendarData = () => {
           class="font-display text-[12vw] md:text-[9vw] lg:text-[10vw] leading-[0.8] tracking-tighter uppercase pl-12 transition-all duration-1000"
           :class="isVisible ? 'translate-x-0 opacity-100' : '-translate-x-10 opacity-0'"
         >
-          ADLER
+          {{ nameParts[0] }}
         </h1>
         <h1 
           class="font-display text-[12vw] md:text-[9vw] lg:text-[10vw] leading-[0.8] tracking-tighter uppercase text-construct-red pl-[12vw] md:pl-[10vw] lg:pl-[12vw] transition-all duration-1000 delay-100"
           :class="isVisible ? 'translate-x-0 opacity-100' : '-translate-x-10 opacity-0'"
         >
-          DECHT
+          {{ nameParts[1] || nameParts[0] }}
         </h1>
 
         <div 
@@ -253,22 +265,22 @@ const generateMockCalendarData = () => {
         >
           <div>
             <p class="font-bold tracking-[0.4em] text-xs uppercase mb-2 text-construct-red select-none">
-              {{ t('role_designation') }}
+              {{ authorRole || t('role_designation') }}
             </p>
             <h2 class="font-display text-3xl md:text-4xl uppercase tracking-tight">
-              {{ t('architect_designer') }}
+              {{ props.author?.display_name || t('architect_designer') }}
             </h2>
           </div>
 
           <div class="bg-construct-black p-6 md:p-8 text-white relative overflow-hidden group border-2 border-transparent">
             <div class="absolute top-0 right-0 w-32 h-32 bg-construct-red rounded-full blur-2xl opacity-20 group-hover:opacity-50 transition-opacity" />
             <p class="font-bold tracking-widest text-xs uppercase mb-6 text-white/50 border-b border-white/20 pb-2">
-              {{ t('author_status') }}
+              {{ authorStatusLabel || t('author_status') }}
             </p>
             <div class="flex items-center gap-4">
               <div class="w-3 h-3 bg-construct-red animate-pulse" />
               <span class="font-display text-xl md:text-2xl tracking-widest uppercase">
-                {{ t('building_systems') }}
+                {{ authorStatusText || t('building_systems') }}
               </span>
             </div>
           </div>
@@ -311,7 +323,7 @@ const generateMockCalendarData = () => {
                 !
               </div>
               <h3 class="font-display text-xl md:text-2xl lg:text-3xl uppercase tracking-tighter mb-6 border-b-4 border-construct-black pb-4">
-                {{ t(manifestos[0]?.title || 'manifesto') }}
+                {{ manifestos[0]?.title || t('manifesto') }}
               </h3>
               <div class="space-y-6 text-base md:text-lg font-medium leading-relaxed">
                 <p>{{ manifestos[0]?.content }}</p>
@@ -343,10 +355,10 @@ const generateMockCalendarData = () => {
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-2 gap-2">
                   <div>
                     <span class="font-bold text-sm tracking-widest uppercase block">
-                      {{ t(skill.label) }}
+                      {{ skill.label }}
                     </span>
                     <span class="text-[11px] font-bold tracking-widest opacity-50 uppercase mt-1 block">
-                      {{ t(skill.description) }}
+                      {{ skill.description }}
                     </span>
                   </div>
                   <span class="font-display text-2xl md:text-3xl text-construct-black leading-none">
@@ -509,7 +521,7 @@ const generateMockCalendarData = () => {
         :class="isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'"
       >
         <a
-          :href="`/author/${username}`"
+          :href="`/author/${props.author?.slug || username}`"
           class="inline-flex items-center justify-center gap-4 md:gap-6 bg-construct-black text-white hover:bg-construct-red py-5 px-10 md:py-6 md:px-12 font-bold tracking-[0.2em] uppercase transition-all group text-sm md:text-base border-4 border-construct-black w-full md:w-auto shadow-[6px_6px_0px_#000] hover:shadow-[10px_10px_0px_#000] hover:-translate-y-1 hover:-translate-x-1"
         >
           <div class="w-3 h-3 bg-white" />

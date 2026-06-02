@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -15,8 +16,11 @@ class Video extends Model
         'title',
         'slug',
         'description',
+        'video_id',
         'video_url',
+        'platform',
         'cover_image',
+        'thumbnail',
         'duration',
         'status',
         'views_count',
@@ -38,6 +42,22 @@ class Video extends Model
     public function tags(): MorphToMany
     {
         return $this->morphToMany(Tag::class, 'taggable');
+    }
+
+    /**
+     * Get the visit records for the video.
+     */
+    public function visits(): MorphMany
+    {
+        return $this->morphMany(Visit::class, 'visitable');
+    }
+
+    /**
+     * 路由模型绑定使用 slug 字段
+     */
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
     }
 
     public function getActivitylogOptions(): LogOptions

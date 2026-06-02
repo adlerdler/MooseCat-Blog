@@ -7,8 +7,10 @@ use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\AuthorProfile;
 use App\Models\User;
+use App\Models\UserLevel;
 use App\Services\UserService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -28,24 +30,27 @@ class UsersController extends Controller
 
     public function index(): Response
     {
-        $users = User::with(['roles', 'userLevel', 'authorProfile'])
-            ->orderBy('created_at', 'desc')
-            ->get()
-            ->map(fn($u) => [
-                'id' => $u->id,
-                'name' => $u->name,
-                'email' => $u->email,
-                'avatar' => $u->authorProfile?->avatar ?? $u->avatar,
-                'slug' => $u->authorProfile?->slug ?? Str::slug($u->name),
-                'status' => $u->status,
-                'points' => $u->points,
-                'level_name' => $u->userLevel?->name,
-                'roles' => $u->roles->pluck('name')->toArray(),
-                'posts_count' => $u->posts()->count(),
-                'comments_count' => $u->comments()->count(),
-                'created_at' => $u->created_at?->format('Y-m-d'),
-                'last_login_at' => $u->last_login_at?->format('Y-m-d'),
-            ]);
+        $usersData = $this->userService->getPaginatedUsers(
+            (int) request('per_page', 100),
+            request()->only('role', 'email')
+        );
+
+        $users = collect($usersData->items())->map(fn($u) => [
+            'id' => $u->id,
+            'name' => $u->name,
+            'email' => $u->email,
+            'avatar' => $u->authorProfile?->avatar,
+            'slug' => $u->authorProfile?->slug ?? Str::slug($u->name),
+            'status' => $u->status,
+            'points' => $u->points,
+            'level_name' => $u->userLevel?->name,
+            'role_id' => $u->roles->first()?->id,
+            'roles' => $u->roles->pluck('name')->toArray(),
+            'posts_count' => $u->posts()->count(),
+            'comments_count' => $u->comments()->count(),
+            'created_at' => $u->created_at?->format('Y-m-d'),
+            'last_login_at' => $u->last_login_at?->format('Y-m-d'),
+        ])->values()->toArray();
 
         $roles = Role::orderBy('name')->get(['id', 'name', 'color'])->map(fn($r) => [
             'id' => $r->id,
@@ -57,6 +62,7 @@ class UsersController extends Controller
         return Inertia::render('admin/Users', [
             'users' => $users,
             'roles' => $roles,
+            'total' => $usersData->total(),
         ]);
     }
 
@@ -70,13 +76,15 @@ class UsersController extends Controller
             'name' => $user->name,
             'email' => $user->email,
             'slug' => $profile->slug,
-            'avatar' => $profile->avatar ?? $user->avatar,
+            'display_name' => $profile->display_name,
+            'avatar' => $profile->avatar,
             'bio' => $profile?->bio,
-            'github' => ($profile?->social_links ?? [])['github'] ?? null,
-            'twitter' => ($profile?->social_links ?? [])['twitter'] ?? null,
-            'linkedin' => ($profile?->social_links ?? [])['linkedin'] ?? null,
+            'company' => $profile->company,
+            'role_title' => $profile->role_title,
+            'role_label' => $profile->role_label,
             'status' => $user->status,
             'points' => $user->points,
+            'level_id' => $user->level_id,
             'level_name' => $user->userLevel?->name,
             'role_id' => $user->roles->first()?->id ?? null,
             'roles' => $user->roles->pluck('name')->toArray(),
@@ -102,6 +110,15 @@ class UsersController extends Controller
             'label' => ucfirst($r->name),
         ]);
 
+        $levels = UserLevel::active()->get(['id', 'name', 'level', 'color', 'icon', 'min_points'])->map(fn($l) => [
+            'id' => $l->id,
+            'name' => $l->name,
+            'level' => $l->level,
+            'color' => $l->color ?? 'gray',
+            'icon' => $l->icon,
+            'min_points' => $l->min_points,
+        ]);
+
         // 媒体库数据（供头像选择器使用）
         $mediaItems = SpatieMedia::where('collection_name', 'default')
             ->latest()
@@ -122,6 +139,7 @@ class UsersController extends Controller
         return Inertia::render('admin/UserDetail', [
             'user' => $userData,
             'roles' => $roles,
+            'levels' => $levels,
             'media' => $mediaItems,
         ]);
     }
@@ -134,10 +152,31 @@ class UsersController extends Controller
         return back()->with('success', '用户已创建');
     }
 
+    /**
+     * 切换用户启用/停用状态（仅需 status 字段）
+     */
+    public function toggleStatus(Request $request, User $user): RedirectResponse
+    {
+        $validated = $request->validate([
+            'status' => 'required|string|in:active,inactive',
+        ]);
+
+        $user->update(['status' => $validated['status']]);
+
+        return back()->with('success', '用户状态已更新');
+    }
+
     public function update(UpdateUserRequest $request, User $user): RedirectResponse
     {
+        $oldSlug = $user->authorProfile?->slug;
         $data = $request->validated();
         $this->userService->updateUser($user, $data);
+
+        // 如果 slug 变更，重定向到新 slug 的详情页，避免 404
+        $newSlug = $user->fresh()->authorProfile?->slug;
+        if ($newSlug && $newSlug !== $oldSlug) {
+            return redirect()->route('admin.users.show', $newSlug)->with('success', '用户已更新');
+        }
 
         return back()->with('success', '用户已更新');
     }

@@ -3,53 +3,97 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Services\MockDataService;
+use App\Jobs\CreateBackupJob;
+use App\Services\BackupService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class BackupController extends Controller
 {
-    private MockDataService $mockDataService;
-
-    public function __construct(MockDataService $mockDataService)
-    {
+    public function __construct(
+        protected BackupService $backupService
+    ) {
         $this->middleware('permission:manage_backup');
-        $this->mockDataService = $mockDataService;
     }
 
-    public function index(): \Inertia\Response
+    /**
+     * 备份列表页（前端自己做搜索/过滤/分页，后端返回全量格式化数据）
+     */
+    public function index(): Response
     {
-        // 使用模拟数据 - 先对接前端
-        $backups = $this->mockDataService->getBackups();
-
         return Inertia::render('admin/Backup', [
-            'backups' => $backups,
+            'backups' => $this->backupService->getAllBackups(),
+            'stats'   => $this->backupService->getStats(),
         ]);
     }
 
-    public function create(Request $request)
+    /**
+     * 创建备份（异步：立即返回，后台 Job 执行）
+     */
+    public function create(Request $request): RedirectResponse
     {
-        // TODO: 先使用模拟逻辑，后续对接真实备份功能
-        $request->validate([
+        $validated = $request->validate([
             'type' => 'required|in:full,database,files,incremental',
-            'note' => 'nullable|string',
+            'note' => 'nullable|string|max:255',
         ]);
 
-        // 模拟创建备份成功
-        return back()->with('success', '备份创建成功');
+        try {
+            // 1. 创建 pending 状态的记录
+            $backup = $this->backupService->createRecord(
+                type:        $validated['type'],
+                note:        $validated['note'] ?? null,
+                isScheduled: false,
+            );
+
+            // 2. 分发异步 Job
+            CreateBackupJob::dispatch($backup->id);
+
+            return redirect()->route('admin.backup')->with(
+                'success',
+                "{$this->typeLabel($backup->type)}备份任务已创建，正在后台执行..."
+            );
+        } catch (\Exception $e) {
+            return back()->with('error', '创建备份失败：' . $e->getMessage());
+        }
     }
 
+    /**
+     * 下载备份文件
+     */
     public function download(string $id)
     {
-        // TODO: 先使用模拟逻辑，后续对接真实下载功能
-        return back()->with('success', '备份下载中...');
+        $response = $this->backupService->download((int) $id);
+
+        if (! $response) {
+            return back()->with('error', '备份文件不存在或尚未完成');
+        }
+
+        return $response;
     }
 
-    public function destroy(string $id)
+    /**
+     * 删除备份
+     */
+    public function destroy(string $id): RedirectResponse
     {
-        // TODO: 先使用模拟逻辑，后续对接真实删除功能
-        return back()->with('success', '备份已删除');
+        $success = $this->backupService->delete((int) $id);
+
+        return back()->with(
+            $success ? 'success' : 'error',
+            $success ? '备份已删除' : '备份不存在'
+        );
+    }
+
+    private function typeLabel(string $type): string
+    {
+        return match ($type) {
+            'full'        => '全量',
+            'database'    => '数据库',
+            'files'       => '文件',
+            'incremental' => '增量',
+            default       => '',
+        };
     }
 }

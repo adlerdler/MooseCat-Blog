@@ -5,11 +5,11 @@ namespace App\Providers;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Auth\Events\Login;
 use Spatie\Activitylog\Models\Activity;
-use Spatie\MediaLibrary\MediaCollections\Models\Media as SpatieMedia;
 use App\Events\CommentCreated;
 use App\Listeners\SendCommentNotification;
-use App\Observers\MediaObserver;
+use App\Listeners\UpdateLastLoginAt;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -31,13 +31,16 @@ class AppServiceProvider extends ServiceProvider
             }
         });
 
-        // Spatie Media 创建时自动生成 UUID（用于文件路径和 URL）
-        SpatieMedia::observe(MediaObserver::class);
-
         // 注册事件监听：评论创建时发送通知给文章作者
         Event::listen(
             CommentCreated::class,
             SendCommentNotification::class,
+        );
+
+        // 注册事件监听：登录时更新 last_login_at
+        Event::listen(
+            Login::class,
+            UpdateLastLoginAt::class,
         );
     }
 }

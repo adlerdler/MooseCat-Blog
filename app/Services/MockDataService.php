@@ -40,7 +40,6 @@ class MockDataService
     private array $footerConfig = [];
     private array $mailConfig = [];
     private array $emailTemplates = [];
-    private array $i18nConfig = [];
     private array $menu = [];
     private array $pageSeo = [];
 
@@ -104,7 +103,6 @@ class MockDataService
         $this->footerConfig = $this->loadJson('footer_config.json');
         $this->mailConfig = $this->loadJson('mail_config.json');
         $this->emailTemplates = $this->loadJson('email_templates.json');
-        $this->i18nConfig = $this->loadJson('i18n_config.json');
         $this->menu = $this->loadJson('menu.json');
         $this->pageSeo = $this->loadJson('page_seo.json');
 
@@ -444,15 +442,6 @@ class MockDataService
     public function getEmailTemplates(): array
     {
         return $this->emailTemplates;
-    }
-
-    /**
-     * 获取国际化配置
-     * Get i18n config
-     */
-    public function getI18nConfig(): array
-    {
-        return $this->i18nConfig;
     }
 
     /**

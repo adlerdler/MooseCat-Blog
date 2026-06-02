@@ -19,10 +19,15 @@
  * <CommentSection :comments="comments" :interactions="interactions" @comment-submitted="handleComment" />
  */
 import { ref } from 'vue';
+import axios from 'axios';
 import { ChevronRight, Send, Heart } from 'lucide-vue-next';
 import AbstractAvatar from './AbstractAvatar.vue';
 
 const props = defineProps({
+  postId: {
+    type: Number,
+    required: true
+  },
   comments: {
     type: Array,
     default: () => []
@@ -46,6 +51,11 @@ const errorMessage = ref('');
 const localInteractions = ref([...props.interactions]);
 
 const localComments = ref([...props.comments]);
+
+// 回复状态
+const replyingToId = ref(null); // 当前正在回复的评论 ID
+const replyFormData = ref({ name: '', email: '', body: '' });
+const isReplySubmitting = ref(false);
 
 const getLikeCount = (commentId) => {
   return localInteractions.value.filter(
@@ -148,34 +158,94 @@ const handleSubmit = async (e) => {
 
   isSubmitting.value = true;
 
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  try {
+    const response = await axios.post(`/posts/${props.postId}/comments`, {
+      name: formData.value.name.trim(),
+      email: formData.value.email.trim(),
+      body: formData.value.body.trim(),
+    }, {
+      headers: { 'X-Inertia': 'true' },
+    });
 
-  const now = new Date().toISOString();
-  const newComment = {
-    id: Date.now(),
-    post_id: null,
-    parent_id: null,
-    user_id: null,
-    name: formData.value.name.trim(),
-    email: formData.value.email.trim(),
-    body: formData.value.body.trim(),
-    is_approved: false,
-    ip_address: '127.0.0.1',
-    user_agent: navigator.userAgent,
-    created_at: now,
-    updated_at: now
-  };
+    const newComment = response.data.comment;
+    if (newComment && newComment.is_approved) {
+      localComments.value = [newComment, ...localComments.value];
+    }
+    formData.value = { name: '', email: '', body: '' };
+    isSubmitting.value = false;
+    submitSuccess.value = true;
+    emit('comment-submitted', newComment);
+    setTimeout(() => {
+      submitSuccess.value = false;
+    }, 3000);
+  } catch (err) {
+    isSubmitting.value = false;
+    if (err.response?.status === 422) {
+      // 验证错误
+      const errors = err.response.data.errors;
+      const firstError = Object.values(errors).flat()[0];
+      errorMessage.value = firstError || 'Validation failed.';
+    } else if (err.response?.status === 403) {
+      errorMessage.value = err.response.data.message || '评论功能已关闭。';
+    } else {
+      errorMessage.value = 'Submission failed. Please try again.';
+    }
+  }
+};
 
-  localComments.value = [newComment, ...localComments.value];
-  formData.value = { name: '', email: '', body: '' };
-  isSubmitting.value = false;
-  submitSuccess.value = true;
+// 展开/收起某条评论的回复表单
+const toggleReplyForm = (commentId) => {
+  if (replyingToId.value === commentId) {
+    replyingToId.value = null;
+    replyFormData.value = { name: '', email: '', body: '' };
+  } else {
+    replyingToId.value = commentId;
+    replyFormData.value = { name: '', email: '', body: '' };
+  }
+};
 
-  emit('comment-submitted', newComment);
+// 提交回复（嵌套评论）
+const handleReplySubmit = async (commentId) => {
+  if (!replyFormData.value.body.trim()) return;
+  if (replyFormData.value.body.trim().length < 2) return;
 
-  setTimeout(() => {
-    submitSuccess.value = false;
-  }, 3000);
+  isReplySubmitting.value = true;
+
+  try {
+    const response = await axios.post(`/posts/${props.postId}/comments`, {
+      name: replyFormData.value.name.trim() || 'Anonymous',
+      email: replyFormData.value.email.trim() || null,
+      body: replyFormData.value.body.trim(),
+      parent_id: commentId,
+    }, {
+      headers: { 'X-Inertia': 'true' },
+    });
+
+    const newReply = response.data.comment;
+    if (newReply && newReply.is_approved) {
+      // 找到父评论并追加回复
+      const parentComment = localComments.value.find(c => c.id === commentId);
+      if (parentComment) {
+        if (!parentComment.replies) {
+          parentComment.replies = [];
+        }
+        parentComment.replies.push(newReply);
+      }
+    }
+
+    replyingToId.value = null;
+    replyFormData.value = { name: '', email: '', body: '' };
+    isReplySubmitting.value = false;
+    emit('comment-submitted', newReply);
+  } catch (err) {
+    isReplySubmitting.value = false;
+    if (err.response?.status === 422) {
+      const errors = err.response.data.errors;
+      errorMessage.value = Object.values(errors).flat()[0] || 'Validation failed.';
+    } else {
+      errorMessage.value = 'Reply failed. Please try again.';
+    }
+  }
 };
 </script>
 
@@ -329,12 +399,107 @@ const handleSubmit = async (e) => {
           </p>
         </div>
 
+        <!-- Admin / User Replies -->
+        <div v-if="comment.replies && comment.replies.length > 0" class="pl-16 mt-6 space-y-4 border-l-2 border-dashed border-construct-black/20">
+          <div
+            v-for="reply in comment.replies"
+            :key="reply.id"
+            class="relative pl-8"
+          >
+            <!-- Decorative reply arrow -->
+            <div class="absolute left-[-10px] top-2 w-4 h-4 bg-construct-black/10 rotate-45" />
+            
+            <!-- Reply Header -->
+            <div class="flex items-start gap-3 mb-2">
+              <AbstractAvatar :seed="reply.name" :size="32" />
+              <div class="flex-1">
+                <h5 class="font-display text-sm tracking-tighter uppercase flex items-center gap-2">
+                  {{ reply.name }}
+                  <!-- 作者标签 -->
+                  <span
+                    v-if="reply.is_admin"
+                    class="inline-block text-[9px] font-black tracking-widest bg-construct-red text-white px-2 py-0.5"
+                  >
+                    作者
+                  </span>
+                </h5>
+                <span class="text-[9px] font-black tracking-widest uppercase opacity-30 block mt-0.5">
+                  {{ formatRelativeTime(reply.created_at) }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Reply Body -->
+            <div class="pl-11">
+              <p class="text-sm leading-relaxed text-construct-black/70 max-w-2xl">
+                {{ reply.body }}
+              </p>
+            </div>
+          </div>
+        </div>
+
         <!-- Reply Link -->
         <div class="pl-16 mt-4">
-          <button class="text-[10px] font-black tracking-widest opacity-40 hover:opacity-100 hover:text-construct-red transition-colors uppercase">
-            [+] REPLY_TO_TRANSMISSION
+          <button
+            @click="toggleReplyForm(comment.id)"
+            :class="[
+              'text-[10px] font-black tracking-widest transition-colors uppercase',
+              replyingToId === comment.id
+                ? 'text-construct-red opacity-100'
+                : 'opacity-40 hover:opacity-100 hover:text-construct-red'
+            ]"
+          >
+            {{ replyingToId === comment.id ? '[-] CANCEL_REPLY' : '[+] REPLY_TO_TRANSMISSION' }}
           </button>
         </div>
+
+        <!-- Inline Reply Form -->
+        <Transition name="slide">
+          <div v-if="replyingToId === comment.id" class="pl-16 mt-4 overflow-hidden">
+            <form @submit.prevent="handleReplySubmit(comment.id)" class="space-y-4 bg-gray-100/50 p-5 border-2 border-construct-red/30">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="space-y-1.5">
+                  <label class="text-[9px] font-black tracking-widest uppercase opacity-40">NAME</label>
+                  <input
+                    type="text"
+                    v-model="replyFormData.name"
+                    placeholder="YOUR_NAME"
+                    class="w-full bg-gray-200 border-2 border-construct-black px-3 py-2 focus:border-construct-red outline-none transition-colors font-display text-xs tracking-widest uppercase placeholder:text-construct-black/30"
+                  />
+                </div>
+                <div class="space-y-1.5">
+                  <label class="text-[9px] font-black tracking-widest uppercase opacity-40">EMAIL</label>
+                  <input
+                    type="email"
+                    v-model="replyFormData.email"
+                    placeholder="YOUR_EMAIL"
+                    class="w-full bg-gray-200 border-2 border-construct-black px-3 py-2 focus:border-construct-red outline-none transition-colors font-display text-xs tracking-widest uppercase placeholder:text-construct-black/30"
+                  />
+                </div>
+              </div>
+              <div class="space-y-1.5">
+                <label class="text-[9px] font-black tracking-widest uppercase opacity-40">REPLY //*</label>
+                <textarea
+                  required
+                  rows="3"
+                  v-model="replyFormData.body"
+                  placeholder="ENTER_YOUR_REPLY..."
+                  class="w-full bg-gray-200 border-2 border-construct-black px-3 py-2 focus:border-construct-red outline-none transition-colors resize-none font-medium text-sm leading-relaxed placeholder:text-construct-black/30"
+                />
+              </div>
+              <div class="flex justify-end gap-3">
+                <button
+                  type="submit"
+                  :disabled="isReplySubmitting"
+                  class="group inline-flex items-center gap-2 bg-construct-black text-white px-5 py-2 font-display tracking-widest text-xs hover:bg-construct-red transition-all active:translate-x-0.5 active:translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <span>{{ isReplySubmitting ? 'SENDING...' : 'SEND REPLY' }}</span>
+                  <Send :size="14" :class="['transition-transform', isReplySubmitting ? 'animate-spin' : 'group-hover:translate-x-0.5 group-hover:-translate-y-0.5']" />
+                </button>
+              </div>
+            </form>
+          </div>
+        </Transition>
       </div>
     </div>
   </div>

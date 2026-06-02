@@ -8,7 +8,7 @@
  * - 支持项目的增删改查操作
  */
 import { ref, computed, watch } from 'vue';
-import { router } from '@inertiajs/vue3';
+import { router, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import {
   FolderKanban,
@@ -46,6 +46,7 @@ const t = (key, fallback = '') => {
   }
 };
 const { isDarkMode } = useTheme();
+const page = usePage();
 
 const PROJECT_STATUS = Object.freeze({
   COMPLETED: 'completed',
@@ -131,6 +132,11 @@ const handleEdit = (project) => {
     ? techValue.join(', ') 
     : (typeof techValue === 'string' ? techValue : '');
   
+  const tagsValue = project.tags;
+  const tagsString = Array.isArray(tagsValue)
+    ? tagsValue.join(', ')
+    : (typeof tagsValue === 'string' ? tagsValue : '');
+  
   editingProject.value = {
     id: project.id,
     title: project.title || '',
@@ -142,6 +148,7 @@ const handleEdit = (project) => {
     role: project.role || '',
     year: project.year || '',
     technologies: techString,
+    tags: tagsString,
     status: project.status || 'completed',
     sort_order: project.sort_order || 0
   };
@@ -229,12 +236,12 @@ const handleFilterChange = ({ key, value }) => {
         v-for="project in paginatedProjects"
         :key="project.id"
         :class="[
-          'border overflow-hidden hover:border-construct-red transition-colors',
-          isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+          'flex flex-col rounded-lg shadow-md',
+          isDarkMode ? 'bg-gray-800' : 'bg-white'
         ]"
       >
         <!-- Project Image -->
-        <div :class="['relative aspect-video', isDarkMode ? 'bg-gray-900' : 'bg-gray-100']">
+        <div :class="['relative aspect-video box-border rounded-t-lg overflow-hidden', !project.image ? 'border-2 border-b-0 border-dashed' : '', isDarkMode ? 'bg-gray-900' : 'bg-gray-100', !project.image && !isDarkMode ? 'border-gray-300' : '', !project.image && isDarkMode ? 'border-gray-600' : '']">
           <img
             v-if="project.image"
             :src="project.image"
@@ -254,11 +261,31 @@ const handleFilterChange = ({ key, value }) => {
         </div>
         
         <!-- Project Info -->
-        <div class="p-4">
-          <h3 :class="['font-bold mb-2 line-clamp-2', isDarkMode ? 'text-white' : 'text-gray-900']">{{ project.title }}</h3>
-          <p :class="['text-sm mb-4 line-clamp-3', isDarkMode ? 'text-gray-400' : 'text-gray-600']">{{ project.description }}</p>
+        <div class="p-4 flex flex-col flex-1">
+          <h3
+            :class="['font-bold mb-2 text-lg', isDarkMode ? 'text-white' : 'text-gray-900']"
+            style="display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1; line-clamp: 1; overflow: hidden;"
+          >{{ project.title }}</h3>
+          <p
+            :class="['text-sm mb-4', isDarkMode ? 'text-gray-400' : 'text-gray-600']"
+            style="display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; min-height: 2.5rem;"
+          >{{ project.description }}</p>
           
-          <div :class="['flex items-center justify-between pt-3 border-t', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
+          <!-- Tags -->
+          <div class="flex flex-wrap gap-1 mb-4">
+            <span
+              v-for="tag in project.tags.slice(0, 3)"
+              :key="tag"
+              :class="['text-xs px-2 py-1 rounded', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600']"
+            >
+              {{ tag }}
+            </span>
+            <span v-if="project.tags.length > 3" :class="['text-xs px-2 py-1 rounded', isDarkMode ? 'bg-gray-700 text-gray-400' : 'bg-gray-100 text-gray-500']">
+              +{{ project.tags.length - 3 }}
+            </span>
+          </div>
+          
+          <div :class="['flex items-center justify-between pt-3 mt-auto']">
             <div :class="['flex items-center gap-2 text-xs', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
               <Clock size="14" />
               {{ formatToShort(project.created_at || project.date) }}
@@ -318,6 +345,7 @@ const handleFilterChange = ({ key, value }) => {
     <ProjectForm
       :edit-data="editingProject"
       :visible="isFormVisible"
+      :media-files="page.props.mediaFiles || []"
       @save="handleSave"
       @cancel="handleCancel"
     />

@@ -138,26 +138,35 @@ const toggleReply = (id) => {
 
 const submitReply = (comment) => {
   if (!replyContent.value.trim()) return;
-  
-  // Mock adding a reply
-  if (!comment.replies) comment.replies = [];
-  
-  const now = new Date().toISOString();
-  comment.replies.push({
-    id: Date.now(),
-    name: 'Admin',
-    content: replyContent.value,
-    createdAt: now,
-    date: now,
-    isAdmin: true
+
+  router.post(`/admin/comments/${comment.id}/reply`, {
+    body: replyContent.value,
+  }, {
+    onSuccess: () => {
+      replyingToId.value = null;
+      replyContent.value = '';
+      // 刷新页面以加载包含回复的最新数据
+      router.reload({ only: ['comments'], preserveState: true, preserveScroll: true });
+    },
+    onError: (errors) => {
+      alert(Object.values(errors).flat()[0] || '回复失败，请重试');
+    },
   });
-  
-  replyingToId.value = null;
-  replyContent.value = '';
-  // Force approval if replying
-  if (comment.status === 'pending') {
-    comment.status = 'approved';
-  }
+};
+
+// 删除单条回复
+const deleteReply = (comment, reply) => {
+  if (!confirm('确定要删除这条回复吗？')) return;
+
+  router.delete(`/admin/comments/${reply.id}`, {
+    onSuccess: () => {
+      // 从本地 replies 数组中移除
+      comment.replies = comment.replies.filter(r => r.id !== reply.id);
+    },
+    onError: () => {
+      alert('删除失败，请重试');
+    },
+  });
 };
 
 const handleFilterChange = ({ key, value }) => {
@@ -248,13 +257,20 @@ const handleFilterChange = ({ key, value }) => {
         <div v-if="comment.replies && comment.replies.length > 0" class="ml-10 mb-6 space-y-4 border-l-2 border-dashed border-gray-200 dark:border-gray-700 pl-6">
           <div v-for="reply in comment.replies" :key="reply.id" class="relative">
             <CornerDownRight class="absolute -left-7 top-0 text-gray-300 dark:text-gray-600" size="18" />
-            <div :class="['p-4 rounded-xl text-sm', reply.isAdmin ? (isDarkMode ? 'bg-construct-red/10 border border-construct-red/20' : 'bg-red-50 border border-red-100') : (isDarkMode ? 'bg-gray-700/30' : 'bg-white')]">
+            <div :class="['p-4 rounded-xl text-sm', reply.is_admin ? (isDarkMode ? 'bg-construct-red/10 border border-construct-red/20' : 'bg-red-50 border border-red-100') : (isDarkMode ? 'bg-gray-700/30' : 'bg-white')]">
               <div class="flex items-center gap-2 mb-1">
-                <ShieldCheck v-if="reply.isAdmin" size="14" class="text-construct-red" />
-                <span :class="['font-bold', reply.isAdmin ? 'text-construct-red' : (isDarkMode ? 'text-white' : 'text-gray-900')]">{{ reply.name }}</span>
-                <span class="text-[10px] opacity-40 uppercase tracking-widest font-black ml-auto">{{ formatToShort(reply.date) }}</span>
+                <ShieldCheck v-if="reply.is_admin" size="14" class="text-construct-red" />
+                <span :class="['font-bold', reply.is_admin ? 'text-construct-red' : (isDarkMode ? 'text-white' : 'text-gray-900')]">{{ reply.name }}</span>
+                <span class="text-[10px] opacity-40 uppercase tracking-widest font-black ml-auto">{{ formatToShort(reply.created_at) }}</span>
+                <button
+                  @click="deleteReply(comment, reply)"
+                  class="ml-2 p-1 rounded opacity-30 hover:opacity-100 hover:text-red-500 transition-all"
+                  title="删除回复"
+                >
+                  <Trash2 size="12" />
+                </button>
               </div>
-              <p :class="isDarkMode ? 'text-gray-400' : 'text-gray-600'">{{ reply.content }}</p>
+              <p :class="isDarkMode ? 'text-gray-400' : 'text-gray-600'">{{ reply.body }}</p>
             </div>
           </div>
         </div>

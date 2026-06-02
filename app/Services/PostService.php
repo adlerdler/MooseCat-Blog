@@ -18,6 +18,10 @@ use Illuminate\Pagination\LengthAwarePaginator;
  */
 class PostService
 {
+    public function __construct(protected TagService $tagService)
+    {
+    }
+
     /**
      * 获取文章列表（带分页和筛选）
      * Get paginated post list with filters
@@ -26,6 +30,7 @@ class PostService
     {
         return Post::query()
             ->with(['author', 'category', 'tags'])
+            ->when($filters['author_id'] ?? null, fn($q, $id) => $q->where('author_id', $id))
             ->when($filters['category'] ?? null, fn($q, $slug) => $q->whereHas('category', fn($q) => $q->where('slug', $slug)))
             ->when($filters['tag'] ?? null, fn($q, $slug) => $q->whereHas('tags', fn($q) => $q->where('slug', $slug)))
             ->when($filters['status'] ?? null, fn($q, $status) => $q->where('status', $status))
@@ -40,8 +45,9 @@ class PostService
     public function createPost(array $data): Post
     {
         return DB::transaction(function () use ($data) {
-            $data['slug'] = $data['slug'] ?? Str::slug($data['title']);
-            $data['status'] = $data['status'] ?? 'draft';
+            $data['slug'] = $data['slug'] ?? (Str::random(8) . '-' . Str::random(4));
+            $data['status'] = $data['status'] ?? 'published';
+            $data['published_at'] = $data['published_at'] ?? now();
             
             $tags = $data['tags'] ?? [];
             unset($data['tags']);
@@ -49,13 +55,7 @@ class PostService
             $post = Post::create($data);
 
             if (!empty($tags)) {
-                $tagIds = collect($tags)->map(function ($tag) {
-                    if (is_numeric($tag)) {
-                        return (int) $tag;
-                    }
-                    return \App\Models\Tag::firstOrCreate(['name' => $tag])->id;
-                })->toArray();
-                $post->tags()->sync($tagIds);
+                $post->tags()->sync($this->tagService->resolveTagIds($tags));
             }
 
             return $post;
@@ -69,8 +69,10 @@ class PostService
     public function updatePost(Post $post, array $data): Post
     {
         return DB::transaction(function () use ($post, $data) {
-            if (isset($data['title']) && !isset($data['slug'])) {
-                $data['slug'] = Str::slug($data['title']);
+            // 编辑时不自动生成 slug，保持原有值
+            // 当状态设为 published 且原文章无发布时间时，自动记录
+            if (($data['status'] ?? $post->status) === 'published' && !$post->published_at) {
+                $data['published_at'] = $data['published_at'] ?? now();
             }
 
             $tags = $data['tags'] ?? [];
@@ -79,13 +81,7 @@ class PostService
             $post->update($data);
 
             if (!empty($tags)) {
-                $tagIds = collect($tags)->map(function ($tag) {
-                    if (is_numeric($tag)) {
-                        return (int) $tag;
-                    }
-                    return \App\Models\Tag::firstOrCreate(['name' => $tag])->id;
-                })->toArray();
-                $post->tags()->sync($tagIds);
+                $post->tags()->sync($this->tagService->resolveTagIds($tags));
             }
 
             return $post;

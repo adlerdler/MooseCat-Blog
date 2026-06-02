@@ -32,7 +32,7 @@ usePageSeo({
   description: computed(() => props.project?.description || ''),
   keywords: computed(() => props.project?.tech_stack?.join(', ') || ''),
   image: computed(() => props.project?.image || ''),
-  url: computed(() => `${window.location.origin}/projects/${props.project?.id}`),
+  url: computed(() => `${window.location.origin}/projects/${props.project?.slug || props.project?.id}`),
   type: 'CreativeWork'
 })
 
@@ -44,9 +44,11 @@ const isValidProject = computed(() => {
 const iframeError = ref(false);
 const iframeLoading = ref(true);
 const showBackToTop = ref(false);
+const showHeader = ref(true);
 
 const handleScroll = () => {
   showBackToTop.value = window.scrollY > 300;
+  showHeader.value = window.scrollY < 10;
 };
 
 onMounted(() => {
@@ -79,7 +81,7 @@ const scrollToTop = () => {
 
 <template>
   <div class="min-h-screen bg-construct-paper text-construct-black pb-32">
-    <!-- 回退按钮 -->
+    <!-- 浮动返回按钮 -->
     <button
       @click="goBack"
       class="fixed top-4 left-4 z-50 w-12 h-12 bg-construct-black text-white flex items-center justify-center hover:bg-construct-red transition-colors shadow-lg"
@@ -114,20 +116,17 @@ const scrollToTop = () => {
     <!-- 项目详情内容 -->
     <template v-else>
       <!-- 头部 / 顶部导航 -->
-      <header class="fixed top-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-md border-b border-construct-black/10 z-40 flex items-center justify-between px-6 md:px-12">
+      <Transition name="fade">
+        <header
+          v-if="showHeader"
+          class="fixed top-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-md border-b border-construct-black/10 z-40 flex items-center justify-between pl-16 pr-6 md:pl-20 md:pr-12"
+        >
         <div class="flex items-center gap-4">
           <span class="text-[10px] font-black tracking-[0.4em] uppercase opacity-40">
             PROJ_{{ formatId(project.id, 2) }} // ARCHIVE
           </span>
         </div>
         <div class="flex items-center gap-6">
-          <button
-            @click="goBack"
-            class="flex items-center gap-2 text-xs font-bold tracking-widest uppercase hover:text-construct-red transition-colors"
-          >
-            <ArrowLeft size="16" />
-            EXIT
-          </button>
           <a
             v-if="project.github_url"
             :href="project.github_url"
@@ -149,6 +148,7 @@ const scrollToTop = () => {
           </a>
         </div>
       </header>
+      </Transition>
 
       <!-- 主内容布局 -->
       <div class="pt-24 px-6 md:px-12 max-w-[1700px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 xl:gap-24">
@@ -369,15 +369,6 @@ const scrollToTop = () => {
           </div>
         </aside>
       </div>
-
-      <!-- 底部导航 -->
-      <footer class="container mx-auto px-6 md:px-12 mt-32">
-        <div class="h-4 w-full bg-construct-black mb-12" />
-        <Link href="/projects" class="group inline-flex flex-col">
-          <span class="text-sm font-bold tracking-[0.5em] opacity-40 group-hover:opacity-100 transition-opacity uppercase mb-2">Back to Repository</span>
-          <span class="font-display text-4xl md:text-6xl tracking-tighter uppercase group-hover:italic transition-all">All Artifacts //</span>
-        </Link>
-      </footer>
     </template>
   </div>
 </template>

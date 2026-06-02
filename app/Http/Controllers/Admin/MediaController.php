@@ -94,7 +94,21 @@ class MediaController extends Controller
         if (str_starts_with($mimeType, 'image/')) return 'image';
         if (str_starts_with($mimeType, 'video/')) return 'video';
         if (str_starts_with($mimeType, 'audio/')) return 'audio';
-        if (in_array($mimeType, ['application/pdf', 'application/msword', 'text/plain'])) return 'document';
+        if (str_starts_with($mimeType, 'text/')) return 'document';
+
+        // Office Open XML + PDF + 旧版 Office 格式
+        if (in_array($mimeType, [
+            'application/pdf',
+            'application/msword',                                                         // .doc
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',     // .docx
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',           // .xlsx
+            'application/vnd.openxmlformats-officedocument.presentationml.presentation',   // .pptx
+            'application/vnd.ms-excel',                                                    // .xls
+            'application/vnd.ms-powerpoint',                                               // .ppt
+        ])) {
+            return 'document';
+        }
+
         return 'archive';
     }
 

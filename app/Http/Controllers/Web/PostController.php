@@ -7,13 +7,15 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\Post;
 use App\Services\PostService;
+use App\Services\VisitService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class PostController extends Controller
 {
     public function __construct(
-        protected PostService $postService
+        protected PostService $postService,
+        protected VisitService $visitService,
     ) {}
 
     /**
@@ -30,10 +32,10 @@ class PostController extends Controller
     /**
      * Web 端文章详情页
      */
-    public function show(Post $post): View
+    public function show(Post $post, Request $request): View
     {
         $post->load(['author', 'category', 'tags']);
-        $this->postService->incrementViews($post);
+        $this->visitService->trackModel($post, $request);
 
         return view('posts.show', compact('post'));
     }

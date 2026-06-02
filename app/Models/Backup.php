@@ -11,14 +11,20 @@ class Backup extends Model
         'size',
         'status',
         'type',
+        'disk',
+        'note',
+        'is_scheduled',
+        'schedule_time',
         'started_at',
         'completed_at',
         'error_message',
     ];
 
     protected $casts = [
+        'is_scheduled' => 'boolean',
         'started_at' => 'datetime',
         'completed_at' => 'datetime',
+        'schedule_time' => 'datetime',
     ];
 
     /**

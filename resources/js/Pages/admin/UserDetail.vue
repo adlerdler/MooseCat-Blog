@@ -31,6 +31,7 @@ import UserDetailForm from '../../components/admin/UserDetailForm.vue';
 const props = defineProps({
   user: { type: Object, default: () => ({}) },
   roles: { type: Array, default: () => [] },
+  levels: { type: Array, default: () => [] },
   media: { type: Array, default: () => [] },
 });
 
@@ -45,6 +46,11 @@ const authorInfo = computed(() => {
   return {
     bio: props.user.bio,
     avatar: props.user.avatar,
+    display_name: props.user.display_name,
+    company: props.user.company,
+    role_title: props.user.role_title,
+    role_label: props.user.role_label,
+    slug: props.user.slug,
     skills: props.user.skills || [],
     social_links: props.user.social_links || {},
     manifestos: props.user.manifestos || [],
@@ -111,6 +117,22 @@ const getRoleStyle = (roleName) => {
   return colorMap[role.color] || colorMap['gray'];
 };
 
+const getLevelStyle = (levelName) => {
+  const level = (props.levels || []).find(l => l.name === levelName);
+  const hex = level?.color || '#9ca3af';
+  const opacity = isDarkMode.value ? '20' : '15';
+  return {
+    backgroundColor: hex + opacity,
+    color: hex,
+    borderColor: hex + '80',
+  };
+};
+
+const getLevelIcon = (levelName) => {
+  const level = (props.levels || []).find(l => l.name === levelName);
+  return level?.icon || '';
+};
+
 const getRoleLabel = (roleName) => {
   const role = (props.roles || []).find(r => r.name === roleName);
   return role ? (role.label || role.name) : (t('admin_role_user') || '用户');
@@ -135,8 +157,8 @@ const handleSave = (data) => {
   // 排除 roles（名称数组），role_id 才是后端需要的角色 ID
   const { roles: _roles, ...userFields } = data.user;
   const payload = {
-    ...data.author,
     ...userFields,
+    ...data.author,   // author 放后面，确保 profile 字段以表单编辑值为准
     skills: data.skills,
     social_links: data.social_links,
     manifestos: data.manifestos,
@@ -198,6 +220,13 @@ const handleCancel = () => {
               <h2 :class="['text-3xl font-bold mb-2', isDarkMode ? 'text-white' : 'text-gray-900']">{{ user.name }}</h2>
               <p :class="['text-lg', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ user.email }}</p>
               <div class="flex items-center gap-3 mt-3">
+                <span v-if="user.level_name" class="px-4 py-1.5 rounded-full text-sm font-bold border inline-flex items-center gap-1.5" :style="getLevelStyle(user.level_name)">
+                  <span>{{ getLevelIcon(user.level_name) }}</span>
+                  <span>{{ user.level_name }}</span>
+                </span>
+                <span class="px-3 py-1.5 rounded-full text-sm font-bold border" :class="isDarkMode ? 'bg-yellow-500/15 text-yellow-400 border-yellow-500/40' : 'bg-yellow-50 text-yellow-700 border-yellow-300'">
+                  {{ user.points || 0 }} 积分
+                </span>
                 <span v-if="user.roles && user.roles.length > 0" :class="['px-4 py-1.5 rounded-full text-sm font-bold border', getRoleStyle(user.roles[0])]">{{ getRoleLabel(user.roles[0]) }}</span>
                 <span v-else :class="['px-4 py-1.5 rounded-full text-sm font-bold border bg-gray-500 text-white border-gray-400']">{{ t('admin_role_user') || '用户' }}</span>
                 <span :class="['px-4 py-1.5 rounded-full text-sm font-bold', user.status === 'active' ? (isDarkMode ? 'bg-green-500/20 text-green-400' : 'bg-green-100 text-green-600') : (isDarkMode ? 'bg-gray-600/50 text-gray-400' : 'bg-gray-100 text-gray-500')]">
@@ -224,6 +253,25 @@ const handleCancel = () => {
               <FileText :size="20" />
               作者信息
             </h3>
+
+            <div :class="['grid grid-cols-1 md:grid-cols-2 gap-4 mb-4', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
+              <div class="flex items-center justify-between p-4 rounded-lg" :class="isDarkMode ? 'bg-gray-700' : 'bg-gray-50'">
+                <span class="text-sm font-bold tracking-wider uppercase">笔名</span>
+                <span :class="{ 'opacity-40': !authorInfo.display_name }">{{ authorInfo.display_name || '未设置' }}</span>
+              </div>
+              <div class="flex items-center justify-between p-4 rounded-lg" :class="isDarkMode ? 'bg-gray-700' : 'bg-gray-50'">
+                <span class="text-sm font-bold tracking-wider uppercase">公司</span>
+                <span :class="{ 'opacity-40': !authorInfo.company }">{{ authorInfo.company || '未设置' }}</span>
+              </div>
+              <div class="flex items-center justify-between p-4 rounded-lg" :class="isDarkMode ? 'bg-gray-700' : 'bg-gray-50'">
+                <span class="text-sm font-bold tracking-wider uppercase">头衔</span>
+                <span :class="{ 'opacity-40': !authorInfo.role_title }">{{ authorInfo.role_title || '未设置' }}</span>
+              </div>
+              <div class="flex items-center justify-between p-4 rounded-lg" :class="isDarkMode ? 'bg-gray-700' : 'bg-gray-50'">
+                <span class="text-sm font-bold tracking-wider uppercase">角色标签</span>
+                <span :class="{ 'opacity-40': !authorInfo.role_label }">{{ authorInfo.role_label || '未设置' }}</span>
+              </div>
+            </div>
 
             <div v-if="authorInfo.bio" :class="['p-4 rounded-lg mb-4', isDarkMode ? 'bg-gray-700' : 'bg-gray-50']">
               <p :class="['text-sm font-bold tracking-wider uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">简介</p>
@@ -297,6 +345,7 @@ const handleCancel = () => {
       :manifestos-data="authorManifestos"
       :visible="isFormVisible"
       :roles="props.roles"
+      :levels="props.levels"
       :media="props.media"
       @save="handleSave"
       @cancel="handleCancel"

@@ -9,15 +9,21 @@ class UserResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        $profile = $this->authorProfile;
+        $socialLinks = $profile?->social_links ?? [];
+
         return [
             'id' => $this->id,
             'name' => $this->name,
             'email' => $this->email,
-            'avatar' => $this->avatar,
-            'bio' => $this->bio,
-            'github' => $this->github,
-            'twitter' => $this->twitter,
-            'linkedin' => $this->linkedin,
+            'avatar' => $profile?->avatar,
+            'bio' => $profile?->bio,
+            'display_name' => $profile?->display_name,
+            'company' => $profile?->company,
+            'social_links' => $socialLinks,
+            'github' => $socialLinks['github'] ?? null,
+            'twitter' => $socialLinks['twitter'] ?? null,
+            'linkedin' => $socialLinks['linkedin'] ?? null,
             'role' => $this->role,
         ];
     }

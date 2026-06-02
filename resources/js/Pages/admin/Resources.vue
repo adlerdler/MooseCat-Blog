@@ -8,7 +8,7 @@
  * - 支持资源的增删改查操作
  */
 import { ref, computed, watch } from 'vue';
-import { router } from '@inertiajs/vue3';
+import { router, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import {
   BookOpen,
@@ -54,6 +54,7 @@ const t = (key, fallback = '') => {
   }
 };
 const { isDarkMode } = useTheme();
+const page = usePage();
 
 const resourceTypes = ['all', 'PDF', 'Image', 'Video', 'Archive', 'Other'];
 
@@ -237,26 +238,34 @@ const handleFilterChange = ({ key, value }) => {
     />
 
     <!-- Resources Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <div
         v-for="resource in paginatedResources"
         :key="resource.id"
         :class="[
-          'border overflow-hidden hover:border-construct-red transition-colors',
-          isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+          'flex flex-col rounded-lg shadow-md transition-shadow hover:shadow-lg',
+          isDarkMode ? 'bg-gray-800' : 'bg-white'
         ]"
       >
-        <!-- Resource Icon -->
-        <div :class="['relative h-32 flex items-center justify-center', isDarkMode ? 'bg-gray-900' : 'bg-gray-100']">
-          <component
-            :is="getTypeIcon(resource.format)"
-            :class="['w-16 h-16', 
-              resource.format === 'PDF' ? (isDarkMode ? 'text-red-400' : 'text-red-500') :
-              resource.format === 'Image' ? (isDarkMode ? 'text-purple-400' : 'text-purple-500') :
-              resource.format === 'Video' ? (isDarkMode ? 'text-blue-400' : 'text-blue-500') :
-              resource.format === 'Archive' ? (isDarkMode ? 'text-yellow-400' : 'text-yellow-500') : 
-              (isDarkMode ? 'text-gray-400' : 'text-gray-500')]"
+        <!-- Resource Thumbnail / Icon -->
+        <div :class="['relative aspect-[4/3] box-border rounded-t-lg overflow-hidden', !resource.image ? 'border-2 border-b-0 border-dashed' : '', isDarkMode ? 'bg-gray-900' : 'bg-gray-100', !resource.image && !isDarkMode ? 'border-gray-300' : '', !resource.image && isDarkMode ? 'border-gray-600' : '']">
+          <img
+            v-if="resource.image"
+            :src="resource.image"
+            :alt="resource.title"
+            class="w-full h-full object-cover"
           />
+          <div v-else class="w-full h-full flex items-center justify-center">
+            <component
+              :is="getTypeIcon(resource.format)"
+              :class="['w-14 h-14', 
+                resource.format === 'PDF' ? (isDarkMode ? 'text-red-400' : 'text-red-500') :
+                resource.format === 'Image' ? (isDarkMode ? 'text-purple-400' : 'text-purple-500') :
+                resource.format === 'Video' ? (isDarkMode ? 'text-blue-400' : 'text-blue-500') :
+                resource.format === 'Archive' ? (isDarkMode ? 'text-yellow-400' : 'text-yellow-500') : 
+                (isDarkMode ? 'text-gray-600' : 'text-gray-400')]"
+            />
+          </div>
           <div class="absolute top-2 right-2">
             <span
               :class="['text-[10px] px-2 py-1 uppercase font-bold', getTypeColor(resource.format)]"
@@ -267,8 +276,17 @@ const handleFilterChange = ({ key, value }) => {
         </div>
         
         <!-- Resource Info -->
-        <div class="p-4">
-          <h3 :class="['font-bold mb-2 line-clamp-2 text-sm', isDarkMode ? 'text-white' : 'text-gray-900']">{{ resource.title }}</h3>
+        <div class="p-4 flex flex-col flex-1">
+          <h3
+            :class="['font-bold mb-2 text-lg', isDarkMode ? 'text-white' : 'text-gray-900']"
+            style="display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1; line-clamp: 1; overflow: hidden;"
+          >{{ resource.title }}</h3>
+          
+          <p
+            v-if="resource.description"
+            :class="['text-sm mb-4', isDarkMode ? 'text-gray-400' : 'text-gray-600']"
+            style="display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; min-height: 2.5rem;"
+          >{{ resource.description }}</p>
           
           <div :class="['flex items-center justify-between text-xs mb-3', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
             <span>{{ resource.file_size }}</span>
@@ -278,29 +296,32 @@ const handleFilterChange = ({ key, value }) => {
             </span>
           </div>
           
-          <div :class="['flex items-center justify-between pt-3 border-t', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
+          <div :class="['flex items-center justify-between pt-3 mt-auto']">
             <div :class="['flex items-center gap-2 text-xs', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
               <Clock size="14" />
               {{ formatToRelative(resource.created_at) }}
             </div>
             
             <div class="flex gap-1">
-              <button
-                :class="['p-1.5 transition-colors', isDarkMode ? 'text-gray-400 hover:text-green-400 hover:bg-gray-700' : 'text-gray-500 hover:text-green-500 hover:bg-gray-100']"
+              <a
+                v-if="resource.direct_link"
+                :href="resource.direct_link"
+                download
+                :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:text-green-400 hover:bg-gray-700' : 'text-gray-500 hover:text-green-500 hover:bg-gray-100']"
                 :title="t('admin_download')"
               >
                 <Download size="16" />
-              </button>
+              </a>
               <button
                 @click="handleEdit(resource)"
-                :class="['p-1.5 transition-colors', isDarkMode ? 'text-gray-400 hover:text-blue-400 hover:bg-gray-700' : 'text-gray-500 hover:text-blue-500 hover:bg-gray-100']"
+                :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:text-blue-400 hover:bg-gray-700' : 'text-gray-500 hover:text-blue-500 hover:bg-gray-100']"
                 :title="t('admin_edit')"
               >
                 <Edit3 size="16" />
               </button>
               <button
                 @click="handleDelete(resource.id)"
-                :class="['p-1.5 transition-colors', isDarkMode ? 'text-gray-400 hover:text-red-400 hover:bg-gray-700' : 'text-gray-500 hover:text-red-500 hover:bg-gray-100']"
+                :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:text-red-400 hover:bg-gray-700' : 'text-gray-500 hover:text-red-500 hover:bg-gray-100']"
                 :title="t('admin_delete')"
               >
                 <Trash2 size="16" />
@@ -325,6 +346,7 @@ const handleFilterChange = ({ key, value }) => {
       :edit-data="editingResource"
       :visible="isFormVisible"
       :categories="props.categories"
+      :media-files="page.props.mediaFiles || []"
       @save="handleSave"
       @cancel="handleCancel"
     />

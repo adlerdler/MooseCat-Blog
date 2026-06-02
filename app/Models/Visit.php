@@ -12,6 +12,8 @@ class Visit extends Model
     protected $fillable = [
         'visitable_id',
         'visitable_type',
+        'page',
+        'title',
         'ip_address',
         'user_agent',
         'referrer',

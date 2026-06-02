@@ -32,6 +32,9 @@ class AuthController extends Controller
 
         $token = $user->createToken('api-token')->plainTextToken;
 
+        // 记录最后登录时间
+        $user->update(['last_login_at' => now()]);
+
         return response()->json([
             'access_token' => $token,
             'token_type' => 'Bearer',

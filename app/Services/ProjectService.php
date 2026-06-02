@@ -19,6 +19,10 @@ use Illuminate\Pagination\LengthAwarePaginator;
  */
 class ProjectService
 {
+    public function __construct(protected TagService $tagService)
+    {
+    }
+
     /**
      * 获取项目列表（带分页和筛选）
      * Get paginated project list with filters
@@ -61,10 +65,12 @@ class ProjectService
     public function createProject(array $data): Project
     {
         return DB::transaction(function () use ($data) {
-            $data['slug'] = $data['slug'] ?? Str::slug($data['title']);
+            $data['slug'] = $data['slug'] ?? Str::random(8) . '-' . Str::random(4);
+            $tags = $data['tags'] ?? [];
+            unset($data['tags']);
             $project = Project::create($data);
-            if (isset($data['tags'])) {
-                $project->tags()->sync($data['tags']);
+            if (!empty($tags)) {
+                $project->tags()->sync($this->tagService->resolveTagIds($tags));
             }
             return $project;
         });
@@ -77,12 +83,12 @@ class ProjectService
     public function updateProject(Project $project, array $data): Project
     {
         return DB::transaction(function () use ($project, $data) {
-            if (isset($data['title']) && !isset($data['slug'])) {
-                $data['slug'] = Str::slug($data['title']);
-            }
+            // 编辑时不自动生成 slug，保持原有值
+            $tags = $data['tags'] ?? [];
+            unset($data['tags']);
             $project->update($data);
-            if (isset($data['tags'])) {
-                $project->tags()->sync($data['tags']);
+            if (!empty($tags)) {
+                $project->tags()->sync($this->tagService->resolveTagIds($tags));
             }
             return $project;
         });

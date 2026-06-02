@@ -17,10 +17,12 @@ class AuthorProfileSeeder extends Seeder
                 ['user_id' => $user->id],
                 [
                     'slug' => $user->name,
+                    'display_name' => $user->name,
                     'bio' => '这是一段个人简介，分享技术与生活的点滴。',
                     'avatar' => '/images/avatars/default.png',
                     'role_label' => '作者',
                     'role_title' => '技术博主',
+                    'company' => 'Archyx Studio',
                     'status_label' => 'active',
                     'status_text' => '活跃',
                     'is_active' => true,

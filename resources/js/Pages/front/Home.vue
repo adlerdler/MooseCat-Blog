@@ -7,6 +7,7 @@ import { useTheme } from '../../composables/useTheme'
 import { useI18n } from 'vue-i18n'
 import { usePageSeo } from '../../composables/usePageSeo'
 import { usePageSeoData } from '../../composables/usePageSeoData'
+import { useSiteConfig } from '../../composables/useSiteConfig'
 
 import SplashScreen from '../../components/SplashScreen.vue'
 import SidebarMenu from '../../components/SidebarMenu.vue'
@@ -46,6 +47,7 @@ const { SeoHead } = usePageSeo({
 
 const { t } = useI18n()
 const { initAccentTheme } = useTheme()
+const { isSearchVisible } = useSiteConfig()
 
 const isFooterVisible = ref(true)
 const isSearchOpen = ref(false)
@@ -54,17 +56,17 @@ const showContent = ref(false)
 let splashTimer = null
 
 const featuredPosts = computed(() => {
-  console.log('[DEBUG] featuredPosts computed, posts:', props.posts)
-  const result = props.posts.slice(0, 3).map(post => ({
+  // 随机打乱后取前 3 篇
+  const shuffled = [...props.posts].sort(() => Math.random() - 0.5)
+  return shuffled.slice(0, 3).map(post => ({
     id: post.id,
     title: post.title,
+    slug: post.slug,
     excerpt: post.excerpt,
     category: post.category?.name || 'UNCATEGORIZED',
     categoryLabel: post.category?.name || 'UNCATEGORIZED',
     views_count: post.views_count || 0
   }))
-  console.log('[DEBUG] featuredPosts result:', result)
-  return result
 })
 
 console.log('[DEBUG] Home.vue script setup completed')
@@ -78,7 +80,7 @@ const searchPosts = computed(() => {
       type: 'post',
       title: post.title,
       excerpt: post.excerpt,
-      route: `/blog/${post.id}`
+      route: `/blog/${post.slug}`
     })
   })
 
@@ -88,7 +90,7 @@ const searchPosts = computed(() => {
       type: 'video',
       title: video.title,
       excerpt: video.description,
-      route: `/videos/${video.id}`
+      route: `/videos/${video.slug || video.id}`
     })
   })
 
@@ -98,7 +100,7 @@ const searchPosts = computed(() => {
       type: 'project',
       title: project.title,
       excerpt: project.description,
-      route: `/projects/${project.id}`
+      route: `/projects/${project.slug || project.id}`
     })
   })
 
@@ -182,7 +184,7 @@ onUnmounted(() => {
     />
 
     <!-- Main Content with left margin for sidebar -->
-    <div class="ml-16">
+    <div class="md:ml-16 pt-16 md:pt-0">
 
     <!-- Hero Section -->
     <header class="relative min-h-screen bg-construct-paper overflow-hidden flex items-center py-32">
@@ -224,6 +226,7 @@ onUnmounted(() => {
 
           <!-- Search Bar -->
           <Motion
+            v-if="isSearchVisible()"
             :initial="{ opacity: 0, y: 20 }"
             :animate="{ opacity: 1, y: 0 }"
             :transition="{ delay: 0.6 }"
@@ -275,7 +278,7 @@ onUnmounted(() => {
               FEATURED ARTIFACTS // {{ t('home_featured_subtitle') }}
             </div>
           </div>
-          <Link href="/posts" class="group flex flex-col items-end gap-2">
+          <Link href="/blog" class="group flex flex-col items-end gap-2">
             <div class="flex items-center gap-4 text-xs font-bold tracking-widest uppercase hover:text-construct-red transition-colors">
               <span>{{ t('home_view_all') }}</span>
               <ArrowRight class="w-4 h-4 transition-transform group-hover:translate-x-2" />
@@ -306,7 +309,7 @@ onUnmounted(() => {
                   </p>
                 </div>
                 <Link
-                  :href="`/blog/${post.id}`"
+                  :href="`/blog/${post.slug}`"
                   class="inline-flex items-center gap-4 text-[10px] font-bold tracking-widest hover:translate-x-4 transition-transform duration-300 uppercase"
                 >
                   VIEW DETAILS
@@ -424,7 +427,7 @@ onUnmounted(() => {
     />
 
     <!-- Search Overlay -->
-    <SearchOverlay :is-open="isSearchOpen" :posts="searchPosts" @close="closeSearch" />
+    <SearchOverlay v-if="isSearchVisible()" :is-open="isSearchOpen" :posts="searchPosts" @close="closeSearch" />
 
     </div><!-- End of ml-16 wrapper -->
 

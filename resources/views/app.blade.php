@@ -7,6 +7,9 @@
 
         <title>{{ config('app.name', 'ARCHYX') }}</title>
 
+        <!-- Favicon (default, will be overridden by JS if siteConfig.favicon is set) -->
+        <link id="dynamic-favicon" rel="icon" href="{{ asset('favicon.ico') }}" />
+
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800,900&display=swap" rel="stylesheet" />

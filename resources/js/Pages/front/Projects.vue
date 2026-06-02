@@ -118,7 +118,7 @@ const getAdSpanClass = () => {
     />
 
     <!-- Main Content with left margin for sidebar -->
-    <div class="ml-16">
+    <div class="md:ml-16 pt-16 md:pt-0">
       
       <!-- Avant-garde Header -->
       <header class="relative w-full overflow-hidden bg-construct-black text-white pt-32 pb-24 border-b-8 border-construct-red">
@@ -187,11 +187,11 @@ const getAdSpanClass = () => {
                 'group cursor-pointer border-4 border-construct-black overflow-hidden transition-all duration-500 h-full flex flex-col',
                 item.originalIndex === 1 
                   ? 'project-card-featured bg-construct-black text-white' 
-                  : 'project-card-normal bg-white text-construct-black hover:bg-construct-red hover:text-white',
+                  : 'project-card-normal bg-white text-construct-black',
                 getSpanClass(item.originalIndex)
               ]"
             >
-              <Link :href="`/projects/${item.data.id}`" class="relative w-full h-full flex flex-col">
+              <Link :href="`/projects/${item.data.slug || item.data.id}`" class="relative w-full h-full flex flex-col">
                 <!-- Special layout for second card (idx 1) -->
                 <div v-if="item.originalIndex === 1" class="relative overflow-hidden w-full h-full">
                   <!-- Background Image with Grayscale & Scale Transitions -->
@@ -260,40 +260,66 @@ const getAdSpanClass = () => {
                 </div>
 
                 <!-- Normal layout for other cards -->
-                <div v-else class="p-5 flex flex-col h-full flex-1">
-                  <div class="aspect-video overflow-hidden mb-4 border-2 border-construct-black/10 group-hover:border-white/15 transition-colors">
-                    <img
-                      :src="item.data.image"
-                      :alt="item.data.title"
-                      class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                  </div>
-                  <div class="flex items-start justify-between gap-4 mb-3">
-                    <div>
-                      <span class="text-[10px] font-black tracking-widest text-construct-red group-hover:text-white uppercase mb-1.5 block transition-colors duration-300">
-                        {{ item.data.year }} / {{ item.data.role }}
+                <div v-else class="relative w-full h-full min-h-[500px]">
+                  <!-- Background Image -->
+                  <img
+                    v-if="item.data.image"
+                    :src="item.data.image"
+                    :alt="item.data.title"
+                    class="absolute inset-0 w-full h-full object-cover opacity-50 grayscale group-hover:opacity-70 group-hover:grayscale-0 group-hover:scale-110 transition-all duration-700 ease-out"
+                  />
+
+                  <!-- Overlay: white in normal state, accent theme color on hover -->
+                  <div class="absolute inset-0 bg-white/40 group-hover:bg-[var(--accent,#CF202E)]/60 transition-colors duration-500"></div>
+
+                  <!-- Content -->
+                  <div class="relative p-5 md:p-6 h-full flex flex-col justify-between z-10">
+                    <!-- 顶部标签 + 编号 -->
+                    <div class="flex justify-between items-start">
+                      <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 bg-construct-red group-hover:bg-white transition-colors duration-300"></div>
+                        <span class="text-[9px] font-bold tracking-[0.3em] text-construct-black/40 group-hover:text-white/90 uppercase transition-colors duration-300">FEATURED</span>
+                      </div>
+                      <span class="font-display text-4xl md:text-5xl text-construct-black/10 group-hover:text-white/40 leading-none transition-all duration-500 transform group-hover:scale-110">
+                        {{ String(item.originalIndex + 1).padStart(2, '0') }}
                       </span>
-                      <h3 class="font-display text-2xl md:text-3xl tracking-tighter group-hover:text-white leading-tight">
-                        {{ item.data.title }}
-                      </h3>
                     </div>
-                    <div class="w-8 h-8 border-2 border-construct-black group-hover:border-white flex items-center justify-center shrink-0 group-hover:bg-construct-red transition-all duration-300 transform group-hover:translate-x-0.5">
-                      <span class="text-construct-black group-hover:text-white text-lg">→</span>
+
+                    <!-- 下半部分内容 -->
+                    <div class="flex flex-col gap-5 mt-auto pt-6">
+                      <div>
+                        <span class="text-[10px] font-black tracking-widest text-construct-red group-hover:text-white/90 uppercase mb-1.5 block transition-colors duration-300">
+                          {{ item.data.year }} / {{ item.data.role }}
+                        </span>
+                        <h3 class="font-display text-2xl md:text-3xl tracking-tighter group-hover:text-white leading-tight mb-3 group-hover:translate-x-1 transition-transform duration-500">
+                          {{ item.data.title }}
+                        </h3>
+                        <p class="text-xs md:text-sm text-gray-600 group-hover:text-white/90 mb-4 transition-colors leading-relaxed line-clamp-3">
+                          {{ item.data.description }}
+                        </p>
+                        
+                        <div class="flex flex-wrap gap-1.5">
+                          <span
+                            v-for="tech in item.data.technologies"
+                            :key="tech"
+                            class="text-[9px] font-black tracking-[0.15em] px-2.5 py-1 bg-construct-black/10 text-construct-black border border-construct-black/20 group-hover:bg-white group-hover:text-construct-black group-hover:border-white transition-all duration-300"
+                          >
+                            {{ tech }}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <!-- 底部操作区域 -->
+                      <div class="flex items-center justify-between pt-4 border-t border-construct-black/10 group-hover:border-white/20 transition-colors duration-300">
+                        <div class="flex items-center gap-3">
+                          <div class="w-8 h-8 border-2 border-construct-black group-hover:border-white flex items-center justify-center shrink-0 group-hover:bg-white group-hover:border-white transition-all duration-300">
+                            <span class="text-construct-black group-hover:text-construct-black text-sm transition-colors duration-300 transform group-hover:translate-x-0.5">→</span>
+                          </div>
+                          <span class="text-[9px] font-bold tracking-[0.2em] text-construct-black/60 group-hover:text-white/90 uppercase transition-colors duration-300">VIEW PROJECT</span>
+                        </div>
+                        <div class="w-12 h-[1px] bg-construct-black/20 group-hover:w-20 group-hover:bg-white/40 transition-all duration-500"></div>
+                      </div>
                     </div>
-                  </div>
-                  <p class="text-xs md:text-sm text-gray-600 group-hover:text-white/80 line-clamp-3 mb-6 transition-colors leading-relaxed">
-                    {{ item.data.description }}
-                  </p>
-                  
-                  <!-- 技术标签与操作区靠底对齐 -->
-                  <div class="mt-auto pt-4 border-t border-construct-black/10 group-hover:border-white/10 flex flex-wrap gap-1.5 transition-colors duration-300">
-                    <span
-                      v-for="tech in item.data.technologies"
-                      :key="tech"
-                      class="text-[9px] font-black tracking-[0.15em] px-2.5 py-1 group-hover:bg-white group-hover:text-construct-black bg-construct-black text-white transition-colors"
-                    >
-                      {{ tech }}
-                    </span>
                   </div>
                 </div>
               </Link>
@@ -333,6 +359,8 @@ const getAdSpanClass = () => {
   transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   
   &:hover {
+    background-color: var(--accent, #CF202E);
+    color: #ffffff;
     box-shadow: -12px 12px 0px #000000;
     transform: translate(4px, -4px);
   }

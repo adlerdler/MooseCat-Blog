@@ -36,6 +36,7 @@ import { useRolePermissions } from '../../composables/useRolePermissions';
 const props = defineProps({
   users: { type: Array, default: () => [] },
   roles: { type: Array, default: () => [] },
+  total: { type: Number, default: 0 },
 });
 
 const { t } = useI18n();
@@ -47,9 +48,10 @@ const { getRoleLabel, getRoleStyle } = useRolePermissions({
 const searchQuery = ref('');
 const roleFilter = ref('all');
 const currentPage = ref(1);
-const itemsPerPage = 6;
+const itemsPerPage = ref(6);
 const isFormVisible = ref(false);
 const editingUser = ref(null);
+const serverErrors = ref({});
 const showDeleteConfirm = ref(false);
 const deletingUserId = ref(null);
 
@@ -65,17 +67,17 @@ const filteredUsers = computed(() => {
   });
 });
 
-const totalPages = computed(() => Math.ceil(filteredUsers.value.length / itemsPerPage));
+const totalPages = computed(() => Math.max(1, Math.ceil(props.total / itemsPerPage.value)));
 
 const paginatedUsers = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage;
-  return filteredUsers.value.slice(start, start + itemsPerPage);
+  const start = (currentPage.value - 1) * itemsPerPage.value;
+  return filteredUsers.value.slice(start, start + itemsPerPage.value);
 });
 
 const toggleStatus = (user) => {
   const newStatus = user.status === 'active' ? 'inactive' : 'active';
   const form = useForm({ status: newStatus });
-  form.put(route('admin.users.update', user.id), {
+  form.patch(route('admin.users.toggle-status', user.id), {
     onSuccess: () => {
       user.status = newStatus;
     },
@@ -104,10 +106,11 @@ const handleSave = (data) => {
       onSuccess: () => {
         isFormVisible.value = false;
         editingUser.value = null;
+        serverErrors.value = {};
         router.reload();
       },
       onError: (errors) => {
-        console.error('Update error:', errors);
+        serverErrors.value = errors;
       }
     });
   } else {
@@ -116,10 +119,11 @@ const handleSave = (data) => {
       onSuccess: () => {
         isFormVisible.value = false;
         editingUser.value = null;
+        serverErrors.value = {};
         router.reload();
       },
       onError: (errors) => {
-        console.error('Create error:', errors);
+        serverErrors.value = errors;
       }
     });
   }
@@ -128,6 +132,7 @@ const handleSave = (data) => {
 const handleCancel = () => {
   isFormVisible.value = false;
   editingUser.value = null;
+  serverErrors.value = {};
 };
 
 const handleDelete = (id) => {
@@ -223,16 +228,17 @@ const handleFilterChange = ({ key, value }) => {
           <tr v-for="user in paginatedUsers" :key="user.id" :class="['border-t transition-colors', isDarkMode ? 'border-gray-700 hover:bg-gray-700/50' : 'border-gray-200 hover:bg-gray-50']">
             <td class="px-6 py-4">
               <div class="flex items-center gap-3">
-                <div :class="['w-10 h-10 rounded-full flex items-center justify-center', isDarkMode ? 'bg-gray-700' : 'bg-gray-100']">
-                  <User :class="isDarkMode ? 'text-gray-400' : 'text-gray-600'" size="18" />
+                <div :class="['w-10 h-10 rounded-full flex items-center justify-center overflow-hidden', isDarkMode ? 'bg-gray-700' : 'bg-gray-100']">
+                  <img v-if="user.avatar" :src="user.avatar" alt="" class="w-full h-full object-cover" />
+                  <User v-else :class="isDarkMode ? 'text-gray-400' : 'text-gray-600'" size="18" />
                 </div>
                 <span :class="['font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">{{ user.name }}</span>
               </div>
             </td>
-            <td class="px-6 py-4">
+            <td class="px-6 py-4 max-w-[200px]">
               <div :class="['flex items-center gap-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
-                <Mail size="14" />
-                <span>{{ user.email }}</span>
+                <Mail size="14" class="flex-shrink-0" />
+                <span class="truncate" :title="user.email">{{ user.email }}</span>
               </div>
             </td>
             <td class="px-6 py-4">
@@ -275,9 +281,10 @@ const handleFilterChange = ({ key, value }) => {
     <Pagination
       :current-page="currentPage"
       :total-pages="totalPages"
-      :total-items="filteredUsers.length"
+      :total-items="props.total"
       :items-per-page="itemsPerPage"
       @update:current-page="(page) => currentPage = page"
+      @update:items-per-page="(size) => { itemsPerPage = size; currentPage = 1; }"
     />
 
     <!-- User Detail View -->
@@ -285,6 +292,7 @@ const handleFilterChange = ({ key, value }) => {
       :edit-data="editingUser"
       :visible="isFormVisible"
       :roles="props.roles"
+      :server-errors="serverErrors"
       @save="handleSave"
       @cancel="handleCancel"
     />

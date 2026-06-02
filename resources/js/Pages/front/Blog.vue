@@ -52,7 +52,12 @@ const { initAccentTheme } = useTheme();
 const activeFilter = ref('all');
 const currentPage = ref(props.posts.current_page || 1);
 const itemsPerPage = props.posts.per_page || 14;
-const categoryNames = ['all', ...props.categories.map(c => c.name)];
+const hasCategories = computed(() => props.categories.length > 0);
+const categoryNames = computed(() => {
+  if (!hasCategories.value) return [];
+  const usedCategoryIds = new Set((props.posts.data || []).map(p => p.category_id));
+  return ['all', ...props.categories.filter(c => usedCategoryIds.has(c.id)).map(c => c.name)];
+});
 const isFooterVisible = ref(true);
 
 const getAuthorName = (authorId) => {
@@ -188,7 +193,7 @@ watch(isFooterVisible, (newVal) => {
       :themes="themes"
     />
     <!-- Main Content -->
-    <div class="ml-16">
+    <div class="md:ml-16 pt-16 md:pt-0">
       <!-- Avant-garde Header -->
       <header class="relative w-full overflow-hidden bg-construct-black text-white pt-32 pb-24 border-b-8 border-construct-red">
         <div class="absolute top-0 right-0 w-[50vw] h-[150vh] bg-white/5 -skew-x-12 translate-x-[20vw] z-0"></div>
@@ -212,7 +217,7 @@ watch(isFooterVisible, (newVal) => {
         <AdSlot position="header" />
       </section>
       <!-- Radical Filter Strip -->
-      <div class="sticky top-0 z-50 bg-construct-paper/90 backdrop-blur-md border-b-4 border-construct-black overflow-hidden">
+      <div v-if="hasCategories" class="sticky top-0 z-50 bg-construct-paper/90 backdrop-blur-md border-b-4 border-construct-black overflow-hidden">
         <div class="container mx-auto px-0">
           <div class="flex overflow-x-auto items-center">
             <div class="px-6 py-4 bg-construct-black text-white font-bold text-xs tracking-widest flex items-center shrink-0 h-full uppercase gap-2 hidden md:flex">
@@ -275,7 +280,7 @@ watch(isFooterVisible, (newVal) => {
                 getSpanClassForMixed(idx, item.originalIndex)
               ]"
             >
-              <Link :href="`/blog/${item.data.id}`" class="absolute inset-0 z-20" :aria-label="`Read ${item.data.title}`"></Link>
+              <Link :href="`/blog/${item.data.slug}`" class="absolute inset-0 z-20" :aria-label="`Read ${item.data.title}`"></Link>
 
               <!-- Decorative ID Background -->
               <div

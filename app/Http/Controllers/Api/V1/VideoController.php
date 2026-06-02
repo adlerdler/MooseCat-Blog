@@ -5,11 +5,16 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\VideoResource;
 use App\Models\Video;
+use App\Services\VisitService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class VideoController extends Controller
 {
+    public function __construct(
+        protected VisitService $visitService,
+    ) {}
+
     public function index(Request $request): AnonymousResourceCollection
     {
         $filters = $request->only(['platform']);
@@ -26,7 +31,7 @@ class VideoController extends Controller
 
     public function show(Video $video): VideoResource
     {
-        $video->increment('views_count');
+        $this->visitService->trackModel($video, $request);
         return new VideoResource($video);
     }
 }

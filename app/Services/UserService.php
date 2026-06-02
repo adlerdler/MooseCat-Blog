@@ -9,6 +9,7 @@ use App\Models\UserLevel;
 use App\Models\UserPointsHistory;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -17,7 +18,7 @@ class UserService
     public function getPaginatedUsers(int $perPage = 15, array $filters = []): LengthAwarePaginator
     {
         return User::query()
-            ->with(['roles', 'profile'])
+            ->with(['roles', 'authorProfile'])
             ->when($filters['role'] ?? null, fn($q, $role) => $q->whereHas('roles', fn($q) => $q->where('name', $role)))
             ->when($filters['email'] ?? null, fn($q, $email) => $q->where('email', 'like', "%{$email}%"))
             ->latest('created_at')
@@ -26,7 +27,7 @@ class UserService
 
     public function getUserById(int $id): ?User
     {
-        return User::with(['roles', 'profile'])->find($id);
+        return User::with(['roles', 'authorProfile'])->find($id);
     }
 
     public function getUserByEmail(string $email): ?User
@@ -48,6 +49,23 @@ class UserService
             $data['password'] = Hash::make($data['password']);
             $data['email_verified_at'] = $data['email_verified_at'] ?? now();
             $user = User::create($data);
+
+            // 同步创建 AuthorProfile，非必填字段用“-”占位
+            $slug = 'Ar_' . Str::random(12);
+            while (\App\Models\AuthorProfile::where('slug', $slug)->exists()) {
+                $slug = 'Ar_' . Str::random(12);
+            }
+
+            $user->authorProfile()->create([
+                'slug'         => $slug,
+                'display_name' => $data['display_name'] ?? $user->name,
+                'bio'          => $data['bio'] ?? '-',
+                'company'      => $data['company'] ?? '-',
+                'role_label'   => $data['role_label'] ?? '-',
+                'role_title'   => $data['role_title'] ?? '-',
+                'is_active'    => true,
+            ]);
+
             if (isset($data['roles'])) {
                 $user->syncRoles($data['roles']);
             }
@@ -68,7 +86,7 @@ class UserService
             unset($data['role_id']);
             
             // 提取 author_profiles 表专属字段
-            $profileFields = ['avatar', 'bio', 'social_links', 'skills', 'manifestos', 'expertise', 'role_label', 'role_title', 'status_label', 'status_text', 'is_active'];
+            $profileFields = ['avatar', 'bio', 'display_name', 'company', 'social_links', 'skills', 'manifestos', 'expertise', 'role_label', 'role_title', 'status_label', 'status_text', 'is_active', 'slug'];
             $profileData = [];
             foreach ($profileFields as $field) {
                 if (array_key_exists($field, $data)) {
@@ -81,7 +99,10 @@ class UserService
             
             // 同步 author_profile
             if (!empty($profileData)) {
-                $profileData['slug'] = $profileData['slug'] ?? ($user->authorProfile?->slug ?? \Illuminate\Support\Str::slug($user->name));
+                if (empty($profileData['slug'])) {
+                    $existingSlug = $user->authorProfile?->slug;
+                    $profileData['slug'] = $existingSlug ?: 'Ar_' . Str::random(12);
+                }
                 $user->authorProfile()->updateOrCreate(
                     ['user_id' => $user->id],
                     $profileData
@@ -109,7 +130,10 @@ class UserService
     public function updateAvatar(User $user, string $avatarPath): User
     {
         return DB::transaction(function () use ($user, $avatarPath) {
-            $user->update(['avatar' => $avatarPath]);
+            $user->authorProfile()->updateOrCreate(
+                ['user_id' => $user->id],
+                ['avatar' => $avatarPath]
+            );
             return $user;
         });
     }

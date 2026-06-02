@@ -2,17 +2,24 @@
 /**
  * MediaPreviewModal.vue - 媒体文件预览弹窗
  * 
- * 功能说明：
- * - 大图/视频全屏预览
- * - 支持图片和视频类型
- * - 响应式设计，优美的动画效果
+ * 支持格式：
+ * - 图片 (jpg/png/gif/webp) → <img>
+ * - 视频 (mp4/webm)         → <video>
+ * - PDF                      → vue-pdf-embed
+ * - DOCX                     → docx-preview
+ * - PPTX                     → pptx2html
+ * - XLSX                     → @vue-office/excel
+ * - TXT                      → fetch + <pre>
  */
 import { X, Download, Trash2, Calendar, HardDrive, FileText, ExternalLink, Loader2 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
 import { useI18n } from 'vue-i18n';
 import { Motion, AnimatePresence } from 'motion-v';
 import VuePdfEmbed from 'vue-pdf-embed';
-import { renderAsync } from 'docx-preview';
+import { renderAsync as renderDocx } from 'docx-preview';
+import VueOfficeExcel from '@vue-office/excel';
+import VueOfficePptx from '@vue-office/pptx';
+import '@vue-office/excel/lib/index.css';
 import ConfirmDialog from './ConfirmDialog.vue';
 import { ref, watch, computed, nextTick } from 'vue';
 
@@ -33,11 +40,17 @@ const { isDarkMode } = useTheme();
 const { t } = useI18n();
 
 const docxContainer = ref(null);
+const txtContent = ref('');
 const isLoadingDoc = ref(false);
+const isLoadingTxt = ref(false);
 const showDeleteConfirm = ref(false);
 
-const isPdf = computed(() => props.file?.type === 'document' && props.file?.url?.toLowerCase().endsWith('.pdf'));
-const isDocx = computed(() => props.file?.type === 'document' && props.file?.url?.toLowerCase().endsWith('.docx'));
+const fileExt = computed(() => props.file?.url?.toLowerCase().split('.').pop() || '');
+const isPdf = computed(() => props.file?.type === 'document' && fileExt.value === 'pdf');
+const isDocx = computed(() => props.file?.type === 'document' && fileExt.value === 'docx');
+const isPptx = computed(() => props.file?.type === 'document' && fileExt.value === 'pptx');
+const isXlsx = computed(() => props.file?.type === 'document' && fileExt.value === 'xlsx');
+const isTxt = computed(() => props.file?.type === 'document' && fileExt.value === 'txt');
 
 const handleClose = () => {
   emit('close');
@@ -58,7 +71,6 @@ const confirmDelete = () => {
 
 const loadDocx = async () => {
   if (!isDocx.value || !props.visible) return;
-  
   isLoadingDoc.value = true;
   try {
     const response = await fetch(props.file.url);
@@ -66,19 +78,19 @@ const loadDocx = async () => {
     await nextTick();
     if (docxContainer.value) {
       docxContainer.value.innerHTML = '';
-      await renderAsync(arrayBuffer, docxContainer.value, null, {
-        className: "docx", // class to skip target style
-        inWrapper: false, // enables or disables usage of wrapper
-        ignoreWidth: false, // disables rendering of width
-        ignoreHeight: false, // disables rendering of height
-        ignoreFonts: false, // disables fonts rendering
-        breakPages: true, // enables page breaks rendering
-        ignoreLastRenderedPageBreak: true, // disables usage of lastRenderedPageBreak for page breaks
-        experimental: false, // enables experimental features (no need for now)
-        trimXmlDeclaration: true, // if true, xml declaration will be removed from xml documents
-        useBase64URL: false, // if true, images, fonts, etc. will be converted to base64 URLs, otherwise object URLs will be used
-        useSharedDOMParser: false, // if true, shared DOMParser will be used
-        useStyleWithId: false, // if true, styles will be generated with id, to prevent conflicts
+      await renderDocx(arrayBuffer, docxContainer.value, null, {
+        className: 'docx',
+        inWrapper: false,
+        ignoreWidth: false,
+        ignoreHeight: false,
+        ignoreFonts: false,
+        breakPages: true,
+        ignoreLastRenderedPageBreak: true,
+        experimental: false,
+        trimXmlDeclaration: true,
+        useBase64URL: false,
+        useSharedDOMParser: false,
+        useStyleWithId: false,
       });
     }
   } catch (error) {
@@ -88,10 +100,23 @@ const loadDocx = async () => {
   }
 };
 
-watch([() => props.file, () => props.visible], () => {
-  if (isDocx.value && props.visible) {
-    loadDocx();
+const loadTxt = async () => {
+  if (!isTxt.value || !props.visible) return;
+  isLoadingTxt.value = true;
+  try {
+    const response = await fetch(props.file.url);
+    txtContent.value = await response.text();
+  } catch (error) {
+    console.error('Error loading txt:', error);
+  } finally {
+    isLoadingTxt.value = false;
   }
+};
+
+watch([() => props.file, () => props.visible], () => {
+  if (!props.visible) return;
+  if (isDocx.value) loadDocx();
+  if (isTxt.value) loadTxt();
 }, { immediate: true });
 </script>
 
@@ -128,7 +153,7 @@ watch([() => props.file, () => props.visible], () => {
         <!-- Preview Area -->
         <div :class="['flex-1 flex items-center justify-center relative group min-h-[300px] overflow-hidden', isDarkMode ? 'bg-neutral-950' : 'bg-gray-100']">
           <!-- Loading State -->
-          <div v-if="isLoadingDoc" class="absolute inset-0 z-10 flex items-center justify-center bg-black/50">
+          <div v-if="isLoadingDoc || isLoadingTxt" class="absolute inset-0 z-10 flex items-center justify-center bg-black/50">
             <Loader2 class="w-10 h-10 text-construct-red animate-spin" />
           </div>
 
@@ -158,6 +183,21 @@ watch([() => props.file, () => props.visible], () => {
           <template v-else-if="isDocx">
             <div class="w-full h-full overflow-auto bg-white p-8">
               <div ref="docxContainer" class="mx-auto max-w-4xl docx-preview-container"></div>
+            </div>
+          </template>
+          <template v-else-if="isPptx">
+            <div class="w-full h-full overflow-auto bg-white p-4">
+              <VueOfficePptx :src="file?.url" class="mx-auto max-w-5xl" />
+            </div>
+          </template>
+          <template v-else-if="isXlsx">
+            <div class="w-full h-full overflow-auto bg-white p-4">
+              <VueOfficeExcel :src="file?.url" class="mx-auto max-w-5xl" />
+            </div>
+          </template>
+          <template v-else-if="isTxt">
+            <div :class="['w-full h-full overflow-auto p-6', isDarkMode ? 'bg-neutral-900' : 'bg-white']">
+              <pre :class="['whitespace-pre-wrap font-mono text-sm leading-relaxed', isDarkMode ? 'text-gray-300' : 'text-gray-800']">{{ txtContent }}</pre>
             </div>
           </template>
           <template v-else>

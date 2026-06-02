@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\DashboardService;
 use App\Services\MenuService;
-use App\Services\MockDataService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -18,18 +18,18 @@ use Inertia\Response;
  */
 class DashboardController extends Controller
 {
-    protected $mockDataService;
-    protected $menuService;
+    protected DashboardService $dashboardService;
+    protected MenuService $menuService;
 
     /**
      * Constructor
      *
-     * @param MockDataService $mockDataService
+     * @param DashboardService $dashboardService
      * @param MenuService $menuService
      */
-    public function __construct(MockDataService $mockDataService, MenuService $menuService)
+    public function __construct(DashboardService $dashboardService, MenuService $menuService)
     {
-        $this->mockDataService = $mockDataService;
+        $this->dashboardService = $dashboardService;
         $this->menuService = $menuService;
     }
 
@@ -41,35 +41,8 @@ class DashboardController extends Controller
     public function index(): Response
     {
         $this->requirePermission('view_analytics');
-        $posts = $this->mockDataService->getPosts();
-        $projects = $this->mockDataService->getProjects();
-        $videos = $this->mockDataService->getVideos();
-        $users = $this->mockDataService->getUsers();
-        $logs = $this->mockDataService->getLogs();
-        $categories = $this->mockDataService->getCategories();
-        $comments = $this->mockDataService->getComments();
-        $resources = $this->mockDataService->getResources();
-        $visits = $this->mockDataService->getVisits();
-        $userLevels = $this->mockDataService->getUserLevels();
-        $roles = $this->mockDataService->getRoles();
-        $tags = $this->mockDataService->getTags();
-        $taggables = $this->mockDataService->getTagsables();
 
-        return Inertia::render('admin/Index', [
-            'posts' => $posts,
-            'projects' => $projects,
-            'videos' => $videos,
-            'users' => $users,
-            'logs' => $logs,
-            'categories' => $categories,
-            'comments' => $comments,
-            'resources' => $resources,
-            'visits' => $visits,
-            'userLevels' => $userLevels,
-            'roles' => $roles,
-            'tags' => $tags,
-            'taggables' => $taggables,
-        ]);
+        return Inertia::render('admin/Index', $this->dashboardService->getDashboardData());
     }
 
     /**
@@ -99,6 +72,17 @@ class DashboardController extends Controller
             $request->session()->regenerate();
 
             $user = Auth::user();
+
+            // 检查用户是否被禁用
+            if ($user->status === 'inactive') {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return back()->withErrors([
+                    'disabled' => '该用户已被禁用，请联系管理员',
+                ])->onlyInput('email');
+            }
 
             // Admin 或拥有 dashboard 权限的用户 → 跳转仪表盘
             if ($user->hasRole('Administrator') || $user->hasPermissionTo('view_analytics')) {

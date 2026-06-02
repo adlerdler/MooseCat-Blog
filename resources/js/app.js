@@ -14,10 +14,11 @@ import { createApp, h } from 'vue';
 import { createInertiaApp, router } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { ZiggyVue } from 'ziggy-js';
-import { i18n } from './i18n';
+import { i18n, syncLocalesFromBackend, reapplyBrowserLocale } from './i18n';
 import { useTheme } from './composables/useTheme';
 import AdminLayout from './Pages/admin/Layout.vue';
 import ErrorPage from './components/ErrorPage.vue';
+import ForbiddenPage from './components/Forbidden.vue';
 
 const { initTheme } = useTheme();
 initTheme();
@@ -34,6 +35,24 @@ const getPageKeyFromRoute = (url) => {
     return segments[0];
 };
 
+/**
+ * 动态设置站点 Favicon
+ * 如果后台设置了 siteConfig.favicon 则使用之，否则保持默认
+ */
+const setFavicon = (pageProps) => {
+    const favicon = pageProps?.siteConfig?.favicon;
+    if (favicon) {
+        let link = document.getElementById('dynamic-favicon');
+        if (!link) {
+            link = document.createElement('link');
+            link.id = 'dynamic-favicon';
+            link.rel = 'icon';
+            document.head.appendChild(link);
+        }
+        link.href = favicon;
+    }
+};
+
 router.on('navigate', (event) => {
     setTimeout(() => {
         const pageProps = event.detail.page.props;
@@ -41,6 +60,8 @@ router.on('navigate', (event) => {
         const url = event.detail.page.url;
         const pageKey = getPageKeyFromRoute(url);
         
+        setFavicon(pageProps);
+
         if (pageKey === 'post_detail' && pageProps.post?.title) {
             document.title = pageProps.post.meta_title || `${pageProps.post.title} - ARCHYX`;
         } else if (pageKey === 'project_detail' && pageProps.project?.title) {
@@ -62,6 +83,15 @@ createInertiaApp({
     title: (title) => title || 'Archyx Blog',
     resolve: (name) => {
         console.log('[DEBUG] Inertia resolving page:', name);
+
+        // components/ 中的独立组件直接返回，不需要 Pages/ 包装器
+        if (name === 'ErrorPage') {
+            return Promise.resolve({ default: ErrorPage });
+        }
+        if (name === 'Forbidden') {
+            return Promise.resolve({ default: ForbiddenPage, layout: AdminLayout });
+        }
+
         try {
             const page = resolvePageComponent(
                 `./Pages/${name}.vue`,
@@ -70,7 +100,7 @@ createInertiaApp({
             
             // 使用持久化布局：所有 admin/ 开头的页面使用 AdminLayout，但排除登录页面
             page.then((module) => {
-                if ((name.startsWith('admin/') && name !== 'admin/Login') || name === 'Forbidden') {
+                if (name.startsWith('admin/') && name !== 'admin/Login') {
                     module.default.layout = AdminLayout;
                 }
             });
@@ -86,6 +116,17 @@ createInertiaApp({
         console.log('[DEBUG] Inertia setup, props:', props);
         console.log('[DEBUG] Inertia setup, el:', el);
         try {
+            // 初始加载时设置 favicon
+            if (props.initialPage?.props) {
+                setFavicon(props.initialPage.props);
+            }
+
+            // 从 Inertia 初始页面 props 同步语言列表，并匹配浏览器语言
+            if (props.initialPage?.props?.languages) {
+                syncLocalesFromBackend(props.initialPage.props.languages);
+                reapplyBrowserLocale();
+            }
+
             return createApp({ render: () => h(App, props) })
                 .use(plugin)
                 .use(ZiggyVue)

@@ -71,10 +71,16 @@ const props = defineProps({
 });
 
 const { frontMenuItems } = useMenuItems({ menus: props.menus });
-const { getSiteName, getSiteCopyright } = useSiteConfig({ config: props.siteConfig });
+const { getSiteName, getSiteCopyright, isAuthorBioVisible, isSearchVisible } = useSiteConfig({ config: props.siteConfig });
 
 const siteName = computed(() => getSiteName());
 const siteCopyright = computed(() => getSiteCopyright());
+
+// 从菜单数据中获取作者页路径（如 /author/{slug}）
+const authorPath = computed(() => {
+  const authorMenu = props.menus?.find(m => m.component_name === 'Author' && m.type === 'front');
+  return authorMenu?.path || '/author/adler-decht';
+});
 
 const searchPosts = computed(() => {
   const allContent = [];
@@ -191,8 +197,16 @@ const showSidebar = computed(() => true);
   <nav v-if="showSidebar" class="fixed top-0 left-0 h-screen w-16 bg-black text-white flex flex-col items-center justify-between py-4 z-50 hidden md:flex">
     <!-- Top: Branding -->
     <div class="flex flex-col items-center gap-8">
-      <Link href="/" class="font-display font-black text-2xl tracking-tighter hover:text-accent transition-colors">
-        {{ siteName.substring(0, 2).toUpperCase() }}
+      <Link href="/">
+        <img
+          v-if="siteConfig?.logo"
+          :src="siteConfig.logo"
+          :alt="siteName"
+          class="w-8 h-8 object-contain"
+        />
+        <span v-else class="font-display font-black text-2xl tracking-tighter hover:text-accent transition-colors">
+          {{ siteName.substring(0, 2).toUpperCase() }}
+        </span>
       </Link>
     </div>
 
@@ -202,11 +216,12 @@ const showSidebar = computed(() => true);
         <FileText class="w-6 h-6 cursor-pointer transition-colors hover:text-accent" />
       </Link>
       <Search
+        v-if="isSearchVisible()"
         class="w-6 h-6 cursor-pointer transition-colors hover:text-accent"
         :class="{ 'text-accent': isSearchOpen }"
         @click="toggleSearch"
       />
-      <Link href="/author">
+      <Link v-if="isAuthorBioVisible()" :href="authorPath">
         <User class="w-6 h-6 cursor-pointer hover:text-accent transition-colors" />
       </Link>
     </div>
@@ -234,7 +249,7 @@ const showSidebar = computed(() => true);
       {{ siteName }}
     </Link>
     <div class="flex items-center gap-3">
-      <Search class="w-5 h-5 cursor-pointer" @click="toggleSearch" />
+      <Search v-if="isSearchVisible()" class="w-5 h-5 cursor-pointer" @click="toggleSearch" />
       <Menu class="w-5 h-5 cursor-pointer" @click="toggleMenu" />
     </div>
   </header>
@@ -329,7 +344,7 @@ const showSidebar = computed(() => true);
     </Transition>
 
     <!-- Search Overlay -->
-    <SearchOverlay :is-open="isSearchOpen" :posts="searchPosts" @close="closeSearch" />
+    <SearchOverlay v-if="isSearchVisible()" :is-open="isSearchOpen" :posts="searchPosts" @close="closeSearch" />
   </Teleport>
 </template>
 

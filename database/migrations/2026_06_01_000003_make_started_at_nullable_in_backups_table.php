@@ -6,23 +6,17 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::table('backups', function (Blueprint $table) {
-            $table->boolean('is_scheduled')->default(false)->after('type')->comment('是否为定时备份');
+            $table->timestamp('started_at')->nullable()->change();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::table('backups', function (Blueprint $table) {
-            $table->dropColumn('is_scheduled');
+            $table->timestamp('started_at')->nullable(false)->change();
         });
     }
 };

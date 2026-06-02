@@ -19,6 +19,10 @@ use Illuminate\Pagination\LengthAwarePaginator;
  */
 class VideoService
 {
+    public function __construct(protected TagService $tagService)
+    {
+    }
+
     /**
      * 获取视频列表（带分页和筛选）
      * Get paginated video list with filters
@@ -61,7 +65,7 @@ class VideoService
     public function createVideo(array $data): Video
     {
         return DB::transaction(function () use ($data) {
-            $data['slug'] = $data['slug'] ?? Str::slug($data['title']);
+            $data['slug'] = $data['slug'] ?? (Str::random(8) . '-' . Str::random(4));
             $data['status'] = $data['status'] ?? 'draft';
             
             $tags = $data['tags'] ?? [];
@@ -70,13 +74,7 @@ class VideoService
             $video = Video::create($data);
 
             if (!empty($tags)) {
-                $tagIds = collect($tags)->map(function ($tag) {
-                    if (is_numeric($tag)) {
-                        return (int) $tag;
-                    }
-                    return \App\Models\Tag::firstOrCreate(['name' => $tag])->id;
-                })->toArray();
-                $video->tags()->sync($tagIds);
+                $video->tags()->sync($this->tagService->resolveTagIds($tags));
             }
 
             return $video;
@@ -86,9 +84,7 @@ class VideoService
     public function updateVideo(Video $video, array $data): Video
     {
         return DB::transaction(function () use ($video, $data) {
-            if (isset($data['title']) && !isset($data['slug'])) {
-                $data['slug'] = Str::slug($data['title']);
-            }
+            // 编辑时不自动生成 slug，保持原有值
 
             $tags = $data['tags'] ?? [];
             unset($data['tags']);
@@ -96,13 +92,7 @@ class VideoService
             $video->update($data);
 
             if (!empty($tags)) {
-                $tagIds = collect($tags)->map(function ($tag) {
-                    if (is_numeric($tag)) {
-                        return (int) $tag;
-                    }
-                    return \App\Models\Tag::firstOrCreate(['name' => $tag])->id;
-                })->toArray();
-                $video->tags()->sync($tagIds);
+                $video->tags()->sync($this->tagService->resolveTagIds($tags));
             }
 
             return $video;

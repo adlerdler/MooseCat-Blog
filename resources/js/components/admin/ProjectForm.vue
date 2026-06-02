@@ -2,8 +2,10 @@
 import { ref, computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useTheme } from '../../composables/useTheme';
+import { Image as ImageIcon } from 'lucide-vue-next';
 import TagInput from './TagInput.vue';
 import ContentFormModal from './ContentFormModal.vue';
+import MediaPickerModal from './MediaPickerModal.vue';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
@@ -16,6 +18,10 @@ const props = defineProps({
   visible: {
     type: Boolean,
     default: false
+  },
+  mediaFiles: {
+    type: Array,
+    default: () => []
   }
 });
 
@@ -37,6 +43,7 @@ const formData = ref({
   role: '',
   year: new Date().getFullYear().toString(),
   technologies: '',
+  tags: '',
   status: 'completed',
   sort_order: 0
 });
@@ -52,9 +59,11 @@ const initFormData = () => {
     role: '',
     year: new Date().getFullYear().toString(),
     technologies: '',
+    tags: '',
     status: 'completed',
     sort_order: 0
   };
+  clearErrors();
 };
 
 watch(() => props.visible, (newVal) => {
@@ -65,14 +74,51 @@ watch(() => props.visible, (newVal) => {
       if (formData.value.technologies && Array.isArray(formData.value.technologies)) {
         formData.value.technologies = formData.value.technologies.join(', ');
       }
+      if (formData.value.tags && Array.isArray(formData.value.tags)) {
+        formData.value.tags = formData.value.tags.join(', ');
+      }
     }
   }
 });
 
+const errors = ref({
+  title: '',
+  description: ''
+});
+
+const clearErrors = () => {
+  errors.value = { title: '', description: '' };
+};
+
+const validate = () => {
+  clearErrors();
+  let valid = true;
+  if (!formData.value.title.trim()) {
+    errors.value.title = '项目名称不能为空';
+    valid = false;
+  }
+  if (!formData.value.description.trim()) {
+    errors.value.description = '简短描述不能为空';
+    valid = false;
+  }
+  return valid;
+};
+
+// 媒体选择器
+const showMediaPicker = ref(false);
+const handleMediaSelect = (file) => {
+  formData.value.image = file.url;
+  showMediaPicker.value = false;
+};
+
 const handleSave = () => {
+  if (!validate()) return;
   const data = { ...formData.value };
   if (data.technologies && typeof data.technologies === 'string') {
     data.technologies = data.technologies.split(',').map(tech => tech.trim()).filter(tech => tech);
+  }
+  if (data.tags && typeof data.tags === 'string') {
+    data.tags = data.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
   }
   emit('save', data);
 };
@@ -93,19 +139,21 @@ const handleCancel = () => {
     <div class="space-y-6">
       <div>
         <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
-          {{ t('admin_project_form_title') }} *
+          {{ t('admin_project_form_title') }} <span class="text-construct-red">*</span>
         </label>
         <input
           v-model="formData.title"
           type="text"
           :class="[
-            'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
+            'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2',
+            errors.title ? 'border-red-500 focus:ring-red-500' : 'focus:ring-construct-red',
             isDarkMode 
               ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
               : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
           ]"
           placeholder="输入项目名称..."
         />
+        <p v-if="errors.title" class="text-red-500 text-xs mt-1 font-bold">{{ errors.title }}</p>
       </div>
 
       <div class="grid grid-cols-2 gap-4">
@@ -146,19 +194,21 @@ const handleCancel = () => {
 
       <div>
         <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
-          {{ t('admin_project_form_short_desc') }} *
+          {{ t('admin_project_form_short_desc') }} <span class="text-construct-red">*</span>
         </label>
         <textarea
           v-model="formData.description"
           rows="2"
           :class="[
-            'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red resize-none',
+            'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 resize-none',
+            errors.description ? 'border-red-500 focus:ring-red-500' : 'focus:ring-construct-red',
             isDarkMode 
               ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
               : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
           ]"
           placeholder="输入项目简短描述..."
         ></textarea>
+        <p v-if="errors.description" class="text-red-500 text-xs mt-1 font-bold">{{ errors.description }}</p>
       </div>
 
       <div>
@@ -183,17 +233,31 @@ const handleCancel = () => {
           <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
             项目图片 URL
           </label>
-          <input
-            v-model="formData.image"
-            type="text"
-            :class="[
-              'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
-              isDarkMode 
-                ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-                : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-            ]"
-            placeholder="输入图片链接..."
-          />
+          <div class="flex gap-2">
+            <input
+              v-model="formData.image"
+              type="text"
+              :class="[
+                'flex-1 px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
+                isDarkMode 
+                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+              ]"
+              placeholder="输入图片链接..."
+            />
+            <button
+              type="button"
+              @click="showMediaPicker = true"
+              class="px-4 py-2 bg-construct-black text-white text-sm font-bold rounded-lg hover:bg-construct-red transition-colors flex items-center gap-2 shrink-0"
+            >
+              <ImageIcon size="16" />
+              选图
+            </button>
+          </div>
+          <!-- 图片预览 -->
+          <div v-if="formData.image" class="mt-2">
+            <img :src="formData.image" alt="项目预览" class="w-32 h-20 object-cover rounded-lg border" />
+          </div>
         </div>
 
         <div>
@@ -273,7 +337,18 @@ const handleCancel = () => {
         <div>
           <TagInput v-model="formData.technologies" :label="t('admin_project_form_tech')" placeholder="输入技术，按回车或逗号添加" />
         </div>
+        <div>
+          <TagInput v-model="formData.tags" label="标签" placeholder="输入标签，按回车或逗号添加" />
+        </div>
       </div>
     </div>
   </ContentFormModal>
+
+  <!-- 媒体选择器弹窗 -->
+  <MediaPickerModal
+    :visible="showMediaPicker"
+    :media="props.mediaFiles"
+    @select="handleMediaSelect"
+    @close="showMediaPicker = false"
+  />
 </template>

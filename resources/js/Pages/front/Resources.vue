@@ -68,19 +68,19 @@ const getDriveLogo = (type) => {
   return driveLogos[type] || { bg: 'bg-gray-500', text: type.slice(0, 6).toUpperCase(), color: 'text-white' };
 };
 
+const hasCategories = computed(() => props.categories.length > 0);
+
 const categoryList = computed(() => {
-  // 只显示有资源的分类
-  const usedCategoryIds = [...new Set(props.resources.map(r => r.category_id))];
-  const usedCategories = props.categories.filter(c => usedCategoryIds.includes(c.id));
-  return ['ALL', ...usedCategories.map(c => c.name)];
+  if (!hasCategories.value) return [];
+  const usedCategoryIds = new Set(props.resources.map(r => r.category_id));
+  return ['ALL', ...props.categories.filter(c => usedCategoryIds.has(c.id)).map(c => c.name)];
 });
 const filteredResources = computed(() => {
   if (selectedCategory.value === 'ALL') {
     return props.resources;
   }
-  // 根据分类名称找到对应的分类ID，然后筛选资源
   const selectedCategoryData = props.categories.find(c => c.name === selectedCategory.value);
-  if (!selectedCategoryData) return [];
+  if (!selectedCategoryData) return props.resources;
   return props.resources.filter(r => r.category_id === selectedCategoryData.id);
 });
 const getResourceCategoryName = (categoryId) => {
@@ -145,7 +145,7 @@ const mixedResourcesWithAds = computed(() => {
     />
 
     <!-- Main Content with left margin for sidebar -->
-    <div class="ml-16">
+    <div class="md:ml-16 pt-16 md:pt-0">
       
 <!-- Header Banner Ad -->
       <section class="bg-construct-black">
@@ -161,7 +161,7 @@ const mixedResourcesWithAds = computed(() => {
           </p>
 
           <!-- Categories -->
-          <div class="flex flex-wrap gap-4 mb-4">
+          <div v-if="hasCategories" class="flex flex-wrap gap-4 mb-4">
             <button
               v-for="cat in categoryList"
               :key="cat"
@@ -252,7 +252,16 @@ const mixedResourcesWithAds = computed(() => {
                       </span>
                     </div>
                   </div>
-                  <Download class="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity text-construct-red mt-6" />
+                  <a
+                    v-if="item.data.direct_link"
+                    :href="item.data.direct_link"
+                    download
+                    @click.stop
+                    class="mt-6"
+                    :title="'下载'"
+                  >
+                    <Download class="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity text-construct-red hover:scale-110" />
+                  </a>
                 </div>
               </Motion>
             </template>

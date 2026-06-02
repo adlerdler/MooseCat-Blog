@@ -3,34 +3,56 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Services\MockDataService;
+use App\Models\Backup;
+use App\Services\BackupService;
+use App\Services\BackupRestoreService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class RestoreController extends Controller
 {
-    private MockDataService $mockDataService;
-
-    public function __construct(MockDataService $mockDataService)
-    {
+    public function __construct(
+        protected BackupService $backupService,
+        protected BackupRestoreService $restoreService,
+    ) {
         $this->middleware('permission:manage_restore');
-        $this->mockDataService = $mockDataService;
     }
 
-    public function index(): \Inertia\Response
+    /**
+     * 恢复页面：列出可恢复的备份
+     */
+    public function index(): Response
     {
-        // 使用模拟数据 - 先对接前端
-        $backups = $this->mockDataService->getBackups();
+        $backups = $this->backupService->getAllBackups();
 
         return Inertia::render('admin/Restore', [
             'backups' => $backups,
         ]);
     }
 
-    public function restore(string $id)
+    /**
+     * 执行恢复
+     */
+    public function restore(Request $request, string $id): RedirectResponse
     {
-        // TODO: 先使用模拟逻辑，后续对接真实恢复功能
-        return back()->with('success', '数据恢复中...');
+        $validated = $request->validate([
+            'confirmed' => 'required|accepted',
+        ], [
+            'confirmed.accepted' => '请确认您理解恢复操作会覆盖现有数据',
+        ]);
+
+        $result = $this->restoreService->restore((int) $id);
+
+        if ($result['success']) {
+            $msg = '数据恢复成功。';
+            if (isset($result['snapshot_id'])) {
+                $msg .= " 恢复前快照已保存（备份 #{$result['snapshot_id']}）";
+            }
+            return back()->with('success', $msg);
+        }
+
+        return back()->with('error', $result['message']);
     }
 }

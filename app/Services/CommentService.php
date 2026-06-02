@@ -15,9 +15,17 @@ use Illuminate\Database\Eloquent\Collection;
  * 提供评论的管理功能，包括评论创建、审核、删除和评论树展示。
  * Provides comment management functionality, including comment creation, approval, 
  * deletion and comment tree display.
+ *
+ * 审核逻辑：
+ * - comment_approval = false（禁止审核）→ 评论自动通过，直接显示
+ * - comment_approval = true（开启审核）→ 评论需管理员后台审核
  */
 class CommentService
 {
+    public function __construct(
+        protected SettingService $settingService
+    ) {}
+
     /**
      * 为指定文章提交评论
      * Submit comment for specified post
@@ -25,6 +33,12 @@ class CommentService
     public function createComment(Post $post, array $data): Comment
     {
         return DB::transaction(function () use ($post, $data) {
+            // 从数据库设置读取审核开关：
+            // comment_approval = false（禁止审核）→ is_approved = true（直接显示）
+            // comment_approval = true（开启审核）→ is_approved = false（需要审核）
+            $requiresApproval = (bool) $this->settingService->get('comment_approval', false);
+            $isApproved = !$requiresApproval;
+
             $comment = $post->comments()->create([
                 'user_id' => $data['user_id'] ?? null,
                 'parent_id' => $data['parent_id'] ?? null,
@@ -33,7 +47,7 @@ class CommentService
                 'body' => $data['body'],
                 'ip_address' => $data['ip_address'] ?? null,
                 'user_agent' => $data['user_agent'] ?? null,
-                'is_approved' => config('blog.auto_approve_comments', true),
+                'is_approved' => $isApproved,
             ]);
 
             return $comment;
@@ -70,6 +84,29 @@ class CommentService
     public function bulkApprove(array $ids): int
     {
         return Comment::whereIn('id', $ids)->update(['is_approved' => true]);
+    }
+
+    /**
+     * 管理员回复评论
+     * Create admin reply to a comment
+     */
+    public function createAdminReply(Comment $parent, array $data): Comment
+    {
+        return DB::transaction(function () use ($parent, $data) {
+            $reply = $parent->children()->create([
+                'post_id' => $parent->post_id,
+                'user_id' => $data['user_id'] ?? null,
+                'name' => $data['name'] ?? 'Admin',
+                'email' => $data['email'] ?? null,
+                'body' => $data['body'],
+                'ip_address' => $data['ip_address'] ?? null,
+                'user_agent' => $data['user_agent'] ?? null,
+                'is_approved' => true,
+                'is_admin' => true,
+            ]);
+
+            return $reply;
+        });
     }
 
     /**

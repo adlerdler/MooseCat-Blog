@@ -17,7 +17,7 @@ class MenuSeeder extends Seeder
             ['id' => 3, 'type' => 'front', 'parent_id' => null, 'label_key' => 'nav_videos', 'icon_name' => null, 'path' => '/videos', 'sort_order' => 3, 'is_active' => true, 'component_name' => 'Videos'],
             ['id' => 4, 'type' => 'front', 'parent_id' => null, 'label_key' => 'nav_projects', 'icon_name' => null, 'path' => '/projects', 'sort_order' => 4, 'is_active' => true, 'component_name' => 'Projects'],
             ['id' => 5, 'type' => 'front', 'parent_id' => null, 'label_key' => 'nav_resources', 'icon_name' => null, 'path' => '/resources', 'sort_order' => 5, 'is_active' => true, 'component_name' => 'Resources'],
-            ['id' => 6, 'type' => 'front', 'parent_id' => null, 'label_key' => 'nav_author', 'icon_name' => null, 'path' => '/author', 'sort_order' => 6, 'is_active' => true, 'component_name' => 'Author'],
+            ['id' => 6, 'type' => 'front', 'parent_id' => null, 'label_key' => 'nav_author', 'icon_name' => null, 'path' => '/author/adler-decht', 'sort_order' => 6, 'is_active' => true, 'component_name' => 'Author'],
             ['id' => 10, 'type' => 'admin', 'parent_id' => null, 'label_key' => 'admin_dashboard', 'icon_name' => 'LayoutDashboard', 'path' => '/admin/index', 'sort_order' => 1, 'is_active' => true, 'component_name' => 'Index'],
             ['id' => 21, 'type' => 'admin', 'parent_id' => null, 'label_key' => 'admin_general_options', 'icon_name' => 'SlidersHorizontal', 'path' => null, 'sort_order' => 2, 'is_active' => true, 'component_name' => null],
             ['id' => 11, 'type' => 'admin', 'parent_id' => null, 'label_key' => 'admin_content', 'icon_name' => 'FileText', 'path' => null, 'sort_order' => 3, 'is_active' => true, 'component_name' => null],

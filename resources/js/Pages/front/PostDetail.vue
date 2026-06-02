@@ -56,6 +56,11 @@ const getAuthorName = (authorId) => {
   return user ? (user.penName || user.name) : 'Unknown';
 };
 
+const getAuthorSlug = (authorId) => {
+  const user = props.authors.find(u => u.id === authorId);
+  return user?.slug || '';
+};
+
 const inContentAd = computed(() => {
   return getSingleAd('in_content');
 });
@@ -144,7 +149,10 @@ if (typeof window !== 'undefined') {
 }
 
 const handleCommentSubmitted = (comment) => {
-  console.log('New comment submitted:', comment);
+  // 评论已通过 Inertia router.post() 提交到真实 API
+  if (comment) {
+    console.log(`Comment #${comment.id} submitted. Approved: ${comment.is_approved}`);
+  }
 };
 
 const getPostLikeCount = () => {
@@ -249,7 +257,12 @@ onUnmounted(() => {
           <div class="flex flex-wrap gap-8 items-center text-[10px] sm:text-xs font-bold tracking-[0.2em] opacity-80 animate-fade-in" style="animation-delay: 0.2s">
             <div class="flex items-center gap-2">
               <User size="14" class="text-white/40" />
-              <Link :href="`/author/${encodeURIComponent(getAuthorName(post.author_id))}`" class="hover:underline">{{ getAuthorName(post.author_id) }}</Link>
+              <Link
+                v-if="showAuthorBio"
+                :href="getAuthorSlug(post.author_id) ? `/author/${getAuthorSlug(post.author_id)}` : '#'"
+                class="hover:underline"
+              >{{ getAuthorName(post.author_id) }}</Link>
+              <span v-else class="opacity-70">{{ getAuthorName(post.author_id) }}</span>
             </div>
             <div class="flex items-center gap-2">
               <Clock size="14" class="text-white/40" />
@@ -338,7 +351,7 @@ onUnmounted(() => {
                 {{ t('author_bio') }}
               </p>
               <Link 
-                :href="`/author/${encodeURIComponent(getAuthorName(post.author_id))}`" 
+                :href="getAuthorSlug(post.author_id) ? `/author/${getAuthorSlug(post.author_id)}` : '#'" 
                 class="inline-flex items-center gap-2 mt-4 text-[10px] font-black tracking-widest uppercase text-construct-red hover:underline"
               >
                 {{ t('read_more') || 'VIEW_FULL_PROFILE' }} <ArrowRight size="12" />
@@ -350,6 +363,7 @@ onUnmounted(() => {
         <!-- Comment Section -->
         <CommentSection
           v-if="showComments"
+          :post-id="post.id"
           :comments="postComments"
           :interactions="localInteractions"
           :current-user-id="1" 

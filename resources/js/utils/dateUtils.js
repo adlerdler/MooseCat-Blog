@@ -138,6 +138,38 @@ export function formatToRelative(date) {
 }
 
 /**
+ * 智能日期格式化：≤7天显示相对时间，>7天显示 Y-m-d
+ * @param {Date|string} date - 日期对象或日期字符串
+ * @returns {string} 格式化后的日期字符串
+ */
+export function formatToSmartDate(date) {
+  if (!date) return '';
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  if (isNaN(dateObj.getTime())) return '';
+
+  const now = new Date();
+  const diff = now.getTime() - dateObj.getTime();
+  const minute = 60 * 1000;
+  const hour = 60 * minute;
+  const day = 24 * hour;
+  const week = 7 * day;
+
+  if (diff >= week) {
+    // 超过7天 → Y-m-d
+    const y = dateObj.getFullYear();
+    const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const d = String(dateObj.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  // ≤7天 → 相对时间
+  if (diff < minute) return '刚刚';
+  if (diff < hour) return `${Math.floor(diff / minute)}分钟前`;
+  if (diff < day) return `${Math.floor(diff / hour)}小时前`;
+  return `${Math.floor(diff / day)}天前`;
+}
+
+/**
  * 格式化日期为英文可读格式（如 "April 28, 2026"）
  * @param {Date|string} date - 日期对象或日期字符串
  * @returns {string} 格式化后的日期字符串

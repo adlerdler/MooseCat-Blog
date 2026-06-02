@@ -90,20 +90,52 @@ class TagService
             $tag->posts()->detach();
             $tag->videos()->detach();
             $tag->projects()->detach();
+            $tag->resources()->detach();
             return $tag->delete();
         });
     }
 
     /**
-     * 查找或创建标签
-     * Find or create tag
+     * 查找或创建标签（按 name 或 slug 匹配）
+     * Find or create tag (match by name or slug)
      */
     public function findOrCreate(string $name): Tag
     {
-        return Tag::firstOrCreate(
-            ['name' => $name],
-            ['slug' => Str::slug($name)]
-        );
+        $trimmed = trim($name);
+        $slug = Str::slug($trimmed);
+
+        // 1. 按 name 精确匹配
+        $tag = Tag::where('name', $trimmed)->first();
+        if ($tag) return $tag;
+
+        // 2. 按 slug 匹配（兼容前端传 URL 友好格式）
+        $tag = Tag::where('slug', $slug)->first();
+        if ($tag) return $tag;
+
+        // 3. 都不存在 → 新建
+        return Tag::create([
+            'name' => $trimmed,
+            'slug' => $slug,
+        ]);
+    }
+
+    /**
+     * 统一解析标签数组为 ID 数组（字符串名自动 findOrCreate）
+     * Resolve tag array to ID array (auto findOrCreate for string names)
+     */
+    public function resolveTagIds(array $tags): array
+    {
+        return collect($tags)
+            ->map(function ($tag) {
+                if (is_numeric($tag)) {
+                    return (int) $tag;
+                }
+                return $this->findOrCreate($tag)->id;
+            })
+            ->filter()
+            ->unique()
+            ->values()
+            ->toArray();
     }
 
     /**

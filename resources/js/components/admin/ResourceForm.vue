@@ -1,9 +1,10 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { Plus, Trash2 } from 'lucide-vue-next';
+import { Plus, Trash2, Image as ImageIcon } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
 import ContentFormModal from './ContentFormModal.vue';
+import MediaPickerModal from './MediaPickerModal.vue';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
@@ -18,6 +19,10 @@ const props = defineProps({
     default: false
   },
   categories: {
+    type: Array,
+    default: () => []
+  },
+  mediaFiles: {
     type: Array,
     default: () => []
   }
@@ -36,7 +41,8 @@ const resourceFormats = [
   { value: 'Image', label: 'Image' },
   { value: 'Video', label: 'Video' },
   { value: 'Archive', label: 'Archive' },
-  { value: 'Document', label: 'Document' }
+  { value: 'Document', label: 'Document' },
+  { value: 'Other', label: 'Other' }
 ];
 
 const driveTypes = ['Google Drive', 'Dropbox', 'Baidu', 'OneDrive', 'AliCloud', 'Vimeo', 'Local', 'Other'];
@@ -63,6 +69,7 @@ const initFormData = () => {
     direct_link: '',
     drives: []
   };
+  clearErrors();
 };
 
 watch(() => props.visible, (newVal) => {
@@ -81,19 +88,78 @@ const addDrive = () => {
   if (!formData.value.drives) {
     formData.value.drives = [];
   }
-  formData.value.drives.push({ type: 'Google Drive', url: '' });
+  formData.value.drives.push({ name: 'Google Drive', url: '' });
 };
 
 const removeDrive = (index) => {
   formData.value.drives.splice(index, 1);
 };
 
+const errors = ref({
+  title: '',
+  format: '',
+  direct_link: ''
+});
+
+const clearErrors = () => {
+  errors.value = { title: '', format: '', direct_link: '' };
+};
+
+const validate = () => {
+  clearErrors();
+  let valid = true;
+  if (!formData.value.title.trim()) {
+    errors.value.title = '资源名称不能为空';
+    valid = false;
+  }
+  if (!formData.value.format) {
+    errors.value.format = '请选择资源格式';
+    valid = false;
+  }
+  if (!formData.value.direct_link.trim()) {
+    errors.value.direct_link = '下载链接不能为空';
+    valid = false;
+  }
+  return valid;
+};
+
 const handleSave = () => {
+  if (!validate()) return;
   emit('save', { ...formData.value });
 };
 
 const handleCancel = () => {
   emit('cancel');
+};
+
+// 媒体选择器
+const showMediaPicker = ref(false);
+const handleMediaSelect = (file) => {
+  formData.value.image = file.url;
+  showMediaPicker.value = false;
+};
+
+const getFormatFromFile = (file) => {
+  const ext = (file.url || '').split('.').pop()?.toLowerCase() || '';
+  const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp'];
+  const videoExts = ['mp4', 'mov', 'avi', 'mkv', 'webm', 'flv'];
+  const archiveExts = ['zip', 'rar', '7z', 'tar', 'gz', 'bz2'];
+  const docExts = ['doc', 'docx', 'txt', 'md', 'csv', 'xls', 'xlsx', 'ppt', 'pptx'];
+  
+  if (ext === 'pdf') return 'PDF';
+  if (imageExts.includes(ext)) return 'Image';
+  if (videoExts.includes(ext)) return 'Video';
+  if (archiveExts.includes(ext)) return 'Archive';
+  if (docExts.includes(ext)) return 'Document';
+  return 'Other';
+};
+
+const showDirectLinkPicker = ref(false);
+const handleDirectLinkSelect = (file) => {
+  formData.value.direct_link = file.url;
+  formData.value.file_size = file.size || '';
+  formData.value.format = getFormatFromFile(file);
+  showDirectLinkPicker.value = false;
 };
 </script>
 
@@ -114,13 +180,15 @@ const handleCancel = () => {
           v-model="formData.title"
           type="text"
           :class="[
-            'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
+            'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2',
+            errors.title ? 'border-red-500 focus:ring-red-500' : 'focus:ring-construct-red',
             isDarkMode 
               ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
               : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
           ]"
           placeholder="输入资源名称..."
         />
+        <p v-if="errors.title" class="text-red-500 text-xs mt-1 font-bold">{{ errors.title }}</p>
       </div>
 
       <div>
@@ -168,7 +236,8 @@ const handleCancel = () => {
           <select
             v-model="formData.format"
             :class="[
-              'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
+              'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2',
+              errors.format ? 'border-red-500 focus:ring-red-500' : 'focus:ring-construct-red',
               isDarkMode 
                 ? 'bg-gray-700 border-gray-600 text-white' 
                 : 'bg-white border-gray-300 text-gray-900'
@@ -178,6 +247,7 @@ const handleCancel = () => {
               {{ format.label }}
             </option>
           </select>
+          <p v-if="errors.format" class="text-red-500 text-xs mt-1 font-bold">{{ errors.format }}</p>
         </div>
       </div>
 
@@ -185,34 +255,60 @@ const handleCancel = () => {
         <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
           {{ t('admin_video_form_thumbnail') }}
         </label>
-        <input
-          v-model="formData.image"
-          type="text"
-          :class="[
-            'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
-            isDarkMode 
-              ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-              : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-          ]"
-          placeholder="输入缩略图链接..."
-        />
+        <div class="flex gap-2">
+          <input
+            v-model="formData.image"
+            type="text"
+            :class="[
+              'flex-1 px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
+              isDarkMode 
+                ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+            ]"
+            placeholder="输入缩略图链接..."
+          />
+          <button
+            type="button"
+            @click="showMediaPicker = true"
+            class="px-4 py-2 bg-construct-black text-white text-sm font-bold rounded-lg hover:bg-construct-red transition-colors flex items-center gap-2 shrink-0"
+          >
+            <ImageIcon size="16" />
+            选图
+          </button>
+        </div>
+        <!-- 图片预览 -->
+        <div v-if="formData.image" class="mt-2">
+          <img :src="formData.image" alt="缩略图预览" class="w-32 h-20 object-cover rounded-lg border" />
+        </div>
       </div>
 
       <div>
         <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
           {{ t('admin_resource_form_local_url') }} *
         </label>
-        <input
-          v-model="formData.direct_link"
-          type="text"
-          :class="[
-            'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
-            isDarkMode 
-              ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-              : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-          ]"
-          placeholder="例如：#download/resource.pdf"
-        />
+        <div class="flex gap-2">
+          <input
+            v-model="formData.direct_link"
+            type="text"
+            :class="[
+              'flex-1 px-4 py-2 rounded-lg border focus:outline-none focus:ring-2',
+              errors.direct_link ? 'border-red-500 focus:ring-red-500' : 'focus:ring-construct-red',
+              isDarkMode 
+                ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+            ]"
+            placeholder="例如：#download/resource.pdf"
+          />
+          <button
+            type="button"
+            @click="showDirectLinkPicker = true"
+            class="px-4 py-2 bg-construct-black text-white text-sm font-bold rounded-lg hover:bg-construct-red transition-colors flex items-center gap-2 shrink-0"
+          >
+            <ImageIcon size="16" />
+            下载链接
+          </button>
+        </div>
+        <p v-if="errors.direct_link" class="text-red-500 text-xs mt-1 font-bold">{{ errors.direct_link }}</p>
       </div>
 
       <div>
@@ -239,7 +335,7 @@ const handleCancel = () => {
             ]"
           >
             <select
-              v-model="drive.type"
+              v-model="drive.name"
               :class="[
                 'w-36 px-3 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red flex-shrink-0',
                 isDarkMode 
@@ -284,58 +380,22 @@ const handleCancel = () => {
         </div>
       </div>
 
-      <div class="grid grid-cols-3 gap-4">
-        <div>
-          <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
-            {{ t('admin_resource_form_file_size') }}
-          </label>
-          <input
-            v-model="formData.file_size"
-            type="text"
-            :class="[
-              'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
-              isDarkMode 
-                ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-                : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-            ]"
-            placeholder="例如：24.5 MB"
-          />
-        </div>
-
-        <div>
-          <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
-            {{ t('admin_resource_form_downloads') }}
-          </label>
-          <input
-            v-model="formData.downloads_count"
-            type="text"
-            :class="[
-              'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
-              isDarkMode 
-                ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-                : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-            ]"
-            placeholder="例如：234"
-          />
-        </div>
-
-        <div>
-          <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
-            {{ t('admin_post_form_date') }}
-          </label>
-          <input
-            v-model="formData.date"
-            type="text"
-            :class="[
-              'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
-              isDarkMode 
-                ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-                : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-            ]"
-            placeholder="YYYY-MM-DD"
-          />
-        </div>
-      </div>
     </div>
   </ContentFormModal>
+
+  <!-- 缩略图媒体选择器弹窗 -->
+  <MediaPickerModal
+    :visible="showMediaPicker"
+    :media="props.mediaFiles"
+    @select="handleMediaSelect"
+    @close="showMediaPicker = false"
+  />
+
+  <!-- 下载链接媒体选择器弹窗 -->
+  <MediaPickerModal
+    :visible="showDirectLinkPicker"
+    :media="props.mediaFiles"
+    @select="handleDirectLinkSelect"
+    @close="showDirectLinkPicker = false"
+  />
 </template>

@@ -14,7 +14,9 @@ import {
   Archive,
   CheckCircle,
   XCircle,
-  Loader
+  Loader,
+  X,
+  AlertCircle,
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
 import { formatToShort } from '../../utils/dateUtils';
@@ -119,18 +121,25 @@ const getStatusColor = (status) => {
   }
 };
 
+const createError = ref('');
+
 const handleCreateBackup = () => {
+  createError.value = '';
+  showCreateModal.value = false;  // 先关 Modal，避免 Teleport VNode 冲突
   createBackupForm.post(route('admin.backup.create'), {
+    preserveScroll: true,
+    preserveState: true,  // 避免页面全替换导致 __vnode 报错
     onSuccess: () => {
-      showCreateModal.value = false;
-      createBackupForm.note = '';
+      createBackupForm.reset();
+    },
+    onError: (errors) => {
+      createError.value = Object.values(errors).flat().join('；');
     },
   });
 };
 
 const handleDownload = (backup) => {
-  // TODO: 后续对接真实下载功能
-  console.log('Download backup:', backup.path);
+  window.open(route('admin.backup.download', backup.id), '_blank');
 };
 
 const handleDelete = (backup) => {
@@ -140,11 +149,19 @@ const handleDelete = (backup) => {
 
 const confirmDelete = () => {
   if (deletingBackup.value !== null) {
-    // TODO: 后续对接真实删除功能
-    console.log('Delete backup:', deletingBackup.value.id);
-    deletingBackup.value = null;
+    router.delete(route('admin.backup.destroy', deletingBackup.value.id), {
+      preserveScroll: true,
+      preserveState: false,
+      onSuccess: () => {
+        deletingBackup.value = null;
+        showDeleteConfirm.value = false;
+      },
+      onError: () => {
+        deletingBackup.value = null;
+        showDeleteConfirm.value = false;
+      },
+    });
   }
-  showDeleteConfirm.value = false;
 };
 
 const handleFilterChange = ({ key, value }) => {
@@ -321,6 +338,20 @@ const handleFilterChange = ({ key, value }) => {
 
             <!-- Body -->
             <div class="px-6 pb-6">
+              <!-- Error Alert -->
+              <div
+                v-if="createError"
+                :class="[
+                  'mb-4 p-3 border rounded-lg flex items-start gap-2 text-sm',
+                  isDarkMode
+                    ? 'bg-red-900/30 border-red-800 text-red-400'
+                    : 'bg-red-50 border-red-200 text-red-600'
+                ]"
+              >
+                <AlertCircle size="16" class="shrink-0 mt-0.5" />
+                <span>{{ createError }}</span>
+              </div>
+
               <div class="mb-6">
                 <label :class="['block mb-2 text-sm font-bold', isDarkMode ? 'text-gray-300' : 'text-gray-700']">{{ t('admin_backup_type') }}</label>
                 <div class="grid grid-cols-2 gap-3">
@@ -370,12 +401,16 @@ const handleFilterChange = ({ key, value }) => {
               </button>
               <button
                 @click="handleCreateBackup"
+                :disabled="createBackupForm.processing"
                 :class="[
-                  'flex-1 px-6 py-3 font-bold tracking-widest uppercase text-sm transition-colors rounded-lg',
-                  'bg-construct-red text-white hover:bg-red-700'
+                  'flex-1 px-6 py-3 font-bold tracking-widest uppercase text-sm transition-colors rounded-lg flex items-center justify-center gap-2',
+                  createBackupForm.processing
+                    ? 'bg-red-400 cursor-not-allowed'
+                    : 'bg-construct-red text-white hover:bg-red-700'
                 ]"
               >
-                {{ t('confirm') }}
+                <Loader v-if="createBackupForm.processing" size="16" class="animate-spin" />
+                {{ createBackupForm.processing ? t('admin_creating') : t('confirm') }}
               </button>
             </div>
           </div>

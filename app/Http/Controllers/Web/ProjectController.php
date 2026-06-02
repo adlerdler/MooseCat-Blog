@@ -4,11 +4,16 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\Project;
+use App\Services\VisitService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class ProjectController extends Controller
 {
+    public function __construct(
+        protected VisitService $visitService,
+    ) {}
+
     public function index(Request $request): View
     {
         $filters = $request->only(['status', 'tag']);
@@ -33,7 +38,7 @@ class ProjectController extends Controller
     public function show(Project $project): View
     {
         $project->load('tags');
-        $project->increment('views_count');
+        $this->visitService->trackModel($project, $request);
         return view('projects.show', compact('project'));
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -12,6 +13,7 @@ class Project extends Model
     use LogsActivity;
     protected $fillable = [
         'title',
+        'slug',
         'description',
         'long_description',
         'client',
@@ -37,6 +39,14 @@ class Project extends Model
     public function tags(): MorphToMany
     {
         return $this->morphToMany(Tag::class, 'taggable');
+    }
+
+    /**
+     * Get the visit records for the project.
+     */
+    public function visits(): MorphMany
+    {
+        return $this->morphMany(Visit::class, 'visitable');
     }
 
     public function getActivitylogOptions(): LogOptions

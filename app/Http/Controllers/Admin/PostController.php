@@ -23,7 +23,15 @@ class PostController extends Controller
 
     public function index(): Response
     {
-        $postsData = $this->postService->getPaginatedPosts(100, request()->only('category', 'tag', 'status'));
+        $user = request()->user();
+        $filters = request()->only('category', 'tag', 'status');
+
+        // 如果角色为"作者"，仅显示自己的文章
+        if ($user && $user->hasRole('Author')) {
+            $filters['author_id'] = $user->id;
+        }
+
+        $postsData = $this->postService->getPaginatedPosts(100, $filters);
         $posts = collect($postsData->items())->map(function ($post) {
             return [
                 'id' => $post->id,

@@ -15,7 +15,7 @@
  * 使用示例：
  * <SettingsPanel :is-mobile="isMobile" />
  */
-import { ref, computed, watch } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTheme } from '../composables/useTheme'
 import { setLocale } from '../i18n'
@@ -37,25 +37,17 @@ const { themes, currentTheme, setTheme } = useTheme({ themesData: props.themes }
 const siteConfig = usePage().props.siteConfig || {}
 const siteCopyright = siteConfig.copyright || ''
 
-const languages = [
-  { code: 'en', label: 'EN' },
-  { code: 'zh', label: '中文(简)' },
-  { code: 'zh-TW', label: '中文(繁)' },
-]
-
-const currentLang = ref(locale.value)
-
-watch(locale, (newVal) => {
-  currentLang.value = newVal
+// 从后端动态获取语言列表
+const backendLanguages = computed(() => {
+  const raw = usePage().props.languages || []
+  return raw.filter(l => l.is_active).map(l => ({
+    code: l.code,
+    label: l.native_name || l.name,
+  }))
 })
 
-const setLanguage = (code) => {
-  console.log('Setting language to:', code)
-  setLocale(code)
-  locale.value = code
-  currentLang.value = code
-  localStorage.setItem('locale', code)
-  console.log('Current locale after:', locale.value)
+const setLanguage = async (code) => {
+  await setLocale(code)
 }
 
 const activeThemeLabel = computed(() => {
@@ -80,11 +72,11 @@ const activeThemeLabel = computed(() => {
       </label>
       <div class="flex gap-2">
         <button
-          v-for="lang in languages"
+          v-for="lang in backendLanguages"
           :key="lang.code"
           @click="setLanguage(lang.code)"
           class="flex-1 py-2 text-[10px] font-bold tracking-widest border transition-colors"
-          :class="currentLang === lang.code ? 'bg-white text-black border-white' : 'text-white border-white/20 hover:bg-white/10'"
+          :class="locale === lang.code ? 'bg-white text-black border-white' : 'text-white border-white/20 hover:bg-white/10'"
         >
           {{ lang.label }}
         </button>

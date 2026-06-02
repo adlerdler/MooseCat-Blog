@@ -33,6 +33,8 @@ class UpdateProjectRequest extends FormRequest
             'github_url' => ['nullable', 'string', 'max:500'],
             'technologies' => ['nullable', 'array'],
             'technologies.*' => ['string', 'max:100'],
+            'tags' => ['nullable', 'array'],
+            'tags.*' => ['string'],
             'status' => ['sometimes', 'required', 'in:planning,in-progress,completed'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
         ];

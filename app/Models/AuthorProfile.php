@@ -13,10 +13,12 @@ class AuthorProfile extends Model
     protected $fillable = [
         'user_id',
         'slug',
+        'display_name',
         'bio',
         'avatar',
         'role_label',
         'role_title',
+        'company',
         'status_label',
         'status_text',
         'is_active',
@@ -40,6 +42,20 @@ class AuthorProfile extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * 头像访问器：无头像时根据 slug 哈希生成 identicon 头像
+     * 同一 slug 永远生成相同图案
+     */
+    public function getAvatarAttribute($value): string
+    {
+        if (!empty($value)) {
+            return $value;
+        }
+
+        $seed = md5($this->slug ?? 'default');
+        return "https://api.dicebear.com/9.x/identicon/svg?seed={$seed}";
     }
 
     public function getActivitylogOptions(): LogOptions

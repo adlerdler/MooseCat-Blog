@@ -10,20 +10,28 @@
  * - 支持密码显示/隐藏切换
  * - 支持中英文国际化
  */
-import { ref } from 'vue';
-import { router } from '@inertiajs/vue3';
+import { ref, computed } from 'vue';
+import { router, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
-import { Lock, Mail, AlertCircle, Eye, EyeOff } from 'lucide-vue-next';
+import { Lock, Mail, AlertCircle, Eye, EyeOff, X, ShieldOff } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
 
 const { t } = useI18n();
 const { isDarkMode, initTheme } = useTheme();
+const page = usePage();
 
 const email = ref('');
 const password = ref('');
 const rememberMe = ref(false);
 const showPassword = ref(false);
 const isLoading = ref(false);
+const dismissedDisabledNotice = ref(false);
+
+// 禁用提示：来自后端 disabled 错误
+const disabledMessage = computed(() => {
+  if (dismissedDisabledNotice.value) return null;
+  return page.props.errors?.disabled || null;
+});
 
 const handleLogin = () => {
   isLoading.value = true;
@@ -140,5 +148,54 @@ const togglePasswordVisibility = () => {
       <!-- 装饰性边框 -->
       <div class="w-full h-2 bg-construct-black mt-4" />
     </div>
+
+    <!-- 禁用用户提示（右下角） -->
+    <Transition name="slide-up">
+      <div
+        v-if="disabledMessage"
+        class="fixed bottom-8 right-8 z-50 max-w-sm animate-in"
+      >
+        <div class="bg-white border-4 border-construct-black p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.15)]">
+          <div class="flex items-start gap-4">
+            <div class="flex-shrink-0 w-10 h-10 bg-construct-black flex items-center justify-center">
+              <ShieldOff class="w-5 h-5 text-white" />
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="font-display text-xs tracking-widest uppercase text-construct-black mb-1">
+                {{ t('login_access_denied') }}
+              </p>
+              <p class="font-mono text-sm text-gray-600 leading-relaxed">
+                {{ disabledMessage }}
+              </p>
+            </div>
+            <button
+              @click="dismissedDisabledNotice = true"
+              class="flex-shrink-0 text-gray-400 hover:text-construct-red transition-colors"
+            >
+              <X class="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+        <!-- 装饰条 -->
+        <div class="w-full h-1.5 bg-construct-black" />
+      </div>
+    </Transition>
   </div>
 </template>
+
+<style scoped>
+.slide-up-enter-active {
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.slide-up-leave-active {
+  transition: all 0.2s ease-in;
+}
+.slide-up-enter-from {
+  opacity: 0;
+  transform: translateY(24px) scale(0.95);
+}
+.slide-up-leave-to {
+  opacity: 0;
+  transform: translateY(12px) scale(0.98);
+}
+</style>

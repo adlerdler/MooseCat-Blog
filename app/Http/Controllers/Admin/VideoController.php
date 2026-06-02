@@ -89,6 +89,8 @@ class VideoController extends Controller
             'title' => $video->title,
             'description' => $video->description,
             'video_url' => $video->video_url,
+            'video_id' => $video->video_id,
+            'platform' => $video->platform,
             'cover_image' => $video->cover_image,
             'duration' => $video->duration,
             'category' => $video->category_id,

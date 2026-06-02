@@ -23,14 +23,16 @@ class TagController extends Controller
 
     public function index(): Response
     {
-        $tags = Tag::withCount(['posts', 'projects', 'resources'])
+        $tags = Tag::withCount(['posts', 'videos', 'projects', 'resources'])
             ->orderBy('name')
             ->get()
             ->map(fn($t) => [
                 'id' => $t->id,
                 'name' => $t->name,
                 'slug' => $t->slug,
+                'usage_count' => $t->posts_count + $t->videos_count + $t->projects_count + $t->resources_count,
                 'posts_count' => $t->posts_count,
+                'videos_count' => $t->videos_count,
                 'projects_count' => $t->projects_count,
                 'resources_count' => $t->resources_count,
                 'created_at' => $t->created_at?->format('Y-m-d'),

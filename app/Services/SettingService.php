@@ -122,6 +122,9 @@ class SettingService
             'copyright' => $settings['copyright'] ?? '',
             'site_url' => $settings['site_url'] ?? '',
             'maintenance' => (bool) ($settings['maintenance'] ?? false),
+            'comments' => (bool) ($settings['comments'] ?? true),
+            'author_bio' => (bool) ($settings['author_bio'] ?? true),
+            'search' => (bool) ($settings['search'] ?? true),
         ];
     }
 
@@ -152,12 +155,15 @@ class SettingService
     /**
      * 获取评论配置
      * Get comment configuration
+     *
+     * - requires_approval: true = 需要管理员审核, false = 直接展示
+     * - enabled: 评论功能总开关
      */
     public function getCommentConfig(): array
     {
         $settings = $this->getAll();
         return [
-            'auto_approve' => (bool) ($settings['comment_approval'] ?? true),
+            'requires_approval' => (bool) ($settings['comment_approval'] ?? false),
             'enabled' => (bool) ($settings['comments'] ?? true),
             'max_depth' => 3,
         ];

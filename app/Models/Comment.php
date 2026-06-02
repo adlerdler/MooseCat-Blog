@@ -21,10 +21,12 @@ class Comment extends Model
         'is_approved',
         'ip_address',
         'user_agent',
+        'is_admin',
     ];
 
     protected $casts = [
         'is_approved' => 'boolean',
+        'is_admin' => 'boolean',
     ];
 
     /**

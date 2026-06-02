@@ -10,6 +10,7 @@ use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements HasMedia
@@ -26,11 +27,7 @@ class User extends Authenticatable implements HasMedia
         'name',
         'email',
         'password',
-        'avatar',
-        'bio',
-        'github',
-        'twitter',
-        'linkedin',
+        'level_id',
         'status',
         'points',
         'notifications',
@@ -77,6 +74,41 @@ class User extends Authenticatable implements HasMedia
             'weekly_report' => 'boolean',
             'digest_email' => 'boolean',
         ];
+    }
+
+    /**
+     * 注册媒体集合（管理后台媒体库上传到此）
+     */
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('default')
+            ->acceptsMimeTypes([
+                'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+                'video/mp4', 'video/webm',
+                'audio/mpeg', 'audio/wav',
+                'application/pdf', 'application/msword',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'text/plain',
+            ]);
+    }
+
+    /**
+     * 注册媒体转换（仅为图片生成缩略图）
+     */
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        $this->addMediaConversion('thumb')
+            ->width(200)
+            ->height(200)
+            ->performOnCollections('default');
+
+        $this->addMediaConversion('preview')
+            ->width(800)
+            ->height(600)
+            ->withResponsiveImages()
+            ->performOnCollections('default');
     }
 
     /**

@@ -15,9 +15,9 @@
  * 使用示例：
  * <UserForm :edit-data="editingUser" :visible="isFormVisible" @save="handleSave" @cancel="handleCancel" />
  */
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { X, Save } from 'lucide-vue-next';
+import { X, Save, AlertCircle } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
 
 const { t } = useI18n();
@@ -34,6 +34,10 @@ const props = defineProps({
   roles: {
     type: Array,
     default: () => []
+  },
+  serverErrors: {
+    type: Object,
+    default: () => ({})
   }
 });
 
@@ -48,8 +52,31 @@ const formTitle = computed(() => {
 });
 
 const formData = ref({});
+const errorMessage = ref('');
+let errorTimer = null;
+
+const showError = (msg) => {
+  errorMessage.value = msg;
+  if (errorTimer) clearTimeout(errorTimer);
+  errorTimer = setTimeout(() => {
+    errorMessage.value = '';
+  }, 4000);
+};
+
+const clearError = () => {
+  errorMessage.value = '';
+  if (errorTimer) {
+    clearTimeout(errorTimer);
+    errorTimer = null;
+  }
+};
+
+onBeforeUnmount(() => {
+  if (errorTimer) clearTimeout(errorTimer);
+});
 
 const initFormData = () => {
+  clearError();
   formData.value = {
     name: '',
     email: '',
@@ -65,36 +92,79 @@ watch(() => props.visible, (newVal) => {
     initFormData();
     if (props.editData) {
       formData.value = {
-        ...props.editData,
+        name: props.editData.name || '',
+        email: props.editData.email || '',
         password: '',
-        password_confirmation: ''
+        password_confirmation: '',
+        role_id: props.editData.role_id ?? 5,
+        status: props.editData.status || 'active',
       };
     }
   }
 });
 
+watch(() => props.serverErrors, (errors) => {
+  if (errors && Object.keys(errors).length) {
+    const msgs = Object.values(errors).map((msg) => {
+      return Array.isArray(msg) ? msg[0] : msg;
+    });
+    showError(msgs.join('；'));
+  }
+}, { deep: true });
+
+// 密码强度正则：大/小写字母 + 数字 + 特殊符号，8-15 位
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^()_+\-=\[\]{};:'",.<>\/\\|~`]).{8,15}$/;
+
+// 邮箱格式正则
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
 const handleSubmit = () => {
-  if (!formData.value.name.trim() || !formData.value.email.trim()) {
+  clearError();
+
+  if (!formData.value.name.trim()) {
+    showError(t('admin_user_name_required') || '请输入用户名');
+    return;
+  }
+  if (!formData.value.email.trim()) {
+    showError(t('admin_user_email_required') || '请输入邮箱');
+    return;
+  }
+  if (!emailRegex.test(formData.value.email.trim())) {
+    showError(t('admin_user_email_invalid') || '请输入有效的邮箱地址');
     return;
   }
   
   if (!isEditMode.value) {
     if (!formData.value.password.trim()) {
+      showError(t('admin_user_password_required') || '请输入密码');
+      return;
+    }
+    if (!passwordRegex.test(formData.value.password)) {
+      showError(t('admin_password_rule') || '密码需8-15位，含大/小写字母、数字和特殊符号');
       return;
     }
     if (formData.value.password !== formData.value.password_confirmation) {
+      showError(t('admin_user_password_mismatch') || '两次密码不一致');
+      return;
+    }
+  } else {
+    // 编辑模式：如果填写了密码，也必须符合规则
+    if (formData.value.password && !passwordRegex.test(formData.value.password)) {
+      showError(t('admin_password_rule') || '密码需8-15位，含大/小写字母、数字和特殊符号');
       return;
     }
   }
   
-  const data = { ...formData.value };
-  
-  // 编辑模式下，删除 roles 数组（只用 role_id）
-  delete data.roles;
-  
-  if (isEditMode.value && !data.password) {
-    delete data.password;
-    delete data.password_confirmation;
+  // 只发送后端需要的字段
+  const data = {
+    name: formData.value.name.trim(),
+    email: formData.value.email.trim(),
+    role_id: formData.value.role_id,
+    status: formData.value.status,
+  };
+
+  if (formData.value.password) {
+    data.password = formData.value.password;
   }
   
   emit('save', data);
@@ -145,6 +215,14 @@ const toggleStatus = () => {
 
         <!-- Body -->
         <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+          <!-- 错误提示（表单顶部，4秒自动消失） -->
+          <Transition name="error-fade">
+            <div v-if="errorMessage" class="flex items-center gap-2 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+              <AlertCircle class="w-4 h-4 flex-shrink-0" />
+              <span>{{ errorMessage }}</span>
+            </div>
+          </Transition>
+
           <!-- Username -->
           <div>
             <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
@@ -197,6 +275,9 @@ const toggleStatus = () => {
               ]"
               :placeholder="isEditMode ? '留空则不修改密码' : '输入密码...'"
             />
+            <p :class="['text-xs mt-1.5', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
+              {{ t('admin_password_rule') }}
+            </p>
           </div>
 
           <!-- Confirm Password (only for new user) -->
@@ -258,6 +339,7 @@ const toggleStatus = () => {
               </span>
             </div>
           </div>
+
         </div>
 
         <!-- Footer -->
@@ -311,5 +393,20 @@ const toggleStatus = () => {
 .modal-leave-to .modal-content {
   transform: scale(0.95);
   opacity: 0;
+}
+
+.error-fade-enter-active,
+.error-fade-leave-active {
+  transition: all 0.3s ease;
+}
+
+.error-fade-enter-from {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+.error-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
 }
 </style>

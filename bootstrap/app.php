@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\HandleInertiaRequests::class,
             \App\Http\Middleware\ActivityLogMiddleware::class,
+            \App\Http\Middleware\PageVisitMiddleware::class,
         ]);
         $middleware->alias([
             'maintenance' => \App\Http\Middleware\CheckMaintenanceMode::class,
@@ -26,7 +27,18 @@ return Application::configure(basePath: dirname(__DIR__))
             //
         ]);
 
-        // 403 AccessDeniedHttpException（authorizeResource 失败时抛出）
+        // 前台 404 — Vue SPA 内直接渲染 components/ErrorPage.vue
+        $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e, $request) {
+            if (!$request->expectsJson()) {
+                return \Inertia\Inertia::render('ErrorPage', [
+                    'errorCode' => 404,
+                    'errorPath' => $request->path(),
+                ])->toResponse($request)->setStatusCode(404);
+            }
+        });
+
+        // 后台 403 — Vue SPA 内渲染 Forbidden.vue
+        // AccessDeniedHttpException（authorizeResource 失败时抛出）
         $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException $e, $request) {
             if (!$request->expectsJson()) {
                 return \Inertia\Inertia::render('Forbidden', [
@@ -35,7 +47,7 @@ return Application::configure(basePath: dirname(__DIR__))
             }
         });
 
-        // 403 HttpException（abort(403) / abort_unless 抛出）
+        // 后台 403 — HttpException（abort(403) / abort_unless 抛出）
         $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\HttpException $e, $request) {
             if ($e->getStatusCode() === 403 && !$request->expectsJson()) {
                 return \Inertia\Inertia::render('Forbidden', [

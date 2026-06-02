@@ -4,11 +4,16 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\Video;
+use App\Services\VisitService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class VideoController extends Controller
 {
+    public function __construct(
+        protected VisitService $visitService,
+    ) {}
+
     public function index(Request $request): View
     {
         $filters = $request->only(['platform']);
@@ -25,7 +30,7 @@ class VideoController extends Controller
 
     public function show(Video $video): View
     {
-        $video->increment('views_count');
+        $this->visitService->trackModel($video, $request);
         return view('videos.show', compact('video'));
     }
 }

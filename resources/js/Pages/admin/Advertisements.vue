@@ -17,14 +17,10 @@ import {
   useI18n,
   useTheme,
   Plus,
-  Search,
   Edit3,
   Trash2,
-  Filter,
   Eye,
   X,
-  CheckCircle,
-  XCircle,
   Image as ImageIcon,
   Link as LinkIcon,
   Calendar,
@@ -39,7 +35,8 @@ import {
   BarChart3,
   Check,
   ConfirmDialog,
-  Pagination
+  Pagination,
+  SearchFilterModal
 } from '../../composables/useAdminImports';
 import { Motion, AnimatePresence } from 'motion-v';
 import { formatToShort } from '../../utils/dateUtils';
@@ -217,6 +214,12 @@ const getCtr = (ad) => {
   if (ad.views_count === 0) return '0%';
   return ((ad.clicks_count / ad.views_count) * 100).toFixed(2) + '%';
 };
+
+const handleFilterChange = ({ key, value }) => {
+  if (key === 'position') positionFilter.value = value;
+  if (key === 'status') statusFilter.value = value;
+  currentPage.value = 1;
+};
 </script>
 
 <template>
@@ -242,46 +245,29 @@ const getCtr = (ad) => {
     </div>
 
     <!-- Filters -->
-    <div class="flex flex-col md:flex-row gap-4 mb-10">
-      <div class="flex-1 relative">
-        <Search :class="['absolute left-4 top-1/2 -translate-y-1/2 transition-colors', isDarkMode ? 'text-gray-500' : 'text-gray-400']" size="20" />
-        <input
-          v-model="searchQuery"
-          type="text"
-          :placeholder="t('admin_search_ad')"
-          :class="[
-            'w-full pl-12 pr-4 py-4 border focus:border-construct-red focus:outline-none transition-all rounded-2xl font-bold',
-            isDarkMode ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 shadow-inner' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 shadow-sm'
-          ]"
-        />
-      </div>
-      <div class="flex items-center gap-4">
-        <div class="flex items-center gap-2">
-          <Filter :class="isDarkMode ? 'text-gray-500' : 'text-gray-400'" size="18" />
-          <select
-            v-model="positionFilter"
-            :class="[
-              'px-6 py-4 border focus:border-construct-red focus:outline-none transition-all rounded-2xl font-bold text-sm min-w-[160px]',
-              isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900 shadow-sm'
-            ]"
-          >
-            <option value="all">{{ t('admin_all_positions') }}</option>
-            <option v-for="pos in positionOptions" :key="pos.value" :value="pos.name">{{ pos.label }}</option>
-          </select>
-        </div>
-        <select
-          v-model="statusFilter"
-          :class="[
-            'px-6 py-4 border focus:border-construct-red focus:outline-none transition-all rounded-2xl font-bold text-sm min-w-[140px]',
-            isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900 shadow-sm'
-          ]"
-        >
-          <option value="all">{{ t('admin_all_status') }}</option>
-          <option value="active">{{ t('admin_active') }}</option>
-          <option value="inactive">{{ t('admin_inactive') }}</option>
-        </select>
-      </div>
-    </div>
+    <SearchFilterModal
+      v-model:search-query="searchQuery"
+      :search-placeholder="t('admin_search_ad')"
+      :filters="[
+        {
+          key: 'position',
+          options: [
+            { value: 'all', label: t('admin_all_positions') },
+            ...positionOptions.map(p => ({ value: p.name, label: p.label }))
+          ]
+        },
+        {
+          key: 'status',
+          options: [
+            { value: 'all', label: t('admin_all_status') },
+            { value: 'active', label: t('admin_active') },
+            { value: 'inactive', label: t('admin_inactive') }
+          ]
+        }
+      ]"
+      :filter-values="{ position: positionFilter, status: statusFilter }"
+      @filter-change="handleFilterChange"
+    />
 
     <!-- Ads Grid -->
     <div class="space-y-6">

@@ -18,16 +18,14 @@ import {
   useTheme,
   Folder,
   Plus,
-  Search,
   Edit3,
   Trash2,
-  Filter,
-  FileText,
   MetaForm,
   ConfirmDialog,
   Pagination,
   SearchFilterModal
 } from '../../composables/useAdminImports';
+import { Motion } from 'motion-v';
 
 const props = defineProps({
   categories: {
@@ -185,14 +183,19 @@ const handleFilterChange = ({ key, value }) => {
 
     <!-- Categories Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-      <div 
-        v-for="category in paginatedCategories" 
+      <Motion
+        v-for="(category, index) in paginatedCategories" 
         :key="category.id"
+        :initial="{ opacity: 0, y: 24 }"
+        :animate="{ opacity: 1, y: 0 }"
+        :transition="{ duration: 0.35, delay: index * 0.06, ease: 'easeOut' }"
+        :whileHover="{ scale: 1.02, y: -3, boxShadow: '0 16px 40px rgba(0,0,0,0.14)' }"
+        :whileTap="{ scale: 0.98 }"
         :class="[
-          'group relative border p-6 transition-all duration-500 hover:-translate-y-2',
+          'group relative flex flex-col rounded-xl overflow-hidden cursor-default',
           isDarkMode 
-            ? 'bg-gray-800/40 border-gray-700/50 hover:border-construct-red/50 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.3)]' 
-            : 'bg-white/80 border-gray-200/80 hover:border-construct-red/30 backdrop-blur-md shadow-[0_8px_32px_0_rgba(31,38,135,0.07)]'
+            ? 'bg-gray-800/60 border border-gray-700/50 shadow-[0_4px_20px_rgba(0,0,0,0.2)]'
+            : 'bg-white border border-gray-200/60 shadow-[0_4px_20px_rgba(0,0,0,0.04)]'
         ]"
       >
         <!-- Card Background Accent -->
@@ -200,66 +203,89 @@ const handleFilterChange = ({ key, value }) => {
           <Folder size="80" class="rotate-12" />
         </div>
 
-        <div class="flex items-start justify-between mb-6">
-          <div :class="[
-            'w-14 h-14 rounded-2xl flex items-center justify-center transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3 shadow-lg',
-            isDarkMode 
-              ? 'bg-gradient-to-br from-gray-700 to-gray-800 text-construct-red' 
-              : 'bg-gradient-to-br from-gray-50 to-gray-100 text-construct-red'
-          ]">
-            <Folder size="28" />
-          </div>
-          <button
-            @click="toggleStatus(category)"
-            class="flex items-center gap-1 cursor-pointer z-10"
-            :title="category.status === 'active' ? t('admin_active') : t('admin_inactive')"
-          >
+        <!-- Card Body -->
+        <div class="p-5 pb-3 flex flex-col flex-1">
+          <!-- Top Row: Icon + Status -->
+          <div class="flex items-start justify-between mb-4">
             <div :class="[
-              'w-11 h-6 rounded-full relative transition-all duration-300 shadow-inner',
-              category.status === 'active' ? 'bg-construct-red' : (isDarkMode ? 'bg-gray-700' : 'bg-gray-300')
+              'w-12 h-12 rounded-xl flex items-center justify-center transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6',
+              isDarkMode 
+                ? 'bg-gradient-to-br from-construct-red/20 to-construct-red/10 text-construct-red' 
+                : 'bg-gradient-to-br from-construct-red/10 to-construct-red/5 text-construct-red'
             ]">
-              <div :class="[
-                'absolute top-1 w-4 h-4 rounded-full bg-white shadow-md transition-all duration-300 flex items-center justify-center',
-                category.status === 'active' ? 'left-6' : 'left-1'
-              ]">
-                <div v-if="category.status === 'active'" class="w-1.5 h-1.5 rounded-full bg-construct-red animate-pulse"></div>
-              </div>
+              <Folder size="24" />
             </div>
-          </button>
-        </div>
-        
-        <div class="mb-4">
-          <h3 :class="['font-display text-2xl tracking-tighter mb-2 group-hover:text-construct-red transition-colors', isDarkMode ? 'text-white' : 'text-gray-900']">
+            <button
+              @click="toggleStatus(category)"
+              class="flex items-center gap-1 cursor-pointer z-10 shrink-0"
+              :title="category.status === 'active' ? t('admin_active') : t('admin_inactive')"
+            >
+              <div :class="[
+                'w-10 h-5 rounded-full relative transition-all duration-300',
+                category.status === 'active' ? 'bg-construct-red' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-300')
+              ]">
+                <div :class="[
+                  'absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-all duration-300',
+                  category.status === 'active' ? 'left-[22px]' : 'left-0.5'
+                ]"></div>
+              </div>
+            </button>
+          </div>
+
+          <!-- Name -->
+          <h3 :class="[
+            'font-bold text-lg mb-1.5 truncate transition-colors duration-300',
+            isDarkMode ? 'text-white group-hover:text-construct-red' : 'text-gray-900 group-hover:text-construct-red'
+          ]">
             {{ category.name }}
           </h3>
-          <p :class="['text-sm line-clamp-2 leading-relaxed', isDarkMode ? 'text-gray-400' : 'text-gray-600']">
-            {{ category.description || 'No description provided for this category.' }}
+
+          <!-- Slug -->
+          <p :class="['text-xs mb-2 truncate', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
+            {{ category.slug }}
+          </p>
+
+          <!-- Description -->
+          <p :class="[
+            'text-xs line-clamp-2 leading-relaxed flex-1',
+            isDarkMode ? 'text-gray-400' : 'text-gray-500'
+          ]">
+            {{ category.description || 'No description' }}
           </p>
         </div>
-        
-        <div :class="['flex items-center justify-between pt-5 border-t mt-auto', isDarkMode ? 'border-gray-700/50' : 'border-gray-100']">
-          <div :class="['flex items-center gap-2 text-xs font-black tracking-widest uppercase', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
-            <div class="flex items-center justify-center w-6 h-6 rounded-full bg-gray-500/10">
-              <FileText size="12" />
-            </div>
-            <span>{{ category.postCount }} {{ t('admin_posts') }}</span>
+
+        <!-- Bottom Bar: Badges + Actions -->
+        <div class="flex items-center justify-between px-5 py-3 mt-auto">
+          <div class="flex gap-1.5 text-[11px] font-bold">
+            <span :class="['px-2 py-0.5 rounded-md', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-200/70 text-gray-500']" v-if="category.posts_count">
+              📝 {{ category.posts_count }}
+            </span>
+            <span :class="['px-2 py-0.5 rounded-md', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-200/70 text-gray-500']" v-if="category.videos_count">
+              🎬 {{ category.videos_count }}
+            </span>
+            <span :class="['px-2 py-0.5 rounded-md', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-200/70 text-gray-500']" v-if="category.projects_count">
+              📁 {{ category.projects_count }}
+            </span>
+            <span :class="['px-2 py-0.5 rounded-md', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-200/70 text-gray-500']" v-if="category.resources_count">
+              📦 {{ category.resources_count }}
+            </span>
           </div>
-          <div class="flex items-center gap-2">
+          <div class="flex gap-0.5">
             <button 
               @click="handleEdit(category)" 
-              :class="['p-2.5 rounded-xl transition-all duration-300 hover:scale-110', isDarkMode ? 'text-gray-400 hover:bg-gray-700 hover:text-white' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900']"
+              :class="['p-2 rounded-lg transition-all duration-200 hover:scale-110', isDarkMode ? 'text-gray-400 hover:text-blue-400 hover:bg-gray-700' : 'text-gray-400 hover:text-blue-500 hover:bg-gray-200']"
             >
-              <Edit3 size="18" />
+              <Edit3 size="14" />
             </button>
             <button 
               @click="handleDelete(category.id)" 
-              :class="['p-2.5 rounded-xl transition-all duration-300 hover:scale-110', isDarkMode ? 'text-gray-400 hover:bg-red-500/10 hover:text-red-400' : 'text-gray-500 hover:bg-red-50 hover:text-red-600']"
+              :class="['p-2 rounded-lg transition-all duration-200 hover:scale-110', isDarkMode ? 'text-gray-400 hover:text-red-400 hover:bg-gray-700/50' : 'text-gray-400 hover:text-red-500 hover:bg-red-50']"
             >
-              <Trash2 size="18" />
+              <Trash2 size="14" />
             </button>
           </div>
         </div>
-      </div>
+      </Motion>
     </div>
 
     <!-- Pagination -->

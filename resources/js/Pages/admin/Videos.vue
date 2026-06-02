@@ -9,7 +9,7 @@
  */
 import { ref, computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { router } from '@inertiajs/vue3';
+import { router, usePage } from '@inertiajs/vue3';
 import {
   Play,
   Plus,
@@ -22,7 +22,7 @@ import {
   Video
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
-import { formatToRelative } from '../../utils/dateUtils';
+import { formatToSmartDate } from '../../utils/dateUtils';
 import VideoForm from '../../components/admin/VideoForm.vue';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import Pagination from '../../components/admin/Pagination.vue';
@@ -53,6 +53,7 @@ const t = (key, fallback = '') => {
   }
 };
 const { isDarkMode } = useTheme();
+const page = usePage();
 
 const searchQuery = ref('');
 const currentPage = ref(1);
@@ -77,6 +78,8 @@ watch(() => props.video, (newVideo) => {
       description: newVideo.description,
       thumbnail: newVideo.cover_image,
       url: newVideo.video_url,
+      video_id: newVideo.video_id,
+      platform: newVideo.platform,
       duration: newVideo.duration,
       category: newVideo.category,
       date: newVideo.published_at,
@@ -150,6 +153,7 @@ const handleEdit = (video) => {
     thumbnail: video.cover_image,
     url: video.video_url,
     video_id: video.video_id,
+    platform: video.platform,
     duration: video.duration,
     category: video.category_id,
     date: video.published_at ? new Date(video.published_at).toISOString().split('T')[0].replace(/-/g, '.') : '',
@@ -171,6 +175,7 @@ const handleSave = (data) => {
     description: data.description,
     video_url: data.url || null,
     video_id: data.video_id || null,
+    platform: data.platform || null,
     cover_image: data.thumbnail,
     duration: data.duration ? parseInt(data.duration) : null,
     category_id: category ? category.id : null,
@@ -215,9 +220,9 @@ const handleFilterChange = ({ key, value }) => {
         <div>
           <div class="flex items-center gap-4 mb-2">
             <Play class="text-construct-red" size="32" />
-            <h2 class="font-display text-4xl tracking-tighter">{{ t('admin_videos') }}</h2>
+            <h2 :class="['font-display text-4xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">{{ t('admin_videos') }}</h2>
           </div>
-          <p class="text-gray-400 text-sm font-black tracking-[0.2em] uppercase opacity-50">{{ t('admin_videos_subtitle') }}</p>
+          <p :class="['text-sm font-black tracking-[0.2em] uppercase opacity-50', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_videos_subtitle') }}</p>
         </div>
         <button
           @click="handleAdd"
@@ -252,12 +257,12 @@ const handleFilterChange = ({ key, value }) => {
         v-for="video in paginatedVideos"
         :key="video.id"
         :class="[
-          'border overflow-hidden hover:border-construct-red transition-colors',
-          isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+          'flex flex-col rounded-lg shadow-md',
+          isDarkMode ? 'bg-gray-800' : 'bg-white'
         ]"
       >
         <!-- Video Thumbnail -->
-        <div class="relative aspect-video bg-gray-900">
+        <div :class="['relative aspect-video box-border rounded-t-lg overflow-hidden', !video.cover_image ? 'border-2 border-b-0 border-dashed' : '', isDarkMode ? 'bg-gray-900' : 'bg-gray-100', !video.cover_image && !isDarkMode ? 'border-gray-300' : '', !video.cover_image && isDarkMode ? 'border-gray-600' : '']">
           <img
             v-if="video.cover_image"
             :src="video.cover_image"
@@ -265,7 +270,7 @@ const handleFilterChange = ({ key, value }) => {
             class="w-full h-full object-cover"
           />
           <div v-else class="w-full h-full flex items-center justify-center">
-            <Play class="w-12 h-12 text-gray-600" />
+            <Play :class="['w-12 h-12', isDarkMode ? 'text-gray-600' : 'text-gray-400']" />
           </div>
           <div class="absolute bottom-2 right-2 px-2 py-1 bg-black/80 text-white text-xs font-bold uppercase">
             {{ video.status }}
@@ -273,14 +278,34 @@ const handleFilterChange = ({ key, value }) => {
         </div>
         
         <!-- Video Info -->
-        <div class="p-4">
-          <h3 :class="['font-bold mb-2 line-clamp-2', isDarkMode ? 'text-white' : 'text-gray-900']">{{ video.title }}</h3>
-          <p :class="['text-sm mb-4 line-clamp-2', isDarkMode ? 'text-gray-400' : 'text-gray-600']">{{ video.description }}</p>
+        <div class="p-4 flex flex-col flex-1">
+          <h3
+            :class="['font-bold mb-2 text-lg', isDarkMode ? 'text-white' : 'text-gray-900']"
+            style="display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden;"
+          >{{ video.title }}</h3>
+          <p
+            :class="['text-sm mb-4', isDarkMode ? 'text-gray-400' : 'text-gray-600']"
+            style="display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; min-height: 2.5rem;"
+          >{{ video.description }}</p>
           
-          <div class="flex items-center justify-between">
+          <!-- Tags -->
+          <div class="flex flex-wrap gap-1 mb-4">
+            <span
+              v-for="tag in video.tags.slice(0, 3)"
+              :key="tag"
+              :class="['text-xs px-2 py-1 rounded', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600']"
+            >
+              {{ tag }}
+            </span>
+            <span v-if="video.tags.length > 3" :class="['text-xs px-2 py-1 rounded', isDarkMode ? 'bg-gray-700 text-gray-400' : 'bg-gray-100 text-gray-500']">
+              +{{ video.tags.length - 3 }}
+            </span>
+          </div>
+          
+          <div class="flex items-center justify-between mt-auto">
             <div :class="['flex items-center gap-2 text-xs', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
               <Clock size="12" />
-              {{ formatToRelative(video.published_at) }}
+              {{ formatToSmartDate(video.created_at) }}
             </div>
             
             <div class="flex gap-2">
@@ -324,6 +349,7 @@ const handleFilterChange = ({ key, value }) => {
       :edit-data="editingVideo"
       :visible="isFormVisible"
       :categories="categories"
+      :media-files="page.props.mediaFiles || []"
       @save="handleSave"
       @cancel="handleCancel"
     />

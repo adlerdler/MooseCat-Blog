@@ -13,7 +13,6 @@ import {
   watch,
   useI18n,
   useTheme,
-  formatToShort,
   FileText,
   Plus,
   Search,
@@ -30,6 +29,10 @@ import {
   SearchFilterModal,
   router
 } from '../../composables/useAdminImports';
+import { usePage } from '@inertiajs/vue3';
+import { formatToSmartDate } from '../../utils/dateUtils';
+
+const page = usePage();
 
 const props = defineProps({
   posts: {
@@ -101,6 +104,29 @@ const getCategoryColor = (category) => {
   return colorMap[category] || (isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600');
 };
 
+const getStatusBadge = (status) => {
+  const base = 'px-2 py-1 text-xs font-bold uppercase';
+  if (status === 'published') {
+    return `${base} ${isDarkMode ? 'bg-green-900 text-green-300' : 'bg-green-100 text-green-700'}`;
+  }
+  if (status === 'draft') {
+    return `${base} ${isDarkMode ? 'bg-yellow-900 text-yellow-300' : 'bg-yellow-100 text-yellow-700'}`;
+  }
+  if (status === 'scheduled') {
+    return `${base} ${isDarkMode ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-700'}`;
+  }
+  return `${base} ${isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'}`;
+};
+
+const getStatusLabel = (status) => {
+  const labels = {
+    published: t('admin_post_status_published'),
+    draft: t('admin_post_status_draft'),
+    scheduled: t('admin_post_status_scheduled'),
+  };
+  return labels[status] || status;
+};
+
 const filteredPosts = computed(() => {
   let result = [...props.posts];
 
@@ -135,7 +161,6 @@ const handleAdd = () => {
 };
 
 const handleEdit = (post) => {
-  const author = props.users.find(u => u.id === post.author_id);
   editingPost.value = {
     id: post.id,
     title: post.title,
@@ -143,9 +168,8 @@ const handleEdit = (post) => {
     excerpt: post.excerpt,
     content: post.content,
     thumbnail: post.cover_image || '',
-    author: author ? (author.pen_name || author.name) : '',
     category: post.category_id,
-    date: post.published_at ? new Date(post.published_at).toISOString().split('T')[0].replace(/-/g, '.') : new Date().toISOString().split('T')[0].replace(/-/g, '.'),
+    status: post.status || 'draft',
     tags: Array.isArray(post.tags) ? post.tags.join(', ') : (post.tags || ''),
     color: post.color || 'red',
   };
@@ -176,15 +200,16 @@ const confirmDelete = () => {
 };
 
 const handleSave = (data) => {
-  const category = props.categories.find(c => c.name === data.category || c.id === data.category);
+  const categoryId = data.category ? Number(data.category) : null;
+  const category = categoryId ? props.categories.find(c => c.id === categoryId) : null;
   const payload = {
     title: data.title,
     excerpt: data.excerpt,
     content: data.content,
     cover_image: data.thumbnail,
     category_id: category ? category.id : null,
+    status: data.status || 'published',
     tags: data.tags,
-    published_at: data.date.replace(/\./g, '-'),
     color: data.color,
   };
 
@@ -231,9 +256,9 @@ watch(() => props.post, (newPost) => {
         <div>
           <div class="flex items-center gap-4 mb-2">
             <FileText class="text-construct-red" size="32" />
-            <h2 class="font-display text-4xl tracking-tighter">{{ t('admin_posts') }}</h2>
+            <h2 :class="['font-display text-4xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">{{ t('admin_posts') }}</h2>
           </div>
-          <p class="text-gray-400 text-sm font-black tracking-[0.2em] uppercase opacity-50">{{ t('admin_posts_subtitle') }}</p>
+          <p :class="['text-sm font-black tracking-[0.2em] uppercase opacity-50', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_posts_subtitle') }}</p>
         </div>
         <button
           @click="handleAdd"
@@ -268,12 +293,12 @@ watch(() => props.post, (newPost) => {
         v-for="post in paginatedPosts"
         :key="post.id"
         :class="[
-          'border overflow-hidden hover:border-construct-red transition-colors',
-          isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+          'flex flex-col rounded-lg shadow-md',
+          isDarkMode ? 'bg-gray-800' : 'bg-white'
         ]"
       >
         <!-- Post Thumbnail -->
-        <div class="relative aspect-video bg-gray-900">
+        <div :class="['relative aspect-video box-border rounded-t-lg overflow-hidden', !post.cover_image ? 'border-2 border-b-0 border-dashed' : '', isDarkMode ? 'bg-gray-900' : 'bg-gray-100', !post.cover_image && !isDarkMode ? 'border-gray-300' : '', !post.cover_image && isDarkMode ? 'border-gray-600' : '']">
           <img
             v-if="post.cover_image"
             :src="post.cover_image"
@@ -281,37 +306,45 @@ watch(() => props.post, (newPost) => {
             class="w-full h-full object-cover"
           />
           <div v-else class="w-full h-full flex items-center justify-center">
-            <FileText class="w-12 h-12 text-gray-600" />
+            <FileText :class="['w-12 h-12', isDarkMode ? 'text-gray-600' : 'text-gray-400']" />
           </div>
-          <div class="absolute top-2 right-2 px-2 py-1 text-xs font-bold uppercase" :class="getCategoryColor(getCategoryNameById(categories, post.category_id))">
+          <div class="absolute top-2 left-2 px-2 py-1 text-xs font-bold uppercase rounded" :class="getStatusBadge(post.status)">
+            {{ getStatusLabel(post.status) }}
+          </div>
+          <div class="absolute top-2 right-2 px-2 py-1 text-xs font-bold uppercase rounded" :class="getCategoryColor(getCategoryNameById(categories, post.category_id))">
             {{ getCategoryNameById(categories, post.category_id) }}
           </div>
         </div>
         
         <!-- Post Info -->
-        <div class="p-4">
-          <h3 :class="['font-bold mb-2 line-clamp-2', isDarkMode ? 'text-white' : 'text-gray-900']">{{ post.title }}</h3>
-          <p :class="['text-sm mb-4 line-clamp-2', isDarkMode ? 'text-gray-400' : 'text-gray-600']">{{ post.excerpt }}</p>
+        <div class="p-4 flex flex-col flex-1">
+          <h3
+            :class="['font-bold mb-2 text-lg', isDarkMode ? 'text-white' : 'text-gray-900']"
+            style="display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden;"
+          >{{ post.title }}</h3>
+          <p
+            :class="['text-sm mb-4', isDarkMode ? 'text-gray-400' : 'text-gray-600']"
+            style="display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; min-height: 2.5rem;"
+          >{{ post.excerpt }}</p>
           
           <!-- Tags -->
           <div class="flex flex-wrap gap-1 mb-4">
             <span
               v-for="tag in post.tags.slice(0, 3)"
               :key="tag"
-              :class="['text-xs px-2 py-1', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600']"
-              class="rounded"
+              :class="['text-xs px-2 py-1 rounded', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600']"
             >
               {{ tag }}
             </span>
-            <span v-if="post.tags.length > 3" :class="['text-xs px-2 py-1', isDarkMode ? 'bg-gray-700 text-gray-400' : 'bg-gray-100 text-gray-500']" class="rounded">
+            <span v-if="post.tags.length > 3" :class="['text-xs px-2 py-1 rounded', isDarkMode ? 'bg-gray-700 text-gray-400' : 'bg-gray-100 text-gray-500']">
               +{{ post.tags.length - 3 }}
             </span>
           </div>
           
-          <div class="flex items-center justify-between">
+          <div class="flex items-center justify-between mt-auto">
             <div :class="['flex items-center gap-2 text-xs', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
               <Clock size="12" />
-              {{ formatToShort(post.published_at) }}
+              {{ formatToSmartDate(post.created_at) }}
               <span class="ml-2">{{ getAuthorName(post.author_id) }}</span>
             </div>
             
@@ -319,7 +352,7 @@ watch(() => props.post, (newPost) => {
               <button
                 @click="handleEdit(post)"
                 :class="[
-                  'p-2 transition-colors',
+                  'p-2 transition-colors rounded',
                   isDarkMode ? 'text-gray-400 hover:text-blue-400 hover:bg-gray-700' : 'text-gray-500 hover:text-blue-500 hover:bg-gray-100'
                 ]"
                 :title="t('admin_edit')"
@@ -329,7 +362,7 @@ watch(() => props.post, (newPost) => {
               <button
                 @click="handleDelete(post.id)"
                 :class="[
-                  'p-2 transition-colors',
+                  'p-2 transition-colors rounded',
                   isDarkMode ? 'text-gray-400 hover:text-red-400 hover:bg-gray-700' : 'text-gray-500 hover:text-red-500 hover:bg-gray-100'
                 ]"
                 :title="t('admin_delete')"
@@ -356,6 +389,8 @@ watch(() => props.post, (newPost) => {
     <PostForm
       :edit-data="editingPost"
       :visible="isFormVisible"
+      :categories="categories"
+      :media-files="page.props.mediaFiles || []"
       @save="handleSave"
       @cancel="handleCancel"
     />

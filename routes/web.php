@@ -31,6 +31,7 @@ use App\Http\Controllers\Frontend\FrontendController;
 use App\Http\Controllers\Web\PostController;
 use App\Http\Controllers\Web\CommentController;
 use App\Http\Controllers\Web\CategoryController;
+use App\Models\AuthorProfile;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -49,12 +50,29 @@ Route::middleware(['maintenance'])->group(function () {
     Route::get('/', [FrontendController::class, 'home'])->name('home');
     Route::get('/blog', [FrontendController::class, 'blog'])->name('blog');
     Route::get('/projects', [FrontendController::class, 'projects'])->name('projects');
-    Route::get('/projects/{id}', [FrontendController::class, 'projectDetail'])->name('projects.detail');
+    Route::get('/projects/{slug}', [FrontendController::class, 'projectDetail'])->name('projects.detail');
     Route::get('/resources', [FrontendController::class, 'resources'])->name('resources');
+    // 自定义视频路由绑定：slug 优先，纯数字 ID 兜底
+    Route::bind('video', function ($value) {
+        $video = \App\Models\Video::where('slug', $value)->first();
+        if ($video) return $video;
+        if (is_numeric($value)) {
+            $video = \App\Models\Video::find($value);
+            if ($video) return $video;
+        }
+        abort(404);
+    });
     Route::get('/videos', [FrontendController::class, 'videos'])->name('videos');
-    Route::get('/videos/{id}', [FrontendController::class, 'videoDetail'])->name('videos.detail');
-    Route::get('/blog/{id}', [FrontendController::class, 'postDetail'])->name('posts.detail');
-    Route::get('/author', [FrontendController::class, 'author'])->name('author');
+    Route::get('/videos/{video}', [FrontendController::class, 'videoDetail'])->name('videos.detail');
+    Route::get('/blog/{post:slug}', [FrontendController::class, 'postDetail'])->name('posts.detail');
+    Route::get('/author', function () {
+        $profile = AuthorProfile::where('is_active', true)->first();
+        if ($profile) {
+            return redirect('/author/' . $profile->slug);
+        }
+        abort(404);
+    });
+    Route::get('/author/{slug}', [FrontendController::class, 'author'])->name('author');
 
     // 文章相关路由
     Route::get('/posts', [PostController::class, 'index'])->name('posts.index');
@@ -122,7 +140,11 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::put('/seo/page-seo/{pageSeo}', [SeoController::class, 'updatePageSeo'])->name('admin.seo.page-seo.update');
     Route::delete('/seo/page-seo/{pageSeo}', [SeoController::class, 'destroyPageSeo'])->name('admin.seo.page-seo.destroy');
     Route::get('/i18n', [I18nController::class, 'index'])->name('admin.i18n');
-    Route::put('/i18n', [I18nController::class, 'update'])->name('admin.i18n.update');
+    Route::put('/i18n/translations', [I18nController::class, 'saveTranslations'])->name('admin.i18n.translations.save');
+    Route::post('/i18n/languages', [I18nController::class, 'addLanguage'])->name('admin.i18n.languages.store');
+    Route::post('/i18n/upload-locale', [I18nController::class, 'uploadLocale'])->name('admin.i18n.upload-locale');
+    Route::put('/i18n/languages/{code}', [I18nController::class, 'updateLanguage'])->name('admin.i18n.languages.update');
+    Route::delete('/i18n/languages/{code}', [I18nController::class, 'deleteLanguage'])->name('admin.i18n.languages.destroy');
     Route::get('/media', [MediaController::class, 'index'])->name('admin.media');
     Route::post('/media', [MediaController::class, 'store'])->name('admin.media.store');
     Route::delete('/media/{media:uuid}', [MediaController::class, 'destroy'])->name('admin.media.destroy');
@@ -151,6 +173,7 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::get('/users/{slug}', [UsersController::class, 'show'])->name('admin.users.show');
     Route::get('/users/{slug}/edit', [UsersController::class, 'edit'])->name('admin.users.edit');
     Route::put('/users/{user}', [UsersController::class, 'update'])->name('admin.users.update');
+    Route::patch('/users/{user}/status', [UsersController::class, 'toggleStatus'])->name('admin.users.toggle-status');
     Route::delete('/users/{user}', [UsersController::class, 'destroy'])->name('admin.users.destroy');
     Route::resource('subscribers', SubscribersController::class)->names([
         'index' => 'admin.subscribers.index',
@@ -201,6 +224,7 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     
     // 其他管理
     Route::resource('comments', CommentsController::class)->only(['index', 'update', 'destroy']);
+    Route::post('comments/{comment}/reply', [CommentsController::class, 'reply'])->name('admin.comments.reply');
     Route::resource('advertisements', AdvertisementsController::class);
     Route::resource('author-profiles', AuthorProfileController::class)->names([
         'index' => 'admin.author-profiles.index',
@@ -208,4 +232,11 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
         'update' => 'admin.author-profiles.update',
         'destroy' => 'admin.author-profiles.destroy',
     ]);
+
+    // 头像上传
+    Route::post('/profile/avatar/{slug}', [AuthorProfileController::class, 'uploadAvatar'])->name('admin.profile.avatar');
+
+    // 个人资料页面（catch-all，放在所有具名路由之后）
+    Route::get('/{slug}', [AuthorProfileController::class, 'profile'])->name('admin.profile');
+    Route::put('/{slug}', [AuthorProfileController::class, 'updateProfile'])->name('admin.profile.update');
 });

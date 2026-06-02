@@ -1,6 +1,8 @@
 <script setup>
+import { usePage } from '@inertiajs/vue3';
 import {
   ref,
+  computed,
   useI18n,
   useTheme,
   Mail,
@@ -15,17 +17,26 @@ import {
   ConfirmDialog
 } from '../../composables/useAdminImports';
 
+const page = usePage();
 const props = defineProps({
   mailConfig: { type: Object, default: () => ({}) },
 });
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
-const { success } = useToast();
+const { success, error } = useToast();
 
 const mailSettings = ref({ ...props.mailConfig });
 const isSaving = ref(false);
+const isSending = ref(false);
 const showSaveConfirm = ref(false);
+
+// 测试邮件弹窗
+const showTestDialog = ref(false);
+const testUseCustomEmail = ref(false);
+const testCustomEmail = ref('');
+
+const currentUserEmail = computed(() => page.props.auth?.user?.email || '');
 
 const encryptionOptions = [
   { value: 'tls', label: 'TLS' },
@@ -49,10 +60,39 @@ const confirmSave = () => {
   });
 };
 
-const sendTestEmail = () => {
-  router.post('/admin/mail-config/test', mailSettings.value, {
+const openTestDialog = () => {
+  testUseCustomEmail.value = false;
+  testCustomEmail.value = '';
+  showTestDialog.value = true;
+};
+
+const confirmSendTest = () => {
+  if (testUseCustomEmail.value && !testCustomEmail.value.trim()) {
+    error(t('admin_mail_test_custom_required'));
+    return;
+  }
+  showTestDialog.value = false;
+  if (isSending.value) return;
+  isSending.value = true;
+
+  const payload = { ...mailSettings.value };
+  if (testUseCustomEmail.value) {
+    payload.customEmail = testCustomEmail.value.trim();
+  }
+
+  router.post('/admin/mail-config/test', payload, {
     preserveState: true,
     preserveScroll: true,
+    onSuccess: (p) => {
+      const flashMsg = p.props.flash?.success;
+      success(flashMsg || t('admin_mail_test_sent'));
+    },
+    onError: (errs) => {
+      error(errs.test || t('admin_mail_test_failed'));
+    },
+    onFinish: () => {
+      isSending.value = false;
+    },
   });
 };
 </script>
@@ -71,13 +111,16 @@ const sendTestEmail = () => {
         </div>
         <div class="flex items-center gap-4">
           <button
-            @click="sendTestEmail"
-            class="flex items-center gap-2 px-6 py-3 border font-bold tracking-wider transition-colors rounded"
+            @click="openTestDialog"
+            :disabled="isSending"
+            class="flex items-center gap-2 px-6 py-3 border font-bold tracking-wider transition-colors rounded disabled:opacity-50"
             :class="[
               isDarkMode ? 'border-gray-700 hover:bg-gray-700 text-white' : 'border-gray-300 hover:bg-gray-100 text-gray-900'
             ]"
           >
-            <Send size="18" /> {{ t('admin_send_test') }}
+            <Send v-if="!isSending" size="18" />
+            <span v-else class="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></span>
+            {{ isSending ? t('admin_send_test') + '...' : t('admin_send_test') }}
           </button>
           <button
             @click="saveSettings"
@@ -197,6 +240,69 @@ const sendTestEmail = () => {
               ]"
             />
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Test Email Dialog -->
+    <div v-if="showTestDialog" class="fixed inset-0 z-[200] flex items-center justify-center">
+      <div class="absolute inset-0 bg-black/60" @click="showTestDialog = false"></div>
+      <div :class="['relative w-full max-w-md mx-4 p-8 border shadow-2xl z-10', isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200']">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="font-display text-2xl tracking-tighter">{{ t('admin_mail_test_title') }}</h3>
+          <button @click="showTestDialog = false" :class="isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'">
+            <X size="20" />
+          </button>
+        </div>
+
+        <!-- Option 1: Current User -->
+        <label :class="['flex items-center gap-3 p-4 border mb-3 cursor-pointer transition-colors', testUseCustomEmail ? (isDarkMode ? 'border-gray-700 opacity-50' : 'border-gray-200 opacity-50') : (isDarkMode ? 'border-construct-red bg-red-500/10' : 'border-construct-red bg-red-50')]">
+          <input type="radio" v-model="testUseCustomEmail" :value="false" class="sr-only" />
+          <div :class="['w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0', !testUseCustomEmail ? 'border-construct-red' : (isDarkMode ? 'border-gray-600' : 'border-gray-300')]">
+            <div v-if="!testUseCustomEmail" class="w-2.5 h-2.5 rounded-full bg-construct-red"></div>
+          </div>
+          <div>
+            <p :class="['text-sm font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">{{ t('admin_mail_test_current_user') }}</p>
+            <p :class="['text-xs font-mono mt-0.5', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ currentUserEmail }}</p>
+          </div>
+        </label>
+
+        <!-- Option 2: Custom Email -->
+        <label :class="['flex items-start gap-3 p-4 border cursor-pointer transition-colors', testUseCustomEmail ? (isDarkMode ? 'border-construct-red bg-red-500/10' : 'border-construct-red bg-red-50') : (isDarkMode ? 'border-gray-700 opacity-50' : 'border-gray-200 opacity-50')]">
+          <input type="radio" v-model="testUseCustomEmail" :value="true" class="sr-only" />
+          <div :class="['w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5', testUseCustomEmail ? 'border-construct-red' : (isDarkMode ? 'border-gray-600' : 'border-gray-300')]">
+            <div v-if="testUseCustomEmail" class="w-2.5 h-2.5 rounded-full bg-construct-red"></div>
+          </div>
+          <div class="flex-1">
+            <p :class="['text-sm font-bold mb-2', isDarkMode ? 'text-white' : 'text-gray-900']">{{ t('admin_mail_test_custom_email') }}</p>
+            <input
+              v-model="testCustomEmail"
+              type="email"
+              :placeholder="'example@mail.com'"
+              :disabled="!testUseCustomEmail"
+              :class="[
+                'w-full px-4 py-2.5 border text-sm font-mono focus:border-construct-red focus:outline-none transition-all',
+                isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400',
+                !testUseCustomEmail ? 'opacity-50' : ''
+              ]"
+            />
+          </div>
+        </label>
+
+        <!-- Actions -->
+        <div class="flex items-center gap-3 mt-6">
+          <button
+            @click="showTestDialog = false"
+            :class="['flex-1 px-4 py-3 text-sm font-bold tracking-wider uppercase border transition-colors', isDarkMode ? 'border-gray-700 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-600 hover:bg-gray-100']"
+          >
+            {{ t('admin_cancel') }}
+          </button>
+          <button
+            @click="confirmSendTest"
+            class="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-construct-red hover:bg-red-600 text-white text-sm font-bold tracking-wider uppercase transition-colors"
+          >
+            <Send size="16" /> {{ t('admin_send_test') }}
+          </button>
         </div>
       </div>
     </div>

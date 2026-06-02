@@ -59,6 +59,7 @@ import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import NotificationBell from '../../components/NotificationBell.vue';
 import { useTheme } from '../../composables/useTheme';
 import { useMenuItems } from '../../composables/useMenuItems';
+import { useToast } from '../../composables/useToast';
 
 const page = usePage();
 // 后端已过滤权限，直接使用
@@ -115,6 +116,14 @@ const closeUserMenu = () => {
   isUserMenuOpen.value = false;
 };
 
+const handleProfile = () => {
+  const slug = currentUser.value.slug;
+  if (slug) {
+    inertiaRouter.visit(`/admin/${slug}`);
+  }
+  closeUserMenu();
+};
+
 const handleLogout = () => {
   showLogoutConfirm.value = true;
   closeUserMenu();
@@ -122,9 +131,15 @@ const handleLogout = () => {
 
 const confirmLogout = () => {
   try {
+    // 历史遗留的明文敏感 key
     localStorage.removeItem('admin_logged_in');
     localStorage.removeItem('admin_email');
     localStorage.removeItem('admin_login_time');
+    localStorage.removeItem('admin_remembered_email');
+    localStorage.removeItem('admin_remembered_password');
+    localStorage.removeItem('admin_token');
+    localStorage.removeItem('admin_user');
+    sessionStorage.clear();
   } catch { /* noop */ }
   showLogoutConfirm.value = false;
   
@@ -280,6 +295,101 @@ const clearCache = () => {
   } catch { /* noop */ }
   location.reload();
 };
+
+// ========== 闲置自动退出（稳健版：时间戳 + 单 setInterval） ==========
+const IDLE_TIMEOUT = 1440; // 24 分钟无操作自动退出（单位：秒）
+const WARNING_THRESHOLD = 30; // 提前 30 秒警告
+const idleCountdown = ref(IDLE_TIMEOUT);
+const isIdleWarning = ref(false);
+let lastActivity = Date.now();  // 最后活动时间戳
+let idleCheckInterval = null;   // 唯一的定时器
+const { warning, toasts } = useToast();
+
+// 活动事件处理：仅更新时间戳
+const onUserActivity = () => {
+  lastActivity = Date.now();
+};
+
+// 每秒检查一次闲置时间
+const idleCheck = () => {
+  const elapsed = Math.floor((Date.now() - lastActivity) / 1000);
+  const remaining = IDLE_TIMEOUT - elapsed;
+
+  if (remaining <= 0) {
+    // 超时，立即退出
+    performAutoLogout();
+    return;
+  }
+
+  idleCountdown.value = remaining;
+  isIdleWarning.value = remaining <= WARNING_THRESHOLD;
+
+  // 倒计时 30 秒时弹出警告提示
+  if (remaining === WARNING_THRESHOLD) {
+    warning('闲置超时提醒', `您已 ${Math.floor(elapsed / 60)} 分钟未操作，${WARNING_THRESHOLD} 秒后将自动退出登录`);
+  }
+};
+
+const performAutoLogout = () => {
+  // 停止定时器
+  if (idleCheckInterval) {
+    clearInterval(idleCheckInterval);
+    idleCheckInterval = null;
+  }
+
+  // 清空所有 toast，避免跳转后残留
+  toasts.value = [];
+
+  // 清理所有认证相关的 localStorage/sessionStorage 数据
+  try {
+    localStorage.removeItem('admin_logged_in');
+    localStorage.removeItem('admin_email');
+    localStorage.removeItem('admin_login_time');
+    localStorage.removeItem('admin_remembered_email');
+    localStorage.removeItem('admin_remembered_password');
+    localStorage.removeItem('admin_token');
+    localStorage.removeItem('admin_user');
+    sessionStorage.clear();
+  } catch { /* noop */ }
+
+  inertiaRouter.post('/admin/logout', {}, {
+    onSuccess: () => {
+      inertiaRouter.visit('/admin/login');
+    },
+  });
+};
+
+const idleEvents = ['mousemove', 'mousedown', 'click', 'keydown', 'scroll', 'touchstart'];
+
+const startIdleDetection = () => {
+  lastActivity = Date.now();
+  idleCountdown.value = IDLE_TIMEOUT;
+  isIdleWarning.value = false;
+
+  idleEvents.forEach(event => {
+    document.addEventListener(event, onUserActivity);
+  });
+
+  idleCheckInterval = setInterval(idleCheck, 1000);
+};
+
+const stopIdleDetection = () => {
+  if (idleCheckInterval) {
+    clearInterval(idleCheckInterval);
+    idleCheckInterval = null;
+  }
+  idleEvents.forEach(event => {
+    document.removeEventListener(event, onUserActivity);
+  });
+};
+
+onMounted(() => {
+  startIdleDetection();
+});
+
+onUnmounted(() => {
+  stopIdleDetection();
+});
 </script>
 
 <template>
@@ -322,6 +432,17 @@ const clearCache = () => {
         >
           <Zap size="20" class="group-hover:scale-110 transition-transform" />
         </button>
+
+        <!-- Idle Countdown Indicator -->
+        <span
+          v-if="idleCountdown <= 15 && idleCountdown > 0"
+          :class="['text-xs font-bold px-2 py-1 rounded transition-all animate-pulse',
+            idleCountdown <= 5
+              ? 'bg-red-500/15 text-red-400'
+              : 'bg-yellow-500/10 text-yellow-400']"
+        >
+          {{ idleCountdown }}s
+        </span>
       </div>
     </header>
     
@@ -561,6 +682,16 @@ const clearCache = () => {
           <p :class="['text-xs mt-1', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ adminEmail }}</p>
         </div>
         <div class="p-2">
+          <!-- Profile Button -->
+          <button
+            @click.stop.prevent="handleProfile"
+            :class="['w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors',
+              isDarkMode ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-gray-700 hover:bg-gray-100']"
+          >
+            <User :size="18" />
+            <span>{{ t('admin_user_form_profile') }}</span>
+          </button>
+          
           <!-- Logout Button -->
           <button
             id="logout-btn"

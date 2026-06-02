@@ -28,9 +28,15 @@ const showBackToTop = ref(false);
 
 const embedUrl = computed(() => {
   if (!props.video) return '';
-  return props.video.platform === 'youtube'
-    ? `https://www.youtube.com/embed/${props.video.video_id}`
-    : `https://player.bilibili.com/player.html?bvid=${props.video.video_id}`;
+  if (props.video.platform === 'youtube') {
+    const origin = encodeURIComponent(window.location.origin);
+    return `https://www.youtube.com/embed/${props.video.video_id}`;
+  }
+  if (props.video.platform === 'bilibili') {
+    return `https://player.bilibili.com/player.html?bvid=${props.video.video_id}`;
+  }
+  // local 平台或无 video_id 时，使用完整视频 URL
+  return props.video.video_url || '';
 });
 
 onMounted(() => {
@@ -98,7 +104,7 @@ const scrollToTop = () => {
               {{ video.description }}
             </p>
             <p class="text-xs opacity-60 font-medium mt-4">
-              {{ video.published_at }} // {{ video.platform.toUpperCase() }}
+              {{ video.published_at }} // {{ video.platform === 'youtube' ? 'YOUTUBE' : video.platform === 'bilibili' ? 'BILIBILI' : '本站' }}
             </p>
           </div>
         </Motion>

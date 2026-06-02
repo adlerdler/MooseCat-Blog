@@ -36,7 +36,6 @@ import { useTheme } from '../../composables/useTheme';
 import { useToast } from '../../composables/useToast';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import Pagination from '../../components/admin/Pagination.vue';
-import SearchFilterModal from '../../components/admin/SearchFilterModal.vue';
 
 const props = defineProps({
   socialLinks: { type: Array, default: () => [] },
@@ -53,7 +52,6 @@ const socialLinksList = ref([...props.socialLinks]);
 const categoryLinksList = ref(props.navLinks.categories || []);
 const dataLinksList = ref(props.navLinks.data || []);
 
-const searchQuery = ref('');
 const currentPage = ref(1);
 const itemsPerPage = ref(6);
 
@@ -119,30 +117,12 @@ const getLinkIcon = (platform) => {
 };
 
 const filteredSocialLinks = computed(() => {
-  let result = [...socialLinksList.value];
-  if (searchQuery.value && activeTab.value === 'social') {
-    const query = searchQuery.value.toLowerCase();
-    result = result.filter(link =>
-      (link.label || '').toLowerCase().includes(query) ||
-      (link.platform || '').toLowerCase().includes(query) ||
-      (link.url || '').toLowerCase().includes(query)
-    );
-  }
-  return result.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+  return [...socialLinksList.value].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
 });
 
 const filteredNavLinks = computed(() => {
   const list = activeTab.value === 'categories' ? categoryLinksList.value : dataLinksList.value;
-  let result = [...list];
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase();
-    result = result.filter(link =>
-      (link.label_key || link.label || '').toLowerCase().includes(query) ||
-      (link.label_default || '').toLowerCase().includes(query) ||
-      (link.route || link.url || '').toLowerCase().includes(query)
-    );
-  }
-  return result.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+  return [...list].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
 });
 
 const filteredList = computed(() => {
@@ -368,22 +348,23 @@ const tabs = [
 ];
 
 const getPlatformGradient = (platform) => {
+  const dark = isDarkMode.value;
   const gradientMap = {
-    'github': isDarkMode ? 'bg-gradient-to-br from-gray-700 to-gray-800 text-white' : 'bg-gradient-to-br from-gray-50 to-gray-100 text-gray-900',
-    'twitter': isDarkMode ? 'bg-gradient-to-br from-blue-900 to-blue-800 text-blue-300' : 'bg-gradient-to-br from-blue-50 to-blue-100 text-blue-700',
-    'linkedin': isDarkMode ? 'bg-gradient-to-br from-blue-900 to-blue-800 text-blue-300' : 'bg-gradient-to-br from-blue-50 to-blue-100 text-blue-700',
-    'website': isDarkMode ? 'bg-gradient-to-br from-green-900 to-green-800 text-green-300' : 'bg-gradient-to-br from-green-50 to-green-100 text-green-700',
-    'instagram': isDarkMode ? 'bg-gradient-to-br from-pink-900 to-pink-800 text-pink-300' : 'bg-gradient-to-br from-pink-50 to-pink-100 text-pink-700',
-    'youtube': isDarkMode ? 'bg-gradient-to-br from-red-900 to-red-800 text-red-300' : 'bg-gradient-to-br from-red-50 to-red-100 text-red-700',
-    'bilibili': isDarkMode ? 'bg-gradient-to-br from-cyan-900 to-cyan-800 text-cyan-300' : 'bg-gradient-to-br from-cyan-50 to-cyan-100 text-cyan-700',
-    'tiktok': isDarkMode ? 'bg-gradient-to-br from-purple-900 to-purple-800 text-purple-300' : 'bg-gradient-to-br from-purple-50 to-purple-100 text-purple-700',
-    'facebook': isDarkMode ? 'bg-gradient-to-br from-blue-900 to-blue-800 text-blue-300' : 'bg-gradient-to-br from-blue-50 to-blue-100 text-blue-700',
-    'weibo': isDarkMode ? 'bg-gradient-to-br from-red-900 to-red-800 text-red-300' : 'bg-gradient-to-br from-red-50 to-red-100 text-red-700',
-    'zhihu': isDarkMode ? 'bg-gradient-to-br from-blue-900 to-blue-800 text-blue-300' : 'bg-gradient-to-br from-blue-50 to-blue-100 text-blue-700',
-    'dribbble': isDarkMode ? 'bg-gradient-to-br from-pink-900 to-pink-800 text-pink-300' : 'bg-gradient-to-br from-pink-50 to-pink-100 text-pink-700',
-    'behance': isDarkMode ? 'bg-gradient-to-br from-blue-900 to-blue-800 text-blue-300' : 'bg-gradient-to-br from-blue-50 to-blue-100 text-blue-700'
+    'github': dark ? 'bg-gradient-to-br from-gray-700 to-gray-800 text-gray-200' : 'bg-gradient-to-br from-gray-100 to-gray-200 text-gray-800',
+    'twitter': dark ? 'bg-gradient-to-br from-sky-900 to-sky-800 text-sky-200' : 'bg-gradient-to-br from-sky-50 to-sky-100 text-sky-600',
+    'linkedin': dark ? 'bg-gradient-to-br from-blue-900 to-blue-800 text-blue-200' : 'bg-gradient-to-br from-blue-50 to-blue-100 text-blue-600',
+    'website': dark ? 'bg-gradient-to-br from-emerald-900 to-emerald-800 text-emerald-200' : 'bg-gradient-to-br from-emerald-50 to-emerald-100 text-emerald-600',
+    'instagram': dark ? 'bg-gradient-to-br from-fuchsia-900 to-pink-800 text-pink-200' : 'bg-gradient-to-br from-fuchsia-50 to-pink-100 text-fuchsia-600',
+    'youtube': dark ? 'bg-gradient-to-br from-red-900 to-red-800 text-red-200' : 'bg-gradient-to-br from-red-50 to-red-100 text-red-600',
+    'bilibili': dark ? 'bg-gradient-to-br from-cyan-900 to-cyan-800 text-cyan-200' : 'bg-gradient-to-br from-cyan-50 to-cyan-100 text-cyan-600',
+    'tiktok': dark ? 'bg-gradient-to-br from-purple-900 to-purple-800 text-purple-200' : 'bg-gradient-to-br from-purple-50 to-purple-100 text-purple-600',
+    'facebook': dark ? 'bg-gradient-to-br from-indigo-900 to-indigo-800 text-indigo-200' : 'bg-gradient-to-br from-indigo-50 to-indigo-100 text-indigo-600',
+    'weibo': dark ? 'bg-gradient-to-br from-orange-900 to-orange-800 text-orange-200' : 'bg-gradient-to-br from-orange-50 to-orange-100 text-orange-600',
+    'zhihu': dark ? 'bg-gradient-to-br from-blue-900 to-blue-800 text-blue-200' : 'bg-gradient-to-br from-blue-50 to-blue-100 text-blue-600',
+    'dribbble': dark ? 'bg-gradient-to-br from-pink-900 to-pink-800 text-pink-200' : 'bg-gradient-to-br from-pink-50 to-pink-100 text-pink-600',
+    'behance': dark ? 'bg-gradient-to-br from-blue-900 to-blue-800 text-blue-200' : 'bg-gradient-to-br from-blue-50 to-blue-100 text-blue-600'
   };
-  return gradientMap[platform] || (isDarkMode ? 'bg-gradient-to-br from-gray-700 to-gray-800 text-gray-300' : 'bg-gradient-to-br from-gray-50 to-gray-100 text-gray-600');
+  return gradientMap[platform] || (dark ? 'bg-gradient-to-br from-gray-700 to-gray-800 text-gray-300' : 'bg-gradient-to-br from-gray-100 to-gray-200 text-gray-600');
 };
 </script>
 
@@ -400,46 +381,34 @@ const getPlatformGradient = (platform) => {
           <p :class="['text-sm font-black tracking-[0.2em] uppercase opacity-50', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_footer_manager_subtitle') }}</p>
         </div>
         <button
-          @click="handleSaveAll"
+          @click="openAddLinkModal"
           class="flex items-center gap-3 px-8 py-4 bg-construct-red text-white font-black text-xs uppercase tracking-[0.2em] transition-all hover:scale-105 active:scale-95 shadow-lg shadow-construct-red/20 rounded-xl"
         >
-          <Save size="18" :style="{ color: '#ffffff' }" />
-          {{ t('admin_save') }}
+          <Plus size="18" :style="{ color: '#ffffff' }" />
+          {{ t('admin_add') }}
         </button>
       </div>
     </div>
 
-    <!-- Search and Filter -->
-    <SearchFilterModal
-      v-model:search-query="searchQuery"
-      :search-placeholder="t('admin_search_placeholder')"
-    />
-
     <!-- Tabs -->
-    <div :class="['flex gap-2 mb-6 mt-6 border-b', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
+    <div :class="['flex gap-2 mb-8', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
       <button
         v-for="tab in tabs"
         :key="tab.key"
-        @click="activeTab = tab.key; currentPage = 1; searchQuery = ''"
+        @click="activeTab = tab.key; currentPage = 1"
         :class="[
-          'flex items-center gap-2 px-6 py-3 font-black text-xs uppercase tracking-[0.2em] transition-all border-b-2',
+          'relative flex items-center gap-2.5 px-5 py-2.5 font-bold text-sm rounded-xl transition-all duration-300',
           activeTab === tab.key
-            ? 'border-construct-red text-construct-red'
+            ? isDarkMode
+              ? 'bg-construct-red/15 text-construct-red shadow-sm'
+              : 'bg-construct-red text-white shadow-md shadow-construct-red/25 scale-105'
             : isDarkMode
-              ? 'border-transparent text-gray-400 hover:text-white'
-              : 'border-transparent text-gray-500 hover:text-gray-900'
+              ? 'text-gray-500 hover:text-gray-200 hover:bg-gray-800'
+              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
         ]"
       >
         <component :is="tab.icon" size="16" />
         {{ tab.label }}
-      </button>
-      <div class="flex-1" />
-      <button
-        @click="openAddLinkModal"
-        class="flex items-center gap-3 mb-1 px-8 py-3 bg-construct-red text-white font-black text-xs uppercase tracking-[0.2em] transition-all hover:scale-105 active:scale-95 shadow-lg shadow-construct-red/20 rounded-xl"
-      >
-        <Plus size="18" :style="{ color: '#ffffff' }" />
-        {{ t('admin_add') }}
       </button>
     </div>
 
@@ -449,24 +418,25 @@ const getPlatformGradient = (platform) => {
         v-for="link in paginatedLinks"
         :key="link.id"
         :class="[
-          'border transition-all duration-500 hover:-translate-y-1 rounded-lg overflow-hidden',
+          'group border transition-all duration-300 rounded-xl overflow-hidden',
           isDarkMode
-            ? 'bg-gray-800 border-gray-700 hover:border-construct-red/50 hover:shadow-lg'
-            : 'bg-white border-gray-200 hover:border-construct-red/30 hover:shadow-lg'
+            ? 'bg-gray-800/80 border-gray-700/50 hover:border-construct-red/50 hover:shadow-xl hover:shadow-construct-red/5 hover:-translate-y-1.5'
+            : 'bg-white border-gray-200 hover:border-construct-red/30 hover:shadow-xl hover:shadow-construct-red/10 hover:-translate-y-1.5'
         ]"
       >
         <div class="p-6">
           <div class="flex items-start justify-between mb-4">
             <div :class="[
-              'w-12 h-12 rounded-lg flex items-center justify-center shadow-md',
-              getPlatformGradient(link.platform)
+              'w-12 h-12 rounded-xl flex items-center justify-center shadow-md transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg',
+              activeTab === 'social' ? getPlatformGradient(link.platform) : (isDarkMode ? 'bg-gradient-to-br from-amber-900 to-amber-800 text-amber-200' : 'bg-gradient-to-br from-amber-50 to-amber-100 text-amber-600')
             ]">
               <component
                 v-if="activeTab === 'social'"
                 :is="getLinkIcon(link.platform)"
                 size="24"
               />
-              <component v-else :is="Navigation" size="24" />
+              <component v-else-if="activeTab === 'categories'" :is="Navigation" size="24" />
+              <component v-else :is="Database" size="24" />
             </div>
             <div class="flex items-center gap-1">
               <button
@@ -494,7 +464,7 @@ const getPlatformGradient = (platform) => {
             {{ link.url || link.route }}
           </p>
 
-          <div :class="['flex items-center justify-between mt-4 pt-4 border-t', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
+          <div :class="['flex items-center justify-between mt-4 pt-3', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
             <span :class="['text-xs font-mono font-bold', isDarkMode ? 'text-gray-600' : 'text-gray-400']">
               #{{ link.sort_order }}
             </span>

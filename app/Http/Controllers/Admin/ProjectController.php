@@ -27,6 +27,7 @@ class ProjectController extends Controller
         $filters = $request->only(['status', 'search']);
         
         $projects = Project::query()
+            ->with(['tags'])
             ->when($filters['status'] ?? null, fn($q, $status) => $q->where('status', $status))
             ->when($filters['search'] ?? null, function ($q, $search) {
                 $q->where('title', 'like', "%{$search}%")
@@ -48,6 +49,7 @@ class ProjectController extends Controller
                     'url' => $project->url,
                     'github_url' => $project->github_url,
                     'technologies' => $project->technologies ?? [],
+                    'tags' => $project->tags->pluck('name')->values()->toArray(),
                     'status' => $project->status,
                     'sort_order' => $project->sort_order,
                     'views_count' => $project->views_count,
@@ -77,6 +79,7 @@ class ProjectController extends Controller
 
     public function edit(Project $project): Response
     {
+        $project->load('tags');
         return Inertia::render('admin/Projects', [
             'project' => [
                 'id' => $project->id,
@@ -90,6 +93,7 @@ class ProjectController extends Controller
                 'url' => $project->url,
                 'github_url' => $project->github_url,
                 'technologies' => $project->technologies ? implode(', ', $project->technologies) : '',
+                'tags' => $project->tags->pluck('name')->implode(', '),
                 'status' => $project->status,
                 'sort_order' => $project->sort_order,
             ],

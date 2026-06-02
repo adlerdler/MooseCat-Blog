@@ -3,15 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuthorProfile;
 use App\Models\MailConfig;
+use App\Services\MailService;
+use App\Services\SettingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
-use Symfony\Component\Mailer\Mailer;
-use Symfony\Component\Mailer\Transport;
-use Symfony\Component\Mime\Address;
-use Symfony\Component\Mime\Email;
 
 /**
  * Mail Config Controller
@@ -101,12 +100,33 @@ class MailConfigController extends Controller
             'fromAddress' => 'required|email',
             'fromName'    => 'required|string',
             'password'    => 'nullable|string',
+            'customEmail' => 'nullable|email',
         ]);
 
         try {
-            // Build DSN string: smtp for TLS/none, smtps for SSL (port 465)
-            $scheme = ($validated['encryption'] ?? '') === 'ssl' ? 'smtps' : 'smtp';
+            $siteConfig = app(SettingService::class)->getSiteConfig();
+            $rawLogo   = $siteConfig['logo'] ?? '';
+            $logo      = $rawLogo ? url($rawLogo) : 'https://via.placeholder.com/36x36/EF4444/FFFFFF?text=A';
+            $brandName = $siteConfig['name'] ?: 'ARCHYX';
 
+            $user = Auth::user();
+            $profile = AuthorProfile::where('user_id', $user->id)->first();
+            $penName = $profile?->display_name ?: $user?->name ?: 'Adler Decht';
+            $recipient = $validated['customEmail'] ?? $user->email;
+            if (! $recipient) {
+                return back()->withErrors(['test' => '无法确定收件人邮箱']);
+            }
+
+            $htmlBody = view('emails.test', [
+                'logo'      => $logo,
+                'brandName' => $brandName,
+                'penName'   => $penName,
+                'timestamp' => now()->format('Y-m-d H:i'),
+                'smtpHost'  => $validated['host'],
+            ])->render();
+
+            // 使用测试时提交的 SMTP 参数临时发送，不经过数据库 MailConfig
+            $scheme = ($validated['encryption'] ?? '') === 'ssl' ? 'smtps' : 'smtp';
             $dsn = sprintf(
                 '%s://%s:%s@%s:%d',
                 $scheme,
@@ -116,19 +136,21 @@ class MailConfigController extends Controller
                 $validated['port']
             );
 
-            $transport = Transport::fromDsn($dsn);
+            $transport = \Symfony\Component\Mailer\Transport::fromDsn($dsn);
+            $email = (new \Symfony\Component\Mime\Email())
+                ->from(new \Symfony\Component\Mime\Address($validated['fromAddress'], $validated['fromName']))
+                ->to($recipient)
+                ->subject($brandName . ' — SMTP Transmission Test')
+                ->html($htmlBody);
 
-            $email = (new Email())
-                ->from(new Address($validated['fromAddress'], $validated['fromName']))
-                ->to('adlerdecht@gmail.com')
-                ->subject('Archyx SMTP 配置测试')
-                ->text('这是一封测试邮件，如果您能收到此邮件，说明 SMTP 配置正确无误。');
-
-            $mailer = new Mailer($transport);
+            $mailer = new \Symfony\Component\Mailer\Mailer($transport);
             $mailer->send($email);
 
-            return back()->with('success', '测试邮件已发送成功！');
+            return back()->with('success', '测试邮件已发送至 ' . $recipient . '！');
         } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('MailConfig: Test email failed', [
+                'error' => $e->getMessage(),
+            ]);
             return back()->withErrors(['test' => '邮件发送失败：' . $e->getMessage()]);
         }
     }

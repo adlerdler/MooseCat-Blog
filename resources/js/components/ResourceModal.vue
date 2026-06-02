@@ -155,8 +155,7 @@ onUnmounted(() => {
                 <a
                   v-if="downloadLink"
                   :href="downloadLink"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  download
                   class="flex justify-between items-center w-full bg-construct-black text-white p-4 font-bold text-xs tracking-widest uppercase hover:bg-construct-red transition-colors"
                 >
                   <span>Download</span>

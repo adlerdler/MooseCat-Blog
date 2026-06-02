@@ -18,16 +18,14 @@ import {
   useTheme,
   Tag,
   Plus,
-  Search,
   Edit3,
   Trash2,
-  Filter,
-  FileText,
   MetaForm,
   ConfirmDialog,
   Pagination,
   SearchFilterModal
 } from '../../composables/useAdminImports';
+import { Motion } from 'motion-v';
 
 const props = defineProps({
   tags: {
@@ -76,10 +74,6 @@ const paginatedTags = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage.value;
   return filteredTags.value.slice(start, start + itemsPerPage.value);
 });
-
-const toggleStatus = (tag) => {
-  tag.status = tag.status === 'active' ? 'inactive' : 'active';
-};
 
 const handleEdit = (tag) => {
   editingTag.value = { ...tag };
@@ -176,69 +170,85 @@ const handleFilterChange = ({ key, value }) => {
     />
 
     <!-- Tags Grid -->
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
-      <div 
-        v-for="tag in paginatedTags" 
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <Motion
+        v-for="(tag, index) in paginatedTags" 
         :key="tag.id"
+        :initial="{ opacity: 0, y: 24 }"
+        :animate="{ opacity: 1, y: 0 }"
+        :transition="{ duration: 0.35, delay: index * 0.06, ease: 'easeOut' }"
+        :whileHover="{ scale: 1.02, y: -3, boxShadow: '0 16px 40px rgba(0,0,0,0.14)' }"
+        :whileTap="{ scale: 0.98 }"
         :class="[
-          'group relative border p-5 transition-all duration-300 hover:shadow-lg hover:border-construct-red/30',
+          'group relative flex flex-col rounded-xl overflow-hidden cursor-default',
           isDarkMode 
-            ? 'bg-gray-800/40 border-gray-700/50 backdrop-blur-md rounded-2xl' 
-            : 'bg-white/80 border-gray-200/80 backdrop-blur-md rounded-2xl shadow-sm'
+            ? 'bg-gray-800/60 border border-gray-700/50 shadow-[0_4px_20px_rgba(0,0,0,0.2)]'
+            : 'bg-white border border-gray-200/60 shadow-[0_4px_20px_rgba(0,0,0,0.04)]'
         ]"
       >
-        <div class="flex flex-col h-full">
-          <div class="flex items-start justify-between mb-4">
-            <div :class="[
-              'px-3 py-1.5 rounded-xl flex items-center gap-2 border transition-all duration-300 group-hover:scale-105',
-              isDarkMode 
-                ? 'bg-gray-900/50 border-gray-700 text-white' 
-                : 'bg-gray-50 border-gray-100 text-gray-900'
-            ]">
-              <Tag size="14" class="text-construct-red" />
-              <span class="font-bold text-sm tracking-tight truncate max-w-[80px]">{{ tag.name }}</span>
-            </div>
-            
-            <button
-              @click="toggleStatus(tag)"
-              class="flex items-center cursor-pointer"
-            >
-              <div :class="[
-                'w-2 h-2 rounded-full',
-                tag.status === 'active' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]' : 'bg-gray-400'
-              ]"></div>
-            </button>
-          </div>
-          
-          <div :class="['mt-auto flex items-center justify-between pt-4 border-t border-dashed', isDarkMode ? 'border-gray-700' : 'border-gray-100']">
-            <div :class="['flex items-center gap-1.5 text-[10px] font-black tracking-widest uppercase', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
-              <FileText size="12" />
-              <span>{{ tag.usageCount }}</span>
-            </div>
-            <div class="flex items-center gap-1">
-              <button 
-                @click="handleEdit(tag)" 
-                :class="['p-1.5 rounded-lg transition-all duration-300 hover:scale-110', isDarkMode ? 'text-gray-400 hover:bg-gray-700 hover:text-white' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900']"
-              >
-                <Edit3 size="14" />
-              </button>
-              <button 
-                @click="handleDelete(tag.id)" 
-                :class="['p-1.5 rounded-lg transition-all duration-300 hover:scale-110', isDarkMode ? 'text-gray-400 hover:bg-red-500/10 hover:text-red-400' : 'text-gray-500 hover:bg-red-50 hover:text-red-600']"
-              >
-                <Trash2 size="14" />
-              </button>
-            </div>
-          </div>
+        <!-- Card Background Accent -->
+        <div class="absolute top-0 right-0 p-8 opacity-0 group-hover:opacity-10 transition-opacity duration-500 pointer-events-none">
+          <Tag size="80" class="rotate-12" />
         </div>
 
-        <!-- Status Tooltip/Overlay (Optional subtle indicator) -->
-        <div 
-          v-if="tag.status === 'inactive'"
-          class="absolute inset-0 bg-gray-900/10 backdrop-grayscale rounded-2xl pointer-events-none transition-opacity duration-300"
-          :class="isDarkMode ? 'opacity-40' : 'opacity-20'"
-        ></div>
-      </div>
+        <!-- Card Body -->
+        <div class="p-5 pb-3 flex flex-col flex-1">
+          <!-- Tag Icon -->
+          <div :class="[
+            'w-12 h-12 rounded-xl flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6',
+            isDarkMode 
+              ? 'bg-gradient-to-br from-construct-red/20 to-construct-red/10 text-construct-red' 
+              : 'bg-gradient-to-br from-construct-red/10 to-construct-red/5 text-construct-red'
+          ]">
+            <Tag size="24" />
+          </div>
+
+          <!-- Name with hash -->
+          <h3 :class="[
+            'font-bold text-lg mb-1.5 truncate transition-colors duration-300',
+            isDarkMode ? 'text-white group-hover:text-construct-red' : 'text-gray-900 group-hover:text-construct-red'
+          ]">
+            <span class="text-construct-red">#</span>{{ tag.name }}
+          </h3>
+
+          <!-- Slug -->
+          <p :class="['text-xs mb-2 truncate', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
+            {{ tag.slug }}
+          </p>
+        </div>
+
+        <!-- Bottom Bar: Badges + Actions -->
+        <div class="flex items-center justify-between px-5 py-3 mt-auto">
+          <div class="flex gap-1.5 text-[11px] font-bold">
+            <span :class="['px-2 py-0.5 rounded-md', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-200/70 text-gray-500']" v-if="tag.posts_count">
+              📝 {{ tag.posts_count }}
+            </span>
+            <span :class="['px-2 py-0.5 rounded-md', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-200/70 text-gray-500']" v-if="tag.videos_count">
+              🎬 {{ tag.videos_count }}
+            </span>
+            <span :class="['px-2 py-0.5 rounded-md', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-200/70 text-gray-500']" v-if="tag.projects_count">
+              📁 {{ tag.projects_count }}
+            </span>
+            <span :class="['px-2 py-0.5 rounded-md', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-200/70 text-gray-500']" v-if="tag.resources_count">
+              📦 {{ tag.resources_count }}
+            </span>
+          </div>
+          <div class="flex gap-0.5">
+            <button 
+              @click="handleEdit(tag)" 
+              :class="['p-2 rounded-lg transition-all duration-200 hover:scale-110', isDarkMode ? 'text-gray-400 hover:text-blue-400 hover:bg-gray-700' : 'text-gray-400 hover:text-blue-500 hover:bg-gray-200']"
+            >
+              <Edit3 size="14" />
+            </button>
+            <button 
+              @click="handleDelete(tag.id)" 
+              :class="['p-2 rounded-lg transition-all duration-200 hover:scale-110', isDarkMode ? 'text-gray-400 hover:text-red-400 hover:bg-gray-700/50' : 'text-gray-400 hover:text-red-500 hover:bg-red-50']"
+            >
+              <Trash2 size="14" />
+            </button>
+          </div>
+        </div>
+      </Motion>
     </div>
 
     <!-- Pagination -->
