@@ -27,10 +27,11 @@ use App\Http\Controllers\Admin\UserLevelsController;
 use App\Http\Controllers\Admin\CommentsController;
 use App\Http\Controllers\Admin\AdvertisementsController;
 use App\Http\Controllers\Admin\AuthorProfileController;
-use App\Http\Controllers\Frontend\FrontendController;
+use App\Http\Controllers\Web\FrontendController;
 use App\Http\Controllers\Web\PostController;
 use App\Http\Controllers\Web\CommentController;
 use App\Http\Controllers\Web\CategoryController;
+use App\Http\Controllers\Web\LikeController;
 use App\Models\AuthorProfile;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
@@ -50,8 +51,9 @@ Route::middleware(['maintenance'])->group(function () {
     Route::get('/', [FrontendController::class, 'home'])->name('home');
     Route::get('/blog', [FrontendController::class, 'blog'])->name('blog');
     Route::get('/projects', [FrontendController::class, 'projects'])->name('projects');
-    Route::get('/projects/{slug}', [FrontendController::class, 'projectDetail'])->name('projects.detail');
+    Route::get('/projects/{project:slug}', [FrontendController::class, 'projectDetail'])->name('projects.detail');
     Route::get('/resources', [FrontendController::class, 'resources'])->name('resources');
+    Route::post('/resources/{resource}/download-track', [FrontendController::class, 'trackDownload'])->name('resources.download-track');
     // 自定义视频路由绑定：slug 优先，纯数字 ID 兜底
     Route::bind('video', function ($value) {
         $video = \App\Models\Video::where('slug', $value)->first();
@@ -77,6 +79,9 @@ Route::middleware(['maintenance'])->group(function () {
     // 文章相关路由
     Route::get('/posts', [PostController::class, 'index'])->name('posts.index');
     Route::get('/posts/{post:slug}', [PostController::class, 'show'])->name('posts.show');
+
+    // 点赞相关路由
+    Route::post('/likes/toggle', [LikeController::class, 'toggle'])->name('likes.toggle');
 
     // 评论相关路由
     Route::post('/posts/{post}/comments', [CommentController::class, 'store'])->name('comments.store');

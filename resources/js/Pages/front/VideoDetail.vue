@@ -12,6 +12,7 @@
  * - 返回顶部按钮
  */
 import { ref, computed, onMounted } from 'vue';
+import { usePage } from '@inertiajs/vue3';
 import { Motion, AnimatePresence } from 'motion-v';
 import { useTheme } from '../../composables/useTheme';
 import { useAdSlot } from '../../composables/useAdSlot';
@@ -23,7 +24,8 @@ const props = defineProps({
 });
 
 const { initAccentTheme } = useTheme();
-const { hasActiveAd } = useAdSlot();
+const pageProps = usePage().props;
+const { hasActiveAd } = useAdSlot({ ads: pageProps.frontAds ?? [], adPositions: pageProps.frontAdPositions ?? [] });
 const showBackToTop = ref(false);
 
 const embedUrl = computed(() => {

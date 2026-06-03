@@ -1,19 +1,18 @@
 <script setup>
 /**
- * SplashScreen.vue - 启动画面组件
+ * SplashScreen.vue - 启动画面组件（纯展示）
  * 
  * 功能说明：
- * - 网站首次访问的加载动画
- * - 品牌展示和过渡效果
- * - 仅在会话首次访问时显示
+ * - 网站首次访问的品牌展示动画
+ * - 由父组件通过 v-if 控制挂载/卸载
+ * - 2.5秒后自动触发 @complete 事件
  * 
- * 技术实现：
- * - sessionStorage 控制显示频率
- * - CSS 动画实现过渡效果
- * - 2.5秒后自动关闭
+ * 控制逻辑由父组件（Home.vue）通过 localStorage 管理：
+ * - localStorage key: 'archyx_splash_shown'
+ * - 仅根路径 "/" 首次访问时显示，之后永久不再显示
  * 
  * 使用示例：
- * <SplashScreen @complete="onSplashComplete" />
+ * <SplashScreen v-if="showSplash" @complete="handleSplashComplete" />
  */
 import { ref, onMounted } from 'vue';
 import { Hexagon, Sparkles } from 'lucide-vue-next';
@@ -21,22 +20,9 @@ import { Hexagon, Sparkles } from 'lucide-vue-next';
 const emit = defineEmits(['complete']);
 
 const isVisible = ref(true);
-const SESSION_KEY = 'archyx_splash_shown';
 
 onMounted(() => {
-    // 检查是否是新会话（新标签页）
-    const hasShown = sessionStorage.getItem(SESSION_KEY);
-    
-    if (hasShown) {
-        // 已有会话，跳过启动页
-        isVisible.value = false;
-        emit('complete');
-        return;
-    }
-    
-    // 新会话，显示启动页
-    sessionStorage.setItem(SESSION_KEY, 'true');
-    
+    // 2.5秒后自动关闭并通知父组件
     setTimeout(() => {
         isVisible.value = false;
         setTimeout(() => {

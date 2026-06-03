@@ -7,19 +7,17 @@
  * - 支持编辑、启用/禁用页面 SEO
  * - 数据保存到 page_seo.js
  */
-import { ref, computed, watch } from 'vue';
+import { ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { router } from '@inertiajs/vue3';
 import {
   Search,
   Edit3,
   Save,
-  X,
-  Eye,
-  EyeOff
+  X
 } from 'lucide-vue-next';
+import { Motion } from 'motion-v';
 import { useTheme } from '../../composables/useTheme';
-import SearchFilterModal from '../../components/admin/SearchFilterModal.vue';
 
 const props = defineProps({
   pageSeo: {
@@ -31,7 +29,6 @@ const props = defineProps({
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
 
-const searchQuery = ref('');
 const showEditModal = ref(false);
 const editingPage = ref(null);
 const editForm = ref({});
@@ -49,16 +46,6 @@ const pageSeoListRef = ref(getAllPageSeo().map(page => ({ ...page })));
 watch(() => props.pageSeo, (newPageSeo) => {
   pageSeoListRef.value = newPageSeo.map(page => ({ ...page }));
 }, { deep: true });
-
-const filteredPages = computed(() => {
-  if (!searchQuery.value) return pageSeoListRef.value;
-  const query = searchQuery.value.toLowerCase();
-  return pageSeoListRef.value.filter(
-    p => p.page_key.toLowerCase().includes(query) ||
-         p.title.toLowerCase().includes(query) ||
-         p.description.toLowerCase().includes(query)
-  );
-});
 
 const openEditModal = (page) => {
   editingPage.value = page;
@@ -123,62 +110,71 @@ const getRouteColor = (pageKey) => {
           </div>
           <p :class="['text-sm font-black tracking-[0.2em] uppercase opacity-50', isDarkMode ? 'text-gray-400' : 'text-gray-500']">管理各页面 SEO 配置</p>
         </div>
-        <SearchFilterModal
-          v-model:search-query="searchQuery"
-          :search-placeholder="'搜索页面...'"
-        />
       </div>
     </div>
 
     <!-- Page SEO List -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div
-        v-for="page in filteredPages"
+      <Motion
+        v-for="(page, idx) in pageSeoListRef"
         :key="page.id"
-        :class="[
-          'border transition-all duration-500 rounded-lg overflow-hidden',
-          isDarkMode
-            ? 'bg-gray-800 border-gray-700 hover:border-construct-red/50 hover:shadow-lg'
-            : 'bg-white border-gray-200 hover:border-construct-red/30 hover:shadow-lg'
-        ]"
+        :initial="{ opacity: 0, y: 20 }"
+        :animate="{ opacity: 1, y: 0 }"
+        :transition="{ delay: idx * 0.05, duration: 0.35 }"
       >
-        <div class="p-6">
-          <!-- Header -->
-          <div class="flex items-start justify-between mb-4">
-            <div class="flex-1">
-              <div class="flex items-center gap-2 mb-2">
-                <span :class="['text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider bg-gradient-to-r', getRouteColor(page.page_key)]">
-                  {{ page.page_key }}
-                </span>
+        <div
+          :class="[
+            'group border transition-all duration-300 rounded-xl overflow-hidden hover:-translate-y-1.5 hover:shadow-xl',
+            isDarkMode
+              ? 'bg-gray-800/80 border-gray-700/50 hover:border-construct-red/50 hover:shadow-construct-red/5'
+              : 'bg-white border-gray-200 hover:border-construct-red/30 hover:shadow-construct-red/10'
+          ]"
+        >
+          <div class="p-6">
+            <!-- Header -->
+            <div class="flex items-start justify-between mb-4">
+              <div :class="[
+                'px-3 py-1.5 rounded-xl flex items-center gap-2 bg-gradient-to-r transition-all duration-300 group-hover:scale-105',
+                getRouteColor(page.page_key)
+              ]">
+                <span class="text-xs font-black uppercase tracking-wider">{{ page.page_key }}</span>
+              </div>
+            </div>
+
+            <!-- Content -->
+            <h4 class="font-bold text-base mb-2 truncate" :class="isDarkMode ? 'text-white' : 'text-gray-900'">{{ page.title }}</h4>
+            <p class="text-sm mb-3 line-clamp-2" :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'">{{ page.description }}</p>
+            <p class="text-xs truncate" :class="isDarkMode ? 'text-gray-600' : 'text-gray-400'">
+              <span class="font-bold">关键词：</span>{{ page.keywords }}
+            </p>
+            <p class="text-xs mt-2" :class="isDarkMode ? 'text-gray-600' : 'text-gray-400'">
+              <span class="font-bold">OG图片：</span>{{ page.og_image || '无' }}
+            </p>
+
+            <!-- Actions (no border-t) -->
+            <div class="flex items-center justify-between mt-4">
+              <span class="text-xs font-mono font-bold opacity-40" :class="isDarkMode ? 'text-gray-500' : 'text-gray-400'">
+                SEO · {{ page.page_key }}
+              </span>
+              <div class="flex items-center gap-2">
+                <button
+                  @click="openEditModal(page)"
+                  :class="[
+                    'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all',
+                    isDarkMode
+                      ? 'bg-construct-red/20 text-construct-red hover:bg-construct-red/30'
+                      : 'bg-construct-red/10 text-construct-red hover:bg-construct-red/20'
+                  ]"
+                  :title="'编辑 ' + page.title"
+                >
+                  <Edit3 size="15" />
+                  编辑
+                </button>
               </div>
             </div>
           </div>
-
-          <!-- Content (always visible) -->
-          <h4 class="font-bold text-base mb-2 truncate" :class="isDarkMode ? 'text-white' : 'text-gray-900'">{{ page.title }}</h4>
-          <p class="text-sm mb-3 line-clamp-2" :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'">{{ page.description }}</p>
-          <p class="text-xs truncate" :class="isDarkMode ? 'text-gray-600' : 'text-gray-400'">
-            <span class="font-bold">关键词：</span>{{ page.keywords }}
-          </p>
-          <p class="text-xs mt-2" :class="isDarkMode ? 'text-gray-600' : 'text-gray-400'">
-            <span class="font-bold">OG图片：</span>{{ page.og_image || '无' }}
-          </p>
-
-          <!-- Actions -->
-          <div :class="['flex items-center gap-2 mt-4 pt-4 border-t', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
-            <button
-              @click="openEditModal(page)"
-              :class="[
-                'w-full flex items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-bold transition-colors',
-                isDarkMode ? 'bg-construct-red/10 text-construct-red hover:bg-construct-red/20' : 'bg-construct-red/10 text-construct-red hover:bg-construct-red/20'
-              ]"
-            >
-              <Edit3 size="14" />
-              编辑
-            </button>
-          </div>
         </div>
-      </div>
+      </Motion>
     </div>
 
     <!-- Edit Modal -->

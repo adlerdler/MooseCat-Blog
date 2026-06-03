@@ -17,6 +17,7 @@
  */
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { X, Download, Copy, Check } from 'lucide-vue-next';
+import axios from 'axios';
 
 const props = defineProps({
   resource: {
@@ -78,6 +79,13 @@ const getDriveName = (type) => {
 
 const handleClose = () => {
   emit('close');
+};
+
+const handleDownload = () => {
+  if (props.resource?.id && downloadLink.value) {
+    axios.post(`/resources/${props.resource.id}/download-track`).catch(() => {});
+    window.open(downloadLink.value, '_blank');
+  }
 };
 
 const handleBackdropClick = (e) => {
@@ -154,8 +162,8 @@ onUnmounted(() => {
               <div class="space-y-4 mt-12 md:mt-auto pt-8">
                 <a
                   v-if="downloadLink"
-                  :href="downloadLink"
-                  download
+                  href="#"
+                  @click.prevent="handleDownload"
                   class="flex justify-between items-center w-full bg-construct-black text-white p-4 font-bold text-xs tracking-widest uppercase hover:bg-construct-red transition-colors"
                 >
                   <span>Download</span>

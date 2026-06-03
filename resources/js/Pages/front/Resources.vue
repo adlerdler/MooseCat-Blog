@@ -14,6 +14,7 @@
  */
 import { ref, computed, onMounted, watch, TransitionGroup } from 'vue';
 import { Motion, AnimatePresence } from 'motion-v';
+import { usePage } from '@inertiajs/vue3';
 import { useTheme } from '../../composables/useTheme';
 import { usePageSeo } from '../../composables/usePageSeo';
 import { usePageSeoData } from '../../composables/usePageSeoData';
@@ -21,6 +22,7 @@ import { getCategoryNameById } from '../../utils/categoryUtils';
 import { Download, HardDrive } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
 import { useAdSlot } from '../../composables/useAdSlot';
+import axios from 'axios';
 import SidebarMenu from '@/components/SidebarMenu.vue';
 import Footer from '@/components/Footer.vue';
 import AdSlot from '@/components/front/AdSlot.vue';
@@ -111,7 +113,14 @@ const closeModal = () => {
  selectedResource.value = null;
 };
 
-const { getActiveAds } = useAdSlot();
+const handleDownload = (resource) => {
+  // 先记录下载，再触发浏览器下载
+  axios.post(`/resources/${resource.id}/download-track`).catch(() => {});
+  window.open(resource.direct_link, '_blank');
+};
+
+const pageProps = usePage().props;
+const { getActiveAds } = useAdSlot({ ads: pageProps.frontAds ?? [], adPositions: pageProps.frontAdPositions ?? [] });
 const AD_INTERVAL = 3;
 
 const mixedResourcesWithAds = computed(() => {
@@ -254,9 +263,8 @@ const mixedResourcesWithAds = computed(() => {
                   </div>
                   <a
                     v-if="item.data.direct_link"
-                    :href="item.data.direct_link"
-                    download
-                    @click.stop
+                    href="#"
+                    @click.stop.prevent="handleDownload(item.data)"
                     class="mt-6"
                     :title="'下载'"
                   >

@@ -4,56 +4,81 @@ namespace Database\Seeders;
 
 use App\Models\AdPosition;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class AdPositionSeeder extends Seeder
 {
     public function run(): void
     {
+        // 清空旧数据重建（旧中文名在新英文名已有记录时会造成唯一约束冲突）
+        // 使用 DELETE 而非 truncate 以兼容外键约束（advertisements.position_id → nullOnDelete）
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        AdPosition::truncate();
+        DB::statement('SET FOREIGN_KEY_CHECKS=1');
+
         $positions = [
             [
-                'name' => '首页顶部横幅',
+                'name' => 'header',
                 'label_key' => 'ad_positions.home_top_banner',
-                'description' => '首页顶部的大型横幅广告位',
+                'description' => 'Header banner ad slot below navigation',
                 'default_width' => 1200,
                 'default_height' => 300,
                 'is_active' => true,
                 'sort_order' => 1,
             ],
             [
-                'name' => '侧边栏广告',
+                'name' => 'sidebar',
                 'label_key' => 'ad_positions.sidebar_ad',
-                'description' => '文章列表页和详情页的侧边栏广告位',
+                'description' => 'Sidebar ad slot on post/project detail pages',
                 'default_width' => 300,
                 'default_height' => 250,
                 'is_active' => true,
                 'sort_order' => 2,
             ],
             [
-                'name' => '文章内嵌广告',
-                'label_key' => 'ad_positions.article_inline_ad',
-                'description' => '文章内容中间插入的广告位',
+                'name' => 'between_posts',
+                'label_key' => 'ad_positions.between_posts_ad',
+                'description' => 'Injected between every N posts in list pages',
                 'default_width' => 800,
                 'default_height' => 150,
                 'is_active' => true,
                 'sort_order' => 3,
             ],
             [
-                'name' => '页脚广告',
-                'label_key' => 'ad_positions.footer_ad',
-                'description' => '网站页脚的通栏广告位',
-                'default_width' => 1200,
-                'default_height' => 90,
+                'name' => 'in_content',
+                'label_key' => 'ad_positions.in_content_ad',
+                'description' => 'In-article inline ad slot',
+                'default_width' => 800,
+                'default_height' => 150,
                 'is_active' => true,
                 'sort_order' => 4,
             ],
             [
-                'name' => '移动端底部广告',
-                'label_key' => 'ad_positions.mobile_bottom_ad',
-                'description' => '移动端页面底部的固定广告位',
-                'default_width' => 375,
-                'default_height' => 60,
+                'name' => 'footer',
+                'label_key' => 'ad_positions.footer_ad',
+                'description' => 'Footer banner ad slot above site footer',
+                'default_width' => 1200,
+                'default_height' => 90,
                 'is_active' => true,
                 'sort_order' => 5,
+            ],
+            [
+                'name' => 'popup',
+                'label_key' => 'ad_positions.popup_ad',
+                'description' => 'Popup/modal ad shown on first visit',
+                'default_width' => 400,
+                'default_height' => 500,
+                'is_active' => true,
+                'sort_order' => 6,
+            ],
+            [
+                'name' => 'video_bottom',
+                'label_key' => 'ad_positions.video_bottom_ad',
+                'description' => 'Ad slot below video player on video detail pages',
+                'default_width' => 1200,
+                'default_height' => 200,
+                'is_active' => true,
+                'sort_order' => 7,
             ],
         ];
 

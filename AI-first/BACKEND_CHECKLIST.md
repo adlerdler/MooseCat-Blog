@@ -2,10 +2,10 @@
 
 **重要说明：** 此文档为主要真实来源！其他文档请以此为准！
 
-**最后更新：** 2026-05-29 (完成备份系统 + 活动日志系统)
+**最后更新：** 2026-06-03 (27 模块全部真实数据对接完成)
 **Laravel版本：** 11 (精简模式)
-**版本：** 2.2
-**状态说明：** ✅ 已完成 | 🔄 进行中 | ⚠️ 待处理 | ❌ 阻塞
+**版本：** 3.0
+**状态说明：** ✅ 已完成 | 🔄 进行中 | ⚠️ 待处理 | ❌ 已移除/跳过
 
 ---
 
@@ -15,7 +15,7 @@
 
 | 端 | 渲染方式 | 数据获取方式 | 控制器目录 |
 |----|----------|--------------|------------|
-| **前台网站** | Inertia.js + Vue 3 | 通过 Inertia props 注入 | `App\Http\Controllers\Frontend\` |
+| **前台网站** | Inertia.js + Vue 3 | 通过 Inertia props 注入 | `App\Http\Controllers\Web\` |
 | **后台管理** | Inertia.js + Vue 3 | 通过 Inertia props 注入 | `App\Http\Controllers\Admin\` |
 | **移动端 APP** | - | 通过 RESTful API 获取 | `App\Http\Controllers\Api\V1\` |
 | **第三方集成** | - | 通过 RESTful API 获取 | `App\Http\Controllers\Api\V1\` |
@@ -28,16 +28,16 @@
 
 | 模式 | 目录 | 现状 | 说明 |
 |------|------|:----:|------|
-| **Service Layer** | `app/Services/` | ✅ 已有 | 业务逻辑封装（13个Service） |
+| **Service Layer** | `app/Services/` | ✅ 已有 | 业务逻辑封装（25个Service） |
 | **Repository Layer** | `app/Repositories/` | ✅ 已有 | 数据访问层（轻量级模式，7个Repository） |
-| **API Resource** | `app/Http/Resources/V1/` | ✅ 已有 | 响应格式化 |
-| **FormRequest** | `app/Http/Requests/` | ✅ 已有 | 表单验证（17个FormRequest） |
-| **Policy** | `app/Policies/` | ✅ 已有 | 授权策略（10个：Post, Category, Tag, Video, Project, User, Role, Comment, Media, Setting） |
+| **API Resource** | `app/Http/Resources/V1/` | ✅ 已有 | 响应格式化（12个） |
+| **FormRequest** | `app/Http/Requests/` | ✅ 已有 | 表单验证（24个FormRequest） |
+| **Policy** | `app/Policies/` | ❌ 已移除 | 授权策略（24个已删除，统一走 Spatie Permission 中间件） |
 | **Observer** | `app/Observers/` | ❌ 已跳过 | 模型事件（采用Service模式替代） |
-| **Event/Listener** | `app/Events/`, `app/Listeners/` | ✅ 已完成 | 事件驱动（CommentCreated + SendCommentNotification） |
-| **Notification** | `app/Notifications/` | ✅ 已完成 | 通知系统（NewCommentNotification + NewSubscriberNotification） |
-| **Middleware** | `app/Http/Middleware/` | ✅ 已有 | 中间件（HandleInertiaRequests等） |
-| **Command** | `app/Console/Commands/` | ⚠️ 待创建 | Artisan命令 |
+| **Event/Listener** | `app/Events/`, `app/Listeners/` | ✅ 已完成 | 事件驱动（CommentCreated + SendCommentNotification, AdViewed + TrackAdViewed） |
+| **Notification** | `app/Notifications/` | ✅ 已完成 | 通知系统（NewCommentNotification, NewSubscriberNotification, SystemNotification） |
+| **Middleware** | `app/Http/Middleware/` | ✅ 已有 | 中间件（HandleInertiaRequests, SeoMiddleware, LanguageMiddleware, AdminMiddleware, ActivityLogMiddleware, CheckMaintenanceMode, PageVisitMiddleware） |
+| **Command** | `app/Console/Commands/` | ✅ 已有 | Artisan命令（BackupCommand） |
 | **Factory** | `database/factories/` | ⚠️ 待创建 | 测试数据 |
 | **Seeder** | `database/seeders/` | ✅ 已完成 | 25个Seeder，约200条高质量模拟数据（2026-05-25优化） |
 
@@ -231,7 +231,7 @@
 | SEO-06 | 创建 Language Model | Model | ✅ 已完成 | SEO-05 | 标准Model |
 | SEO-07 | 创建 translations 表迁移 | Migration | ✅ 已完成 | SEO-05 | key, locale, value |
 | SEO-08 | 创建 Translation Model | Model | ✅ 已完成 | SEO-07 | 标准Model |
-| SEO-09 | 创建 I18nController | Controller | ✅ 已完成 | SEO-06, SEO-08 | Admin Inertia (模拟数据) |
+| SEO-09 | 创建 I18nController | Controller | ✅ 已完成 | SEO-06, SEO-08 | Admin Inertia (真实数据) |
 | SEO-10 | 创建语言切换Middleware | Middleware | ✅ 已完成 | SEO-06 | locale设置 |
 | SEO-11 | 创建导出JSON命令 | Command | ⏸️ 已跳过 | SEO-09 | vue-i18n同步 |
 
@@ -269,11 +269,11 @@
 |----|------|----------|:----:|------|------------|
 | MAIL-01 | 创建 mail_configs 表迁移 | Migration | ✅ 已完成 | - | driver, host, credentials |
 | MAIL-02 | 创建 MailConfig Model | Model | ✅ 已完成 | MAIL-01 | 标准Model |
-| MAIL-03 | 创建 MailConfigController | Controller | ✅ 已完成 | MAIL-02 | Admin Inertia (模拟数据) |
+| MAIL-03 | 创建 MailConfigController | Controller | ✅ 已完成 | MAIL-02 | Admin Inertia (真实数据) |
 | MAIL-04 | 创建测试邮件功能 | Mailable | ✅ 已完成 | MAIL-03 | Mailable类 |
 | MAIL-05 | 创建 email_templates 表迁移 | Migration | ✅ 已完成 | - | subject, body, variables |
 | MAIL-06 | 创建 EmailTemplate Model | Model | ✅ 已完成 | MAIL-05 | 标准Model |
-| MAIL-07 | 创建 EmailTemplateController | Controller | ✅ 已完成 | MAIL-06 | Admin Inertia (模拟数据) |
+| MAIL-07 | 创建 EmailTemplateController | Controller | ✅ 已完成 | MAIL-06 | Admin Inertia (真实数据) |
 | MAIL-08 | 创建通用 Mailable | Mailable | ✅ 已完成 | MAIL-07 | GenericEmail |
 | MAIL-09 | 创建 notifications 表迁移 | Migration | ✅ Laravel内置 | AUTH-05 | 数据库通知 |
 | MAIL-10 | 创建通知Model | Model | ✅ 已完成 | MAIL-09 | Notifiable |
@@ -292,7 +292,7 @@
 | AD-01 | 创建 ad_positions 表迁移 | Migration | ✅ 已完成 | - | key, name, size |
 | AD-02 | 创建 AdPosition Model | Model | ✅ 已完成 | AD-01 | hasMany advertisements |
 | AD-03 | 创建 Advertisement Model | Model | ✅ 已完成 | AD-01 | BelongsTo AdPosition |
-| AD-04 | 创建 AdvertisementController | Controller | ✅ 已完成 | AD-03 | Admin Inertia (模拟数据) |
+| AD-04 | 创建 AdvertisementController | Controller | ✅ 已完成 | AD-03 | Admin Inertia (真实数据) |
 | AD-05 | 创建广告轮换逻辑 | Service | ✅ 已完成 | AD-04 | 权重随机 |
 | AD-06 | 创建 AdViewed Event | Event | ✅ 已完成 | AD-05 | 展示追踪 |
 | AD-07 | 创建 interactions 表迁移 | Migration | ✅ 已完成 | - | 多态关联 |
@@ -330,8 +330,8 @@
 | FE-01 | 安装 Inertia.js 后端扩展 | Package | ✅ 已完成 | - | composer require inertiajs/inertia-laravel |
 | FE-02 | 创建 HandleInertiaRequests 中间件 | Middleware | ✅ 已完成 | FE-01 | php artisan inertia:middleware |
 | FE-03 | 配置 Inertia 根模板 app.blade.php | Template | ✅ 已完成 | FE-01 | @inertiaHead + @inertia |
-| FE-04 | 创建 Frontend HomeController | Controller | ✅ 已完成 | CONT-15 | Inertia::render('front/Home') |
-| FE-05 | 创建 Frontend BlogController | Controller | ✅ 已完成 | CONT-15 | Inertia::render('front/Blog') |
+| FE-04 | 创建 Web FrontendController | Controller | ✅ 已完成 | CONT-15 | Inertia::render('front/Home') |
+| FE-05 | 创建 Web PostController | Controller | ✅ 已完成 | CONT-15 | Inertia::render('front/Blog') |
 | FE-06 | 创建 Admin PostController | Controller | ✅ 已完成 | CONT-15 | Inertia::render('admin/Posts') |
 | FE-07 | 创建 Admin CategoryController | Controller | ✅ 已完成 | CONT-02 | Inertia::render('admin/Categories') |
 | FE-08 | 创建 Admin TagController | Controller | ✅ 已完成 | CONT-06 | Inertia::render('admin/Tags') |
@@ -351,24 +351,24 @@
 
 | 优先级 | 总数 | ✅ 完成 | 🔄 进行中 | ⚠️ 待处理 |
 |:------:|:----:|:-------:|:---------:|:---------:|
-| 高 | 55 | 55 | 1 | 2 |
-| 中 | 25 | 10 | 0 | 15 |
-| 低 | 23 | 9 | 0 | 14 |
-| **总计** | **103** | **81** | **1** | **24** |
+| 高 | 55 | 55 | 0 | 0 |
+| 中 | 25 | 23 | 0 | 2 |
+| 低 | 23 | 21 | 0 | 2 |
+| **总计** | **103** | **99** | **0** | **4** |
 
-> **注：** 截至 2026-05-28，所有数据库迁移已完成，25个 Seeder 已优化完毕，约200条高质量模拟数据已填充。
+> **注：** 截至 2026-06-03，27 个模块后台管理 + 11 个前台页面全部完成真实数据对接，MockDataService 仅剩中间件 fallback 引用。
 >
 > **核心架构组件已完成：**
-> - ✅ Service Layer (14个Service)
+> - ✅ Service Layer (25个Service)
 > - ✅ Repository Layer (7个Repository)
-> - ✅ API Resource (13个)
-> - ✅ FormRequest (20个)
-> - ✅ Policy (10个)
-> - ✅ Middleware (5个)
-> - ✅ Controller (42个)
+> - ✅ API Resource (12个)
+> - ✅ FormRequest (24个)
+> - ❌ Policy (24个已移除，统一走 Spatie Permission 中间件)
+> - ✅ Middleware (7个)
+> - ✅ Controller (50+个)
 > - ❌ Observer (已跳过，采用Service模式)
-> - ✅ Event/Listener (1对：CommentCreated + SendCommentNotification)
-> - ✅ Notification (2个：NewCommentNotification + NewSubscriberNotification)
+> - ✅ Event/Listener (2对：CommentCreated + SendCommentNotification, AdViewed + TrackAdViewed)
+> - ✅ Notification (3个：NewCommentNotification, NewSubscriberNotification, SystemNotification)
 > - ✅ Feature Test (9个测试用例)
 >
 > **前台API认证系统已完成：**
@@ -386,9 +386,9 @@
 > - 所有前台和后台控制器已改用 Inertia::render() 返回数据
 > - 资源路由已添加 `->names()` 配置，Ziggy 路由助手正常工作
 > - 后台菜单数据通过 HandleInertiaRequests 中间件共享
-> - 前台页面 SEO 数据空值问题已修复
-> - 后台页面表单提交逻辑优化进行中（Users、Roles、Journals 已完成）
+> - 前台页面全部使用真实数据库数据
 > - 前端 Vue 组件已改为通过 props 接收数据
+> - MockDataService 仅剩中间件容错 fallback 引用
 
 ---
 
@@ -504,17 +504,17 @@
 |----------|:----:|------|
 | Migration | 25+ | 数据库表结构（包含扩展迁移） |
 | Model | 34 | Eloquent模型（完整列表） |
-| Controller | 40+ | 控制器（Admin:22 + Api/V1:10 + Frontend:4 + Web:6） |
-| Service | 13 | 业务逻辑（Category, Comment, Interaction, Menu, MockData, Post, Project, Resource, Setting, Tag, Test, User, Video） |
+| Controller | 50+ | 控制器（Admin:27 + Api/V1:10 + Web:8） |
+| Service | 25 | 业务逻辑层 |
 | Repository | 7 | 数据访问层（轻量级模式） |
 | Resource | 12 | API响应格式化（V1版本：Post, Category, Tag, Video, Project, User, Comment, Role, Permission, Subscriber, Journal, Resource） |
-| FormRequest | 17 | 表单验证（Store* + Update* + LoginRequest + SyncPermissionsRequest + UploadMediaRequest） |
-| Policy | 10 | 授权策略（Post, Category, Tag, Video, Project, User, Role, Comment, Media, Setting） |
-| Middleware | 5 | 中间件（HandleInertiaRequests, Seo, Language, Admin, ActivityLog） |
+| FormRequest | 24 | 表单验证 |
+| Policy | 0 | ❌ 已移除（24个Policy已删除，统一走 Spatie Permission 中间件） |
+| Middleware | 7 | 中间件（HandleInertiaRequests, SeoMiddleware, LanguageMiddleware, AdminMiddleware, ActivityLogMiddleware, CheckMaintenanceMode, PageVisitMiddleware） |
 | Observer | 0 | ❌ 已跳过（采用 Service 模式） |
-| Event/Listener | 2/2 | 事件驱动（CommentCreated, AdViewed + SendCommentNotification, TrackAdViewed） |
-| Notification | 2 | 通知系统（NewCommentNotification + NewSubscriberNotification） |
-| Command | 0 | Artisan命令（待创建） |
+| Event/Listener | 2/2 | 事件驱动（CommentCreated + SendCommentNotification, AdViewed + TrackAdViewed） |
+| Notification | 3 | 通知系统（NewCommentNotification, NewSubscriberNotification, SystemNotification） |
+| Command | 1 | Artisan命令（BackupCommand） |
 | Mailable | 1 | 邮件模板（GenericEmail已创建） |
 | Test | 9 | Feature测试（AuthTest: 9个测试用例） |
 

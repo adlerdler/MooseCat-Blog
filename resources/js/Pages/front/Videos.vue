@@ -13,7 +13,7 @@
  * - 点击跳转到视频详情页
  */
 import { ref, computed, onMounted, watch } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 import { Motion } from 'motion-v';
 import { Play } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
@@ -62,7 +62,8 @@ const filteredVideos = computed(() => {
   return props.videos.filter(v => v.category_id === selectedCategoryData.id);
 });
 
-const { getActiveAds } = useAdSlot();
+const pageProps = usePage().props;
+const { getActiveAds } = useAdSlot({ ads: pageProps.frontAds ?? [], adPositions: pageProps.frontAdPositions ?? [] });
 const AD_INTERVAL = 3;
 
 const mixedVideosWithAds = computed(() => {

@@ -1,9 +1,9 @@
 # Inertia.js 数据对接任务清单
 
 **项目名称：** ARCHYX - Laravel Vue.js 混合应用
-**最后更新：** 2026-05-27 (新增前台API认证系统，9个测试用例全部通过)
-**版本：** 3.0
-**状态：** 进行中
+**最后更新：** 2026-06-03 (27 模块真实数据对接完成)
+**版本：** 4.0
+**状态：** 基本完成
 
 ---
 
@@ -15,15 +15,15 @@
 | 第二阶段：后端Service层 | 20 | 20 | 0 | 0 | ✅ |
 | 第二阶段B：后端Repository层 | 13 | 13 | 0 | 0 | ✅ |
 | 第三阶段：后端FormRequest | 17 | 17 | 0 | 0 | ✅ |
-| 第四阶段：后端Policy | 10 | 10 | 0 | 0 | ✅ |
-| 第五阶段：后端Observer | 8 | 0 | 0 | 8 | ❌ 跳过 |
+| 第四阶段：后端Policy | 10 | 0 | 0 | 0 | ❌ 已移除 |
+| 第五阶段：后端Observer | 8 | 0 | 0 | 0 | ❌ 跳过 |
 | 第六阶段：API Resource | 12 | 12 | 0 | 0 | ✅ |
-| 第六阶段B：中间件开发 | 5 | 5 | 0 | 0 | ✅ |
-| 第七阶段：后台Controller | 30 | 24 | 0 | 6 | ⚠️ |
-| 第八阶段：前台页面 | 40 | 26 | 0 | 14 | ⚠️ |
+| 第六阶段B：中间件开发 | 5 | 7 | 0 | 0 | ✅ |
+| 第七阶段：后台Controller | 30 | 30 | 0 | 0 | ✅ |
+| 第八阶段：前台页面 | 40 | 37 | 0 | 3 | ⚠️ |
 | 第九阶段：数据清理 | 5 | 0 | 0 | 5 | ⚠️ |
 | 第十阶段：前台API认证 | 6 | 6 | 0 | 0 | ✅ |
-| **总计** | **176** | **143** | **0** | **33** |
+| **总计** | **176** | **157** | **0** | **8** |
 
 ---
 
@@ -202,22 +202,9 @@
 
 ## 第四阶段：后端 Policy 授权策略
 
-> **状态：** ✅ 已完成（10/10 已完成）
-> **文件位置：** `app/Policies/`
-> **创建方式：** 使用 `php artisan make:policy` 命令批量创建
-
-| 序号 | 任务 | 文件位置 | 优先级 | 状态 |
-|:---:|------|----------|:------:|:----:|
-| 4.1 | PostPolicy 文章授权 | app/Policies/PostPolicy.php | 高 | ✅ 已完成 |
-| 4.2 | CategoryPolicy 分类授权 | app/Policies/CategoryPolicy.php | 高 | ✅ 已完成 |
-| 4.3 | TagPolicy 标签授权 | app/Policies/TagPolicy.php | 高 | ✅ 已完成 |
-| 4.4 | VideoPolicy 视频授权 | app/Policies/VideoPolicy.php | 高 | ✅ 已完成 |
-| 4.5 | ProjectPolicy 项目授权 | app/Policies/ProjectPolicy.php | 高 | ✅ 已完成 |
-| 4.6 | UserPolicy 用户授权 | app/Policies/UserPolicy.php | 高 | ✅ 已完成 |
-| 4.7 | RolePolicy 角色授权 | app/Policies/RolePolicy.php | 高 | ✅ 已完成 |
-| 4.8 | CommentPolicy 评论授权 | app/Policies/CommentPolicy.php | 中 | ✅ 已完成 |
-| 4.9 | MediaPolicy 媒体授权 | app/Policies/MediaPolicy.php | 中 | ✅ 已完成 |
-| 4.10 | SettingPolicy 设置授权 | app/Policies/SettingPolicy.php | 中 | ✅ 已完成 |
+> **状态：** ❌ 已移除（24个Policy全部删除）
+> **文件位置：** `app/Policies/` （空目录）
+> **移除原因：** Policy 层与 Spatie Permission 中间件功能重叠。权限控制统一走 `middleware('permission:xxx')`。
 
 ---
 
@@ -268,7 +255,7 @@
 
 ## 第六阶段B：中间件开发
 
-> **状态：** ✅ 已完成（5/5 已完成）
+> **状态：** ✅ 已完成（7/7 已完成）
 > **文件位置：** `app/Http/Middleware/`
 
 | 序号 | 任务 | 文件位置 | 优先级 | 状态 |
@@ -278,13 +265,15 @@
 | 6B.3 | LanguageMiddleware 语言切换中间件 | app/Http/Middleware/LanguageMiddleware.php | 中 | ✅ 已完成 |
 | 6B.4 | AdminMiddleware 后台权限验证 | app/Http/Middleware/AdminMiddleware.php | 高 | ✅ 已完成 |
 | 6B.5 | ActivityLogMiddleware 操作日志记录 | app/Http/Middleware/ActivityLogMiddleware.php | 中 | ✅ 已完成 |
+| 6B.6 | CheckMaintenanceMode 维护模式拦截 | app/Http/Middleware/CheckMaintenanceMode.php | 中 | ✅ 已完成 |
+| 6B.7 | PageVisitMiddleware 页面访问追踪 | app/Http/Middleware/PageVisitMiddleware.php | 中 | ✅ 已完成 |
 
 ---
 
 ## 第七阶段：后台 Controller 开发
 
-> **状态：** ✅ 基本完成（24/30 已完成）
-> **文件位置：** `app/Http/Controllers/Admin/`
+> **状态：** ✅ 已完成（30/30 已完成）
+> **文件位置：** `app/Http/Controllers/Admin/` 和 `app/Http/Controllers/Web/`
 
 ### 7.1 内容管理 Controller
 
@@ -304,7 +293,7 @@
 |:---:|------|----------|:----:|:------:|:----:|
 | 7.2.1 | UsersController 用户管理 | app/Http/Controllers/Admin/UsersController.php | 2.5, 3.4, 4.6, 6.6 | 高 | ✅ 已完成 |
 | 7.2.2 | RolesController 角色管理 | app/Http/Controllers/Admin/RolesController.php | 3.5, 4.7, 6.8 | 高 | ✅ 已完成 |
-| 7.2.3 | PermissionController 权限管理 | app/Http/Controllers/Admin/PermissionController.php | 4.7, 6.9 | 高 | ⚠️ 待处理 |
+| 7.2.3 | PermissionController 权限管理 | app/Http/Controllers/Admin/PermissionController.php | 4.7, 6.9 | 高 | ✅ 已完成 |
 | 7.2.4 | UserLevelsController 用户等级 | app/Http/Controllers/Admin/UserLevelsController.php | 6.6 | 中 | ✅ 已完成 |
 | 7.2.5 | SubscribersController 订阅者 | app/Http/Controllers/Admin/SubscribersController.php | 3.5, 6.10 | 中 | ✅ 已完成 |
 
@@ -331,34 +320,29 @@
 
 | 序号 | 任务 | 文件位置 | 依赖 | 优先级 | 状态 |
 |:---:|------|----------|:----:|:------:|:----:|
-| 7.4.1 | HomeController 首页 | app/Http/Controllers/Frontend/HomeController.php | 1.1 | 高 | ✅ 已完成 |
-| 7.4.2 | FrontendController 博客列表 | app/Http/Controllers/Frontend/FrontendController.php | 1.1 | 高 | ✅ 已完成 |
-| 7.4.3 | BlogController 博客详情 | app/Http/Controllers/Frontend/BlogController.php | 1.1 | 高 | ✅ 已完成 |
-| 7.4.4 | ProjectsController 项目列表 | app/Http/Controllers/Frontend/ProjectsController.php | 1.1 | 高 | ✅ 已完成 |
-| 7.4.5 | ProjectDetailController 项目详情 | app/Http/Controllers/Frontend/ProjectDetailController.php | 1.1 | 高 | ⚠️ 待处理 |
-| 7.4.6 | VideosController 视频列表 | app/Http/Controllers/Frontend/VideosController.php | 1.1 | 高 | ⚠️ 待处理 |
-| 7.4.7 | VideoDetailController 视频详情 | app/Http/Controllers/Frontend/VideoDetailController.php | 1.1 | 高 | ⚠️ 待处理 |
-| 7.4.8 | ResourcesController 资源页面 | app/Http/Controllers/Frontend/ResourcesController.php | 1.1 | 中 | ⚠️ 待处理 |
-| 7.4.9 | AuthorController 作者页面 | app/Http/Controllers/Frontend/AuthorController.php | 1.1 | 中 | ⚠️ 待处理 |
-| 7.4.10 | JournalController 日记页面 | app/Http/Controllers/Frontend/JournalController.php | 1.1 | 中 | ⚠️ 待处理 |
+| 7.4.1 | FrontendController 前台页面 | app/Http/Controllers/Web/FrontendController.php | - | 高 | ✅ 已完成 |
+| 7.4.2 | PostController 文章详情 | app/Http/Controllers/Web/PostController.php | - | 高 | ✅ 已完成 |
+| 7.4.3 | VideoController 视频详情 | app/Http/Controllers/Web/VideoController.php | - | 中 | ✅ 已完成 |
+| 7.4.4 | ProjectController 项目详情 | app/Http/Controllers/Web/ProjectController.php | - | 中 | ✅ 已完成 |
+| 7.4.5 | ResourceController 资源页面 | app/Http/Controllers/Web/ResourceController.php | - | 中 | ✅ 已完成 |
+| 7.4.6 | LikeController 游客点赞 | app/Http/Controllers/Web/LikeController.php | - | 中 | ✅ 已完成 |
+
+> **注：** HomeController、BlogController、ProjectsController 已删除，功能合并到 FrontendController（Web 目录）。
 
 ### 7.5 公开 API Controller
 
 | 序号 | 任务 | 文件位置 | 依赖 | 优先级 | 状态 |
 |:---:|------|----------|:----:|:------:|:----:|
-| 7.5.1 | PublicPostController 公开文章API | app/Http/Controllers/Api/V1/PublicPostController.php | 6.1 | 高 | ⚠️ 待处理 |
-| 7.5.2 | PublicVideoController 公开视频API | app/Http/Controllers/Api/V1/PublicVideoController.php | 6.4 | 高 | ⚠️ 待处理 |
-| 7.5.3 | PublicProjectController 公开项目API | app/Http/Controllers/Api/V1/PublicProjectController.php | 6.5 | 高 | ⚠️ 待处理 |
-| 7.5.4 | CommentController 公开评论API | app/Http/Controllers/Api/V1/CommentController.php | 2.5, 3.4, 6.7 | 高 | ⚠️ 待处理 |
-| 7.5.5 | SubscribeController 订阅API | app/Http/Controllers/Api/V1/SubscribeController.php | 3.4 | 中 | ⚠️ 待处理 |
-| 7.5.6 | InteractionController 互动API | app/Http/Controllers/Api/V1/InteractionController.php | 2.5 | 中 | ⚠️ 待处理 |
-| 7.5.7 | SocialLinkController 公开社交链接API | app/Http/Controllers/Api/V1/SocialLinkController.php | - | 中 | ⚠️ 待处理 |
+| 7.5.1 | AuthController 认证 | app/Http/Controllers/Api/V1/AuthController.php | - | 高 | ✅ 已完成 |
+| 7.5.2 | SubscribeController 订阅API | app/Http/Controllers/Api/V1/SubscribeController.php | - | 中 | ✅ 已完成 |
+| 7.5.3 | AuthorController 作者API | app/Http/Controllers/Api/V1/AuthorController.php | - | 中 | ✅ 已完成 |
+| 7.5.4 | SocialLinkController 社交链接API | app/Http/Controllers/Api/V1/SocialLinkController.php | - | 中 | ✅ 已完成 |
 
 ---
 
 ## 第八阶段：前台页面数据对接
 
-> **状态：** 🔄 进行中（26/40 已完成）
+> **状态：** ✅ 基本完成（37/40 已完成）
 > **文件位置：** `resources/js/Pages/`
 
 ### 8.1 首页与列表页
@@ -375,11 +359,11 @@
 
 | 序号 | 页面 | 文件位置 | 依赖 | 优先级 | 状态 |
 |:---:|------|----------|:----:|:------:|:----:|
-| 8.2.1 | PostDetail.vue 文章详情 | resources/js/Pages/front/PostDetail.vue | 7.4.3 | 高 | ✅ 已完成 |
-| 8.2.2 | ProjectDetail.vue 项目详情 | resources/js/Pages/front/ProjectDetail.vue | 7.4.5 | 高 | ⚠️ 待处理 |
-| 8.2.3 | VideoDetail.vue 视频详情 | resources/js/Pages/front/VideoDetail.vue | 7.4.7 | 高 | ⚠️ 待处理 |
-| 8.2.4 | Author.vue 作者页面 | resources/js/Pages/front/Author.vue | 7.4.9 | 中 | ✅ 已完成 |
-| 8.2.5 | Journal.vue 日记页面 | resources/js/Pages/front/Journal.vue | 7.4.10 | 中 | ⚠️ 待处理 |
+| 8.2.1 | PostDetail.vue 文章详情 | resources/js/Pages/front/PostDetail.vue | 7.4.1 | 高 | ✅ 已完成 |
+| 8.2.2 | ProjectDetail.vue 项目详情 | resources/js/Pages/front/ProjectDetail.vue | 7.4.1 | 高 | ✅ 已完成 |
+| 8.2.3 | VideoDetail.vue 视频详情 | resources/js/Pages/front/VideoDetail.vue | 7.4.1 | 高 | ✅ 已完成 |
+| 8.2.4 | Author.vue 作者页面 | resources/js/Pages/front/Author.vue | 7.4.1 | 中 | ✅ 已完成 |
+| 8.2.5 | Journal.vue 日记页面 | resources/js/Pages/front/Journal.vue | 7.4.1 | 中 | ⚠️ 待处理 |
 
 ### 8.3 后台页面
 
@@ -416,14 +400,14 @@
 
 | 序号 | 组件 | 文件位置 | 优先级 | 状态 |
 |:---:|------|----------|:------:|:----:|
-| 8.4.1 | Footer.vue | resources/js/components/Footer.vue | 高 | ⚠️ 待处理 |
-| 8.4.2 | CommentSection.vue | resources/js/components/CommentSection.vue | 高 | ⚠️ 待处理 |
+| 8.4.1 | Footer.vue | resources/js/components/Footer.vue | 高 | ✅ 已完成 |
+| 8.4.2 | CommentSection.vue | resources/js/components/CommentSection.vue | 高 | ✅ 已完成 |
 | 8.4.3 | AdSlot.vue | resources/js/components/front/AdSlot.vue | 中 | ⚠️ 待处理 |
 | 8.4.4 | AdPopup.vue | resources/js/components/front/AdPopup.vue | 中 | ⚠️ 待处理 |
 | 8.4.5 | SearchOverlay.vue | resources/js/components/SearchOverlay.vue | 中 | ⚠️ 待处理 |
 | 8.4.6 | ShareModal.vue | resources/js/components/ShareModal.vue | 低 | ⚠️ 待处理 |
-| 8.4.7 | ResourceModal.vue | resources/js/components/ResourceModal.vue | 低 | ⚠️ 待处理 |
-| 8.4.8 | SidebarMenu.vue | resources/js/components/SidebarMenu.vue | 高 | ⚠️ 待处理 |
+| 8.4.7 | ResourceModal.vue | resources/js/components/ResourceModal.vue | 低 | ✅ 已完成 |
+| 8.4.8 | SidebarMenu.vue | resources/js/components/SidebarMenu.vue | 高 | ✅ 已完成 |
 | 8.4.9 | ToastContainer.vue | resources/js/components/ToastContainer.vue | 高 | ✅ 已完成 |
 
 ---
@@ -541,13 +525,13 @@
 | 阶段 | 开始日期 | 完成日期 | 状态 |
 |:----:|:--------:|:--------:|:----:|
 | 第一阶段 | - | 2026-05-25 | ✅ 已完成 |
-| 第二阶段 | - | - | ⏳ 待开始 |
-| 第三阶段 | - | 2026-05-27 | 🔄 部分完成 |
-| 第四阶段 | - | 2026-05-27 | 🔄 部分完成 |
+| 第二阶段 | - | - | ✅ 已完成 |
+| 第三阶段 | - | 2026-05-27 | ✅ 已完成 |
+| 第四阶段 | - | 2026-05-27 | ❌ 已移除 |
 | 第五阶段 | - | - | ⏳ 待开始 |
 | 第六阶段 | - | 2026-05-26 | 🔄 大部分完成 |
 | 第七阶段 | - | 2026-05-27 | ✅ 基本完成 |
-| 第八阶段 | - | 2026-05-27 | 🔄 大部分完成 |
+| 第八阶段 | - | 2026-05-27 | ✅ 基本完成 |
 | 第九阶段 | - | - | ⏳ 待开始 |
 | 第十阶段 | 2026-05-27 | 2026-05-27 | ✅ 已完成 |
 
@@ -555,4 +539,3 @@
 
 1. **第十阶段**：前台API认证系统已全部完成（9个测试用例通过）
 2. **第九阶段**：数据清理与验证
-3. **第二～四阶段**：开发各个 Service/FormRequest/Policy 层

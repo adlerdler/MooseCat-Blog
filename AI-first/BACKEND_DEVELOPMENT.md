@@ -1,8 +1,8 @@
 # 后端功能开发路线图
 
 **项目名称：** ARCHYX - Laravel Vue.js 混合应用
-**最后更新：** 2026-05-29
-**版本：** 3.0
+**最后更新：** 2026-06-03
+**版本：** 4.0
 **Laravel版本：** 11 (精简模式)
 
 > **注意：** 架构相关内容已迁移至 [ARCHITECTURE.md](ARCHITECTURE.md)。本文档专注于任务清单和开发进度跟踪。
@@ -44,7 +44,7 @@
 
 | 路由类型 | 前缀 | 控制器目录 | 说明 |
 |----------|------|------------|------|
-| **前台路由** | `/` | `App\Http\Controllers\Frontend\` | Inertia.js 渲染，返回 Vue 组件 |
+| **前台路由** | `/` | `App\Http\Controllers\Web\` | Inertia.js 渲染，返回 Vue 组件 |
 | **后台路由** | `/admin` | `App\Http\Controllers\Admin\` | Inertia.js 渲染，需登录，返回 Vue 组件 |
 | **API路由** | `/api/v1` | `App\Http\Controllers\Api\V1\` | JSON响应，供APP/第三方使用 |
 | **公开API** | `/api` | `App\Http\Controllers\Api\V1\` | 无需认证的公开接口 |
@@ -54,16 +54,16 @@
 | 组件类型 | 数量 | 状态 |
 |---------|:------:|:----:|
 | **Models** | 34 | ✅ 已完成 |
-| **Controllers** | 40+ | ✅ 已完成 |
-| **Services** | 13 | ✅ 已完成 |
+| **Controllers** | 50+ | ✅ 已完成 |
+| **Services** | 25 | ✅ 已完成 |
 | **Repositories** | 7 | ✅ 已完成 |
-| **FormRequests** | 17 | ✅ 已完成 |
-| **Policies** | 10 | ✅ 已完成 |
+| **FormRequests** | 24 | ✅ 已完成 |
+| **Policies** | 0 | ❌ 已移除（统一走 Spatie Permission） |
 | **API Resources** | 12 | ✅ 已完成 |
-| **Middleware** | 5 | ✅ 已完成 |
+| **Middleware** | 7 | ✅ 已完成 |
 | **Events** | 2 | ✅ 已完成 |
 | **Listeners** | 2 | ✅ 已完成 |
-| **Notifications** | 2 | ✅ 已完成 |
+| **Notifications** | 3 | ✅ 已完成 |
 | **Mail** | 1 | ✅ 已完成 |
 | **Observers** | 0 | ❌ 已跳过（采用Service模式） |
 
@@ -87,7 +87,7 @@
 | PostPolicy | 高 | ✅ 已完成 | 授权策略 | Gate授权 |
 | 分类/标签关联 | 高 | ✅ 已完成 | 多态关联taggables | morphToMany |
 | 评论功能 | 高 | ✅ 已完成 | Comment模型 + CommentService | 完整实现 |
-| 搜索与筛选 | 中 | ⚠️ 待处理 | Full-text search | Scout集成 |
+| 搜索与筛选 | 中 | ⚠️ 待处理 | Full-text search | Scout集成（后台 author_id 过滤已实现） |
 | Markdown解析 | 中 | ⚠️ 待处理 | league/commonmark | 自定义Blade组件 |
 | 封面图上传 | 中 | ⚠️ 待处理 | Spatie Media Library |MediaLibraryTrait |
 | SEO字段 | 中 | ⚠️ 待处理 | seo_meta关联 | SEO观察者 |
@@ -131,7 +131,7 @@
 | FormRequest验证 | 高 | ✅ 已完成 | StoreResourceRequest | 独立验证类 |
 | API Resource | 高 | ✅ 已完成 | ResourceResource | 统一响应格式 |
 | ResourceService | 高 | ✅ 已完成 | 业务逻辑封装 | 依赖注入 |
-| 下载统计 | 中 | ⚠️ 待处理 | 访问时递增 | 事件监听 |
+| 下载统计 | 中 | ✅ 已完成 | 访问时递增 | Resource::increment('downloads_count') |
 
 #### 2.1.5 日记 (Journals)
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
@@ -320,8 +320,10 @@
 | 迁移文件 & 模型 | 高 | ✅ 已完成 | backups表 | file_path, status |
 | Backup模型 | 高 | ✅ 已完成 | app/Models/Backup.php | 标准Model |
 | Admin控制器 | 高 | ✅ 已完成 | Admin/BackupController, Admin/RestoreController | Inertia.js渲染 |
-| is_scheduled字段 | 高 | ✅ 已完成 | 备份计划标识 | 迁移添加 |
-| schedule_time字段 | 高 | ✅ 已完成 | 备份计划时间 | 迁移添加 |
+| BackupService | 高 | ✅ 已完成 | 四种备份类型 | full/database/files/incremental |
+| BackupRestoreService | 高 | ✅ 已完成 | 恢复前快照 + 回滚 | 新建 Service |
+| BackupCommand | 高 | ✅ 已完成 | artisan 备份命令 | Console/Commands |
+| Scheduler 配置 | 高 | ✅ 已完成 | 每日/每周调度 | routes/console.php |
 
 ---
 
@@ -361,41 +363,38 @@
 
 | 模块 | 完成度 | 说明 |
 |------|:------:|------|
-| **内容管理** | 90% | 核心功能已完成，待优化细节 |
-| **用户管理** | 85% | 核心功能已完成，待完善用户等级 |
-| **系统设置** | 98% | 核心功能已完成，媒体库包已安装 |
-| **系统维护** | 95% | 核心功能已完成，备份包已安装 |
+| **内容管理** | 95% | CRUD + Service 全部完成 |
+| **用户管理** | 95% | 核心功能已完成 |
+| **系统设置** | 100% | SEO/I18n/Mail/Menu/Setting 全链路真实数据 |
+| **系统维护** | 100% | Backup/Log/Notification 全部真实实现 |
+| **前台页面** | 100% | 所有页面真实数据对接 |
 | **架构组件** | 100% | 所有核心架构组件已完成 |
 
 ### 4.2 总体完成度
 
-**总体完成度：约 93%**
+**总体完成度：约 97%**
 
 ---
 
 ## 5. 后续工作建议
 
 ### 高优先级
-1. 完善备份功能（BackupController 真实实现）
-2. 完善媒体库功能（MediaController 真实实现）
-3. 完善活动日志功能（LogsController 真实实现）
-4. 实现文章搜索功能（Full-text search或Scout集成）
-5. 实现备份计划自动化（Laravel Scheduler）
-6. 编写测试用例（Feature/Unit Test）
+1. 清理 MockDataService + 31 JSON 文件
+2. 实现密码重置邮件（EmailTemplate 已就绪）
+3. 实现文章搜索功能（Full-text search或Scout集成）
+4. 编写测试用例（Feature/Unit Test）
 
 ### 中优先级
 1. 实现Markdown解析功能（league/commonmark）
-2. 实现下载统计功能（事件驱动）
-3. 完善用户等级积分系统
-4. 编写Artisan命令（清理未使用标签等）
+2. 实现树形分类结构（NestedSetModel）
+3. Newsletter 批量发送
 
 ### 低优先级
-1. 实现树形分类结构（NestedSetModel）
-2. 优化性能（Query Cache，Eager Loading）
-3. 完善错误处理和异常捕获
-4. 编写完整的API文档（OpenAPI/Swagger）
+1. 优化性能（Query Cache，Eager Loading，Redis）
+2. 完善错误处理和异常捕获
+3. 编写完整的API文档（OpenAPI/Swagger）
 
 ---
 
 **文档状态：** ✅ 已根据项目代码实际情况更新
-**最后更新：** 2026-05-29
+**最后更新：** 2026-06-03

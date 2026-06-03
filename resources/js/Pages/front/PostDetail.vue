@@ -14,9 +14,11 @@
  * - 返回顶部按钮
  * - 评论区评论提交
  */
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { Link, usePage } from '@inertiajs/vue3';
 import { ArrowLeft, Share2, Bookmark, Clock, User, BookOpen, ChevronRight, Heart, ArrowRight } from 'lucide-vue-next';
+import { Motion, AnimatePresence } from 'motion-v';
+import axios from 'axios';
 import { useI18n } from 'vue-i18n';
 import { formatToEnglish } from '../../utils/dateUtils';
 import { findById, formatId } from '../../utils/typeConvert';
@@ -37,11 +39,15 @@ const props = defineProps({
   interactions: { type: Array, default: () => [] }
 });
 
-const { getSingleAd } = useAdSlot();
+const pageProps = usePage().props;
+const { getSingleAd } = useAdSlot({ ads: pageProps.frontAds ?? [], adPositions: pageProps.frontAdPositions ?? [] });
 
 const { t } = useI18n();
-const currentUserId = 1;
-const localInteractions = ref([...props.interactions]);
+
+const likeStorageKey = computed(() => props.post ? `liked_post_${props.post.id}` : '');
+
+const liked = ref(likeStorageKey.value ? localStorage.getItem(likeStorageKey.value) === '1' : false);
+const likesCount = ref(props.post?.likes_count ?? 0);
 
 const { isCommentsVisible, isAuthorBioVisible } = useSiteConfig();
 const showComments = computed(() => isCommentsVisible());
@@ -97,6 +103,30 @@ const tableOfContents = computed(() => {
 const showBackToTop = ref(false);
 const isMetaOpen = ref(true);
 const showShareModal = ref(false);
+const showBookmarkTip = ref(false);
+let bookmarkTimer = null;
+
+const bookmarkPost = () => {
+  const url = window.location.href;
+  const title = document.title;
+
+  // 国产浏览器 / IE：直接弹出收藏对话框
+  if (window.external && typeof window.external.addFavorite === 'function') {
+    try { window.external.addFavorite(url, title); return; } catch (_) {}
+  }
+
+  // 旧版 Firefox
+  if (window.sidebar && typeof window.sidebar.addPanel === 'function') {
+    try { window.sidebar.addPanel(title, url, ''); return; } catch (_) {}
+  }
+
+  // Chrome / Edge / Safari / 新版 Firefox：无 JS API，提示快捷键
+  showBookmarkTip.value = true;
+  clearTimeout(bookmarkTimer);
+  bookmarkTimer = setTimeout(() => {
+    showBookmarkTip.value = false;
+  }, 2500);
+};
 
 const calculateReadTime = (content) => {
   const wordsPerMinute = 200;
@@ -155,49 +185,24 @@ const handleCommentSubmitted = (comment) => {
   }
 };
 
-const getPostLikeCount = () => {
-  if (!props.post) return 0;
-  return localInteractions.value.filter(
-    i => i.interactable_id === props.post.id && 
-         i.interactable_type === 'Post' && 
-         i.type === 'like'
-  ).length;
-};
-
-const isPostLiked = () => {
-  if (!props.post) return false;
-  return localInteractions.value.some(
-    i => i.user_id === currentUserId && 
-         i.interactable_id === props.post.id && 
-         i.interactable_type === 'Post' && 
-         i.type === 'like'
-  );
-};
-
-const togglePostLike = () => {
+const togglePostLike = async () => {
   if (!props.post) return;
-
-  const existingIndex = localInteractions.value.findIndex(
-    i => i.user_id === currentUserId && 
-         i.interactable_id === props.post.id && 
-         i.interactable_type === 'Post' && 
-         i.type === 'like'
-  );
-
-  if (existingIndex !== -1) {
-    localInteractions.value.splice(existingIndex, 1);
-  } else {
-    const now = new Date().toISOString();
-    const newId = Math.max(...localInteractions.value.map(i => i.id), 0) + 1;
-    localInteractions.value.push({
-      id: newId,
-      user_id: currentUserId,
+  try {
+    const { data } = await axios.post('/likes/toggle', {
+      interactable_type: 'App\\Models\\Post',
       interactable_id: props.post.id,
-      interactable_type: 'Post',
-      type: 'like',
-      created_at: now,
-      updated_at: now
     });
+    liked.value = data.liked;
+    likesCount.value = data.likes_count;
+
+    // 持久化到 localStorage，刷新后保留点赞状态
+    if (data.liked) {
+      localStorage.setItem(likeStorageKey.value, '1');
+    } else {
+      localStorage.removeItem(likeStorageKey.value);
+    }
+  } catch (e) {
+    // 忽略错误
   }
 };
 
@@ -230,7 +235,14 @@ onUnmounted(() => {
     </button>
 
     <!-- Back to Top Button -->
-    <Transition name="fade">
+    <Transition
+      enter-active-class="transition duration-300 ease-out"
+      enter-from-class="opacity-0 scale-75"
+      enter-to-class="opacity-100 scale-100"
+      leave-active-class="transition duration-200 ease-in"
+      leave-from-class="opacity-100 scale-100"
+      leave-to-class="opacity-0 scale-75"
+    >
       <button
         v-if="showBackToTop"
         @click="scrollToTop"
@@ -246,15 +258,32 @@ onUnmounted(() => {
       
       <div class="container mx-auto relative z-10 md:pl-24">
         <div class="max-w-4xl">
-          <div class="text-xs font-bold tracking-[0.4em] mb-4 opacity-70 animate-slide-down">
-            FILE: {{ getCategoryNameById(categories, post.category_id) }} // ID: {{ formatId(post.id, 4) }}
-          </div>
+          <Motion
+            :initial="{ opacity: 0, y: -30 }"
+            :animate="{ opacity: 0.7, y: 0 }"
+            :transition="{ type: 'spring', damping: 25, stiffness: 200 }"
+          >
+            <div class="text-xs font-bold tracking-[0.4em] mb-4 opacity-70">
+              FILE: {{ getCategoryNameById(categories, post.category_id) }} // ID: {{ formatId(post.id, 4) }}
+            </div>
+          </Motion>
           
-          <div class="font-display text-4xl sm:text-5xl md:text-6xl lg:text-8xl leading-[0.9] tracking-tighter mb-8 animate-slide-down" style="animation-delay: 0.1s">
-            {{ post.title }}
-          </div>
+          <Motion
+            :initial="{ opacity: 0, y: -30 }"
+            :animate="{ opacity: 1, y: 0 }"
+            :transition="{ type: 'spring', damping: 25, stiffness: 200, delay: 0.1 }"
+          >
+            <div class="font-display text-4xl sm:text-5xl md:text-6xl lg:text-8xl leading-[0.9] tracking-tighter mb-8">
+              {{ post.title }}
+            </div>
+          </Motion>
 
-          <div class="flex flex-wrap gap-8 items-center text-[10px] sm:text-xs font-bold tracking-[0.2em] opacity-80 animate-fade-in" style="animation-delay: 0.2s">
+          <Motion
+            :initial="{ opacity: 0, x: -20 }"
+            :animate="{ opacity: 0.8, x: 0 }"
+            :transition="{ duration: 0.4, delay: 0.2 }"
+          >
+            <div class="flex flex-wrap gap-8 items-center text-[10px] sm:text-xs font-bold tracking-[0.2em] opacity-80">
             <div class="flex items-center gap-2">
               <User size="14" class="text-white/40" />
               <Link
@@ -287,14 +316,32 @@ onUnmounted(() => {
               <button @click="showShareModal = true" class="hover:text-construct-black transition-colors"><Share2 size="16" /></button>
               <button 
                 @click="togglePostLike" 
-                :class="['flex items-center gap-1 transition-colors', isPostLiked() ? 'text-construct-red' : 'hover:text-construct-black']"
+                :class="['flex items-center gap-1 transition-colors', liked ? 'text-construct-red' : 'hover:text-construct-black']"
               >
-                <Heart size="16" :fill="isPostLiked() ? 'currentColor' : 'none'" :stroke-width="2" />
-                <span class="text-[10px] font-bold">{{ getPostLikeCount() }}</span>
+                <Heart size="16" :fill="liked ? 'currentColor' : 'none'" :stroke-width="2" />
+                <span class="text-[10px] font-bold">{{ likesCount }}</span>
               </button>
-              <button class="hover:text-construct-black transition-colors"><Bookmark size="16" /></button>
+              <button
+                @click="bookmarkPost"
+                class="hover:text-construct-black transition-colors relative"
+              >
+                <Bookmark size="16" />
+                <AnimatePresence>
+                  <Motion
+                    v-if="showBookmarkTip"
+                    :initial="{ opacity: 0, y: 4 }"
+                    :animate="{ opacity: 1, y: 0 }"
+                    :exit="{ opacity: 0, y: 4 }"
+                  >
+                    <span class="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap bg-construct-black text-white text-[10px] px-2 py-1 rounded pointer-events-none">
+                      Ctrl+D 收藏
+                    </span>
+                  </Motion>
+                </AnimatePresence>
+              </button>
             </div>
-          </div>
+            </div>
+          </Motion>
         </div>
       </div>
     </header>
@@ -512,57 +559,5 @@ onUnmounted(() => {
     font-size: 0.875em;
     border-radius: 4px;
   }
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-
-.slide-enter-active,
-.slide-leave-active {
-  transition: all 0.3s ease;
-  overflow: hidden;
-}
-
-.slide-enter-from,
-.slide-leave-to {
-  opacity: 0;
-  transform: translateY(-10px);
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-.animate-slide-down {
-  animation: slideDown 0.5s ease-out forwards;
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.4s ease-out forwards;
 }
 </style>

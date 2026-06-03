@@ -72,7 +72,10 @@ const { t: originalT } = useI18n();
 const t = (key, fallback = '') => {
   if (!key) return fallback || '';
   try {
-    return originalT(key) || fallback;
+    const result = originalT(key);
+    // 如果翻译结果等于原始key，说明i18n未命中，返回空字符串让外层 || 降级到 name
+    if (result === key) return '';
+    return result || fallback;
   } catch (e) {
     return fallback;
   }

@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Models\UserLevel;
 use App\Models\Video;
 use App\Models\Visit;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Permission\Models\Role;
@@ -24,25 +25,33 @@ use Spatie\Permission\Models\Role;
  */
 class DashboardService
 {
+    protected SettingService $settingService;
+
+    public function __construct(SettingService $settingService)
+    {
+        $this->settingService = $settingService;
+    }
     /**
      * 获取仪表盘全部数据
      */
     public function getDashboardData(): array
     {
         return [
-            'posts'      => $this->getPostsData(),
-            'videos'     => $this->getVideosData(),
-            'projects'   => $this->getProjectsData(),
-            'resources'  => $this->getResourcesData(),
-            'users'      => $this->getUsersData(),
-            'categories' => $this->getCategoriesData(),
-            'comments'   => $this->getCommentsData(),
-            'tags'       => $this->getTagsData(),
-            'taggables'  => $this->getTaggablesData(),
-            'visits'     => $this->getVisitsData(),
-            'userLevels' => $this->getUserLevelsData(),
-            'roles'      => $this->getRolesData(),
-            'logs'       => $this->getLogsData(),
+            'posts'         => $this->getPostsData(),
+            'videos'        => $this->getVideosData(),
+            'projects'      => $this->getProjectsData(),
+            'resources'     => $this->getResourcesData(),
+            'users'         => $this->getUsersData(),
+            'categories'    => $this->getCategoriesData(),
+            'comments'      => $this->getCommentsData(),
+            'tags'          => $this->getTagsData(),
+            'taggables'     => $this->getTaggablesData(),
+            'visits'        => $this->getVisitsData(),
+            'dailyTraffic'  => $this->getDailyTrafficData(),
+            'userLevels'    => $this->getUserLevelsData(),
+            'roles'         => $this->getRolesData(),
+            'logs'          => $this->getLogsData(),
+            'periodChanges' => $this->getPeriodChanges(),
         ];
     }
 
@@ -191,6 +200,53 @@ class DashboardService
     }
 
     /**
+     * 每日流量聚合数据（90 天完整填充范围，按配置时区分组）
+     *
+     * 不再依赖前端用浏览器时区生成日期 key，后端统一以配置时区生成完整的 90 天日期序列，
+     * 无数据的天填 0，前端直接切片使用即可，彻底消除时区不一致导致的"显示未到的日期"问题。
+     *
+     * 返回格式：[{ day: '3/6', visits: 42, unique: 15 }, { day: '3/7', visits: 0, unique: 0 }, ...]
+     */
+    public function getDailyTrafficData(): array
+    {
+        $tz = $this->settingService->get('timezone', 'UTC');
+        $now = Carbon::now($tz);
+
+        // 90 天前在配置时区中的 UTC 边界
+        $startDate = $now->copy()->subDays(90)->startOfDay()->setTimezone('UTC');
+
+        // 查询原始数据（created_at 存储为 UTC 时间戳）
+        $rows = Visit::where('created_at', '>=', $startDate)
+            ->get(['created_at', 'ip_address']);
+
+        // 使用配置时区进行按日分组
+        $dailyMap = [];
+        foreach ($rows as $row) {
+            $day = $row->created_at->setTimezone($tz)->format('n/j');
+            if (!isset($dailyMap[$day])) {
+                $dailyMap[$day] = ['visits' => 0, 'ips' => []];
+            }
+            $dailyMap[$day]['visits']++;
+            $dailyMap[$day]['ips'][$row->ip_address] = true;
+        }
+
+        // 生成完整 90 天日期序列（配置时区），无数据的天填 0
+        $result = [];
+        $cursor = $now->copy()->subDays(90)->startOfDay();
+        for ($i = 0; $i <= 90; $i++) {
+            $day = $cursor->format('n/j');
+            $result[] = [
+                'day'    => $day,
+                'visits' => $dailyMap[$day]['visits'] ?? 0,
+                'unique' => isset($dailyMap[$day]) ? count($dailyMap[$day]['ips']) : 0,
+            ];
+            $cursor->addDay();
+        }
+
+        return $result;
+    }
+
+    /**
      * 用户等级数据
      */
     public function getUserLevelsData(): array
@@ -241,6 +297,62 @@ class DashboardService
                 return $data;
             })
             ->toArray();
+    }
+
+    // ─── 环比变化率计算 ──────────────────────────────────────────
+
+    /**
+     * 计算各项指标的环比变化率
+     *
+     * 对比近 30 天 vs 前 30 天的数量变化，返回格式化字符串如 "+12%" / "-5%" / "0%"
+     */
+    public function getPeriodChanges(): array
+    {
+        $now = now();
+        $currentStart = (clone $now)->subDays(30);
+        $previousStart = (clone $now)->subDays(60);
+
+        return [
+            // 内容统计
+            'totalPosts'       => $this->formatChange(Post::where('created_at', '>=', $currentStart)->count(), Post::whereBetween('created_at', [$previousStart, $currentStart])->count()),
+            'totalVideos'      => $this->formatChange(Video::where('created_at', '>=', $currentStart)->count(), Video::whereBetween('created_at', [$previousStart, $currentStart])->count()),
+            'totalProjects'    => $this->formatChange(Project::where('created_at', '>=', $currentStart)->count(), Project::whereBetween('created_at', [$previousStart, $currentStart])->count()),
+            'totalResources'   => $this->formatChange(Resource::where('created_at', '>=', $currentStart)->count(), Resource::whereBetween('created_at', [$previousStart, $currentStart])->count()),
+
+            // 用户统计
+            'totalUsers'       => $this->formatChange(User::where('created_at', '>=', $currentStart)->count(), User::whereBetween('created_at', [$previousStart, $currentStart])->count()),
+            'activeUsers'      => $this->formatChange(User::where('status', 'active')->where('created_at', '>=', $currentStart)->count(), User::where('status', 'active')->whereBetween('created_at', [$previousStart, $currentStart])->count()),
+            'newUsers'         => $this->formatChange(User::where('created_at', '>=', $currentStart)->count(), User::whereBetween('created_at', [$previousStart, $currentStart])->count()),
+            'subscriberCount'  => 0, // 暂无订阅功能
+
+            // 流量统计
+            'totalVisits'      => $this->formatChange(Visit::where('created_at', '>=', $currentStart)->count(), Visit::whereBetween('created_at', [$previousStart, $currentStart])->count()),
+            'uniqueVisitors'   => $this->formatChange(Visit::where('created_at', '>=', $currentStart)->distinct('ip_address')->count('ip_address'), Visit::whereBetween('created_at', [$previousStart, $currentStart])->distinct('ip_address')->count('ip_address')),
+            'pageViews'        => $this->formatChange($this->sumViewsCount($currentStart, $now), $this->sumViewsCount($previousStart, $currentStart)),
+            'avgDuration'      => '0%', // duration 暂未追踪
+        ];
+    }
+
+    /**
+     * 格式化变化率为 "+12%" / "-5%" / "0%" 格式
+     */
+    private function formatChange(int $current, int $previous): string
+    {
+        if ($previous === 0) {
+            return $current > 0 ? '+100%' : '0%';
+        }
+        $change = round((($current - $previous) / $previous) * 100);
+        return ($change >= 0 ? '+' : '') . $change . '%';
+    }
+
+    /**
+     * 汇总所有内容模型的 views_count（指定时间范围）
+     */
+    private function sumViewsCount($start, $end): int
+    {
+        return (int) Post::whereBetween('created_at', [$start, $end])->sum('views_count')
+            + (int) Video::whereBetween('created_at', [$start, $end])->sum('views_count')
+            + (int) Project::whereBetween('created_at', [$start, $end])->sum('views_count');
     }
 
     // ─── 工具方法 ────────────────────────────────────────────────

@@ -13,6 +13,7 @@ import SplashScreen from '../../components/SplashScreen.vue'
 import SidebarMenu from '../../components/SidebarMenu.vue'
 import Footer from '../../components/Footer.vue'
 import SearchOverlay from '../../components/SearchOverlay.vue'
+import AdPopup from '../../components/front/AdPopup.vue'
 
 const props = defineProps({
   posts: { type: Array, default: () => [] },
@@ -51,6 +52,40 @@ const { isSearchVisible } = useSiteConfig()
 
 const isFooterVisible = ref(true)
 const isSearchOpen = ref(false)
+const SPLASH_KEY = 'archyx_splash_shown'
+
+/**
+ * 双重存储策略：
+ * 1. Cookie (max-age 1年) — 扛硬刷新、扛localStorage被清
+ * 2. localStorage — 快速读取兜底
+ * 只有 Cookie 和 localStorage 都找不到才放启动页
+ */
+const getCookie = (name) => {
+  const prefix = name + '='
+  const cookies = document.cookie.split(';')
+  for (let i = 0; i < cookies.length; i++) {
+    let c = cookies[i]
+    while (c.charAt(0) === ' ') c = c.substring(1)
+    if (c.indexOf(prefix) === 0) return c.substring(prefix.length)
+  }
+  return null
+}
+
+const setSplashCookie = () => {
+  const d = new Date()
+  d.setFullYear(d.getFullYear() + 1) // 1年后过期
+  document.cookie = `${SPLASH_KEY}=1; expires=${d.toUTCString()}; path=/; SameSite=Lax`
+}
+
+const hasSplashShown = () => {
+  return getCookie(SPLASH_KEY) === '1' || localStorage.getItem(SPLASH_KEY) === 'true'
+}
+
+const markSplashShown = () => {
+  setSplashCookie()
+  localStorage.setItem(SPLASH_KEY, 'true')
+}
+
 const showSplash = ref(false)
 const showContent = ref(false)
 let splashTimer = null
@@ -119,10 +154,14 @@ onMounted(() => {
     isFooterVisible.value = saved === 'true'
   }
 
-  // 临时解决方案：直接显示内容，绕过 SplashScreen
-  showContent.value = true
-  showSplash.value = false
-  console.log('[DEBUG] Home.vue onMounted complete, showContent:', showContent.value)
+  // Cookie + localStorage 双重检查，任一存在就跳过启动页
+  if (hasSplashShown()) {
+    showContent.value = true
+    showSplash.value = false
+  } else {
+    showSplash.value = true
+  }
+  console.log('[DEBUG] Home.vue onMounted complete, showSplash:', showSplash.value, 'showContent:', showContent.value)
 })
 
 watch(isFooterVisible, (newVal) => {
@@ -135,7 +174,7 @@ watch(() => props.posts, (newPosts) => {
 
 const handleSplashComplete = () => {
   showSplash.value = false
-  sessionStorage.setItem('splash_shown', 'true')
+  markSplashShown()  // Cookie + localStorage 双写
   splashTimer = setTimeout(() => {
     showContent.value = true
     splashTimer = null
@@ -168,6 +207,9 @@ onUnmounted(() => {
       v-if="showSplash"
       @complete="handleSplashComplete"
     />
+
+    <!-- 弹窗广告 -->
+    <AdPopup />
 
     <!-- Main Content -->
     <template v-if="showContent">

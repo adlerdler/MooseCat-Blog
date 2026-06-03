@@ -80,7 +80,9 @@ export function useAdSlot(options = {}) {
    */
   const isAdValid = (ad) => {
     const now = new Date();
-    const start = new Date(ad.start_date);
+    const start = ad.start_date ? new Date(ad.start_date) : new Date(0); // 无开始日期视为一直有效
+    // 无结束日期视为永不过期
+    if (!ad.end_date) return now >= start;
     const end = new Date(ad.end_date);
     return now >= start && now <= end;
   };
@@ -99,8 +101,10 @@ export function useAdSlot(options = {}) {
       targetPosition = posConfig ? posConfig.name : positionOrId;
     }
 
+    // 兼容 position_name（真实数据）和 position（旧模拟数据）
     let filteredAds = ads.filter(ad => {
-      if (ad.position !== targetPosition || !ad.is_active) return false;
+      const adPos = ad.position_name ?? ad.position ?? '';
+      if (adPos !== targetPosition || !ad.is_active) return false;
       return isAdValid(ad);
     });
 
@@ -120,7 +124,9 @@ export function useAdSlot(options = {}) {
 
     adPositions.forEach(pos => {
       result[pos.name] = ads.filter(ad => {
-        if (ad.position !== pos.name || !ad.is_active) return false;
+        // 兼容 position_name（真实数据）和 position（旧模拟数据）
+        const adPos = ad.position_name ?? ad.position ?? '';
+        if (adPos !== pos.name || !ad.is_active) return false;
         return isAdValid(ad);
       });
     });

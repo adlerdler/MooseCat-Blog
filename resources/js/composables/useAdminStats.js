@@ -31,7 +31,7 @@
  */
 export function createAdminStats(options = {}) {
   const data = options;
-  const { posts = [], users = [], categories = [], comments = [], projects = [], videos = [], resources = [], visits = [], userLevels = [], roles = [], tags = [], taggables = [] } = data;
+  const { posts = [], users = [], categories = [], comments = [], projects = [], videos = [], resources = [], visits = [], userLevels = [], roles = [], tags = [], taggables = [], periodChanges = {} } = data;
 
   const getAnalyticsStats = () => {
     const totalVisits = visits.length;
@@ -44,10 +44,10 @@ export function createAdminStats(options = {}) {
       : 0;
 
     return [
-      { label: 'Total Visits', value: totalVisits.toLocaleString(), change: '+12%', icon_key: 'eye' },
-      { label: 'Unique Visitors', value: uniqueVisitors.toLocaleString(), change: '+8%', icon_key: 'users' },
-      { label: 'Page Views', value: pageViews.toLocaleString(), change: '+15%', icon_key: 'barChart3' },
-      { label: 'Avg. Duration', value: `${Math.floor(avgDuration / 60)}m ${avgDuration % 60}s`, change: '+5%', icon_key: 'clock' },
+      { label: 'Total Visits', value: totalVisits.toLocaleString(), change: periodChanges.totalVisits || '0%', icon_key: 'eye' },
+      { label: 'Unique Visitors', value: uniqueVisitors.toLocaleString(), change: periodChanges.uniqueVisitors || '0%', icon_key: 'users' },
+      { label: 'Page Views', value: pageViews.toLocaleString(), change: periodChanges.pageViews || '0%', icon_key: 'barChart3' },
+      { label: 'Avg. Duration', value: `${Math.floor(avgDuration / 60)}m ${avgDuration % 60}s`, change: periodChanges.avgDuration || '0%', icon_key: 'clock' },
     ];
   };
 
@@ -60,22 +60,34 @@ export function createAdminStats(options = {}) {
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       return createdAt >= thirtyDaysAgo;
     }).length;
-    const subscriberCount = 0;
+    const subscriberCount = periodChanges.subscriberCount || 0;
 
     return [
-      { label: 'Total Users', value: totalUsers, change: '+18%', icon_key: 'users', color: 'bg-construct-red' },
-      { label: 'Active Users', value: activeUsers, change: '+12%', icon_key: 'activity', color: 'bg-blue-500' },
-      { label: 'New Users', value: newUsers, change: '+24%', icon_key: 'userPlus', color: 'bg-green-500' },
-      { label: 'Subscribers', value: subscriberCount, change: '+8%', icon_key: 'bell', color: 'bg-purple-500' },
+      { label: 'Total Users', value: totalUsers, change: periodChanges.totalUsers || '0%', icon_key: 'users', color: 'bg-construct-red' },
+      { label: 'Active Users', value: activeUsers, change: periodChanges.activeUsers || '0%', icon_key: 'activity', color: 'bg-blue-500' },
+      { label: 'New Users', value: newUsers, change: periodChanges.newUsers || '0%', icon_key: 'userPlus', color: 'bg-green-500' },
+      { label: 'Subscribers', value: subscriberCount, change: '0%', icon_key: 'bell', color: 'bg-purple-500' },
     ];
   };
 
   const getPostTrendData = () => {
     const monthlyStats = {};
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-    posts.forEach(post => {
-      const date = new Date(post.publishedAt || post.createdAt);
-      const month = date.toLocaleString('en-US', { month: 'short' });
+    // 生成最近 6 个月的占位数据（确保图表始终有 X 轴刻度）
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const month = months[d.getMonth()];
+      monthlyStats[month] = { month, posts: 0, views: 0 };
+    }
+
+    (posts || []).forEach(post => {
+      const raw = post.publishedAt || post.createdAt;
+      if (!raw) return;
+      const date = new Date(raw);
+      if (isNaN(date.getTime())) return;
+      const month = months[date.getMonth()];
 
       if (!monthlyStats[month]) {
         monthlyStats[month] = { month, posts: 0, views: 0 };
@@ -85,7 +97,6 @@ export function createAdminStats(options = {}) {
     });
 
     return Object.values(monthlyStats).sort((a, b) => {
-      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       return months.indexOf(a.month) - months.indexOf(b.month);
     });
   };
@@ -137,19 +148,31 @@ export function createAdminStats(options = {}) {
       });
   };
 
-  const getTrafficData = () => {
+  const getTrafficData = (timeRange = '7d') => {
+    const now = new Date();
+    const daysBack = timeRange === '30d' ? 30 : timeRange === '90d' ? 90 : 7;
+    const startDate = new Date(now);
+    startDate.setDate(startDate.getDate() - daysBack);
+    startDate.setHours(0, 0, 0, 0);
+
+    const filteredVisits = visits.filter(v => new Date(v.visitedAt) >= startDate);
+
+    // 生成日期范围内所有天的初始数据
     const dailyStats = {};
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    for (let i = 0; i <= daysBack; i++) {
+      const d = new Date(startDate);
+      d.setDate(startDate.getDate() + i);
+      const key = `${d.getMonth() + 1}/${d.getDate()}`;
+      dailyStats[key] = { day: key, visits: 0, unique: 0, ips: new Set() };
+    }
 
-    visits.forEach(visit => {
+    filteredVisits.forEach(visit => {
       const date = new Date(visit.visitedAt);
-      const day = days[date.getDay()];
-
-      if (!dailyStats[day]) {
-        dailyStats[day] = { day, visits: 0, unique: 0, ips: new Set() };
+      const key = `${date.getMonth() + 1}/${date.getDate()}`;
+      if (dailyStats[key]) {
+        dailyStats[key].visits++;
+        dailyStats[key].ips.add(visit.ip);
       }
-      dailyStats[day].visits++;
-      dailyStats[day].ips.add(visit.ip);
     });
 
     return Object.values(dailyStats).map(stat => ({
@@ -207,10 +230,10 @@ export function createAdminStats(options = {}) {
 
   const getContentStats = () => {
     return [
-      { label: 'Total Posts', value: posts.length, change: '+12%', icon_key: 'fileText', color: 'bg-construct-red' },
-      { label: 'Total Videos', value: videos.length, change: '+8%', icon_key: 'play', color: 'bg-blue-500' },
-      { label: 'Total Projects', value: projects.length, change: '+15%', icon_key: 'folderKanban', color: 'bg-green-500' },
-      { label: 'Total Resources', value: resources.length, change: '+23%', icon_key: 'eye', color: 'bg-purple-500' },
+      { label: 'Total Posts', value: posts.length, change: periodChanges.totalPosts || '0%', icon_key: 'fileText', color: 'bg-construct-red' },
+      { label: 'Total Videos', value: videos.length, change: periodChanges.totalVideos || '0%', icon_key: 'play', color: 'bg-blue-500' },
+      { label: 'Total Projects', value: projects.length, change: periodChanges.totalProjects || '0%', icon_key: 'folderKanban', color: 'bg-green-500' },
+      { label: 'Total Resources', value: resources.length, change: periodChanges.totalResources || '0%', icon_key: 'eye', color: 'bg-purple-500' },
     ];
   };
 

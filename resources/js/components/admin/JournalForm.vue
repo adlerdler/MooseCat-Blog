@@ -86,27 +86,27 @@ const handleSave = () => {
     <div v-if="visible" class="fixed inset-0 z-[100] flex items-center justify-center">
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="handleCancel" />
 
-      <div :class="['relative w-full max-w-2xl mx-4 rounded-xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col', isDarkMode ? 'bg-gray-800' : 'bg-white']">
-        <div :class="['flex items-center justify-between p-6 border-b', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
+      <div :class="['relative w-full max-w-2xl mx-4 rounded-2xl shadow-2xl ring-1 max-h-[90vh] flex flex-col', isDarkMode ? 'bg-gray-800 ring-gray-700' : 'bg-white ring-gray-200']">
+        <div :class="['flex items-center justify-between p-6 pb-2', isDarkMode ? 'text-white' : 'text-gray-900']">
           <h3 :class="['text-xl font-bold flex items-center gap-2', isDarkMode ? 'text-white' : 'text-gray-900']">
             <BookOpen :size="20" />
             {{ isEditing ? '编辑日志' : '新增日志' }}
           </h3>
-          <button @click="handleCancel" :class="['p-2 rounded-lg transition-colors', isDarkMode ? 'text-gray-400 hover:text-white hover:bg-gray-700' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100']">
+          <button @click="handleCancel" :class="['p-2 rounded-xl transition-colors', isDarkMode ? 'text-gray-400 hover:text-white hover:bg-gray-700' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100']">
             <X :size="20" />
           </button>
         </div>
 
-        <div class="flex-1 overflow-y-auto p-6 space-y-6">
-          <div :class="['p-6 rounded-lg', isDarkMode ? 'bg-gray-700' : 'bg-gray-50']">
+        <div class="flex-1 overflow-y-auto p-6 pt-2 space-y-6">
+          <div :class="['p-6 rounded-xl', isDarkMode ? 'bg-gray-700' : 'bg-gray-50']">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">日志标题 *</label>
-                <input v-model="editingJournal.title" type="text" placeholder="请输入日志标题..." :class="['w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red', isDarkMode ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300 text-gray-900']" />
+                <input v-model="editingJournal.title" type="text" placeholder="请输入日志标题..." :class="['w-full px-4 py-2 text-sm rounded-xl border focus:outline-none focus:border-construct-red', isDarkMode ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300 text-gray-900']" />
               </div>
               <div>
                 <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">用户</label>
-                <select v-model="editingJournal.user_id" :class="['w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red', isDarkMode ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300 text-gray-900']">
+                <select v-model="editingJournal.user_id" :class="['w-full px-4 py-2 text-sm rounded-xl border focus:outline-none focus:border-construct-red', isDarkMode ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300 text-gray-900']">
                   <option v-for="user in props.users" :key="user.id" :value="user.id">{{ user.name }}</option>
                 </select>
               </div>
@@ -114,7 +114,7 @@ const handleSave = () => {
             
             <div class="mt-4">
               <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">日志内容 *</label>
-              <textarea v-model="editingJournal.content" rows="6" placeholder="请输入日志内容..." :class="['w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red', isDarkMode ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300 text-gray-900']"></textarea>
+              <textarea v-model="editingJournal.content" rows="6" placeholder="请输入日志内容..." :class="['w-full px-4 py-2 text-sm rounded-xl border focus:outline-none focus:border-construct-red', isDarkMode ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300 text-gray-900']"></textarea>
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
@@ -123,7 +123,7 @@ const handleSave = () => {
                   <Smile :size="16" />
                   心情
                 </label>
-                <select v-model="editingJournal.mood" :class="['w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red', isDarkMode ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300 text-gray-900']">
+                <select v-model="editingJournal.mood" :class="['w-full px-4 py-2 text-sm rounded-xl border focus:outline-none focus:border-construct-red', isDarkMode ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300 text-gray-900']">
                   <option v-for="mood in getMoodTypes()" :key="mood" :value="mood">{{ getMoodLabel(mood) }}</option>
                 </select>
               </div>
@@ -133,7 +133,7 @@ const handleSave = () => {
                   <Cloud :size="16" />
                   天气
                 </label>
-                <select v-model="editingJournal.weather" :class="['w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red', isDarkMode ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300 text-gray-900']">
+                <select v-model="editingJournal.weather" :class="['w-full px-4 py-2 text-sm rounded-xl border focus:outline-none focus:border-construct-red', isDarkMode ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300 text-gray-900']">
                   <option v-for="weather in getWeatherTypes()" :key="weather" :value="weather">{{ getWeatherLabel(weather) }}</option>
                 </select>
               </div>
@@ -143,7 +143,7 @@ const handleSave = () => {
                   <Calendar :size="16" />
                   日期
                 </label>
-                <input v-model="editingJournal.date" type="date" :class="['w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red', isDarkMode ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300 text-gray-900']" />
+                <input v-model="editingJournal.date" type="date" :class="['w-full px-4 py-2 text-sm rounded-xl border focus:outline-none focus:border-construct-red', isDarkMode ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300 text-gray-900']" />
               </div>
             </div>
             
@@ -164,11 +164,11 @@ const handleSave = () => {
           </div>
         </div>
 
-        <div :class="['flex gap-3 p-6 border-t', isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200']">
-          <button @click="handleCancel" :class="['flex-1 px-6 py-3 font-bold tracking-widest uppercase text-sm transition-colors rounded border', isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-100']">
+        <div :class="['flex gap-3 p-6 pt-2', isDarkMode ? 'bg-gray-800' : 'bg-white']">
+          <button @click="handleCancel" :class="['flex-1 px-6 py-3 font-bold tracking-widest uppercase text-sm transition-colors rounded-xl', isDarkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200']">
             取消
           </button>
-          <button @click="handleSave" class="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-construct-red text-white font-bold tracking-widest uppercase text-sm hover:bg-red-600 transition-colors rounded">
+          <button @click="handleSave" class="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-construct-red text-white font-bold tracking-widest uppercase text-sm hover:bg-red-600 transition-colors rounded-xl">
             <Save :size="18" />
             保存
           </button>

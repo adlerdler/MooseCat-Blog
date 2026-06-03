@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Frontend;
+namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\AuthorProfile;
@@ -16,7 +16,6 @@ use App\Models\User;
 use App\Models\Video;
 use App\Services\MockDataService;
 use App\Services\SettingService;
-use App\Services\VisitService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -25,13 +24,11 @@ class FrontendController extends Controller
 {
     protected $mockDataService;
     protected $settingService;
-    protected $visitService;
 
-    public function __construct(MockDataService $mockDataService, SettingService $settingService, VisitService $visitService)
+    public function __construct(MockDataService $mockDataService, SettingService $settingService)
     {
         $this->mockDataService = $mockDataService;
         $this->settingService = $settingService;
-        $this->visitService = $visitService;
     }
 
     private function getFooterConfig(): array
@@ -348,9 +345,6 @@ class FrontendController extends Controller
 
     public function postDetail(Post $post, Request $request): Response
     {
-        // 记录浏览量
-        $this->visitService->trackModel($post, $request);
-
         $post->load(['author', 'category', 'tags']);
 
         $postData = [
@@ -434,11 +428,8 @@ class FrontendController extends Controller
         ]);
     }
 
-    public function projectDetail($slug, Request $request): Response
+    public function projectDetail(Project $project, Request $request): Response
     {
-        $project = Project::where('slug', $slug)->firstOrFail();
-        $this->visitService->trackModel($project, $request);
-
         $projectData = [
             'id' => $project->id,
             'slug' => $project->slug,
@@ -465,9 +456,6 @@ class FrontendController extends Controller
 
     public function videoDetail(Video $video, Request $request): Response
     {
-        // 记录浏览量
-        $this->visitService->trackModel($video, $request);
-
         $video->load('category');
 
         $videoData = [
@@ -488,6 +476,19 @@ class FrontendController extends Controller
         return Inertia::render('front/VideoDetail', [
             'video' => $videoData,
             ...$this->getConfigData(),
+        ]);
+    }
+
+    /**
+     * 记录资源下载（递增 downloads_count）
+     */
+    public function trackDownload(Resource $resource): \Illuminate\Http\JsonResponse
+    {
+        $resource->increment('downloads_count');
+
+        return response()->json([
+            'success' => true,
+            'downloads_count' => $resource->fresh()->downloads_count,
         ]);
     }
 

@@ -908,3 +908,243 @@
   - 更新 Resources.vue 前端组件使用 Inertia router 进行数据提交。
   - 更新 ResourceForm.vue 使用 category_id 替代 category 字符串。
   - 前端构建验证通过，路由正常。
+
+### 2026-05-31: SEO 全链路真实数据对接 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** SEO 从 MockDataService 假数据彻底迁移到 `seo` 表真实数据，前端 `usePageSeoData` 自动从 Inertia 全局 props 读取。
+- **Rationale:** SEO 设置的后台保存/读取以及前端页面标题、描述等均使用 mock JSON，修改不生效。
+- **Status:**
+  - 修复 `SettingService::getSeoConfig()` 从 `seo` 表读取完整 12 个 SEO 字段。
+  - 修复 `SettingsController::update()` 分流写入 `seo` 表。
+  - `HandleInertiaRequests::share()` 的 `pageSeo` 改为 `PageSeo::all()` 实时查询。
+  - 前端 6 个页面（Home/Blog/Projects/Videos/Resources/Author）动态读取真实 SEO 配置。
+
+### 2026-05-31: 主题系统修复 — 后台跟随数据变化 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** `useTheme.js` 不仅保存主题 name，同时持久化 `accent_color`；`Settings.vue` 注入 `themesData` 确保主题切换实时生效。
+- **Rationale:** 后台选择主题后 `accent_color` 未持久化 → 刷新后颜色丢失；`useTheme()` 未传 `themesData` → 换主题颜色不变。
+- **Status:**
+  - `setTheme()` 同步保存 name + `accent_color` 到 localStorage。
+  - `initAccentTheme()` 可从 localStorage 直接恢复颜色 fallback。
+  - `Settings.vue`：`useTheme({ themesData: props.themes })` + `watch(props.themes)` 响应式更新。
+  - 修复 `updateAccentColor` hoist 错误（ReferenceError）。
+
+### 2026-05-31: Setting 站点配置 + 维护模式对接 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 前台所有页面从 `MockDataService::getSiteConfig()` 迁移到 `SettingService::getSiteConfig()`；创建 `CheckMaintenanceMode` 中间件拦截前台非管理员访问。
+- **Rationale:** 站点配置（name/logo/copyright 等）从未从数据库读取；维护模式开关在前台完全无效。
+- **Status:**
+  - `FrontendController` 注入 `SettingService`，`getConfigData()` 读真实 `settings` 表。
+  - 创建 `CheckMaintenanceMode` 中间件：按 URL 路径判断（非 admin/* 则检查），直接 `Setting::first()?->maintenance` 查库不走缓存。
+  - 前台所有公共路由包裹 `middleware(['maintenance'])` 组，管理员通过 `/admin/*` 路径绕过。
+  - 维护模式页面 `MaintenanceMode.vue` 接收中间件传入的 `siteConfig` prop。
+  - `SettingService::getSiteConfig()` 补全 `maintenance`/`copyright`/`site_url`/`search` 字段。
+
+### 2026-05-31: 前台菜单 + 版权信息真实数据对接 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 前台侧边栏菜单和全屏菜单从 Mock JSON 迁移到 `Menu` 表真实数据；版权信息从硬编码改为动态读取。
+- **Rationale:** 后台添加/编辑菜单对前台无影响；版权信息写死 "Archyx" 无法通过设置修改。
+- **Status:**
+  - `HandleInertiaRequests::share()` 非 admin 请求的 `menus` 改为 `Menu::where('is_active', true)->orderBy('sort_order')->get()`。
+  - `SidebarMenu.vue` 移动端版权站名改为 `{{ siteName }}` 动态读取。
+  - `SettingsPanel.vue` 版权信息从 `usePage().props.siteConfig` 读取。
+
+### 2026-05-31: MailConfig 邮件配置模块真实数据对接 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** MailConfig 读写和测试发送从 mock JSON 迁移到 `mail_configs` 表真数据，使用 Symfony Mailer DSN 直连发送测试邮件。
+- **Rationale:** 邮件配置模块表面上有 CRUD 界面，但保存和测试都是 `setTimeout` + `console.log` 假写。
+- **Status:**
+  - `MailConfigController::index()` 改为 `MailConfig::where('is_active', true)->first()` 读取。
+  - `update()` 实现完整 save：findOrCreate + fill + save（密码仅提供时更新）。
+  - `test()` 使用 Symfony Mailer DSN 直连发送（smtp/smtps），支持 SSL/TLS 自动切换。
+  - `mail_configs.password` 列从 VARCHAR(255) 改为 TEXT（Laravel encrypted cast 生成 ~340 字符加密串）。
+  - 前端 `MailConfig.vue`：`confirmSave()` 改 `router.put()`，`sendTestEmail()` 改 `router.post()`。
+
+### 2026-05-31: EmailTemplates 邮件模板模块真实数据对接 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** EmailTemplates CRUD 从 mock JSON 迁移到 `email_templates` 表，新增 `store()` 创建功能。
+- **Rationale:** 模板管理界面展示 mock 数据，编辑/新建完全不写数据库。
+- **Status:**
+  - `EmailTemplatesController::index()` 改 `EmailTemplate::all()`，表为空时自动 seed 3 个默认模板。
+  - 新增 `store()` 方法：校验 name（unique）+ subject + content + description。
+  - 新增 `routes/web.php`: `POST /admin/email-templates` 和 `description` 列迁移。
+  - 前端：`EmailTemplates.vue` 全部改 `router.put/post` 真实 API。
+
+### 2026-05-31: Log 日志模块升级 — spatie/laravel-activitylog (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 放弃自定义 `logs` 表，采用 spatie/laravel-activitylog 一步到位，16 个 Model 接入 `LogsActivity` trait。
+- **Rationale:** spatie `activity_log` 表已存在但从未使用（中间件未注册、无模型使用 trait），自定义 logger 为空壳。
+- **Status:**
+  - 16 个 Model 添加 `LogsActivity` trait + `getActivitylogOptions()`（logAll → logOnlyDirty → dontSubmitEmptyLogs）。
+  - `LogsController::index()` 改 `Activity::with('causer')->get()` + `formatForFrontend()` 映射 spatie 字段到前端期望格式。
+  - `clear()` 改 `Activity::truncate()`，`destroy()` 改 `findOrFail->delete()`。
+  - `ActivityLogMiddleware` 修复：`saveToDatabase()` 改为 spatie `activity()->log()` 调用。
+  - 中间件路由映射从硬编码 12 路由改为正则动态匹配 `admin.{module}.{method}`。
+
+### 2026-06-01: 通知系统 — Laravel 官方 database notifications (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 放弃 MockDataService 模拟通知，使用 Laravel 原生 database notifications 通道，创建 `NotificationService` 封装 CRUD。
+- **Rationale:** 通知界面使用本地空数组，无任何后端交互；`notifications` 表迁移已存在但从未写入。
+- **Status:**
+  - 创建 `SystemNotification.php` database 通道通知类。
+  - 创建 `NotificationService.php`：分页查询、铃铛通知、标记已读/全部已读、删除/清空、创建管理员通知。
+  - `NotificationsController` 全部重写为真实 API。
+  - `HandleInertiaRequests.php` 注入 `NotificationService`，共享 `notifications`（5 条最新）+ `unreadCount`。
+  - 前端 `NotificationBell.vue` 和 `Notifications.vue` 全部改 Inertia router 调用。
+  - 修复 User 模型 `notifications` 布尔列与 `Notifiable` trait `notifications()` 关系方法命名冲突。
+
+### 2026-06-01: 媒体库冗余代码清理 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 清理自定义 `medias` 表、模型、服务、mock JSON 和 4 个冗余迁移，完全依赖 spatie/laravel-medialibrary。
+- **Rationale:** 项目同时有自定义 `medias` 表和 Spatie `media` 表，自定义部分全为空壳/死代码。
+- **Status:**
+  - 删除 `app/Models/Media.php`、`app/Services/MediaService.php`、`resources/js/data/media.json`。
+  - 新建 `drop_medias_table` 迁移执行删除，移除 4 个冗余迁移文件。
+  - `MockDataService.php` 移除 `$media` 属性 + `getMedia()` 方法。
+
+### 2026-06-01: I18n 国际化全链路对接 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** I18n 后台从 MockDataService 迁移到 I18nService，前台语言菜单动态读取后台添加的语言，支持运行时加载 JSON 翻译文件。
+- **Rationale:** 前台语言按钮硬编码 `['en','zh','zh-TW']`，后台添加新语言后前台不可见；翻译文件无法动态加载。
+- **Status:**
+  - `I18nController` 完全对接 I18nService（Language CRUD + 翻译读写 + 文件上传）。
+  - `HandleInertiaRequests::share()` 新增 `languages` 共享 prop。
+  - `SettingsPanel.vue` 语言按钮改为从 `usePage().props.languages` 动态读取。
+  - `i18n.js` 新增 `syncLocalesFromBackend()` + `loadLocaleMessages()` 动态 fetch JSON。
+  - 3 个语言 JSON 文件补全 59-76 个翻译 key。
+  - 修复 `I18nManager.vue` 弹窗溢出、按钮位置、上传翻译文件等 5 处问题。
+
+### 2026-06-01: Policy 层移除 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 删除全部 24 个 Policy 文件，权限控制统一走 Spatie Permission 中间件。
+- **Rationale:** Policy 层与 Spatie Permission 功能重叠，增加维护成本。
+- **Status:** `app/Policies/` 目录下 24 个文件全部删除。
+
+### 2026-06-01: 备份系统真实数据对接 — spatie/laravel-backup + 自定义四种类型 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 创建 BackupService（四种备份类型）+ BackupRestoreService（恢复前快照），替换全 TODO 占位的 BackupController。
+- **Rationale:** 备份界面按钮/列表全为空壳，`BackupController` 所有方法均为 `return response()->json(['message' => 'TODO'])`。
+- **Status:**
+  - `BackupService.php` 完整重写：full/database/files/incremental 四种备份，流下载，统计。
+  - `BackupRestoreService.php`（新建）：恢复前自动创建 `pre_restore_snapshot`，失败可回滚。
+  - `BackupController` + `RestoreController` 重写为 Service 调用。
+  - 创建 `BackupCommand` artisan 命令 + `routes/console.php` 每日/每周调度配置。
+  - `backups` 表迁移修复：删 2 个冗余迁移 + 补全 note/disk/schedule_time 列。
+
+### 2026-06-01: Dashboard 仪表盘真实数据对接 — 全模块完成 🎉 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 创建 `DashboardService` 从 13 张真实数据表聚合查询，统一 snake_case→camelCase 转换，替换 MockDataService 13 行调用。
+- **Rationale:** 这是最后一个使用 MockDataService 的模块，标记着全项目 Mock→真实数据迁移完成。
+- **Status:**
+  - 新建 `DashboardService::getDashboardData()` 一次性返回全部 13 类数据。
+  - `DashboardController` 从 13 行 mock 调用简化为一行 `$this->dashboardService->getDashboardData()`。
+  - 13 张表的 snake_case 字段通过递归转换器自动转 camelCase，匹配前端 `useAdminStats.js` 期望格式。
+  - **🎉 里程碑：全部 27 个模块后台管理完成真实数据对接。**
+
+### 2026-06-01: 浏览量追踪系统全链路实现 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** `visits` 表存在但从未写入 → 创建 `VisitService`（trackModel + trackPage + isBot 过滤）+ `PageVisitMiddleware`（GET 请求自动追踪）。
+- **Rationale:** 仪表盘流量图表永远是空白——因为从未有任何代码向 `visits` 表写入数据。
+- **Status:**
+  - 创建 `VisitService`：`trackModel()` 记录模型页访问（increment + Visit 写入），`trackPage()` 记录列表页/首页访问。
+  - 创建 `PageVisitMiddleware`：注册到 web 中间件组，对 GET 请求自动调用 `trackPage()`，过滤机器人/管理员/静态资源。
+  - `visits` 表新增 `page`/`title` 列迁移。
+  - 7 个控制器（Web Post/Video/Project + Api V1 + FrontendController）的 `views_count` increment 改为 `VisitService::trackModel()`。
+  - Post/Video/Project 模型新增 `visits()` morphMany 关联。
+
+### 2026-06-01: 前台 FrontendController — MockDataService 清零 ✅ (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** FrontendController 所有 11 个方法从 MockDataService 迁移到 Eloquent 模型直接查询；URL 从 `/blog/{id}` 改为 `/blog/{post:slug}`。
+- **Rationale:** 前台展示数据全部来自 JSON 假文件，后台增删改文章/视频/项目对前台无任何影响。
+- **Status:**
+  - `home()`: Post/Video/Menu → 真实 DB。
+  - `blog()`: Post::published()->paginate(14) + 真实 Category/User。
+  - `postDetail()`: 路由模型绑定 `Post $post` + Comment/Interaction 真实查询 + VisitService 浏览追踪。
+  - `videos()`/`videoDetail()`/`projects()`/`projectDetail()`/`resources()`: 全部对接真实数据。
+  - `getConfigData()`: Menu 真实查询，站点配置 SettingService 读取。
+  - `authorShow()`: AuthorProfile + Project 真实查询。
+  - 路由 `/blog/{id}` → `/blog/{post:slug}` (Laravel 隐式绑定)。
+  - **🎉 FrontendController 所有方法已完全脱离 MockDataService。**
+
+### 2026-06-01: 错误页面前后台分离 + 视频管理模块修复 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 前台 404/500 使用 Constructivist 风格 ErrorPage.vue，后台 403 使用 Forbidden.vue；Video 模块修复 video_id/platform 丢失、slug 策略、卡片样式等 15 项问题。
+- **Rationale:** 所有错误页面共用同一组件，没有前后台区分；Video 表单提交后 `video_id`/`platform` 被静默丢弃。
+- **Status:**
+  - 创建 `front/ErrorPage.vue`（404/500/503）+ `components/Forbidden.vue`（403）。
+  - `Video.php` fillable 补全；`StoreVideoRequest` `video_url` 改 nullable；新增 `video_id`/`platform` 验证。
+  - 编辑表单返回补全 `video_id`/`platform` 数据。
+  - Slug 策略：创建时 `Str::random(8) . '-' . Str::random(4)`，编辑时不再重新生成。
+  - `platform` ENUM 新增 `local` 值。
+  - 前台视频卡片：aspect-video + hover 缩放 + 平台 badge + 时长 badge + `min-h` 等高卡片 + `line-clamp-2` 截断修复。
+  - `formatToSmartDate()` 智能日期格式化工具函数。
+
+### 2026-06-02: 邮件配置测试功能增强 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** MailConfig 测试发送增加完整反馈闭环（Toast + Loading + 错误提示）、收件人弹窗（当前用户/自定义）、构成主义风格邮件模板、日志记录。
+- **Rationale:** 测试发送无任何视觉反馈 → 用户不知成功或失败；收件人硬编码 `adlerdecht@gmail.com` 无法选择。
+- **Status:**
+  - 前端 `sendTestEmail()` 新增 `onSuccess`/`onError` Toast + `isSending` loading + 按钮 disabled。
+  - 新增收件人弹窗：选项一发送到当前用户邮箱，选项二输入临时邮箱。
+  - 后端 `test()` 收件人改为 `Auth::user()->email`，支持 `customEmail` 可选参数。
+  - Logo 处理从 20 行 base64/UUID/Storage 简化为 3 行 `url($rawLogo)`。
+  - 创建 `resources/views/emails/test.blade.php` 构成主义风格模板（黑色 Header + 红色条纹 + 状态网格）。
+  - 3 处 `Log::info/error()` 记录发送前/成功后/失败后。
+
+### 2026-06-02: 批量修复 — 评论回复邮件 + 笔名 + 安全 + 邮件统一 + 前端 Bug (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 一轮 24 子项批量修复，覆盖评论回复邮件、笔名显示、闲置退出、localStorage 清理、搜索开关、作者限权、邮件双轨制统一。
+- **Rationale:** 多项 P2 问题积压，影响用户体验和数据安全。
+- **Status:**
+  - **评论回复邮件**：`CommentsController::reply()` 改为 Symfony Mailer 直连（读 MailConfig DSN），使用 `resolvePenName()` 获取 AuthorProfile.display_name 作为发件署名。
+  - **后台评论**：新增 `deleteReply()` 删除回复按钮 + 确认弹窗。
+  - **作者功能**：`Author.vue` 移除 `t(skill.label)` i18n 错误调用；`FrontendController::authorShow()` 检查 `author_bio` 开关；`PostDetail.vue` 作者链接条件 `v-if="showAuthorBio"`。
+  - **安全**：`admin/Layout.vue` 闲置退出从 `setTimeout/clearTimeout` 竞态改为 `lastActivity` 时间戳 + `setInterval` 检查（2小时）；登出清理 `admin_remembered_*` 2 个 key + `sessionStorage.clear()`。
+  - **邮件统一**：`NewCommentNotification`/`NewSubscriberNotification` 的 `via()` 改为仅 `['database']`；创建 `MailService` 统一 Symf Mailer 入口；`SendCommentNotification` Listener 补发邮件给作者。
+  - **前端 Bug**：精选文章 Fisher-Yates 洗牌随机 + 补 `slug` 字段；`useSiteConfig.isSearchVisible()` + `v-if` 控制搜索显示。
+  - **权限**：`PostController` + `PostService` 新增 `author_id` filter；Author 角色自动过滤本人文章。
+  - **正则 Bug**：`StoreUserRequest`/`UpdateUserRequest` 密码正则改用数组语法避免 `|` 被当规则分隔符。
+
+### 2026-06-03: 流量图表时区修复 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 仪表盘流量日期分组从 MySQL `MONTH()/DAY()`（UTC）改为 PHP Carbon 配置时区分组；后端生成完整 90 天填充序列，前端直接 `.slice()` 使用。
+- **Rationale:** MySQL 分组使用服务器 UTC 时区，与 SettingService 配置时区不一致 → 图表只显示 2 天数据；前端用浏览器 `new Date()` 生成日期 → key 与后端不匹配 → 出现"未来日期 6/3"。
+- **Status:**
+  - `DashboardService::getDailyTrafficData()`：`Carbon::now($tz)` 算 90 天 UTC 边界 + 查询原始数据 + `setTimezone($tz)->format('n/j')` 分组 + for 循环补全 90 天空白天（visits:0, unique:0）。
+  - `Index.vue` `trafficChartData`：移除浏览器 `new Date()` 日期生成，改为 `props.dailyTraffic.slice()` 直接切片。
+  - 新增 `DashboardService::getPeriodChanges()` 环比计算 + `periodChanges` prop 透传到 `useAdminStats`。
+
+### 2026-06-03: 游客点赞系统 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 创建 `LikeController`（`POST /like/toggle`），基于 `visitor_id = MD5(ip+ua+type+id+'like')` 唯一索引实现匿名访客点赞/取消。
+- **Rationale:** 无前后端分离点赞 API；Interaction 表不支持匿名访客，无法记录非登录用户点赞。
+- **Status:**
+  - 新建 `Web/LikeController.php`：toggle 逻辑（findOrCreate ↔ delete + increment/decrement `likes_count`）。
+  - 新建迁移：`interactions` 表新增 `visitor_id`/`ip_address`/`user_agent` 3 列 + `visitor_interaction_unique` 唯一索引。
+  - 新增 `routes/web.php`: `POST /like/toggle`。
+
+### 2026-06-03: PostDetail.vue 动画迁移 + 书签按钮 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 63 行自定义 CSS `@keyframes` 替换为 `<Motion>` + `<AnimatePresence>`（motion-v 库）；书签按钮实现跨浏览器兼容。
+- **Rationale:** 自定义 CSS 动画难以维护和调整参数；书签按钮仅 tooltip 无实际功能。
+- **Status:**
+  - 页面加载动画、tooltip 动画改用 `<Motion :initial :animate :transition>` 声明式。
+  - 返回顶部按钮简化为 `transition-opacity`。
+  - 书签按钮：国产浏览器 `window.external.addFavorite()` 一键收藏，其他浏览器显示 "Ctrl+D 收藏" 气泡。
+
+### 2026-06-03: 废弃 Controller 清理 + FrontendController 迁移 (by Trae)
+- **Developer:** Trae (AI)
+- **Decision:** 物理删除 `HomeController`/`BlogController`/`ProjectsController`（路由已移除）；`FrontendController` 从 `Frontend/` 目录迁移到 `Web/` 目录。
+- **Rationale:** 3 个控制器路由已删除但文件残留；FrontendController 单独存放在 `Frontend/` 目录与架构不一致。
+- **Status:**
+  - 删除 `app/Http/Controllers/Frontend/HomeController.php`、`BlogController.php`、`ProjectsController.php`。
+  - `FrontendController.php` 移动到 `app/Http/Controllers/Web/`，namespace 改为 `App\Http\Controllers\Web`。
+  - 路由 import 更新。
+
+- **Pending Work:**
+  - 🔲 清理 MockDataService（587 行）+ 31 个 JSON 文件（仅剩 HandleInertiaRequests fallback 引用）
+  - 🔲 实现密码重置邮件（`password_reset_tokens` 表 + EmailTemplate 已就绪）
+  - 🔲 Newsletter 批量发送（Subscriber 表已就绪）
+  - 🔲 统一邮件双轨制（Notification 邮件也走 Symf Mailer 直连）
+  - 🔲 编写测试用例
+  - 🔲 性能优化与部署准备

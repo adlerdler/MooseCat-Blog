@@ -57,18 +57,22 @@ const toggleFooter = () => {
 }
 
 const getIconComponent = (iconName) => {
+  if (!iconName) return Globe;
+  
   const iconMap = {
-    'Github': Github,
-    'Twitter': Twitter,
-    'Linkedin': Linkedin,
-    'Globe': Globe,
-    'MessageCircle': MessageCircle,
-    'Palette': Palette,
-    'Youtube': Youtube,
-    'Facebook': Facebook,
-    'Video': Video
+    'github': Github,
+    'twitter': Twitter,
+    'linkedin': Linkedin,
+    'globe': Globe,
+    'website': Globe,
+    'messagecircle': MessageCircle,
+    'palette': Palette,
+    'youtube': Youtube,
+    'facebook': Facebook,
+    'video': Video,
+    'bilibili': Video,
   };
-  return iconMap[iconName] || Globe;
+  return iconMap[iconName.toLowerCase()] || Globe;
 }
 
 const getLinkStyle = (index) => {
@@ -87,19 +91,19 @@ const getLinkStyle = (index) => {
     <AdSlot position="footer" />
     <footer
       v-if="props.modelValue"
-    class="p-8 md:p-16 bg-construct-paper border-t-8 border-black grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-12 sm:gap-8 md:gap-12"
+    class="p-6 md:p-10 bg-construct-paper border-t-4 border-black grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 sm:gap-6 md:gap-8"
   >
     <div class="sm:col-span-2">
       <Link
         href="/"
-        class="font-display text-5xl md:text-6xl tracking-tighter mb-4 block hover:text-accent transition-colors"
+        class="font-display text-4xl md:text-5xl tracking-tighter mb-3 block hover:text-accent transition-colors"
       >
         {{ siteName }}
       </Link>
-      <p class="max-w-xs text-sm uppercase font-bold tracking-tight opacity-60 min-h-[3rem]">
+      <p class="max-w-xs text-sm uppercase font-bold tracking-tight opacity-60 min-h-[2rem]">
         {{ siteDescription }}
       </p>
-      <div class="flex gap-4 mt-8">
+      <div class="flex gap-4 mt-4">
         <a
           v-for="(link, index) in socialLinks"
           :key="link.id"
@@ -117,10 +121,10 @@ const getLinkStyle = (index) => {
       </div>
     </div>
     <div>
-      <h4 class="font-display mb-6 tracking-widest text-sm uppercase bg-black text-white inline-block px-3 py-1">
+      <h4 class="font-display mb-3 tracking-widest text-sm uppercase bg-black text-white inline-block px-3 py-1">
         {{ t('footer_categories') }}
       </h4>
-      <ul class="text-xs space-y-3 font-bold tracking-widest uppercase">
+      <ul class="text-xs space-y-2 font-bold tracking-widest uppercase">
         <li v-for="link in categoryLinks" :key="link.id">
           <Link :href="link.url" class="hover:text-accent hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
             / {{ link.label }}
@@ -129,10 +133,10 @@ const getLinkStyle = (index) => {
       </ul>
     </div>
     <div>
-      <h4 class="font-display mb-6 tracking-widest text-sm uppercase bg-black text-white inline-block px-3 py-1">
+      <h4 class="font-display mb-3 tracking-widest text-sm uppercase bg-black text-white inline-block px-3 py-1">
         {{ t('footer_data') }}
       </h4>
-      <ul class="text-xs space-y-3 font-bold tracking-widest uppercase">
+      <ul class="text-xs space-y-2 font-bold tracking-widest uppercase">
         <li v-for="link in dataLinks" :key="link.id">
           <a v-if="link.url" :href="link.url" target="_blank" rel="noopener noreferrer" class="hover:text-accent hover:underline decoration-2 underline-offset-4 cursor-pointer transition-all">
             {{ link.label }}

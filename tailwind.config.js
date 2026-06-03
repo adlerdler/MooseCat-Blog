@@ -37,11 +37,16 @@ export default {
             animation: {
                 'spin-slow': 'spin 20s linear infinite',
                 'float': 'float 4s ease-in-out infinite',
+                'fade-in-up': 'fadeInUp 0.5s ease-out forwards',
             },
             keyframes: {
                 float: {
                     '0%, 100%': { transform: 'translateY(0)' },
                     '50%': { transform: 'translateY(-20px)' },
+                },
+                fadeInUp: {
+                    '0%': { opacity: '0', transform: 'translateY(16px)' },
+                    '100%': { opacity: '1', transform: 'translateY(0)' },
                 },
             },
             zIndex: {

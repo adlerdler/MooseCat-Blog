@@ -10,6 +10,9 @@ class Interaction extends Model
 {
     protected $fillable = [
         'user_id',
+        'visitor_id',
+        'ip_address',
+        'user_agent',
         'interactable_id',
         'interactable_type',
         'type',

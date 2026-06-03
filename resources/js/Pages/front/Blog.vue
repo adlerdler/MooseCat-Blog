@@ -14,7 +14,7 @@
  */
 import { ref, computed, h, onMounted, watch } from 'vue';
 import { ArrowUpRight, Hash, BookOpen, Lightbulb, Users, Cog } from 'lucide-vue-next';
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import { useTheme } from '../../composables/useTheme';
 import { usePageSeo } from '../../composables/usePageSeo';
@@ -117,7 +117,8 @@ const getSpanClass = (idx) => {
   }
 };
 
-const { getActiveAds } = useAdSlot();
+const pageProps = usePage().props;
+const { getActiveAds } = useAdSlot({ ads: pageProps.frontAds ?? [], adPositions: pageProps.frontAdPositions ?? [] });
 const AD_INTERVAL = 4;
 
 const mixedPostsWithAds = computed(() => {

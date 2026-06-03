@@ -40,14 +40,14 @@ const handleCancel = () => {
       
       <div
         :class="[
-          'relative w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl',
-          isDarkMode ? 'bg-gray-800' : 'bg-white'
+          'relative w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl ring-1',
+          isDarkMode ? 'bg-gray-800 ring-gray-700' : 'bg-white ring-gray-200'
         ]"
       >
         <div
           :class="[
-            'sticky top-0 flex items-center justify-between p-6 border-b z-10',
-            isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+            'sticky top-0 flex items-center justify-between p-6 pb-2 z-10',
+            isDarkMode ? 'bg-gray-800' : 'bg-white'
           ]"
         >
           <h2 :class="['text-xl font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">
@@ -56,7 +56,7 @@ const handleCancel = () => {
           <button
             @click="handleCancel"
             :class="[
-              'p-2 rounded-lg transition-colors',
+              'p-2 rounded-xl transition-colors',
               isDarkMode ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-600'
             ]"
           >
@@ -64,20 +64,20 @@ const handleCancel = () => {
           </button>
         </div>
 
-        <div class="p-6">
+        <div class="p-6 pt-2">
           <slot></slot>
         </div>
 
         <div
           :class="[
-            'sticky bottom-0 flex gap-3 p-6 border-t',
-            isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+            'sticky bottom-0 flex gap-3 p-6 pt-2',
+            isDarkMode ? 'bg-gray-800' : 'bg-white'
           ]"
         >
           <button
             @click="handleCancel"
             :class="[
-              'flex-1 px-4 py-2 text-sm font-bold rounded-lg transition-colors',
+              'flex-1 px-4 py-2 text-sm font-bold rounded-xl transition-colors',
               isDarkMode 
                 ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -87,7 +87,7 @@ const handleCancel = () => {
           </button>
           <button
             @click="handleSave"
-            class="flex-1 px-4 py-2 text-sm font-bold text-white bg-gray-900 rounded-lg hover:bg-construct-red transition-colors flex items-center justify-center gap-2"
+            class="flex-1 px-4 py-2 text-sm font-bold text-white bg-gray-900 rounded-xl hover:bg-construct-red transition-colors flex items-center justify-center gap-2"
           >
             <Save :size="16" />
             {{ isEditMode ? t('admin_save') : t('admin_create') }}

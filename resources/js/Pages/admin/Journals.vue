@@ -257,67 +257,100 @@ const clearFilters = () => {
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div 
-        v-for="journal in paginatedJournals" 
+        v-for="(journal, index) in paginatedJournals" 
         :key="journal.id"
-        :class="['border rounded-xl overflow-hidden transition-all hover:shadow-lg', isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200']"
+        :class="[
+          'rounded-2xl ring-1 p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl',
+          isDarkMode ? 'bg-gray-800/50 ring-gray-700 hover:ring-gray-600' : 'bg-white ring-gray-200 hover:ring-gray-300'
+        ]"
+        :style="{ animationDelay: index * 50 + 'ms' }"
+        class="animate-fade-in-up"
       >
-        <div :class="['p-6 border-b', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
-          <div class="flex items-start justify-between mb-3">
-            <h3 :class="['text-xl font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">{{ journal.title }}</h3>
+        <!-- 标题和公开状态 -->
+        <div class="flex items-start justify-between mb-4">
+          <h3 :class="['text-xl font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">{{ journal.title }}</h3>
+          <button 
+            @click="togglePublic(journal)"
+            :class="[
+              'p-2 rounded-xl transition-all hover:scale-110',
+              journal.is_public 
+                ? 'text-green-500 hover:bg-green-500/10' 
+                : 'text-gray-400 hover:bg-gray-500/10'
+            ]"
+            :title="journal.is_public ? '公开' : '私密'"
+          >
+            <component :is="journal.is_public ? Globe : Lock" :size="18" />
+          </button>
+        </div>
+
+        <!-- 标签 -->
+        <div class="flex flex-wrap gap-2 mb-4">
+          <span :class="[
+            'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium',
+            isDarkMode ? 'bg-gray-700/80 text-gray-300' : 'bg-gray-100 text-gray-600'
+          ]">
+            <Smile :size="13" />
+            {{ getMoodLabel(journal.mood) }}
+          </span>
+          <span :class="[
+            'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium',
+            isDarkMode ? 'bg-gray-700/80 text-gray-300' : 'bg-gray-100 text-gray-600'
+          ]">
+            <Cloud :size="13" />
+            {{ getWeatherLabel(journal.weather) }}
+          </span>
+          <span :class="[
+            'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium',
+            isDarkMode ? 'bg-gray-700/80 text-gray-300' : 'bg-gray-100 text-gray-600'
+          ]">
+            <Calendar :size="13" />
+            {{ formatDate(journal.date) }}
+          </span>
+        </div>
+
+        <!-- 内容摘要 -->
+        <p :class="['text-sm leading-relaxed line-clamp-3 mb-4', isDarkMode ? 'text-gray-300' : 'text-gray-600']">{{ journal.content }}</p>
+
+        <!-- 底部：作者 + 时间 + 操作 -->
+        <div class="flex items-center justify-between pt-3">
+          <div :class="['flex items-center gap-4 text-xs', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
+            <span class="font-medium">{{ getUserName(journal.user_id) }}</span>
+            <span>{{ formatDateTime(journal.created_at) }}</span>
+            <span>{{ formatDateTime(journal.updated_at) }}</span>
+          </div>
+          
+          <div class="flex items-center gap-1">
             <button 
-              @click="togglePublic(journal)"
-              :class="['p-2 rounded-lg transition-colors', journal.is_public ? 'text-green-500 hover:bg-green-500/10' : 'text-gray-500 hover:bg-gray-500/10']"
+              @click="handleView(journal)" 
+              :class="[
+                'p-2 rounded-xl transition-all hover:scale-110',
+                isDarkMode ? 'text-gray-400 hover:bg-gray-700 hover:text-white' : 'text-gray-400 hover:bg-gray-100 hover:text-gray-700'
+              ]"
+              title="查看"
             >
-              <component :is="journal.is_public ? Globe : Lock" :size="18" />
+              <Eye :size="16" />
+            </button>
+            <button 
+              @click="handleEdit(journal)" 
+              :class="[
+                'p-2 rounded-xl transition-all hover:scale-110',
+                isDarkMode ? 'text-gray-400 hover:bg-gray-700 hover:text-blue-400' : 'text-gray-400 hover:bg-gray-100 hover:text-blue-600'
+              ]"
+              title="编辑"
+            >
+              <Edit3 :size="16" />
+            </button>
+            <button 
+              @click="handleDelete(journal.id)" 
+              :class="[
+                'p-2 rounded-xl transition-all hover:scale-110',
+                isDarkMode ? 'text-gray-400 hover:bg-red-500/20 hover:text-red-400' : 'text-gray-400 hover:bg-red-50 hover:text-red-600'
+              ]"
+              title="删除"
+            >
+              <Trash2 :size="16" />
             </button>
           </div>
-
-          <div class="flex flex-wrap gap-3 mb-4">
-            <div :class="['flex items-center gap-2 px-3 py-1 rounded-full text-sm', isDarkMode ? 'bg-gray-700' : 'bg-gray-100']">
-              <Smile :size="14" />
-              <span>{{ getMoodLabel(journal.mood) }}</span>
-            </div>
-            <div :class="['flex items-center gap-2 px-3 py-1 rounded-full text-sm', isDarkMode ? 'bg-gray-700' : 'bg-gray-100']">
-              <Cloud :size="14" />
-              <span>{{ getWeatherLabel(journal.weather) }}</span>
-            </div>
-            <div :class="['flex items-center gap-2 px-3 py-1 rounded-full text-sm', isDarkMode ? 'bg-gray-700' : 'bg-gray-100']">
-              <Calendar :size="14" />
-              <span>{{ formatDate(journal.date) }}</span>
-            </div>
-          </div>
-
-          <p :class="['text-sm', isDarkMode ? 'text-gray-400' : 'text-gray-600']">作者：{{ getUserName(journal.user_id) }}</p>
-        </div>
-
-        <div :class="['p-6', isDarkMode ? 'bg-gray-750' : 'bg-gray-50']">
-          <p :class="['text-sm line-clamp-3 mb-4', isDarkMode ? 'text-gray-300' : 'text-gray-700']">{{ journal.content }}</p>
-          
-          <div :class="['flex items-center justify-between text-xs', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
-            <span>创建：{{ formatDateTime(journal.created_at) }}</span>
-            <span>更新：{{ formatDateTime(journal.updated_at) }}</span>
-          </div>
-        </div>
-
-        <div :class="['flex items-center justify-end gap-2 p-4 border-t', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
-          <button 
-            @click="handleView(journal)" 
-            :class="['p-2 rounded-lg transition-colors', isDarkMode ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-500 hover:bg-gray-100']"
-          >
-            <Eye :size="16" />
-          </button>
-          <button 
-            @click="handleEdit(journal)" 
-            :class="['p-2 rounded-lg transition-colors', isDarkMode ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-500 hover:bg-gray-100']"
-          >
-            <Edit3 :size="16" />
-          </button>
-          <button 
-            @click="handleDelete(journal.id)" 
-            :class="['p-2 rounded-lg transition-colors', isDarkMode ? 'text-gray-400 hover:bg-red-500/20' : 'text-gray-500 hover:bg-red-50']"
-          >
-            <Trash2 :size="16" />
-          </button>
         </div>
       </div>
     </div>

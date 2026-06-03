@@ -274,16 +274,23 @@ const handleMouseEnter = (menuId) => {
     leaveTimeout = null;
   }
   if (isSidebarCollapsed.value) {
+    // 先关闭所有其他展开的菜单，再打开当前菜单
+    if (!expandedMenus.value.has(menuId)) {
+      expandedMenus.value.clear();
+    }
     expandedMenus.value.add(menuId);
   }
 };
 
 const handleMouseLeave = (menuId) => {
   if (isSidebarCollapsed.value) {
+    if (leaveTimeout) {
+      clearTimeout(leaveTimeout);
+    }
     leaveTimeout = setTimeout(() => {
       expandedMenus.value.delete(menuId);
       leaveTimeout = null;
-    }, 150);
+    }, 250);
   }
 };
 
@@ -395,7 +402,7 @@ onUnmounted(() => {
 <template>
   <div :class="['min-h-screen transition-colors', isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900 admin-layout']">
     <!-- Header -->
-    <header :class="['fixed top-0 right-0 h-16 flex items-center justify-between px-6 z-50 transition-all duration-300', isDarkMode ? 'bg-gray-800 border-b border-gray-700' : 'bg-white border-b border-gray-200 admin-header', isSidebarOpen && !isSidebarCollapsed ? 'lg:left-56' : 'lg:left-16']">
+    <header :class="['fixed top-0 right-0 h-16 flex items-center justify-between px-6 z-50 transition-all duration-300', isDarkMode ? 'bg-gray-800' : 'bg-white admin-header', isSidebarOpen && !isSidebarCollapsed ? 'lg:left-56' : 'lg:left-16']">
       <div class="flex items-center gap-4">
         <button
           @click="toggleSidebar"
@@ -451,16 +458,14 @@ onUnmounted(() => {
       :class="[
         'fixed left-0 top-0 bottom-0 transition-all duration-300 z-40 admin-sidebar overflow-visible',
         isDarkMode ? 'bg-gray-800' : 'bg-white',
-        isSidebarOpen ? (isDarkMode ? 'border-r border-gray-700' : 'border-r border-gray-200') : '',
         isSidebarOpen && !isSidebarCollapsed ? 'w-56 lg:w-56' : '',
         isSidebarOpen && isSidebarCollapsed ? 'w-16 lg:w-16' : '',
-        !isSidebarOpen ? 'w-0 lg:w-16' : '',
-        !isSidebarOpen && 'lg:shadow-sm'
+        !isSidebarOpen ? 'w-0 lg:w-16' : ''
       ]"
     >
       <div class="flex flex-col h-full">
         <!-- Logo at top-left -->
-        <div class="p-2 border-b pt-4" :class="isDarkMode ? 'border-gray-700' : 'border-gray-200'">
+        <div class="p-2 pt-4">
           <div class="flex items-center gap-2 px-2 py-2">
             <!-- Logo area: collapsed时 hover 显示展开图标 -->
             <div
@@ -517,7 +522,7 @@ onUnmounted(() => {
             <button
               @click="toggleMenu(item.id)"
               :class="[
-                'w-full flex items-center gap-3 px-3 py-3 text-sm font-bold tracking-widest uppercase transition-all rounded-lg',
+                'group w-full flex items-center gap-3 px-3 py-3 text-sm font-bold tracking-widest uppercase transition-all rounded-lg',
                 item.path && isActiveRoute(item)
                   ? isSidebarCollapsed
                     ? isDarkMode
@@ -551,8 +556,8 @@ onUnmounted(() => {
               <span 
                 v-if="isSidebarCollapsed" 
                 :class="[
-                  'absolute left-16 px-2 py-1 text-xs rounded whitespace-nowrap opacity-0 transition-opacity pointer-events-none z-50',
-                  isDarkMode ? 'bg-gray-700 text-white' : 'bg-gray-900 text-white'
+                  'absolute left-16 px-2 py-1 text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50',
+                  isDarkMode ? 'bg-gray-700 text-white' : 'bg-white text-gray-900 shadow-lg ring-1 ring-gray-200'
                 ]"
               >
                 {{ item.label }}
@@ -602,7 +607,7 @@ onUnmounted(() => {
             @click="navigateTo(item)"
             :disabled="!item.path"
             :class="[
-              'w-full flex items-center gap-3 px-3 py-3 text-sm font-bold tracking-widest uppercase transition-all rounded-lg',
+              'group w-full flex items-center gap-3 px-3 py-3 text-sm font-bold tracking-widest uppercase transition-all rounded-lg',
               isActiveRoute(item)
                 ? isSidebarCollapsed
                   ? isDarkMode
@@ -629,8 +634,8 @@ onUnmounted(() => {
             <span 
               v-if="isSidebarCollapsed" 
               :class="[
-                'absolute left-16 px-2 py-1 text-xs rounded whitespace-nowrap opacity-0 hover:opacity-100 transition-opacity pointer-events-none z-50',
-                isDarkMode ? 'bg-gray-700 text-white' : 'bg-gray-900 text-white'
+                'absolute left-16 px-2 py-1 text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50',
+                isDarkMode ? 'bg-gray-700 text-white' : 'bg-white text-gray-900 shadow-lg ring-1 ring-gray-200'
               ]"
             >
               {{ item.label }}
@@ -641,7 +646,7 @@ onUnmounted(() => {
         </nav>
         
         <!-- Sidebar Footer: User Info -->
-        <div class="p-2 border-t" :class="isDarkMode ? 'border-gray-700' : 'border-gray-200'">
+        <div class="p-2">
           <!-- User Info -->
           <div 
             @click="toggleUserMenu"
@@ -672,12 +677,12 @@ onUnmounted(() => {
       <div
         v-if="isUserMenuOpen"
         :class="[
-          'fixed w-56 rounded-lg shadow-xl border z-[100]',
-          isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+          'fixed w-48 rounded-xl shadow-xl ring-1 z-[100]',
+          isDarkMode ? 'bg-gray-800 ring-gray-700' : 'bg-white ring-gray-200'
         ]"
         style="bottom: 80px; left: 8px;"
       >
-        <div :class="['p-4 border-b', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
+        <div :class="['p-4']">
           <p :class="['text-sm font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">{{ adminDisplayName }}</p>
           <p :class="['text-xs mt-1', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ adminEmail }}</p>
         </div>
@@ -685,7 +690,7 @@ onUnmounted(() => {
           <!-- Profile Button -->
           <button
             @click.stop.prevent="handleProfile"
-            :class="['w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors',
+            :class="['w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm transition-colors',
               isDarkMode ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-gray-700 hover:bg-gray-100']"
           >
             <User :size="18" />
@@ -696,7 +701,7 @@ onUnmounted(() => {
           <button
             id="logout-btn"
             @click.stop.prevent="handleLogout"
-            :class="['w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors mt-1 cursor-pointer',
+            :class="['w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm transition-colors mt-1 cursor-pointer',
               isDarkMode ? 'text-gray-300 hover:bg-gray-700 hover:text-red-400' : 'text-gray-700 hover:bg-gray-100 hover:text-red-500']"
           >
             <LogOut :size="18" />

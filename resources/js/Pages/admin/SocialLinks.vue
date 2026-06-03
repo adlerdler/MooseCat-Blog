@@ -347,6 +347,11 @@ const tabs = [
   { key: 'data', label: '数据链接', icon: Database }
 ];
 
+const addModalTitle = computed(() => {
+  const labelMap = { social: '社交链接', categories: '分类导航', data: '数据链接' };
+  return t('admin_add') + (labelMap[activeTab.value] || '链接');
+});
+
 const getPlatformGradient = (platform) => {
   const dark = isDarkMode.value;
   const gradientMap = {
@@ -497,20 +502,20 @@ const getPlatformGradient = (platform) => {
     <!-- Add Link Modal -->
     <Transition name="modal">
       <div v-if="showAddLinkModal" class="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-sm" @click.self="cancelAddLink">
-        <div :class="['w-full max-w-md mx-4 rounded-lg shadow-xl border', isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200']">
-          <div :class="['flex justify-between items-center p-6 border-b', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
-            <h3 :class="['text-xl font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">{{ t('admin_add') }} 社交链接</h3>
-            <button @click="cancelAddLink" :class="['p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100']">
+        <div :class="['w-full max-w-md mx-4 rounded-2xl shadow-2xl ring-1', isDarkMode ? 'bg-gray-800 ring-gray-700' : 'bg-white ring-gray-200/80']">
+          <div :class="['flex justify-between items-center p-6 pb-2', isDarkMode ? 'text-white' : 'text-gray-900']">
+            <h3 :class="['text-xl font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">{{ addModalTitle }}</h3>
+            <button @click="cancelAddLink" :class="['p-2 rounded-xl transition-colors', isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100']">
               <X :size="20" :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'" />
             </button>
           </div>
 
           <div class="p-6 space-y-4">
             <div>
-              <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">平台名称</label>
+              <label :class="['block text-sm font-bold mb-1.5', isDarkMode ? 'text-gray-300' : 'text-gray-700']">平台名称</label>
               <input
                 v-model="newLinkPlatform"
-                :class="['w-full px-3 py-2 border rounded-lg', isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300']"
+                :class="['w-full px-3 py-2 border rounded-xl text-sm', isDarkMode ? 'bg-gray-700 border-gray-600 text-white focus:border-construct-red' : 'border-gray-300 focus:border-construct-red']"
                 placeholder="如：instagram, tiktok, bilibili..."
               />
               <p v-if="detectedPlatform" class="text-xs mt-2 text-green-600 dark:text-green-400">
@@ -519,16 +524,16 @@ const getPlatformGradient = (platform) => {
             </div>
 
             <div>
-              <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">链接地址</label>
+              <label :class="['block text-sm font-bold mb-1.5', isDarkMode ? 'text-gray-300' : 'text-gray-700']">链接地址</label>
               <input
                 v-model="newLinkUrl"
                 @input="handleUrlInput"
-                :class="['w-full px-3 py-2 border rounded-lg', isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300']"
+                :class="['w-full px-3 py-2 border rounded-xl text-sm', isDarkMode ? 'bg-gray-700 border-gray-600 text-white focus:border-construct-red' : 'border-gray-300 focus:border-construct-red']"
                 placeholder="https://..."
               />
             </div>
 
-            <div v-if="newLinkPlatform" :class="['p-4 border rounded-lg flex items-center gap-3', isDarkMode ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-200']">
+            <div v-if="newLinkPlatform" :class="['p-4 rounded-xl flex items-center gap-3', isDarkMode ? 'bg-gray-700/50' : 'bg-gray-50']">
               <component :is="getLinkIcon(newLinkPlatform)" :size="24" class="text-construct-red" />
               <div>
                 <p :class="['text-sm font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">{{ newLinkPlatform }}</p>
@@ -537,11 +542,11 @@ const getPlatformGradient = (platform) => {
             </div>
           </div>
 
-          <div :class="['flex gap-3 p-6 border-t', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
-            <button @click="cancelAddLink" :class="['flex-1 px-4 py-3 font-bold text-sm border rounded-lg transition-colors', isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 hover:bg-gray-100']">
+          <div :class="['flex gap-3 p-6 pt-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
+            <button @click="cancelAddLink" :class="['flex-1 px-4 py-3 font-bold text-sm border rounded-xl transition-colors', isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 hover:bg-gray-100']">
               {{ t('admin_cancel') }}
             </button>
-            <button @click="confirmAddLink" class="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-construct-red text-white font-bold text-sm rounded-lg hover:bg-red-700 transition-colors">
+            <button @click="confirmAddLink" class="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-construct-red text-white font-bold text-sm rounded-xl hover:bg-red-700 transition-colors">
               <Plus :size="16" :style="{ color: '#ffffff' }" />
               {{ t('admin_add') }}
             </button>
@@ -553,38 +558,38 @@ const getPlatformGradient = (platform) => {
     <!-- Edit Link Modal -->
     <Transition name="modal">
       <div v-if="showEditModal" class="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-sm" @click.self="closeEditModal">
-        <div :class="['w-full max-w-md mx-4 rounded-lg shadow-xl border', isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200']">
-          <div :class="['flex justify-between items-center p-6 border-b', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
+        <div :class="['w-full max-w-md mx-4 rounded-2xl shadow-2xl ring-1', isDarkMode ? 'bg-gray-800 ring-gray-700' : 'bg-white ring-gray-200/80']">
+          <div :class="['flex justify-between items-center p-6 pb-2', isDarkMode ? 'text-white' : 'text-gray-900']">
             <h3 :class="['text-xl font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">编辑链接</h3>
-            <button @click="closeEditModal" :class="['p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100']">
+            <button @click="closeEditModal" :class="['p-2 rounded-xl transition-colors', isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100']">
               <X :size="20" :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'" />
             </button>
           </div>
 
           <div class="p-6 space-y-4">
             <div>
-              <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">名称</label>
+              <label :class="['block text-sm font-bold mb-1.5', isDarkMode ? 'text-gray-300' : 'text-gray-700']">名称</label>
               <input
                 v-model="editForm.label"
-                :class="['w-full px-3 py-2 border rounded-lg', isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300']"
+                :class="['w-full px-3 py-2 border rounded-xl text-sm', isDarkMode ? 'bg-gray-700 border-gray-600 text-white focus:border-construct-red' : 'border-gray-300 focus:border-construct-red']"
                 placeholder="链接显示名称"
               />
             </div>
 
             <div>
-              <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">链接地址</label>
+              <label :class="['block text-sm font-bold mb-1.5', isDarkMode ? 'text-gray-300' : 'text-gray-700']">链接地址</label>
               <input
                 v-model="editForm.url"
-                :class="['w-full px-3 py-2 border rounded-lg', isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300']"
+                :class="['w-full px-3 py-2 border rounded-xl text-sm', isDarkMode ? 'bg-gray-700 border-gray-600 text-white focus:border-construct-red' : 'border-gray-300 focus:border-construct-red']"
                 placeholder="https://..."
               />
             </div>
 
             <div v-if="activeTab !== 'social'">
-              <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">路由 (可选)</label>
+              <label :class="['block text-sm font-bold mb-1.5', isDarkMode ? 'text-gray-300' : 'text-gray-700']">路由 (可选)</label>
               <input
                 v-model="editForm.route"
-                :class="['w-full px-3 py-2 border rounded-lg', isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300']"
+                :class="['w-full px-3 py-2 border rounded-xl text-sm', isDarkMode ? 'bg-gray-700 border-gray-600 text-white focus:border-construct-red' : 'border-gray-300 focus:border-construct-red']"
                 placeholder="如：/blog"
               />
             </div>
@@ -600,11 +605,11 @@ const getPlatformGradient = (platform) => {
             </div>
           </div>
 
-          <div :class="['flex gap-3 p-6 border-t', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
-            <button @click="closeEditModal" :class="['flex-1 px-4 py-3 font-bold text-sm border rounded-lg transition-colors', isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 hover:bg-gray-100']">
+          <div :class="['flex gap-3 p-6 pt-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
+            <button @click="closeEditModal" :class="['flex-1 px-4 py-3 font-bold text-sm border rounded-xl transition-colors', isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 hover:bg-gray-100']">
               取消
             </button>
-            <button @click="saveEdit" class="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-construct-red text-white font-bold text-sm rounded-lg hover:bg-red-700 transition-colors">
+            <button @click="saveEdit" class="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-construct-red text-white font-bold text-sm rounded-xl hover:bg-red-700 transition-colors">
               <Save :size="16" :style="{ color: '#ffffff' }" />
               保存
             </button>

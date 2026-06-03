@@ -11,7 +11,8 @@ import {
   Trash2,
   CheckCircle,
   AlertCircle,
-  Loader
+  Loader,
+  Plus
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
 
@@ -187,13 +188,13 @@ const closeModal = () => {
         <!-- Modal -->
         <div 
           :class="[
-            'relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] transition-all transform',
-            isDarkMode ? 'bg-gray-800' : 'bg-white'
+            'relative w-full max-w-2xl rounded-2xl shadow-2xl ring-1 overflow-hidden flex flex-col max-h-[90vh] transition-all transform',
+            isDarkMode ? 'bg-gray-800 ring-gray-700' : 'bg-white ring-gray-200/80'
           ]"
           @click.stop
         >
           <!-- Header -->
-          <div :class="['p-6 border-b flex items-center justify-between', isDarkMode ? 'border-gray-700 bg-gray-900/50' : 'border-gray-100 bg-gray-50/50']">
+          <div :class="['p-6 pb-2 flex items-center justify-between', isDarkMode ? 'text-white' : 'text-gray-900']">
             <div class="flex items-center gap-3">
               <div class="w-10 h-10 rounded-xl bg-construct-red flex items-center justify-center shadow-lg shadow-construct-red/20">
                 <Upload class="text-white" size="20" />
@@ -205,7 +206,7 @@ const closeModal = () => {
             </div>
             <button 
               @click="closeModal" 
-              class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+              :class="['p-2 rounded-xl transition-colors', isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100']"
               :disabled="isUploading"
             >
               <X size="20" :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'" />
@@ -223,7 +224,9 @@ const closeModal = () => {
               @click="fileInput.click()"
               :class="[
                 'border-2 border-dashed rounded-2xl p-12 flex flex-col items-center justify-center transition-all cursor-pointer group',
-                isDragging ? 'border-construct-red bg-construct-red/5 scale-[0.99]' : (isDarkMode ? 'border-gray-700 hover:border-gray-600' : 'border-gray-200 hover:border-gray-300')
+                isDragging
+                  ? (isDarkMode ? 'border-construct-red bg-construct-red/10 scale-[0.99]' : 'border-construct-red bg-construct-red/5 scale-[0.99]')
+                  : (isDarkMode ? 'border-gray-600 hover:border-gray-500 hover:bg-gray-700/50' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50')
               ]"
             >
               <input 
@@ -234,8 +237,8 @@ const closeModal = () => {
                 @change="handleFileSelect"
               />
               <div :class="[
-                'w-20 h-20 rounded-full flex items-center justify-center mb-4 transition-transform duration-500 group-hover:scale-110',
-                isDarkMode ? 'bg-gray-700 text-gray-500 group-hover:text-construct-red' : 'bg-gray-50 text-gray-400 group-hover:text-construct-red'
+                'w-20 h-20 rounded-full flex items-center justify-center mb-4 transition-all duration-500 group-hover:scale-110',
+                isDarkMode ? 'bg-gray-700/80 text-gray-400 group-hover:bg-construct-red/20 group-hover:text-construct-red' : 'bg-gray-50 text-gray-400 group-hover:text-construct-red'
               ]">
                 <Upload size="40" />
               </div>
@@ -253,13 +256,13 @@ const closeModal = () => {
                 :key="index"
                 :class="[
                   'p-4 border rounded-xl flex items-center gap-4 transition-all',
-                  isDarkMode ? 'bg-gray-900/50 border-gray-700' : 'bg-gray-50 border-gray-100'
+                  isDarkMode ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-100'
                 ]"
               >
                 <!-- Icon -->
                 <div :class="[
                   'w-12 h-12 rounded-lg flex items-center justify-center shrink-0',
-                  isDarkMode ? 'bg-gray-800' : 'bg-white shadow-sm'
+                  isDarkMode ? 'bg-gray-600/50' : 'bg-white shadow-sm'
                 ]">
                   <component :is="getFileIcon(item.type)" size="24" class="text-construct-red" />
                 </div>
@@ -294,7 +297,7 @@ const closeModal = () => {
                 <button 
                   v-if="item.status !== 'uploading' && item.status !== 'success'"
                   @click="removeFile(index)"
-                  class="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                  :class="['p-2 rounded-lg transition-colors', isDarkMode ? 'text-gray-400 hover:bg-red-900/20 hover:text-red-400' : 'text-gray-400 hover:bg-red-50 hover:text-red-500']"
                 >
                   <Trash2 size="18" />
                 </button>
@@ -309,7 +312,7 @@ const closeModal = () => {
                 @click="fileInput.click()"
                 :class="[
                   'w-full py-4 border-2 border-dashed rounded-xl flex items-center justify-center gap-2 text-sm font-bold transition-all',
-                  isDarkMode ? 'border-gray-700 text-gray-500 hover:border-gray-600 hover:text-gray-400' : 'border-gray-200 text-gray-400 hover:border-gray-300 hover:text-gray-500'
+                  isDarkMode ? 'border-gray-600 text-gray-400 hover:border-gray-500 hover:bg-gray-700/50 hover:text-gray-300' : 'border-gray-200 text-gray-400 hover:border-gray-300 hover:text-gray-500'
                 ]"
               >
                 <input type="file" ref="fileInput" multiple class="hidden" @change="handleFileSelect" />
@@ -319,7 +322,7 @@ const closeModal = () => {
           </div>
 
           <!-- Footer -->
-          <div :class="['p-6 border-t flex items-center justify-between', isDarkMode ? 'border-gray-700 bg-gray-900/50' : 'border-gray-100 bg-gray-50/50']">
+          <div :class="['p-6 pt-2 flex items-center justify-between', isDarkMode ? 'text-gray-400' : 'text-gray-600']">
             <p :class="['text-xs font-bold uppercase tracking-wider', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
               {{ uploadFiles.length }} files selected
             </p>
@@ -328,8 +331,8 @@ const closeModal = () => {
                 @click="closeModal" 
                 :disabled="isUploading"
                 :class="[
-                  'px-6 py-2.5 font-bold tracking-widest uppercase text-xs transition-all rounded-lg border',
-                  isDarkMode ? 'border-gray-700 text-gray-400 hover:bg-gray-800' : 'border-gray-200 text-gray-500 hover:bg-white'
+                  'px-6 py-2.5 font-bold tracking-widest uppercase text-xs transition-all rounded-xl border',
+                  isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-600 hover:bg-gray-100'
                 ]"
               >
                 Cancel
@@ -337,7 +340,7 @@ const closeModal = () => {
               <button 
                 @click="startUpload"
                 :disabled="uploadFiles.length === 0 || isUploading"
-                class="px-8 py-2.5 bg-construct-red text-white font-bold tracking-widest uppercase text-xs hover:bg-red-700 transition-all rounded-lg shadow-lg shadow-construct-red/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                class="px-8 py-2.5 bg-construct-red text-white font-bold tracking-widest uppercase text-xs hover:bg-red-700 transition-all rounded-xl shadow-lg shadow-construct-red/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
                 <Loader v-if="isUploading" size="14" class="animate-spin" />
                 {{ isUploading ? 'Uploading...' : 'Start Upload' }}

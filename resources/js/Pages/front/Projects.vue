@@ -13,7 +13,7 @@
  * - 项目技术栈标签展示
  */
 import { ref, computed, onMounted, watch } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 import { Motion, AnimatePresence } from 'motion-v';
 import { useTheme } from '../../composables/useTheme';
 import { usePageSeo } from '../../composables/usePageSeo';
@@ -62,7 +62,8 @@ watch(isFooterVisible, (newVal) => {
   sessionStorage.setItem('footer_visible', String(newVal));
 });
 
-const { getActiveAds } = useAdSlot();
+const pageProps = usePage().props;
+const { getActiveAds } = useAdSlot({ ads: pageProps.frontAds ?? [], adPositions: pageProps.frontAdPositions ?? [] });
 const AD_INTERVAL = 3;
 
 const mixedProjectsWithAds = computed(() => {

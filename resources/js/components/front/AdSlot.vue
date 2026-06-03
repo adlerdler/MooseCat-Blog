@@ -19,8 +19,10 @@
  * 
  * 支持通过 props 传入数据（推荐）：
  * <AdSlot position="header" :ads="props.ads" :adPositions="props.adPositions" />
+ * 不传 props 时自动从 Inertia shared props 读取 frontAds / frontAdPositions
  */
 import { computed } from 'vue';
+import { usePage } from '@inertiajs/vue3';
 import { ArrowUpRight } from 'lucide-vue-next';
 import { useAdSlot } from '../../composables/useAdSlot';
 
@@ -51,10 +53,11 @@ const props = defineProps({
   }
 });
 
-// 使用传入的数据或默认数据
+// 使用传入的数据或从 Inertia shared props 读取
+const pageProps = usePage().props;
 const { getAdPositionByName, getAdPositionById, getActiveAds } = useAdSlot({
-  ads: props.ads,
-  adPositions: props.adPositions
+  ads: props.ads ?? pageProps.frontAds ?? [],
+  adPositions: props.adPositions ?? pageProps.frontAdPositions ?? []
 });
 
 const positionConfig = computed(() => {

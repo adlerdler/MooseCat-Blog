@@ -148,6 +148,33 @@ class HandleInertiaRequests extends Middleware
             }
         }
 
+        // 前台广告数据（所有页面共享）
+        $frontAds = [];
+        $frontAdPositions = [];
+        try {
+            $frontAds = \App\Models\Advertisement::with('adPosition')
+                ->where('is_active', true)
+                ->get()
+                ->map(fn($ad) => [
+                    'id' => $ad->id,
+                    'title' => $ad->title,
+                    'image_url' => $ad->image_url,
+                    'link_url' => $ad->link_url,
+                    'position_id' => $ad->position_id,
+                    'position_name' => $ad->adPosition?->name,
+                    'is_active' => $ad->is_active,
+                    'clicks_count' => $ad->clicks_count,
+                    'views_count' => $ad->views_count,
+                    'start_date' => $ad->start_date?->format('Y-m-d'),
+                    'end_date' => $ad->end_date?->format('Y-m-d'),
+                ]);
+            $frontAdPositions = \App\Models\AdPosition::orderBy('sort_order')
+                ->get(['id', 'name', 'label_key', 'is_active', 'sort_order'])
+                ->toArray();
+        } catch (\Exception $e) {
+            // 降级：空数组
+        }
+
         return [
             ...parent::share($request),
             'auth' => [
@@ -165,6 +192,8 @@ class HandleInertiaRequests extends Middleware
             'notifications' => $notifications,
             'unreadCount' => $unreadCount,
             'mediaFiles' => $mediaFiles,
+            'frontAds' => $frontAds,
+            'frontAdPositions' => $frontAdPositions,
         ];
     }
 }

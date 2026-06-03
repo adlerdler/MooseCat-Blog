@@ -16,7 +16,6 @@ import {
   FileText,
   Play,
   FolderKanban,
-  Eye,
   TrendingUp,
   Activity,
   BarChart3,
@@ -48,10 +47,12 @@ const props = defineProps({
   comments: { type: Array, default: () => [] },
   resources: { type: Array, default: () => [] },
   visits: { type: Array, default: () => [] },
+  dailyTraffic: { type: Array, default: () => [] },
   userLevels: { type: Array, default: () => [] },
   roles: { type: Array, default: () => [] },
   tags: { type: Array, default: () => [] },
   taggables: { type: Array, default: () => [] },
+  periodChanges: { type: Object, default: () => ({}) },
 });
 
 const {
@@ -59,7 +60,8 @@ const {
   getUserStats,
   getPostTrendData,
   getCategoryDistribution,
-  getUserGrowthData
+  getUserGrowthData,
+  getContentStats
 } = createAdminStats({
   posts: props.posts,
   videos: props.videos,
@@ -72,7 +74,8 @@ const {
   userLevels: props.userLevels,
   roles: props.roles,
   tags: props.tags,
-  taggables: props.taggables
+  taggables: props.taggables,
+  periodChanges: props.periodChanges
 });
 
 const timeRanges = [
@@ -98,32 +101,21 @@ const { isDarkMode } = useTheme();
 
 const timeRange = ref('7d');
 
-const stats = computed(() => [
-  {
-    label: t('admin_total_posts'),
-    value: props.posts?.length || 0,
-    change: '+12%',
-    icon: FileText
-  },
-  {
-    label: t('admin_total_videos'),
-    value: props.videos?.length || 0,
-    change: '+8%',
-    icon: Play
-  },
-  {
-    label: t('admin_total_projects'),
-    value: props.projects?.length || 0,
-    change: '+15%',
-    icon: FolderKanban
-  },
-  {
-    label: t('admin_total_resources'),
-    value: props.resources?.length || 0,
-    change: '+23%',
-    icon: Eye
-  }
-]);
+const i18nLabels = {
+  'Total Posts': 'admin_total_posts',
+  'Total Videos': 'admin_total_videos',
+  'Total Projects': 'admin_total_projects',
+  'Total Resources': 'admin_total_resources',
+};
+
+const stats = computed(() =>
+  getContentStats().map(stat => ({
+    label: t(i18nLabels[stat.label] || stat.label),
+    value: stat.value,
+    change: stat.change,
+    icon: iconMap[stat.icon_key] || FileText
+  }))
+);
 
 const recentPosts = computed(() => (props.posts || []).slice(0, 5));
 
@@ -144,7 +136,26 @@ const userStatsWithIcons = computed(() => {
   }));
 });
 
-const trafficChartData = computed(() => getTrafficData());
+const trafficChartData = computed(() => {
+  // 优先使用后端聚合数据（后端已用配置时区生成完整 90 天填充序列）
+  if (props.dailyTraffic && props.dailyTraffic.length > 0) {
+    const daysBack = timeRange.value === '1y' ? 365
+      : timeRange.value === '90d' ? 90
+      : timeRange.value === '30d' ? 30
+      : 7;
+
+    // 后端已按配置时区填充完整日期，前端直接切片，不再用浏览器时区生成
+    const sliceStart = Math.max(0, props.dailyTraffic.length - daysBack - 1);
+    return props.dailyTraffic.slice(sliceStart).map(row => ({
+      day: row.day,
+      visits: parseInt(row.visits) || 0,
+      unique: parseInt(row.unique) || 0,
+    }));
+  }
+
+  // 兜底：用原 visits 数据客户端计算
+  return getTrafficData(timeRange.value);
+});
 
 const trafficChartOption = computed(() => ({
   tooltip: {
@@ -258,26 +269,29 @@ const postTrendChartOption = computed(() => ({
       color: isDarkMode.value ? '#9ca3af' : '#6b7280',
     },
   },
-  yAxis: {
-    type: 'value',
-    axisLine: {
-      lineStyle: {
-        color: isDarkMode.value ? '#374151' : '#e5e7eb',
-      },
+  yAxis: [
+    {
+      type: 'value',
+      name: t('chart_posts'),
+      nameTextStyle: { color: isDarkMode.value ? '#9ca3af' : '#6b7280' },
+      axisLine: { lineStyle: { color: isDarkMode.value ? '#374151' : '#e5e7eb' } },
+      axisLabel: { color: isDarkMode.value ? '#9ca3af' : '#6b7280' },
+      splitLine: { lineStyle: { color: isDarkMode.value ? '#374151' : '#f3f4f6' } },
     },
-    axisLabel: {
-      color: isDarkMode.value ? '#9ca3af' : '#6b7280',
+    {
+      type: 'value',
+      name: t('chart_views'),
+      nameTextStyle: { color: isDarkMode.value ? '#9ca3af' : '#6b7280' },
+      axisLine: { lineStyle: { color: isDarkMode.value ? '#374151' : '#e5e7eb' } },
+      axisLabel: { color: isDarkMode.value ? '#9ca3af' : '#6b7280' },
+      splitLine: { show: false },
     },
-    splitLine: {
-      lineStyle: {
-        color: isDarkMode.value ? '#374151' : '#f3f4f6',
-      },
-    },
-  },
+  ],
   series: [
     {
       name: t('chart_posts'),
       type: 'bar',
+      yAxisIndex: 0,
       data: postTrendChartData.value.map(d => d.posts),
       itemStyle: {
         color: '#dc2626',
@@ -288,6 +302,7 @@ const postTrendChartOption = computed(() => ({
     {
       name: t('chart_views'),
       type: 'line',
+      yAxisIndex: 1,
       data: postTrendChartData.value.map(d => d.views),
       smooth: true,
       itemStyle: {

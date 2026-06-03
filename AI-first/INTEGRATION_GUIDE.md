@@ -39,15 +39,15 @@
 
 | 模块 | 建议表名 | 核心字段 | 状态 |
 | :--- | :--- | :--- | :--- |
-| **广告位** | `ad_positions` | `id`, `name`, `label_key`, `description`, `default_width`, `default_height`, `is_active`, `sort_order` | ⏳ 待创建 |
-| **日志管理** | `journals` | `id`, `user_id`, `title`, `content`, `mood`, `weather`, `date`, `is_public` | ⏳ 待创建 |
-| **广告管理** | `advertisements` | `id`, `position_id`, `title`, `image_url`, `link_url`, `position`, `is_active` | ⏳ 待创建 |
-| **用户等级** | `user_levels` | `id`, `name`, `min_points`, `max_points`, `level`, `badge` | ⏳ 待创建 |
-| **访问记录** | `visits` | `id`, `ip`, `user_agent`, `page`, `referrer`, `visited_at` | ⏳ 待创建 |
-| **邮件模板** | `email_templates` | `id`, `name`, `subject`, `content`, `variables` | ⏳ 待创建 |
-| **友情链接** | `links` | `id`, `name`, `url`, `description`, `logo`, `is_active` | ⏳ 待创建 |
-| **宣言/理念** | `manifestos` | `id`, `title`, `content`, `is_active` | ⏳ 待创建 |
-| **技能/能力** | `skills` | `id`, `name`, `description`, `level`, `icon` | ⏳ 待创建 |
+| **广告位** | `ad_positions` | `id`, `name`, `label_key`, `description`, `default_width`, `default_height`, `is_active`, `sort_order` | ✅ 已创建 |
+| **日志管理** | `journals` | `id`, `user_id`, `title`, `content`, `mood`, `weather`, `date`, `is_public` | ✅ 已创建 |
+| **广告管理** | `advertisements` | `id`, `position_id`, `title`, `image_url`, `link_url`, `position`, `is_active` | ✅ 已创建 |
+| **用户等级** | `user_levels` | `id`, `name`, `min_points`, `max_points`, `level`, `badge` | ✅ 已创建 |
+| **访问记录** | `visits` | `id`, `ip`, `user_agent`, `page`, `referrer`, `visited_at` | ✅ 已创建 |
+| **邮件模板** | `email_templates` | `id`, `name`, `subject`, `content`, `variables` | ✅ 已创建 |
+| **友情链接** | `links` | `id`, `name`, `url`, `description`, `logo`, `is_active` | ✅ 已创建 |
+| **宣言/理念** | `manifestos` | `id`, `title`, `content`, `is_active` | ✅ 已创建 |
+| **技能/能力** | `skills` | `id`, `name`, `description`, `level`, `icon` | ✅ 已创建 |
 
 ### 3. 现有表字段补全/优化建议
 *   **Users 表**: 增加 `avatar` (头像路径), `last_login_at` (最后登录时间), `status` (激活/禁用)。
@@ -161,19 +161,19 @@ export function useJournals() {
 
 | 优先级 | 任务描述 | 涉及模块 | 状态 |
 | :--- | :--- | :--- | :--- |
-| **P0** | **广告位管理全栈实现** | AdPositionController, ad_positions Table | ⏳ |
-| **P0** | **日志管理全栈实现** | JournalController, journals Table | ⏳ |
-| **P0** | **媒体库全栈实现** | MediaController, Media Table | ⏳ |
-| **P0** | **管理后台 Web 认证迁移** | Auth Middleware, Session Logic | ⏳ |
-| **P0** | **文章管理 CRUD 对接** | Post Management | ⏳ |
-| **P1** | **广告管理 CRUD 对接** | Advertisement Management | ⏳ |
-| **P1** | **评论审核系统对接** | Comment System | ⏳ |
-| **P1** | **系统设置持久化** | Settings Management | ⏳ |
-| **P1** | **前台菜单动态化同步** | Front Menu Management | ⏳ |
-| **P2** | **仪表盘统计数据真实化** | Analytics Dashboard | ⏳ |
-| **P2** | **全局 SEO 元数据同步** | Meta Management | ⏳ |
-| **P2** | **用户等级系统对接** | User Levels | ⏳ |
-| **P2** | **访问统计系统对接** | Visits Analytics | ⏳ |
+| **P0** | **广告位管理全栈实现** | AdPositionController, ad_positions Table | ✅ |
+| **P0** | **日志管理全栈实现** | JournalController, journals Table | ✅ |
+| **P0** | **媒体库全栈实现** | MediaController, Media Table | ✅ |
+| **P0** | **管理后台 Web 认证迁移** | Auth Middleware, Session Logic | ✅ |
+| **P0** | **文章管理 CRUD 对接** | Post Management | ✅ |
+| **P1** | **广告管理 CRUD 对接** | Advertisement Management | ✅ |
+| **P1** | **评论审核系统对接** | Comment System | ✅ |
+| **P1** | **系统设置持久化** | Settings Management | ✅ |
+| **P1** | **前台菜单动态化同步** | Front Menu Management | ✅ |
+| **P2** | **仪表盘统计数据真实化** | Analytics Dashboard | ✅ |
+| **P2** | **全局 SEO 元数据同步** | Meta Management | ✅ |
+| **P2** | **用户等级系统对接** | User Levels | ✅ |
+| **P2** | **访问统计系统对接** | Visits Analytics | ✅ |
 
 ---
 
@@ -185,4 +185,4 @@ export function useJournals() {
 5.  **国际化**: 确保所有用户可见文本使用 i18n key，支持多语言切换。
 
 ---
-*最后更新：2026-05-20*
+*最后更新：2026-06-03*

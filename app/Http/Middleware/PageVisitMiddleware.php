@@ -6,6 +6,7 @@ use App\Services\VisitService;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -50,12 +51,30 @@ class PageVisitMiddleware
         $routeName = $request->route()?->getName() ?? '';
         $page = $request->path() ?: '/';
 
+        Log::info('visit_middleware_enter', [
+            'path' => $page,
+            'route' => $routeName,
+            'ip' => $request->ip(),
+            'inertia' => $request->header('X-Inertia') ? 'yes' : 'no',
+        ]);
+
         // 检测路由中是否有 Eloquent 模型绑定（如 /blog/{post}、/projects/{id}）
         // 有则记录 visitable_id/visitable_type，无则仅记录 page/title
         $model = $this->resolveRouteModel($request);
         if ($model) {
+            Log::info('visit_middleware_track_model', [
+                'path' => $page,
+                'model' => get_class($model),
+                'id' => $model->getKey(),
+            ]);
             $this->visitService->trackModel($model, $request);
         } else {
+            $routeParams = $request->route()?->parameters() ?? [];
+            Log::info('visit_middleware_track_page', [
+                'path' => $page,
+                'route' => $routeName,
+                'params' => array_keys($routeParams),
+            ]);
             $title = $this->resolvePageTitle($routeName, $page);
             $this->visitService->trackPage($page, $title, $request);
         }

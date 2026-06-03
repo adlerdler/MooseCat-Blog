@@ -13,6 +13,7 @@ import {
   Upload,
   AlertCircle
 } from 'lucide-vue-next';
+import { Motion } from 'motion-v';
 import { useTheme } from '../../composables/useTheme';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import SearchFilterModal from '../../components/admin/SearchFilterModal.vue';
@@ -105,70 +106,48 @@ const persistTranslations = async () => {
 };
 
 // ─── Translations CRUD ──────────────────────────────────────────
-const editingValues = ref({});
-const editingKey = ref('');
-const showEditTranslationModal = ref(false);
+const showTranslationModal = ref(false);
+const isEditingTranslation = ref(false);
+const translationForm = ref({ key: '', values: {} });
 
-const openEditTranslation = (key) => {
-  editingKey.value = key;
-  editingValues.value = {};
-  availableLanguages.value.forEach(lang => {
-    editingValues.value[lang.code] = translations.value[lang.code]?.[key] || '';
-  });
-  showEditTranslationModal.value = true;
+const openTranslationModal = (key = null) => {
+  if (key) {
+    isEditingTranslation.value = true;
+    translationForm.value = { key, values: {} };
+    availableLanguages.value.forEach(lang => {
+      translationForm.value.values[lang.code] = translations.value[lang.code]?.[key] || '';
+    });
+  } else {
+    isEditingTranslation.value = false;
+    translationForm.value = { key: '', values: {} };
+    availableLanguages.value.forEach(lang => {
+      translationForm.value.values[lang.code] = '';
+    });
+  }
+  showTranslationModal.value = true;
 };
 
-const closeEditTranslation = () => {
-  showEditTranslationModal.value = false;
-  editingKey.value = '';
-  editingValues.value = {};
+const cancelTranslationModal = () => {
+  showTranslationModal.value = false;
 };
 
-const saveTranslation = async () => {
-  Object.entries(editingValues.value).forEach(([code, value]) => {
-    if (!translations.value[code]) translations.value[code] = {};
-    if (value === '' || value === null) {
-      delete translations.value[code][editingKey.value];
-    } else {
-      translations.value[code][editingKey.value] = value;
-    }
-  });
-  closeEditTranslation();
-  await persistTranslations();
-  success('翻译已保存');
-};
-
-// ─── Add translation key ────────────────────────────────────────
-const showAddKeyModal = ref(false);
-const newKeyForm = ref({ key: '', values: {} });
-
-const openAddKeyModal = () => {
-  showAddKeyModal.value = true;
-  newKeyForm.value = { key: '', values: {} };
-  availableLanguages.value.forEach(lang => {
-    newKeyForm.value.values[lang.code] = '';
-  });
-};
-
-const cancelAddKey = () => {
-  showAddKeyModal.value = false;
-  newKeyForm.value = { key: '', values: {} };
-};
-
-const confirmAddKey = async () => {
-  if (!newKeyForm.value.key.trim()) {
+const confirmTranslation = async () => {
+  const { key, values } = translationForm.value;
+  if (!key.trim()) {
     showTopErrorToast('请输入键名');
     return;
   }
-  Object.entries(newKeyForm.value.values).forEach(([code, value]) => {
+  Object.entries(values).forEach(([code, value]) => {
     if (!translations.value[code]) translations.value[code] = {};
-    if (value.trim()) {
-      translations.value[code][newKeyForm.value.key.trim()] = value.trim();
+    if (value === '' || value === null) {
+      delete translations.value[code][key.trim()];
+    } else {
+      translations.value[code][key.trim()] = value;
     }
   });
-  cancelAddKey();
+  cancelTranslationModal();
   await persistTranslations();
-  success('翻译键已添加并保存');
+  success(isEditingTranslation.value ? '翻译已保存' : '翻译键已添加并保存');
 };
 
 // ─── Delete translation ─────────────────────────────────────────
@@ -198,26 +177,41 @@ const confirmDelete = async () => {
 };
 
 // ─── Languages CRUD ─────────────────────────────────────────────
-const showAddLanguageModal = ref(false);
-const newLanguageForm = ref({ code: '', name: '', native_name: '', flag: '', file_path: '', is_default: false, is_active: true });
+const showLanguageModal = ref(false);
+const isEditingLanguage = ref(false);
+const languageForm = ref({ code: '', name: '', native_name: '', flag: '', file_path: '', is_default: false, is_active: true });
 const isUploading = ref(false);
 const fileInputRef = ref(null);
 
 const openAddLanguageModal = () => {
-  showAddLanguageModal.value = true;
-  newLanguageForm.value = { code: '', name: '', native_name: '', flag: '', file_path: '', is_default: false, is_active: true };
+  isEditingLanguage.value = false;
+  languageForm.value = { code: '', name: '', native_name: '', flag: '', file_path: '', is_default: false, is_active: true };
+  showLanguageModal.value = true;
 };
 
-const cancelAddLanguage = () => {
-  showAddLanguageModal.value = false;
-  newLanguageForm.value = { code: '', name: '', native_name: '', flag: '', file_path: '', is_default: false, is_active: true };
+const openEditLanguageModal = (lang) => {
+  isEditingLanguage.value = true;
+  languageForm.value = {
+    code: lang.code,
+    name: lang.name,
+    native_name: lang.native_name,
+    flag: lang.flag,
+    file_path: lang.file_path || '',
+    is_default: lang.is_default,
+    is_active: lang.is_active,
+  };
+  showLanguageModal.value = true;
+};
+
+const cancelLanguageModal = () => {
+  showLanguageModal.value = false;
 };
 
 const handleLocaleUpload = async (event) => {
   const file = event.target.files[0];
   if (!file) return;
 
-  const code = newLanguageForm.value.code.trim();
+  const code = languageForm.value.code.trim();
   if (!code) {
     showTopErrorToast('请先输入语言代码，再上传文件');
     event.target.value = '';
@@ -234,7 +228,7 @@ const handleLocaleUpload = async (event) => {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
 
-    newLanguageForm.value.file_path = res.data.file_path;
+    languageForm.value.file_path = res.data.file_path;
     success('文件已上传，路径已自动填入');
   } catch (err) {
     showTopErrorToast('上传失败：' + (err.response?.data?.message || err.message));
@@ -244,57 +238,33 @@ const handleLocaleUpload = async (event) => {
   }
 };
 
-const confirmAddLanguage = async () => {
-  if (!newLanguageForm.value.code.trim()) return showTopErrorToast('请输入语言代码');
-  if (!newLanguageForm.value.name.trim()) return showTopErrorToast('请输入语言名称');
+const confirmLanguage = async () => {
+  if (!languageForm.value.name.trim()) return showTopErrorToast('请输入语言名称');
 
-  try {
-    await axios.post('/admin/i18n/languages', newLanguageForm.value);
-    // 重新加载页面获取最新数据
-    window.location.reload();
-  } catch (err) {
-    showTopErrorToast(err.response?.data?.message || '添加失败');
-  }
-};
-
-const showEditLanguageModal = ref(false);
-const editingLanguageForm = ref({ code: '', name: '', native_name: '', flag: '', file_path: '', is_default: false, is_active: true });
-
-const openEditLanguageModal = (lang) => {
-  showEditLanguageModal.value = true;
-  editingLanguageForm.value = {
-    code: lang.code,
-    name: lang.name,
-    native_name: lang.native_name,
-    flag: lang.flag,
-    file_path: lang.file_path || '',
-    is_default: lang.is_default,
-    is_active: lang.is_active,
-  };
-};
-
-const cancelEditLanguage = () => {
-  showEditLanguageModal.value = false;
-  editingLanguageForm.value = { code: '', name: '', native_name: '', flag: '', file_path: '', is_default: false, is_active: true };
-};
-
-const confirmEditLanguage = async () => {
-  if (!editingLanguageForm.value.name.trim()) return showTopErrorToast('请输入语言名称');
-
-  try {
-    const code = editingLanguageForm.value.code;
-    await axios.put(`/admin/i18n/languages/${code}`, {
-      name: editingLanguageForm.value.name.trim(),
-      native_name: editingLanguageForm.value.native_name.trim() || editingLanguageForm.value.name.trim(),
-      flag: editingLanguageForm.value.flag.trim() || '🌐',
-      file_path: editingLanguageForm.value.file_path.trim() || null,
-      is_default: editingLanguageForm.value.is_default,
-      is_active: editingLanguageForm.value.is_active,
-    });
-    cancelEditLanguage();
-    window.location.reload();
-  } catch (err) {
-    showTopErrorToast(err.response?.data?.message || '更新失败');
+  if (isEditingLanguage.value) {
+    try {
+      const code = languageForm.value.code;
+      await axios.put(`/admin/i18n/languages/${code}`, {
+        name: languageForm.value.name.trim(),
+        native_name: languageForm.value.native_name.trim() || languageForm.value.name.trim(),
+        flag: languageForm.value.flag.trim() || '🌐',
+        file_path: languageForm.value.file_path.trim() || null,
+        is_default: languageForm.value.is_default,
+        is_active: languageForm.value.is_active,
+      });
+      cancelLanguageModal();
+      window.location.reload();
+    } catch (err) {
+      showTopErrorToast(err.response?.data?.message || '更新失败');
+    }
+  } else {
+    if (!languageForm.value.code.trim()) return showTopErrorToast('请输入语言代码');
+    try {
+      await axios.post('/admin/i18n/languages', languageForm.value);
+      window.location.reload();
+    } catch (err) {
+      showTopErrorToast(err.response?.data?.message || '添加失败');
+    }
   }
 };
 
@@ -356,7 +326,7 @@ const tabs = [
         <div class="flex items-center gap-3">
           <button
             v-if="activeTab === 'translations'"
-            @click="openAddKeyModal"
+            @click="openTranslationModal()"
             class="flex items-center gap-3 px-8 py-4 bg-construct-red text-white font-black text-xs uppercase tracking-[0.2em] transition-all hover:scale-105 active:scale-95 shadow-lg shadow-construct-red/20 rounded-xl"
           >
             <Plus size="18" :style="{ color: '#ffffff' }" />
@@ -375,18 +345,20 @@ const tabs = [
     </div>
 
     <!-- Tabs -->
-    <div :class="['flex gap-2 mb-6 border-b', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
+    <div :class="['flex gap-2 mb-8', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
       <button
         v-for="tab in tabs"
         :key="tab.key"
         @click="activeTab = tab.key; currentPage = 1; searchQuery = ''"
         :class="[
-          'flex items-center gap-2 px-6 py-3 font-black text-xs uppercase tracking-[0.2em] transition-all border-b-2',
+          'relative flex items-center gap-2.5 px-5 py-2.5 font-bold text-sm rounded-xl transition-all duration-300',
           activeTab === tab.key
-            ? 'border-construct-red text-construct-red'
+            ? isDarkMode
+              ? 'bg-construct-red/15 text-construct-red shadow-sm'
+              : 'bg-construct-red text-white shadow-md shadow-construct-red/25 scale-105'
             : isDarkMode
-              ? 'border-transparent text-gray-400 hover:text-white'
-              : 'border-transparent text-gray-500 hover:text-gray-900'
+              ? 'text-gray-500 hover:text-gray-200 hover:bg-gray-800'
+              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
         ]"
       >
         <component :is="tab.icon" size="16" />
@@ -395,49 +367,60 @@ const tabs = [
     </div>
 
     <!-- Languages Tab -->
-    <div v-if="activeTab === 'languages'" class="space-y-6">
+    <div v-if="activeTab === 'languages'">
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div
-          v-for="lang in languages"
+        <Motion
+          v-for="(lang, idx) in languages"
           :key="lang.code"
-          :class="[
-            'border transition-all duration-500 hover:-translate-y-1 rounded-lg overflow-hidden',
-            isDarkMode
-              ? 'bg-gray-800 border-gray-700 hover:border-construct-red/50 hover:shadow-lg'
-              : 'bg-white border-gray-200 hover:border-construct-red/30 hover:shadow-lg'
-          ]"
+          :initial="{ opacity: 0, y: 20 }"
+          :animate="{ opacity: 1, y: 0 }"
+          :transition="{ delay: idx * 0.05, duration: 0.35 }"
         >
-          <div class="p-6">
-            <div class="flex items-start justify-between mb-4">
-              <div class="text-4xl">{{ lang.flag }}</div>
-              <div class="flex items-center gap-2">
-                <span v-if="lang.is_default" class="px-2 py-1 text-xs font-bold rounded bg-construct-red/20 text-construct-red">默认</span>
-                <span :class="['px-2 py-1 text-xs font-bold rounded', lang.is_active ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400']">
-                  {{ lang.is_active ? '已启用' : '已禁用' }}
-                </span>
+          <div
+            :class="[
+              'group border transition-all duration-300 rounded-xl overflow-hidden hover:-translate-y-1.5 hover:shadow-xl',
+              isDarkMode
+                ? 'bg-gray-800/80 border-gray-700/50 hover:border-construct-red/50 hover:shadow-construct-red/5'
+                : 'bg-white border-gray-200 hover:border-construct-red/30 hover:shadow-construct-red/10'
+            ]"
+          >
+            <div class="p-6">
+              <div class="flex items-start justify-between mb-4">
+                <div :class="[
+                  'w-12 h-12 rounded-xl flex items-center justify-center text-3xl shadow-md transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg',
+                  isDarkMode ? 'bg-gradient-to-br from-gray-700 to-gray-800' : 'bg-gradient-to-br from-gray-100 to-gray-200'
+                ]">
+                  {{ lang.flag }}
+                </div>
+                <div class="flex items-center gap-1">
+                  <span v-if="lang.is_default" class="px-2 py-1 text-xs font-bold rounded bg-construct-red/20 text-construct-red">默认</span>
+                  <span :class="['px-2 py-1 text-xs font-bold rounded', lang.is_active ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400']">
+                    {{ lang.is_active ? '已启用' : '已禁用' }}
+                  </span>
+                </div>
               </div>
-            </div>
-            <h4 :class="['font-bold text-lg mb-1', isDarkMode ? 'text-white' : 'text-gray-900']">{{ lang.name }}</h4>
-            <p :class="['text-sm mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ lang.native_name }}</p>
-            <p :class="['text-xs font-mono font-bold', isDarkMode ? 'text-gray-600' : 'text-gray-400']">代码: {{ lang.code }}</p>
-            <div :class="['flex items-center justify-between mt-4 pt-4 border-t', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
-              <span :class="['text-xs font-bold', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
-                翻译数: {{ lang.translation_count || Object.keys(translations[lang.code] || {}).length }}
-              </span>
-              <div class="flex items-center gap-2">
-                <button @click="downloadLanguage(lang)" :class="['p-2 rounded-lg transition-colors', isDarkMode ? 'text-gray-400 hover:bg-gray-700 hover:text-blue-400' : 'text-gray-400 hover:bg-gray-100 hover:text-blue-500']" :title="'下载 ' + lang.code + '.json'">
-                  <Download size="14" />
-                </button>
-                <button @click="openEditLanguageModal(lang)" :class="['p-2 rounded-lg transition-colors', isDarkMode ? 'text-gray-400 hover:bg-gray-700 hover:text-construct-red' : 'text-gray-400 hover:bg-gray-100 hover:text-construct-red']">
-                  <Edit3 size="14" />
-                </button>
-                <button @click="handleDelete(lang.code, 'language')" :class="['p-2 rounded-lg transition-colors', isDarkMode ? 'text-gray-400 hover:bg-gray-700 hover:text-red-400' : 'text-gray-400 hover:bg-gray-100 hover:text-red-500']">
-                  <Trash2 size="14" />
-                </button>
+              <h4 :class="['font-bold text-lg mb-1', isDarkMode ? 'text-white' : 'text-gray-900']">{{ lang.name }}</h4>
+              <p :class="['text-sm mb-1', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ lang.native_name }}</p>
+              <p :class="['text-xs font-mono font-bold', isDarkMode ? 'text-gray-600' : 'text-gray-400']">代码: {{ lang.code }}</p>
+              <div class="flex items-center justify-between mt-4">
+                <span :class="['text-xs font-mono font-bold', isDarkMode ? 'text-gray-600' : 'text-gray-400']">
+                  翻译数: {{ lang.translation_count || Object.keys(translations[lang.code] || {}).length }}
+                </span>
+                <div class="flex items-center gap-2">
+                  <button @click="downloadLanguage(lang)" :class="['p-2 rounded-lg transition-colors', isDarkMode ? 'text-gray-400 hover:bg-gray-700 hover:text-blue-400' : 'text-gray-400 hover:bg-gray-100 hover:text-blue-500']" :title="'下载 ' + lang.code + '.json'">
+                    <Download size="14" />
+                  </button>
+                  <button @click="openEditLanguageModal(lang)" :class="['p-2 rounded-lg transition-colors', isDarkMode ? 'text-gray-400 hover:bg-gray-700 hover:text-construct-red' : 'text-gray-400 hover:bg-gray-100 hover:text-construct-red']">
+                    <Edit3 size="14" />
+                  </button>
+                  <button @click="handleDelete(lang.code, 'language')" :class="['p-2 rounded-lg transition-colors', isDarkMode ? 'text-gray-400 hover:bg-gray-700 hover:text-red-400' : 'text-gray-400 hover:bg-gray-100 hover:text-red-500']">
+                    <Trash2 size="14" />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </Motion>
       </div>
     </div>
 
@@ -463,15 +446,22 @@ const tabs = [
           </thead>
           <tbody>
             <tr v-for="key in paginatedKeys" :key="key" :class="['border-t', isDarkMode ? 'border-gray-700 hover:bg-gray-700/50' : 'border-gray-200 hover:bg-gray-50']">
-              <td :class="['px-4 py-3 font-mono text-xs', isDarkMode ? 'text-construct-red' : 'text-construct-red']">{{ key }}</td>
-              <td v-for="lang in availableLanguages" :key="lang.code" :class="['px-4 py-3', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
-                <span :class="{ 'opacity-40': !translations[lang.code]?.[key] }">
+              <td :class="['px-4 py-3 font-mono text-xs max-w-[160px] truncate', isDarkMode ? 'text-construct-red' : 'text-construct-red']" :title="key">{{ key }}</td>
+              <td
+                v-for="lang in availableLanguages"
+                :key="lang.code"
+                :class="['px-4 py-3 max-w-[180px]', isDarkMode ? 'text-gray-300' : 'text-gray-700']"
+              >
+                <span
+                  :class="['block truncate', { 'opacity-40': !translations[lang.code]?.[key] }]"
+                  :title="translations[lang.code]?.[key] || ''"
+                >
                   {{ translations[lang.code]?.[key] || '—' }}
                 </span>
               </td>
               <td class="px-4 py-3 text-center">
                 <div class="flex items-center justify-center gap-2">
-                  <button @click="openEditTranslation(key)" :class="['p-2 rounded-lg transition-colors', isDarkMode ? 'text-gray-400 hover:bg-gray-700 hover:text-construct-red' : 'text-gray-400 hover:bg-gray-100 hover:text-construct-red']">
+                  <button @click="openTranslationModal(key)" :class="['p-2 rounded-lg transition-colors', isDarkMode ? 'text-gray-400 hover:bg-gray-700 hover:text-construct-red' : 'text-gray-400 hover:bg-gray-100 hover:text-construct-red']">
                     <Edit3 size="14" />
                   </button>
                   <button @click="deleteTranslationKey(key)" :class="['p-2 rounded-lg transition-colors', isDarkMode ? 'text-gray-400 hover:bg-gray-700 hover:text-red-400' : 'text-gray-400 hover:bg-gray-100 hover:text-red-500']">
@@ -492,42 +482,53 @@ const tabs = [
       />
     </div>
 
-    <!-- Add Language Modal -->
+    <!-- Language Modal (Add/Edit) -->
     <Transition name="modal">
-      <div v-if="showAddLanguageModal" class="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-sm" @click.self="cancelAddLanguage">
-        <div :class="['w-full max-w-md mx-4 rounded-lg shadow-xl border', isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200']">
-          <div :class="['flex justify-between items-center p-6 border-b', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
-            <h3 :class="['text-xl font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">添加语言</h3>
-            <button @click="cancelAddLanguage" :class="['p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100']">
+      <div v-if="showLanguageModal" class="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-sm" @click.self="cancelLanguageModal">
+        <div :class="['w-full max-w-md mx-4 rounded-2xl shadow-2xl ring-1', isDarkMode ? 'bg-gray-800 ring-gray-700' : 'bg-white ring-gray-200/80']">
+          <div :class="['flex justify-between items-center p-6 pb-2', isDarkMode ? 'text-white' : 'text-gray-900']">
+            <h3 :class="['text-xl font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">{{ isEditingLanguage ? '编辑语言' : '添加语言' }}</h3>
+            <button @click="cancelLanguageModal" :class="['p-2 rounded-xl transition-colors', isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100']">
               <X :size="20" :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'" />
             </button>
           </div>
           <div class="p-6 space-y-4">
             <div>
-              <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">语言代码</label>
-              <input v-model="newLanguageForm.code" :class="['w-full px-3 py-2 border rounded-lg', isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300']" placeholder="如：ja, ko, fr..." />
+              <label :class="['block text-sm font-bold mb-1.5', isDarkMode ? 'text-gray-300' : 'text-gray-700']">语言代码</label>
+              <input
+                v-if="!isEditingLanguage"
+                v-model="languageForm.code"
+                :class="['w-full px-3 py-2 border rounded-xl text-sm', isDarkMode ? 'bg-gray-700 border-gray-600 text-white focus:border-construct-red' : 'border-gray-300 focus:border-construct-red']"
+                placeholder="如：ja, ko, fr..."
+              />
+              <input
+                v-else
+                :value="languageForm.code"
+                disabled
+                :class="['w-full px-3 py-2 border rounded-xl opacity-50 text-sm', isDarkMode ? 'bg-gray-700 border-gray-600 text-gray-400' : 'bg-gray-100 border-gray-300 text-gray-500']"
+              />
             </div>
             <div>
-              <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">语言名称</label>
-              <input v-model="newLanguageForm.name" :class="['w-full px-3 py-2 border rounded-lg', isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300']" placeholder="如：Japanese" />
+              <label :class="['block text-sm font-bold mb-1.5', isDarkMode ? 'text-gray-300' : 'text-gray-700']">语言名称</label>
+              <input v-model="languageForm.name" :class="['w-full px-3 py-2 border rounded-xl text-sm', isDarkMode ? 'bg-gray-700 border-gray-600 text-white focus:border-construct-red' : 'border-gray-300 focus:border-construct-red']" placeholder="如：Japanese" />
             </div>
             <div>
-              <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">本地化名称</label>
-              <input v-model="newLanguageForm.native_name" :class="['w-full px-3 py-2 border rounded-lg', isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300']" placeholder="如：日本語" />
+              <label :class="['block text-sm font-bold mb-1.5', isDarkMode ? 'text-gray-300' : 'text-gray-700']">本地化名称</label>
+              <input v-model="languageForm.native_name" :class="['w-full px-3 py-2 border rounded-xl text-sm', isDarkMode ? 'bg-gray-700 border-gray-600 text-white focus:border-construct-red' : 'border-gray-300 focus:border-construct-red']" placeholder="如：日本語" />
             </div>
             <div>
-              <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">旗帜图标</label>
-              <input v-model="newLanguageForm.flag" :class="['w-full px-3 py-2 border rounded-lg', isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300']" placeholder="如：🇯🇵" />
+              <label :class="['block text-sm font-bold mb-1.5', isDarkMode ? 'text-gray-300' : 'text-gray-700']">旗帜图标</label>
+              <input v-model="languageForm.flag" :class="['w-full px-3 py-2 border rounded-xl text-sm', isDarkMode ? 'bg-gray-700 border-gray-600 text-white focus:border-construct-red' : 'border-gray-300 focus:border-construct-red']" placeholder="如：🇯🇵" />
             </div>
             <div>
-              <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">文件路径</label>
+              <label :class="['block text-sm font-bold mb-1.5', isDarkMode ? 'text-gray-300' : 'text-gray-700']">文件路径</label>
               <div class="flex gap-2">
-                <input v-model="newLanguageForm.file_path" :class="['flex-1 px-3 py-2 border rounded-lg font-mono text-sm', isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300']" placeholder="如：/locales/ja.json 或点击上传" />
+                <input v-model="languageForm.file_path" :class="['flex-1 px-3 py-2 border rounded-xl font-mono text-sm', isDarkMode ? 'bg-gray-700 border-gray-600 text-white focus:border-construct-red' : 'border-gray-300 focus:border-construct-red']" placeholder="如：/locales/ja.json 或点击上传" />
                 <input ref="fileInputRef" type="file" accept=".json" class="hidden" @change="handleLocaleUpload" />
                 <button
                   @click="fileInputRef?.click()"
                   :disabled="isUploading"
-                  :class="['flex items-center gap-1.5 px-3 py-2 border rounded-lg font-bold text-xs uppercase tracking-wider transition-colors whitespace-nowrap', isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-600 hover:bg-gray-100']"
+                  :class="['flex items-center gap-1.5 px-3 py-2 border rounded-xl font-bold text-xs uppercase tracking-wider transition-colors whitespace-nowrap', isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-600 hover:bg-gray-100']"
                 >
                   <Upload size="14" />
                   {{ isUploading ? '上传中...' : '上传' }}
@@ -536,128 +537,62 @@ const tabs = [
             </div>
             <div class="flex gap-6">
               <label class="flex items-center gap-2 cursor-pointer">
-                <input v-model="newLanguageForm.is_default" type="checkbox" class="w-4 h-4 rounded border-gray-300 text-construct-red focus:ring-construct-red" />
+                <input v-model="languageForm.is_default" type="checkbox" class="w-4 h-4 rounded border-gray-300 text-construct-red focus:ring-construct-red" />
                 <span :class="['text-sm font-bold', isDarkMode ? 'text-gray-300' : 'text-gray-700']">默认语言</span>
               </label>
               <label class="flex items-center gap-2 cursor-pointer">
-                <input v-model="newLanguageForm.is_active" type="checkbox" class="w-4 h-4 rounded border-gray-300 text-construct-red focus:ring-construct-red" />
+                <input v-model="languageForm.is_active" type="checkbox" class="w-4 h-4 rounded border-gray-300 text-construct-red focus:ring-construct-red" />
                 <span :class="['text-sm font-bold', isDarkMode ? 'text-gray-300' : 'text-gray-700']">启用</span>
               </label>
             </div>
           </div>
-          <div :class="['flex justify-end gap-3 p-6 border-t', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
-            <button @click="cancelAddLanguage" :class="['px-6 py-2 border font-bold text-xs uppercase tracking-wider transition-colors rounded-lg', isDarkMode ? 'border-gray-600 hover:bg-gray-700 text-gray-300' : 'border-gray-300 hover:bg-gray-100 text-gray-700']">取消</button>
-            <button @click="confirmAddLanguage" class="px-6 py-2 bg-construct-red text-white font-bold text-xs uppercase tracking-wider transition-colors rounded-lg">创建</button>
+          <div :class="['flex justify-end gap-3 p-6 pt-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
+            <button @click="cancelLanguageModal" :class="['px-6 py-2 border font-bold text-xs uppercase tracking-wider transition-colors rounded-xl', isDarkMode ? 'border-gray-600 hover:bg-gray-700 text-gray-300' : 'border-gray-300 hover:bg-gray-100 text-gray-700']">取消</button>
+            <button @click="confirmLanguage" class="px-6 py-2 bg-construct-red text-white font-bold text-xs uppercase tracking-wider transition-colors rounded-xl">{{ isEditingLanguage ? '保存' : '创建' }}</button>
           </div>
         </div>
       </div>
     </Transition>
 
-    <!-- Edit Language Modal -->
+    <!-- Translation Modal (Add/Edit) -->
     <Transition name="modal">
-      <div v-if="showEditLanguageModal" class="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-sm" @click.self="cancelEditLanguage">
-        <div :class="['w-full max-w-md mx-4 rounded-lg shadow-xl border', isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200']">
-          <div :class="['flex justify-between items-center p-6 border-b', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
-            <h3 :class="['text-xl font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">编辑语言</h3>
-            <button @click="cancelEditLanguage" :class="['p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100']">
-              <X :size="20" :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'" />
-            </button>
-          </div>
-          <div class="p-6 space-y-4">
-            <div>
-              <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">语言代码</label>
-              <input :value="editingLanguageForm.code" disabled :class="['w-full px-3 py-2 border rounded-lg opacity-50', isDarkMode ? 'bg-gray-700 border-gray-600 text-gray-400' : 'bg-gray-100 border-gray-300 text-gray-500']" />
-            </div>
-            <div>
-              <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">语言名称</label>
-              <input v-model="editingLanguageForm.name" :class="['w-full px-3 py-2 border rounded-lg', isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300']" />
-            </div>
-            <div>
-              <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">本地化名称</label>
-              <input v-model="editingLanguageForm.native_name" :class="['w-full px-3 py-2 border rounded-lg', isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300']" />
-            </div>
-            <div>
-              <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">旗帜图标</label>
-              <input v-model="editingLanguageForm.flag" :class="['w-full px-3 py-2 border rounded-lg', isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300']" />
-            </div>
-            <div>
-              <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">文件路径</label>
-              <input v-model="editingLanguageForm.file_path" :class="['w-full px-3 py-2 border rounded-lg font-mono text-sm', isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300']" placeholder="/locales/zh.json" />
-            </div>
-            <div class="flex gap-6">
-              <label class="flex items-center gap-2 cursor-pointer">
-                <input v-model="editingLanguageForm.is_default" type="checkbox" class="w-4 h-4 rounded border-gray-300 text-construct-red focus:ring-construct-red" />
-                <span :class="['text-sm font-bold', isDarkMode ? 'text-gray-300' : 'text-gray-700']">默认语言</span>
-              </label>
-              <label class="flex items-center gap-2 cursor-pointer">
-                <input v-model="editingLanguageForm.is_active" type="checkbox" class="w-4 h-4 rounded border-gray-300 text-construct-red focus:ring-construct-red" />
-                <span :class="['text-sm font-bold', isDarkMode ? 'text-gray-300' : 'text-gray-700']">启用</span>
-              </label>
-            </div>
-          </div>
-          <div :class="['flex justify-end gap-3 p-6 border-t', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
-            <button @click="cancelEditLanguage" :class="['px-6 py-2 border font-bold text-xs uppercase tracking-wider transition-colors rounded-lg', isDarkMode ? 'border-gray-600 hover:bg-gray-700 text-gray-300' : 'border-gray-300 hover:bg-gray-100 text-gray-700']">取消</button>
-            <button @click="confirmEditLanguage" class="px-6 py-2 bg-construct-red text-white font-bold text-xs uppercase tracking-wider transition-colors rounded-lg">保存</button>
-          </div>
-        </div>
-      </div>
-    </Transition>
-
-    <!-- Edit Translation Modal -->
-    <Transition name="modal">
-      <div v-if="showEditTranslationModal" class="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-sm" @click.self="closeEditTranslation">
-        <div :class="['w-full max-w-lg mx-4 rounded-lg shadow-xl border max-h-[90vh] flex flex-col', isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200']">
-          <div :class="['flex justify-between items-center p-6 border-b shrink-0', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
-            <h3 :class="['text-xl font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">编辑翻译</h3>
-            <button @click="closeEditTranslation" :class="['p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100']">
+      <div v-if="showTranslationModal" class="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-sm" @click.self="cancelTranslationModal">
+        <div :class="['w-full max-w-lg mx-4 rounded-2xl shadow-2xl ring-1 max-h-[90vh] flex flex-col', isDarkMode ? 'bg-gray-800 ring-gray-700' : 'bg-white ring-gray-200/80']">
+          <div :class="['flex justify-between items-center p-6 pb-2 shrink-0', isDarkMode ? 'text-white' : 'text-gray-900']">
+            <h3 :class="['text-xl font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">{{ isEditingTranslation ? '编辑翻译' : '添加翻译键' }}</h3>
+            <button @click="cancelTranslationModal" :class="['p-2 rounded-xl transition-colors', isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100']">
               <X :size="20" :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'" />
             </button>
           </div>
           <div class="p-6 space-y-4 overflow-y-auto flex-1">
             <div>
-              <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">翻译键</label>
-              <div :class="['w-full px-3 py-2 border rounded-lg font-mono text-sm', isDarkMode ? 'bg-gray-700 border-gray-600 text-construct-red' : 'bg-gray-100 border-gray-300 text-construct-red']">{{ editingKey }}</div>
+              <label :class="['block text-sm font-bold mb-1.5', isDarkMode ? 'text-gray-300' : 'text-gray-700']">翻译键</label>
+              <input
+                v-if="!isEditingTranslation"
+                v-model="translationForm.key"
+                :class="['w-full px-3 py-2 border rounded-xl font-mono text-sm', isDarkMode ? 'bg-gray-700 border-gray-600 text-white focus:border-construct-red' : 'border-gray-300 focus:border-construct-red']"
+                placeholder="如：nav_contact"
+              />
+              <div
+                v-else
+                :class="['w-full px-3 py-2 border rounded-xl font-mono text-sm', isDarkMode ? 'bg-gray-700 border-gray-600 text-construct-red' : 'bg-gray-100 border-gray-300 text-construct-red']"
+              >{{ translationForm.key }}</div>
             </div>
             <div v-for="lang in availableLanguages" :key="lang.code">
-              <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
+              <label :class="['block text-sm font-bold mb-1.5', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
                 <span class="mr-1">{{ lang.flag }}</span>{{ lang.native_name }}
               </label>
-              <textarea v-model="editingValues[lang.code]" rows="2" :class="['w-full px-3 py-2 border rounded-lg resize-none', isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300']"></textarea>
+              <textarea
+                v-model="translationForm.values[lang.code]"
+                rows="2"
+                :class="['w-full px-3 py-2 border rounded-xl resize-none text-sm', isDarkMode ? 'bg-gray-700 border-gray-600 text-white focus:border-construct-red' : 'border-gray-300 focus:border-construct-red']"
+                :placeholder="isEditingTranslation ? undefined : '翻译内容...'"
+              ></textarea>
             </div>
           </div>
-          <div :class="['flex justify-end gap-3 p-6 border-t shrink-0', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
-            <button @click="closeEditTranslation" :class="['px-6 py-2 border font-bold text-xs uppercase tracking-wider transition-colors rounded-lg', isDarkMode ? 'border-gray-600 hover:bg-gray-700 text-gray-300' : 'border-gray-300 hover:bg-gray-100 text-gray-700']">取消</button>
-            <button @click="saveTranslation" class="px-6 py-2 bg-construct-red text-white font-bold text-xs uppercase tracking-wider transition-colors rounded-lg">保存</button>
-          </div>
-        </div>
-      </div>
-    </Transition>
-
-    <!-- Add Translation Key Modal -->
-    <Transition name="modal">
-      <div v-if="showAddKeyModal" class="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-sm" @click.self="cancelAddKey">
-        <div :class="['w-full max-w-lg mx-4 rounded-lg shadow-xl border max-h-[90vh] flex flex-col', isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200']">
-          <div :class="['flex justify-between items-center p-6 border-b shrink-0', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
-            <h3 :class="['text-xl font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">添加翻译键</h3>
-            <button @click="cancelAddKey" :class="['p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100']">
-              <X :size="20" :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'" />
-            </button>
-          </div>
-          <div class="p-6 space-y-4 overflow-y-auto flex-1">
-            <div>
-              <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">翻译键</label>
-              <input v-model="newKeyForm.key" :class="['w-full px-3 py-2 border rounded-lg font-mono text-sm', isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300']" placeholder="如：nav_contact" />
-            </div>
-            <div v-for="lang in availableLanguages" :key="lang.code">
-              <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
-                <span class="mr-1">{{ lang.flag }}</span>{{ lang.native_name }}
-              </label>
-              <textarea v-model="newKeyForm.values[lang.code]" rows="2" :class="['w-full px-3 py-2 border rounded-lg resize-none', isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300']" placeholder="翻译内容..."></textarea>
-            </div>
-          </div>
-          <div :class="['flex justify-end gap-3 p-6 border-t shrink-0', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
-            <button @click="cancelAddKey" :class="['px-6 py-2 border font-bold text-xs uppercase tracking-wider transition-colors rounded-lg', isDarkMode ? 'border-gray-600 hover:bg-gray-700 text-gray-300' : 'border-gray-300 hover:bg-gray-100 text-gray-700']">取消</button>
-            <button @click="confirmAddKey" class="px-6 py-2 bg-construct-red text-white font-bold text-xs uppercase tracking-wider transition-colors rounded-lg">创建</button>
+          <div :class="['flex justify-end gap-3 p-6 pt-2 shrink-0', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
+            <button @click="cancelTranslationModal" :class="['px-6 py-2 border font-bold text-xs uppercase tracking-wider transition-colors rounded-xl', isDarkMode ? 'border-gray-600 hover:bg-gray-700 text-gray-300' : 'border-gray-300 hover:bg-gray-100 text-gray-700']">取消</button>
+            <button @click="confirmTranslation" class="px-6 py-2 bg-construct-red text-white font-bold text-xs uppercase tracking-wider transition-colors rounded-xl">{{ isEditingTranslation ? '保存' : '创建' }}</button>
           </div>
         </div>
       </div>

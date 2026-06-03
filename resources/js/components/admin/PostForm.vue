@@ -128,7 +128,7 @@ const handleMediaSelect = (file) => {
           v-model="formData.title"
           type="text"
           :class="[
-            'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
+            'w-full px-4 py-2 text-sm rounded-xl border focus:outline-none focus:border-construct-red',
             isDarkMode 
               ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
               : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
@@ -145,7 +145,7 @@ const handleMediaSelect = (file) => {
           <select
             v-model="formData.category"
             :class="[
-              'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
+              'w-full px-4 py-2 text-sm rounded-xl border focus:outline-none focus:border-construct-red',
               isDarkMode 
                 ? 'bg-gray-700 border-gray-600 text-white' 
                 : 'bg-white border-gray-300 text-gray-900'
@@ -165,7 +165,7 @@ const handleMediaSelect = (file) => {
           <select
             v-model="formData.status"
             :class="[
-              'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
+              'w-full px-4 py-2 text-sm rounded-xl border focus:outline-none focus:border-construct-red',
               isDarkMode 
                 ? 'bg-gray-700 border-gray-600 text-white' 
                 : 'bg-white border-gray-300 text-gray-900'
@@ -187,7 +187,7 @@ const handleMediaSelect = (file) => {
             v-model="formData.thumbnail"
             type="text"
             :class="[
-              'flex-1 px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
+              'flex-1 px-4 py-2 text-sm rounded-xl border focus:outline-none focus:border-construct-red',
               isDarkMode 
                 ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
                 : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
@@ -216,7 +216,7 @@ const handleMediaSelect = (file) => {
           v-model="formData.excerpt"
           rows="2"
           :class="[
-            'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red resize-none',
+            'w-full px-4 py-2 text-sm rounded-xl border focus:outline-none focus:border-construct-red resize-none',
             isDarkMode 
               ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
               : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
@@ -233,7 +233,7 @@ const handleMediaSelect = (file) => {
           v-model="formData.content"
           rows="10"
           :class="[
-            'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red resize-none font-mono text-sm',
+            'w-full px-4 py-2 text-sm rounded-xl border focus:outline-none focus:border-construct-red resize-none font-mono',
             isDarkMode 
               ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
               : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
@@ -250,7 +250,7 @@ const handleMediaSelect = (file) => {
           <select
             v-model="formData.color"
             :class="[
-              'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
+              'w-full px-4 py-2 text-sm rounded-xl border focus:outline-none focus:border-construct-red',
               isDarkMode 
                 ? 'bg-gray-700 border-gray-600 text-white' 
                 : 'bg-white border-gray-300 text-gray-900'

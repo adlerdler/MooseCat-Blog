@@ -649,7 +649,7 @@ Route::prefix('v1')->group(function () {
 
 ## 十、架构优化规划（P2）
 
-### 30. 静态数据文件迁移至 API（进行中 ⏳）
+### 30. 静态数据文件迁移至 API（已完成 ✅）
 
 **问题描述**：
 当前项目使用 `resources/js/data` 目录下的静态 JS 文件存储业务数据（posts、comments、users 等），大部分数据文件已完成规范化，可直接迁移到数据库。
@@ -664,37 +664,37 @@ Route::prefix('v1')->group(function () {
 #### 可以删除的文件（数据将从 API 获取）
 | 文件 | 原因 | 状态 |
 |------|------|:---:|
-| `posts.js` | 文章数据从 `/api/v1/posts` 获取 | ⏳ |
-| `comments.js` | 评论数据从 API 获取 | ⏳ |
-| `users.js` | 用户数据从 API 获取 | ⏳ |
-| `categories.js` | 分类数据从 API 获取 | ⏳ |
-| `tags.js` | 标签数据从 API 获取 | ⏳ |
-| `videos.js` | 视频数据从 API 获取 | ⏳ |
-| `projects.js` | 项目数据从 API 获取 | ⏳ |
-| `resources.js` | 资源数据从 API 获取 | ⏳ |
-| `searchPosts.js` | 搜索功能从 API 获取 | ⏳ |
-| `home.js` | 首页数据从 API 获取 | ⏳ |
-| `advertisements.js` | 广告数据从 API 获取 | ⏳ |
-| `ad_positions.js` | 广告位数据从 API 获取 | ⏳ |
-| `journals.js` | 日志数据从 API 获取 | ⏳ |
-| `media.js` | 媒体数据从 API 获取 | ⏳ |
-| `visits.js` | 访问数据从 API 获取 | ⏳ |
-| `user_levels.js` | 用户等级从 API 获取 | ⏳ |
-| `skills.js` | 技能数据从 API 获取 | ⏳ |
-| `manifestos.js` | 宣言数据从 API 获取 | ⏳ |
-| `links.js` | 友情链接从 API 获取 | ⏳ |
+| `posts.js` | 文章数据从 `/api/v1/posts` 获取 | ✅ |
+| `comments.js` | 评论数据从 API 获取 | ✅ |
+| `users.js` | 用户数据从 API 获取 | ✅ |
+| `categories.js` | 分类数据从 API 获取 | ✅ |
+| `tags.js` | 标签数据从 API 获取 | ✅ |
+| `videos.js` | 视频数据从 API 获取 | ✅ |
+| `projects.js` | 项目数据从 API 获取 | ✅ |
+| `resources.js` | 资源数据从 API 获取 | ✅ |
+| `searchPosts.js` | 搜索功能从 API 获取 | ✅ |
+| `home.js` | 首页数据从 API 获取 | ✅ |
+| `advertisements.js` | 广告数据从 API 获取 | ✅ |
+| `ad_positions.js` | 广告位数据从 API 获取 | ✅ |
+| `journals.js` | 日志数据从 API 获取 | ✅ |
+| `media.js` | 媒体数据从 API 获取 | ✅ |
+| `visits.js` | 访问数据从 API 获取 | ✅ |
+| `user_levels.js` | 用户等级从 API 获取 | ✅ |
+| `skills.js` | 技能数据从 API 获取 | ✅ |
+| `manifestos.js` | 宣言数据从 API 获取 | ✅ |
+| `links.js` | 友情链接从 API 获取 | ✅ |
 
 #### 建议保留的文件（系统配置类）
 | 文件 | 原因 | 状态 |
 |------|------|:---:|
-| `roles.js` | 角色定义（权限系统配置，变动少） | ⏳ |
-| `permissions.js` | 权限定义（系统级配置） | ⏳ |
-| `menu.js` | 菜单结构配置 | ⏳ |
-| `settings.js` | 系统设置 | ⏳ |
-| `email_templates.js` | 邮件模板配置 | ⏳ |
-| `mail_config.js` | 邮件配置 | ⏳ |
-| `backup.js` | 备份记录 | ⏳ |
-| `logs.js` | 操作日志 | ⏳ |
+| `roles.js` | 角色定义（权限系统配置，变动少） | ✅ |
+| `permissions.js` | 权限定义（系统级配置） | ✅ |
+| `menu.js` | 菜单结构配置 | ✅ |
+| `settings.js` | 系统设置 | ✅ |
+| `email_templates.js` | 邮件模板配置 | ✅ |
+| `mail_config.js` | 邮件配置 | ✅ |
+| `backup.js` | 备份记录 | ✅ |
+| `logs.js` | 操作日志 | ✅ |
 
 #### 新增目录结构
 ```
@@ -730,16 +730,16 @@ resources/js/
 
 **实施步骤**：
 1. ✅ 创建 `api/client.js` - 配置 axios 实例、拦截器、错误处理
-2. ⏳ 逐个创建 API 模块文件（posts.js、comments.js、advertisements.js、journals.js 等）
-3. ⏳ 创建 composables 封装数据获取逻辑
-4. ⏳ 更新页面组件，使用 composables 替代直接导入静态数据
-5. ⏳ 删除不再使用的静态数据文件
-6. ⏳ 测试所有功能正常
+2. ✅ 逐个创建 API 模块文件（posts.js、comments.js、advertisements.js、journals.js 等）
+3. ✅ 创建 composables 封装数据获取逻辑
+4. ✅ 更新页面组件，使用 composables 替代直接导入静态数据
+5. ✅ 删除不再使用的静态数据文件
+6. ✅ 测试所有功能正常
 
 **建议修复**：
 - ✅ 已完成：数据文件规范化
-- ⏳ 进行中：接入 API 时采用渐进式迁移，逐个模块替换
-- ⏳ 待完成：保留静态数据作为 fallback，避免 API 未就绪时页面空白
+- ✅ 已完成：所有模块已接入真实 API 数据
+- ✅ 已完成：静态数据保留作为 fallback
 
 ---
 
@@ -935,5 +935,5 @@ onMounted(() => fetchPosts());
 
 **文档版本**: 2.0  
 **创建日期**: 2026-05-14  
-**最后更新**: 2026-05-14  
+**最后更新**: 2026-06-03  
 **维护者**: Archyx Team

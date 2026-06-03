@@ -5,7 +5,7 @@
  * 功能说明：
  * - 首次访问显示弹窗广告
  * - 带关闭按钮，关闭后不再显示
- * - 使用 localStorage 记录用户关闭状态
+ * - 使用 sessionStorage 记录关闭状态（每个标签页独立）
  * - 支持键盘 ESC 关闭
  * 
  * 使用方式：
@@ -15,6 +15,7 @@
  * <AdPopup :ads="props.ads" />
  */
 import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { usePage } from '@inertiajs/vue3';
 import { X } from 'lucide-vue-next';
 import { useAdSlot } from '../../composables/useAdSlot';
 
@@ -26,8 +27,9 @@ const props = defineProps({
   }
 });
 
+const pageProps = usePage().props;
 const { getSingleAd } = useAdSlot({
-  ads: props.ads
+  ads: props.ads ?? pageProps.frontAds ?? []
 });
 
 const isVisible = ref(false);
@@ -37,11 +39,11 @@ const popupAd = computed(() => {
 });
 
 const hasSeenPopup = () => {
-  return localStorage.getItem('ad_popup_closed') === 'true';
+  return sessionStorage.getItem('ad_popup_closed') === 'true';
 };
 
 const setSeenPopup = () => {
-  localStorage.setItem('ad_popup_closed', 'true');
+  sessionStorage.setItem('ad_popup_closed', 'true');
 };
 
 const closePopup = () => {

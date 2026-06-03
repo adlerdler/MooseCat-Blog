@@ -35,7 +35,6 @@ class ResourceController extends Controller
     public function show(ResourceModel $resource): View
     {
         $resource->load(['category', 'tags']);
-        $resource->increment('views_count');
         return view('resources.show', compact('resource'));
     }
 }
