@@ -45,6 +45,9 @@ class PostController extends Controller
                 'author_id' => $post->author_id,
                 'published_at' => $post->published_at,
                 'tags' => $post->tags->pluck('name')->toArray(),
+                'meta_title' => $post->meta_title,
+                'meta_description' => $post->meta_description,
+                'meta_keywords' => $post->meta_keywords,
                 'created_at' => $post->created_at,
                 'updated_at' => $post->updated_at,
             ];
@@ -108,11 +111,13 @@ class PostController extends Controller
             'thumbnail' => $post->cover_image,
             'author' => $post->author ? ($post->author->pen_name ?? $post->author->name) : '',
             'category' => $post->category_id,
-            'date' => $post->published_at ? date('Y.m.d', strtotime($post->published_at)) : date('Y.m.d'),
+            'date' => $post->published_at?->format('Y-m-d\TH:i'),
             'tags' => $post->tags->pluck('name')->join(', '),
             'is_featured' => $post->is_featured,
-            'seo_title' => $post->seo_title,
-            'seo_description' => $post->seo_description,
+            // SEO
+            'meta_title' => $post->meta_title,
+            'meta_description' => $post->meta_description,
+            'meta_keywords' => $post->meta_keywords,
         ];
 
         return Inertia::render('admin/Posts', [

@@ -177,6 +177,7 @@ class HandleInertiaRequests extends Middleware
 
         return [
             ...parent::share($request),
+            'csrf_token' => csrf_token(),
             'auth' => [
                 'user' => $userData,
             ],
@@ -184,6 +185,7 @@ class HandleInertiaRequests extends Middleware
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
                 'comment' => fn () => $request->session()->get('comment'),
+                'user_not_found' => fn () => $request->session()->get('user_not_found'),
             ],
             'menus' => $menus,
             'pageSeo' => $pageSeo,

@@ -45,7 +45,7 @@ const formData = ref({
   technologies: '',
   tags: '',
   status: 'completed',
-  sort_order: 0
+  sort_order: 0,
 });
 
 const initFormData = () => {
@@ -61,7 +61,7 @@ const initFormData = () => {
     technologies: '',
     tags: '',
     status: 'completed',
-    sort_order: 0
+    sort_order: 0,
   };
   clearErrors();
 };
@@ -126,6 +126,7 @@ const handleSave = () => {
 const handleCancel = () => {
   emit('cancel');
 };
+
 </script>
 
 <template>

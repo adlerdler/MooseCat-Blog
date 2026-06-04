@@ -3,9 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreMenuRequest;
+use App\Http\Requests\UpdateMenuRequest;
 use App\Models\Menu;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -37,38 +38,16 @@ class FrontMenuController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreMenuRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'type' => 'required|string|in:front,admin',
-            'label_key' => 'required|string|max:255',
-            'path' => 'nullable|string|max:500',
-            'icon_name' => 'nullable|string|max:255',
-            'component_name' => 'nullable|string|max:255',
-            'parent_id' => 'nullable|integer|exists:menus,id',
-            'sort_order' => 'nullable|integer',
-            'is_active' => 'boolean',
-        ]);
-
-        Menu::create($validated);
+        Menu::create($request->validated());
 
         return back()->with('success', '菜单已创建');
     }
 
-    public function update(Request $request, Menu $menu): RedirectResponse
+    public function update(UpdateMenuRequest $request, Menu $menu): RedirectResponse
     {
-        $validated = $request->validate([
-            'type' => 'sometimes|required|string|in:front,admin',
-            'label_key' => 'sometimes|required|string|max:255',
-            'path' => 'nullable|string|max:500',
-            'icon_name' => 'nullable|string|max:255',
-            'component_name' => 'nullable|string|max:255',
-            'parent_id' => 'nullable|integer|exists:menus,id',
-            'sort_order' => 'nullable|integer',
-            'is_active' => 'boolean',
-        ]);
-
-        $menu->update($validated);
+        $menu->update($request->validated());
 
         return back()->with('success', '菜单已更新');
     }

@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Models\UserLevel;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -79,5 +80,14 @@ class DatabaseSeeder extends Seeder
             AdvertisementSeeder::class,
             SubscriberSeeder::class,
         ]);
+
+        // 4. 为种子用户分配默认新手等级（UserLevelSeeder 已创建等级数据）
+        $defaultLevel = UserLevel::where('is_active', true)
+            ->where('min_points', 0)
+            ->orderBy('sort_order')
+            ->first();
+        if ($defaultLevel) {
+            User::whereNull('level_id')->update(['level_id' => $defaultLevel->id]);
+        }
     }
 }

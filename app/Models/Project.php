@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Spatie\Activitylog\LogOptions;
@@ -27,6 +28,10 @@ class Project extends Model
         'sort_order',
         'views_count',
         'likes_count',
+        'meta_title',
+        'meta_description',
+        'meta_keywords',
+        'author_id',
     ];
 
     protected $casts = [
@@ -47,6 +52,11 @@ class Project extends Model
     public function visits(): MorphMany
     {
         return $this->morphMany(Visit::class, 'visitable');
+    }
+
+    public function author(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'author_id');
     }
 
     public function getActivitylogOptions(): LogOptions

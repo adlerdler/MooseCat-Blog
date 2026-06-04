@@ -252,16 +252,34 @@ const confirmLanguage = async () => {
         is_default: languageForm.value.is_default,
         is_active: languageForm.value.is_active,
       });
+      // 局部更新本地状态，无需全量刷新
+      const idx = languages.value.findIndex(l => l.code === code);
+      if (idx > -1) {
+        languages.value[idx] = {
+          ...languages.value[idx],
+          name: languageForm.value.name.trim(),
+          native_name: languageForm.value.native_name.trim() || languageForm.value.name.trim(),
+          flag: languageForm.value.flag.trim() || '🌐',
+          file_path: languageForm.value.file_path.trim() || null,
+          is_default: languageForm.value.is_default,
+          is_active: languageForm.value.is_active,
+        };
+      }
+      success('语言已更新');
       cancelLanguageModal();
-      window.location.reload();
     } catch (err) {
       showTopErrorToast(err.response?.data?.message || '更新失败');
     }
   } else {
     if (!languageForm.value.code.trim()) return showTopErrorToast('请输入语言代码');
     try {
-      await axios.post('/admin/i18n/languages', languageForm.value);
-      window.location.reload();
+      const res = await axios.post('/admin/i18n/languages', languageForm.value);
+      // 局部更新：直接插入新语言，无需全量刷新
+      const newLang = { ...res.data.language, translation_count: 0 };
+      languages.value.push(newLang);
+      translations.value[newLang.code] = {};
+      success('语言已添加');
+      cancelLanguageModal();
     } catch (err) {
       showTopErrorToast(err.response?.data?.message || '添加失败');
     }
@@ -271,7 +289,10 @@ const confirmLanguage = async () => {
 const handleDeleteLanguage = async (code) => {
   try {
     await axios.delete(`/admin/i18n/languages/${code}`);
-    window.location.reload();
+    // 局部更新：从本地数组中移除，无需全量刷新
+    languages.value = languages.value.filter(l => l.code !== code);
+    delete translations.value[code];
+    success('语言已删除');
   } catch (err) {
     showTopErrorToast(err.response?.data?.message || '删除失败');
   }

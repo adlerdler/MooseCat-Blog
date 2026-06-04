@@ -122,7 +122,19 @@ class UserService
     public function deleteUser(User $user): bool
     {
         return DB::transaction(function () use ($user) {
+            // 手动清理关联数据（确保即使 MySQL 外键级联不生效也能正常删除）
+            $user->socialAccounts()->delete();
+            $user->authorProfile()->delete();
             $user->roles()->detach();
+            $user->pointsHistory()->delete();
+            $user->interactions()->delete();
+            $user->journals()->delete();
+
+            // 清理数据库通知（morph 多态关联）
+            \Illuminate\Notifications\DatabaseNotification::where('notifiable_type', User::class)
+                ->where('notifiable_id', $user->id)
+                ->delete();
+
             return $user->delete();
         });
     }

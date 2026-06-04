@@ -22,6 +22,7 @@ import {
   Image
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
+import { useToast } from '../../composables/useToast';
 import { formatToShort } from '../../utils/dateUtils';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import Pagination from '../../components/admin/Pagination.vue';
@@ -34,6 +35,7 @@ const props = defineProps({
 
 const { t, locale } = useI18n();
 const { isDarkMode } = useTheme();
+const { success: toastSuccess, error: toastError } = useToast();
 
 const searchQuery = ref('');
 const typeFilter = ref('all');
@@ -147,6 +149,13 @@ const confirmRestore = async () => {
       isRestoring.value = false;
       restoreProgress.value = 0;
       restoringBackup.value = null;
+      toastSuccess(t('admin_restore_success') || 'Restore completed');
+    },
+    onError: () => {
+      isRestoring.value = false;
+      restoreProgress.value = 0;
+      restoringBackup.value = null;
+      toastError(t('admin_restore_failed') || 'Restore failed');
     },
   });
   

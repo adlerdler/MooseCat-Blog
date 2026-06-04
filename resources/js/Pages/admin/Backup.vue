@@ -19,6 +19,7 @@ import {
   AlertCircle,
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
+import { useToast } from '../../composables/useToast';
 import { formatToShort } from '../../utils/dateUtils';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import Pagination from '../../components/admin/Pagination.vue';
@@ -31,6 +32,7 @@ const props = defineProps({
 
 const { t, locale } = useI18n();
 const { isDarkMode } = useTheme();
+const { success: toastSuccess, error: toastError } = useToast();
 
 const searchQuery = ref('');
 const typeFilter = ref('all');
@@ -131,9 +133,11 @@ const handleCreateBackup = () => {
     preserveState: true,  // 避免页面全替换导致 __vnode 报错
     onSuccess: () => {
       createBackupForm.reset();
+      toastSuccess(t('admin_backup_created') || 'Backup created');
     },
     onError: (errors) => {
       createError.value = Object.values(errors).flat().join('；');
+      toastError(Object.values(errors).flat()[0] || t('admin_backup_failed') || 'Backup failed');
     },
   });
 };
@@ -155,10 +159,12 @@ const confirmDelete = () => {
       onSuccess: () => {
         deletingBackup.value = null;
         showDeleteConfirm.value = false;
+        toastSuccess(t('admin_backup_deleted') || 'Backup deleted');
       },
       onError: () => {
         deletingBackup.value = null;
         showDeleteConfirm.value = false;
+        toastError(t('admin_delete_failed') || 'Delete failed');
       },
     });
   }

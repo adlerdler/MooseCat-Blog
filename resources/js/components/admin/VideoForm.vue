@@ -49,6 +49,12 @@ const platformOptions = [
   { value: 'local', label: '本站点' }
 ];
 
+const toDatetimeLocal = (date) => {
+  const d = date ? new Date(date) : new Date();
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
 const formData = ref({
   title: '',
   description: '',
@@ -58,9 +64,9 @@ const formData = ref({
   platform: '',
   duration: '',
   category: '',
-  date: new Date().toISOString().split('T')[0].replace(/-/g, '.'),
+  date: toDatetimeLocal(),
   tags: '',
-  status: 'draft'
+  status: 'draft',
 });
 
 const errors = ref({
@@ -96,9 +102,9 @@ const initFormData = () => {
     platform: '',
     duration: '',
     category: '',
-    date: new Date().toISOString().split('T')[0].replace(/-/g, '.'),
+    date: toDatetimeLocal(),
     tags: '',
-    status: 'draft'
+    status: 'draft',
   };
   clearErrors();
 };
@@ -314,14 +320,13 @@ const handleCancel = () => {
           </label>
           <input
             v-model="formData.date"
-            type="text"
+            type="datetime-local"
             :class="[
               'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
               isDarkMode 
-                ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-                : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                ? 'bg-gray-700 border-gray-600 text-white [color-scheme:dark]' 
+                : 'bg-white border-gray-300 text-gray-900'
             ]"
-            placeholder="YYYY.MM.DD"
           />
         </div>
 

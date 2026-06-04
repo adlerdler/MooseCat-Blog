@@ -23,6 +23,7 @@ import {
   X,
   ShieldCheck,
   Palette,
+  useToast,
   RoleForm,
   ConfirmDialog,
   Pagination,
@@ -69,6 +70,7 @@ const getRolePermissionsByGuard = (roleId) => {
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
+const { success: toastSuccess, error: toastError } = useToast();
 
 const searchQuery = ref('');
 const currentPage = ref(1);
@@ -110,25 +112,29 @@ const handleSave = (data) => {
   if (editingRole.value) {
     const form = useForm(formData);
     form.put(route('admin.roles.update', editingRole.value.id), {
+      preserveState: true,
       onSuccess: () => {
+        toastSuccess('Role updated successfully');
         isFormVisible.value = false;
         editingRole.value = null;
-        router.reload();
       },
       onError: (errors) => {
-        console.error('Update error:', errors);
+        const msg = Object.values(errors || {}).flat().join(', ') || 'Failed to update role';
+        toastError(msg);
       }
     });
   } else {
     const form = useForm(formData);
     form.post(route('admin.roles.store'), {
+      preserveState: true,
       onSuccess: () => {
+        toastSuccess('Role created successfully');
         isFormVisible.value = false;
         editingRole.value = null;
-        router.reload();
       },
       onError: (errors) => {
-        console.error('Create error:', errors);
+        const msg = Object.values(errors || {}).flat().join(', ') || 'Failed to create role';
+        toastError(msg);
       }
     });
   }
@@ -148,13 +154,15 @@ const confirmDelete = () => {
   if (deletingRoleId.value !== null) {
     const form = useForm({});
     form.delete(route('admin.roles.destroy', deletingRoleId.value), {
+      preserveState: true,
       onSuccess: () => {
+        toastSuccess('Role deleted successfully');
         showDeleteConfirm.value = false;
         deletingRoleId.value = null;
-        router.reload();
       },
       onError: (errors) => {
-        console.error('Delete error:', errors);
+        const msg = Object.values(errors || {}).flat().join(', ') || 'Failed to delete role';
+        toastError(msg);
         showDeleteConfirm.value = false;
         deletingRoleId.value = null;
       }

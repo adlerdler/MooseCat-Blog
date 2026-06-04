@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreProjectRequest;
 use App\Http\Requests\UpdateProjectRequest;
 use App\Models\Project;
+use App\Models\User;
 use App\Services\ProjectService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -54,12 +55,19 @@ class ProjectController extends Controller
                     'sort_order' => $project->sort_order,
                     'views_count' => $project->views_count,
                     'likes_count' => $project->likes_count,
+                    'meta_title' => $project->meta_title,
+                    'meta_description' => $project->meta_description,
+                    'meta_keywords' => $project->meta_keywords,
+                    'author_id' => $project->author_id,
                     'created_at' => $project->created_at?->format('Y-m-d'),
                 ];
             });
 
+        $users = User::whereHas('roles')->get();
+
         return Inertia::render('admin/Projects', [
             'projects' => $projects,
+            'users' => $users,
             'filters' => $filters,
         ]);
     }
@@ -67,6 +75,7 @@ class ProjectController extends Controller
     public function store(StoreProjectRequest $request): RedirectResponse
     {
         $data = $request->validated();
+        $data['author_id'] = $request->user()->id;
         
         if (isset($data['technologies']) && is_string($data['technologies'])) {
             $data['technologies'] = array_map('trim', explode(',', $data['technologies']));
@@ -96,6 +105,9 @@ class ProjectController extends Controller
                 'tags' => $project->tags->pluck('name')->implode(', '),
                 'status' => $project->status,
                 'sort_order' => $project->sort_order,
+                'meta_title' => $project->meta_title,
+                'meta_description' => $project->meta_description,
+                'meta_keywords' => $project->meta_keywords,
             ],
         ]);
     }

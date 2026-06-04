@@ -37,6 +37,9 @@ class UpdateProjectRequest extends FormRequest
             'tags.*' => ['string'],
             'status' => ['sometimes', 'required', 'in:planning,in-progress,completed'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
+            'meta_title' => ['nullable', 'string', 'max:255'],
+            'meta_description' => ['nullable', 'string', 'max:500'],
+            'meta_keywords' => ['nullable', 'string', 'max:500'],
         ];
     }
 

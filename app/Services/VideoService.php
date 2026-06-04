@@ -70,6 +70,11 @@ class VideoService
             
             $tags = $data['tags'] ?? [];
             unset($data['tags']);
+
+            // SEO 默认值：未提供时自动从标题/描述/标签填充
+            $data['meta_title']       = ($data['meta_title'] ?? '')       ?: ($data['title'] ?? '');
+            $data['meta_description'] = ($data['meta_description'] ?? '') ?: ($data['description'] ?? '');
+            $data['meta_keywords']    = ($data['meta_keywords'] ?? '')    ?: (is_array($tags) ? implode(', ', $tags) : '');
             
             $video = Video::create($data);
 

@@ -13,24 +13,27 @@ import {
   watch,
   useI18n,
   useTheme,
+  useToast,
   FileText,
   Plus,
-  Search,
-  Edit3,
-  Trash2,
-  Clock,
-  Tag,
-  ChevronLeft,
-  ChevronRight,
-  Filter,
   ConfirmDialog,
   PostForm,
   Pagination,
   SearchFilterModal,
   router
 } from '../../composables/useAdminImports';
+import SeoForm from '../../components/admin/SeoForm.vue';
+import ContentCard from '../../components/admin/ContentCard.vue';
 import { usePage } from '@inertiajs/vue3';
 import { formatToSmartDate } from '../../utils/dateUtils';
+
+const toDatetimeLocal = (dateStr) => {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '';
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
 
 const page = usePage();
 
@@ -63,6 +66,7 @@ const t = (key, fallback = '') => {
   }
 };
 const { isDarkMode } = useTheme();
+const { success: toastSuccess, error: toastError } = useToast();
 
 const getAuthorName = (authorId) => {
   const user = props.users.find(u => u.id === authorId);
@@ -87,35 +91,39 @@ const isFormVisible = ref(false);
 const editingPost = ref(null);
 const showDeleteConfirm = ref(false);
 const deletingPostId = ref(null);
+const showSeoModal = ref(false);
+const editingSeoPost = ref({ id: null, meta_title: '', meta_description: '', meta_keywords: '' });
 
 const categoryOptions = computed(() => {
   return ['all', ...props.categories.map(cat => cat.name)];
 });
 
 const getCategoryColor = (category) => {
+  const dark = isDarkMode.value;
   const colorMap = {
-    'THEORY': isDarkMode ? 'bg-purple-900 text-purple-300' : 'bg-purple-100 text-purple-700',
-    'DESIGN': isDarkMode ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-700',
-    'TECHNOLOGY': isDarkMode ? 'bg-green-900 text-green-300' : 'bg-green-100 text-green-700',
-    'CULTURE': isDarkMode ? 'bg-yellow-900 text-yellow-300' : 'bg-yellow-100 text-yellow-700',
-    'SYSTEM-DESIGN': isDarkMode ? 'bg-indigo-900 text-indigo-300' : 'bg-indigo-100 text-indigo-700',
-    'ENGINEERING': isDarkMode ? 'bg-orange-900 text-orange-300' : 'bg-orange-100 text-orange-700'
+    'THEORY': dark ? 'bg-purple-900 text-purple-300' : 'bg-purple-100 text-purple-700',
+    'DESIGN': dark ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-700',
+    'TECHNOLOGY': dark ? 'bg-green-900 text-green-300' : 'bg-green-100 text-green-700',
+    'CULTURE': dark ? 'bg-yellow-900 text-yellow-300' : 'bg-yellow-100 text-yellow-700',
+    'SYSTEM-DESIGN': dark ? 'bg-indigo-900 text-indigo-300' : 'bg-indigo-100 text-indigo-700',
+    'ENGINEERING': dark ? 'bg-orange-900 text-orange-300' : 'bg-orange-100 text-orange-700'
   };
-  return colorMap[category] || (isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600');
+  return colorMap[category] || (dark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600');
 };
 
 const getStatusBadge = (status) => {
   const base = 'px-2 py-1 text-xs font-bold uppercase';
+  const dark = isDarkMode.value;
   if (status === 'published') {
-    return `${base} ${isDarkMode ? 'bg-green-900 text-green-300' : 'bg-green-100 text-green-700'}`;
+    return `${base} ${dark ? 'bg-green-900 text-green-300' : 'bg-green-100 text-green-700'}`;
   }
   if (status === 'draft') {
-    return `${base} ${isDarkMode ? 'bg-yellow-900 text-yellow-300' : 'bg-yellow-100 text-yellow-700'}`;
+    return `${base} ${dark ? 'bg-yellow-900 text-yellow-300' : 'bg-yellow-100 text-yellow-700'}`;
   }
   if (status === 'scheduled') {
-    return `${base} ${isDarkMode ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-700'}`;
+    return `${base} ${dark ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-700'}`;
   }
-  return `${base} ${isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'}`;
+  return `${base} ${dark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'}`;
 };
 
 const getStatusLabel = (status) => {
@@ -172,6 +180,7 @@ const handleEdit = (post) => {
     status: post.status || 'draft',
     tags: Array.isArray(post.tags) ? post.tags.join(', ') : (post.tags || ''),
     color: post.color || 'red',
+    date: post.published_at ? toDatetimeLocal(post.published_at) : '',
   };
   isFormVisible.value = true;
 };
@@ -191,8 +200,13 @@ const handleDelete = (id) => {
 const confirmDelete = () => {
   if (deletingPostId.value !== null) {
     router.delete(route('posts.destroy', deletingPostId.value), {
+      preserveState: true,
       onSuccess: () => {
+        toastSuccess(t('admin_post_deleted_success', 'Post deleted successfully'));
         deletingPostId.value = null;
+      },
+      onError: (err) => {
+        toastError(err?.message || t('admin_post_delete_error', 'Failed to delete post'));
       }
     });
   }
@@ -211,17 +225,20 @@ const handleSave = (data) => {
     status: data.status || 'published',
     tags: data.tags,
     color: data.color,
+    published_at: data.date || null,
   };
 
   if (editingPost.value && editingPost.value.id) {
     router.put(route('posts.update', editingPost.value.id), payload, {
-      onError: (errors) => console.error('Update errors:', errors),
-      onSuccess: () => console.log('Update success'),
+      preserveState: true,
+      onError: (err) => toastError(err?.message || t('admin_post_update_error', 'Failed to update post')),
+      onSuccess: () => toastSuccess(t('admin_post_updated_success', 'Post updated successfully')),
     });
   } else {
     router.post(route('posts.store'), payload, {
-      onError: (errors) => console.error('Store errors:', errors),
-      onSuccess: () => console.log('Store success'),
+      preserveState: true,
+      onError: (err) => toastError(err?.message || t('admin_post_create_error', 'Failed to create post')),
+      onSuccess: () => toastSuccess(t('admin_post_created_success', 'Post created successfully')),
     });
   }
   isFormVisible.value = false;
@@ -231,6 +248,16 @@ const handleSave = (data) => {
 const handleCancel = () => {
   isFormVisible.value = false;
   editingPost.value = null;
+};
+
+const handleSeoEdit = (post) => {
+  editingSeoPost.value = {
+    id: post.id,
+    meta_title: post.meta_title || '',
+    meta_description: post.meta_description || '',
+    meta_keywords: post.meta_keywords || '',
+  };
+  showSeoModal.value = true;
 };
 
 const handleFilterChange = ({ key, value }) => {
@@ -289,90 +316,30 @@ watch(() => props.post, (newPost) => {
 
     <!-- Posts Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div
+      <ContentCard
         v-for="post in paginatedPosts"
         :key="post.id"
-        :class="[
-          'flex flex-col rounded-lg shadow-md',
-          isDarkMode ? 'bg-gray-800' : 'bg-white'
-        ]"
+        :item="post"
+        :cover-image="post.cover_image"
+        :title="post.title"
+        :description="post.excerpt"
+        :tags="post.tags"
+        :date="formatToSmartDate(post.published_at || post.created_at)"
+        :author="getAuthorName(post.author_id)"
+        :placeholder-icon="FileText"
+        @edit="handleEdit"
+        @seo-edit="handleSeoEdit"
+        @delete="handleDelete"
       >
-        <!-- Post Thumbnail -->
-        <div :class="['relative aspect-video box-border rounded-t-lg overflow-hidden', !post.cover_image ? 'border-2 border-b-0 border-dashed' : '', isDarkMode ? 'bg-gray-900' : 'bg-gray-100', !post.cover_image && !isDarkMode ? 'border-gray-300' : '', !post.cover_image && isDarkMode ? 'border-gray-600' : '']">
-          <img
-            v-if="post.cover_image"
-            :src="post.cover_image"
-            :alt="post.title"
-            class="w-full h-full object-cover"
-          />
-          <div v-else class="w-full h-full flex items-center justify-center">
-            <FileText :class="['w-12 h-12', isDarkMode ? 'text-gray-600' : 'text-gray-400']" />
-          </div>
-          <div class="absolute top-2 left-2 px-2 py-1 text-xs font-bold uppercase rounded" :class="getStatusBadge(post.status)">
+        <template #top-left-badges>
+          <span class="px-2 py-1 text-xs font-bold uppercase rounded" :class="getStatusBadge(post.status)">
             {{ getStatusLabel(post.status) }}
-          </div>
-          <div class="absolute top-2 right-2 px-2 py-1 text-xs font-bold uppercase rounded" :class="getCategoryColor(getCategoryNameById(categories, post.category_id))">
+          </span>
+          <span class="px-2 py-1 text-xs font-bold uppercase rounded" :class="getCategoryColor(getCategoryNameById(categories, post.category_id))">
             {{ getCategoryNameById(categories, post.category_id) }}
-          </div>
-        </div>
-        
-        <!-- Post Info -->
-        <div class="p-4 flex flex-col flex-1">
-          <h3
-            :class="['font-bold mb-2 text-lg', isDarkMode ? 'text-white' : 'text-gray-900']"
-            style="display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden;"
-          >{{ post.title }}</h3>
-          <p
-            :class="['text-sm mb-4', isDarkMode ? 'text-gray-400' : 'text-gray-600']"
-            style="display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; min-height: 2.5rem;"
-          >{{ post.excerpt }}</p>
-          
-          <!-- Tags -->
-          <div class="flex flex-wrap gap-1 mb-4">
-            <span
-              v-for="tag in post.tags.slice(0, 3)"
-              :key="tag"
-              :class="['text-xs px-2 py-1 rounded', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600']"
-            >
-              {{ tag }}
-            </span>
-            <span v-if="post.tags.length > 3" :class="['text-xs px-2 py-1 rounded', isDarkMode ? 'bg-gray-700 text-gray-400' : 'bg-gray-100 text-gray-500']">
-              +{{ post.tags.length - 3 }}
-            </span>
-          </div>
-          
-          <div class="flex items-center justify-between mt-auto">
-            <div :class="['flex items-center gap-2 text-xs', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
-              <Clock size="12" />
-              {{ formatToSmartDate(post.created_at) }}
-              <span class="ml-2">{{ getAuthorName(post.author_id) }}</span>
-            </div>
-            
-            <div class="flex gap-2">
-              <button
-                @click="handleEdit(post)"
-                :class="[
-                  'p-2 transition-colors rounded',
-                  isDarkMode ? 'text-gray-400 hover:text-blue-400 hover:bg-gray-700' : 'text-gray-500 hover:text-blue-500 hover:bg-gray-100'
-                ]"
-                :title="t('admin_edit')"
-              >
-                <Edit3 size="14" />
-              </button>
-              <button
-                @click="handleDelete(post.id)"
-                :class="[
-                  'p-2 transition-colors rounded',
-                  isDarkMode ? 'text-gray-400 hover:text-red-400 hover:bg-gray-700' : 'text-gray-500 hover:text-red-500 hover:bg-gray-100'
-                ]"
-                :title="t('admin_delete')"
-              >
-                <Trash2 size="14" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+          </span>
+        </template>
+      </ContentCard>
     </div>
 
     <!-- Pagination -->
@@ -403,6 +370,13 @@ watch(() => props.post, (newPost) => {
       :content="t('admin_delete_post_confirm')"
       @confirm="confirmDelete"
       @cancel="showDeleteConfirm = false"
+    />
+
+    <!-- SEO Edit Modal -->
+    <SeoForm
+      v-model:visible="showSeoModal"
+      :item="editingSeoPost"
+      resource-route="posts.update"
     />
   </div>
 </template>

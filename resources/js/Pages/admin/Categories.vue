@@ -16,6 +16,7 @@ import {
   router,
   useI18n,
   useTheme,
+  useToast,
   Folder,
   Plus,
   Edit3,
@@ -44,6 +45,7 @@ const t = (key, fallback = '') => {
   }
 };
 const { isDarkMode } = useTheme();
+const { success: toastSuccess, error: toastError } = useToast();
 
 const searchQuery = ref('');
 const statusFilter = ref('all');
@@ -81,9 +83,12 @@ const paginatedCategories = computed(() => {
 const toggleStatus = (category) => {
   const newStatus = category.status === 'active' ? 'inactive' : 'active';
   router.put(`/admin/categories/${category.id}`, { ...category, status: newStatus }, {
+    preserveState: true,
     onSuccess: () => {
+      toastSuccess(`Category ${newStatus === 'active' ? 'enabled' : 'disabled'} successfully`);
       category.status = newStatus;
     },
+    onError: (err) => toastError(err?.message || 'Failed to toggle status'),
   });
 };
 
@@ -100,17 +105,23 @@ const handleAdd = () => {
 const handleSave = (data) => {
   if (editingCategory.value) {
     router.put(`/admin/categories/${editingCategory.value.id}`, data, {
+      preserveState: true,
       onSuccess: () => {
+        toastSuccess('Category updated successfully');
         isFormVisible.value = false;
         editingCategory.value = null;
       },
+      onError: (err) => toastError(err?.message || 'Failed to update category'),
     });
   } else {
     router.post('/admin/categories', data, {
+      preserveState: true,
       onSuccess: () => {
+        toastSuccess('Category created successfully');
         isFormVisible.value = false;
         editingCategory.value = null;
       },
+      onError: (err) => toastError(err?.message || 'Failed to create category'),
     });
   }
 };
@@ -128,10 +139,13 @@ const handleDelete = (id) => {
 const confirmDelete = () => {
   if (deletingCategoryId.value !== null) {
     router.delete(`/admin/categories/${deletingCategoryId.value}`, {
+      preserveState: true,
       onSuccess: () => {
+        toastSuccess('Category deleted successfully');
         localCategories.value = localCategories.value.filter(c => c.id !== deletingCategoryId.value);
         deletingCategoryId.value = null;
       },
+      onError: (err) => toastError(err?.message || 'Failed to delete category'),
     });
   }
   showDeleteConfirm.value = false;

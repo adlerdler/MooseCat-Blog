@@ -27,6 +27,7 @@ import {
   Archive
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
+import { useToast } from '../../composables/useToast';
 import { formatToRelative } from '../../utils/dateUtils';
 import ResourceForm from '../../components/admin/ResourceForm.vue';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
@@ -39,6 +40,10 @@ const props = defineProps({
     default: () => []
   },
   categories: {
+    type: Array,
+    default: () => []
+  },
+  users: {
     type: Array,
     default: () => []
   }
@@ -54,7 +59,13 @@ const t = (key, fallback = '') => {
   }
 };
 const { isDarkMode } = useTheme();
+const { success: toastSuccess, error: toastError } = useToast();
 const page = usePage();
+
+const getAuthorName = (authorId) => {
+  const user = props.users.find(u => u.id === authorId);
+  return user ? (user.penName || user.name) : 'Unknown';
+};
 
 const resourceTypes = ['all', 'PDF', 'Image', 'Video', 'Archive', 'Other'];
 
@@ -138,10 +149,13 @@ const handleDelete = (id) => {
 const confirmDelete = () => {
   if (deletingResourceId.value !== null) {
     router.delete(`/admin/resources/${deletingResourceId.value}`, {
+      preserveState: true,
       onSuccess: () => {
+        toastSuccess('Resource deleted successfully');
         localResources.value = localResources.value.filter(r => r.id !== deletingResourceId.value);
         deletingResourceId.value = null;
       },
+      onError: (err) => toastError(err?.message || 'Failed to delete resource'),
     });
   }
   showDeleteConfirm.value = false;
@@ -170,17 +184,23 @@ const handleAdd = () => {
 const handleSave = (data) => {
   if (editingResource.value) {
     router.put(`/admin/resources/${editingResource.value.id}`, data, {
+      preserveState: true,
       onSuccess: () => {
+        toastSuccess('Resource updated successfully');
         isFormVisible.value = false;
         editingResource.value = null;
       },
+      onError: (err) => toastError(err?.message || 'Failed to update resource'),
     });
   } else {
     router.post('/admin/resources', data, {
+      preserveState: true,
       onSuccess: () => {
+        toastSuccess('Resource created successfully');
         isFormVisible.value = false;
         editingResource.value = null;
       },
+      onError: (err) => toastError(err?.message || 'Failed to create resource'),
     });
   }
 };
@@ -300,6 +320,7 @@ const handleFilterChange = ({ key, value }) => {
             <div :class="['flex items-center gap-2 text-xs', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
               <Clock size="14" />
               {{ formatToRelative(resource.created_at) }}
+              <span class="ml-2">{{ getAuthorName(resource.author_id) }}</span>
             </div>
             
             <div class="flex gap-1">

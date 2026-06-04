@@ -27,11 +27,16 @@ use App\Http\Controllers\Admin\UserLevelsController;
 use App\Http\Controllers\Admin\CommentsController;
 use App\Http\Controllers\Admin\AdvertisementsController;
 use App\Http\Controllers\Admin\AuthorProfileController;
+use App\Http\Controllers\Admin\SocialLoginController;
+use App\Http\Controllers\Auth\FrontendAuthController;
 use App\Http\Controllers\Web\FrontendController;
 use App\Http\Controllers\Web\PostController;
+use App\Http\Controllers\Web\SearchController;
 use App\Http\Controllers\Web\CommentController;
 use App\Http\Controllers\Web\CategoryController;
 use App\Http\Controllers\Web\LikeController;
+use App\Http\Controllers\Web\SitemapController;
+use App\Http\Controllers\Web\RobotsController;
 use App\Models\AuthorProfile;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
@@ -44,6 +49,10 @@ Route::get('/test', function () {
         'message' => 'Inertia.js is working!'
     ]);
 });
+
+// SEO 基础设施路由（始终可用，不受维护模式影响）
+Route::get('/sitemap.xml', [SitemapController::class, 'index']);
+Route::get('/robots.txt', [RobotsController::class, 'index']);
 
 // 前台公共路由（受维护模式控制）
 Route::middleware(['maintenance'])->group(function () {
@@ -92,6 +101,40 @@ Route::middleware(['maintenance'])->group(function () {
 
     // 标签相关路由
     Route::get('/tags/{tag:slug}', [CategoryController::class, 'tag'])->name('tags.show');
+
+    // 全局搜索 API
+    Route::get('/api/search', [SearchController::class, 'search'])->name('api.search');
+});
+
+// ============================================================
+// 前台认证路由（Inertia.js 渲染）
+// ============================================================
+
+// 未登录用户（guest）— 登录/注册/OAuth
+Route::middleware(['maintenance', 'guest', 'registration'])->group(function () {
+    Route::get('/login', [FrontendAuthController::class, 'showLogin'])->name('front.login');
+    Route::post('/login', [FrontendAuthController::class, 'login'])->name('front.login.handle');
+    Route::get('/register', [FrontendAuthController::class, 'showRegister'])->name('front.register');
+    Route::post('/register', [FrontendAuthController::class, 'register'])->name('front.register.handle');
+    Route::get('/auth/{provider}/redirect', [FrontendAuthController::class, 'redirect'])->name('front.social.redirect');
+    Route::get('/auth/{provider}/callback', [FrontendAuthController::class, 'callback'])->name('front.social.callback');
+    Route::post('/forgot-password', [FrontendAuthController::class, 'sendResetLink'])->name('front.password.email');
+    Route::get('/reset-password/{token}', [FrontendAuthController::class, 'showResetForm'])->name('front.password.reset');
+    Route::post('/reset-password', [FrontendAuthController::class, 'reset'])->name('front.password.update');
+});
+
+// 已登录用户（auth）— 个人中心/登出
+Route::middleware(['maintenance', 'auth', 'registration'])->group(function () {
+    Route::post('/logout', [FrontendAuthController::class, 'logout'])->name('front.logout');
+    Route::get('/profile/{slug}', [FrontendAuthController::class, 'profile'])->name('front.profile');
+});
+
+// 验证码 & 邮箱验证码 API（公开，维护模式下也需可用）
+Route::middleware(['maintenance'])->group(function () {
+    Route::get('/api/captcha', [FrontendAuthController::class, 'captcha'])->name('api.captcha');
+    Route::post('/api/send-verification-code', [FrontendAuthController::class, 'sendVerificationCode'])
+        ->name('api.send-verification-code')
+        ->middleware('throttle:3,1');
 });
 
 // 媒体文件服务路由（UUID 访问，无需认证）
@@ -207,6 +250,10 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
         'update' => 'admin.roles.update',
         'destroy' => 'admin.roles.destroy',
     ]);
+    // 社交登录管理
+    Route::get('/social-login', [SocialLoginController::class, 'index'])->name('admin.social-login');
+    Route::put('/social-login/{provider}', [SocialLoginController::class, 'update'])->name('admin.social-login.update');
+    Route::post('/social-login/{provider}/test', [SocialLoginController::class, 'test'])->name('admin.social-login.test');
     Route::get('/notifications', [NotificationsController::class, 'index'])->name('admin.notifications');
     Route::post('/notifications', [NotificationsController::class, 'store'])->name('admin.notifications.store');
     Route::patch('/notifications/{id}/mark-as-read', [NotificationsController::class, 'markAsRead'])->name('admin.notifications.mark-as-read');

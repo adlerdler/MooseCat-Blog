@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\SendEmailJob;
 use App\Models\Subscriber;
 use App\Notifications\NewSubscriberNotification;
 use App\Models\User;
-use App\Services\MailService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
@@ -44,7 +44,7 @@ class SubscribeController extends Controller
                     'timestamp'  => now()->format('Y-m-d H:i'),
                 ])->render();
 
-                app(MailService::class)->send($admin->email, $subject, $htmlBody);
+                dispatch(new SendEmailJob($admin->email, $subject, $htmlBody))->afterResponse();
             }
         }
 

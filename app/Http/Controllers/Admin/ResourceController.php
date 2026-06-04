@@ -7,6 +7,7 @@ use App\Http\Requests\StoreResourceRequest;
 use App\Http\Requests\UpdateResourceRequest;
 use App\Models\Category;
 use App\Models\Resource;
+use App\Models\User;
 use App\Services\ResourceService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -50,15 +51,18 @@ class ResourceController extends Controller
                     'drives' => $resource->drives ?? [],
                     'downloads_count' => $resource->downloads_count,
                     'likes_count' => $resource->likes_count,
+                    'author_id' => $resource->author_id,
                     'created_at' => $resource->created_at?->format('Y-m-d'),
                 ];
             });
 
         $categories = Category::all()->map(fn($c) => ['id' => $c->id, 'name' => $c->name]);
+        $users = User::whereHas('roles')->get();
 
         return Inertia::render('admin/Resources', [
             'resources' => $resources,
             'categories' => $categories,
+            'users' => $users,
             'filters' => $filters,
         ]);
     }
@@ -66,6 +70,7 @@ class ResourceController extends Controller
     public function store(StoreResourceRequest $request): RedirectResponse
     {
         $data = $request->validated();
+        $data['author_id'] = $request->user()->id;
         $this->resourceService->createResource($data);
 
         return back()->with('success', '资源创建成功');

@@ -16,6 +16,7 @@ import {
   router,
   useI18n,
   useTheme,
+  useToast,
   Tag,
   Plus,
   Edit3,
@@ -44,6 +45,7 @@ const t = (key, fallback = '') => {
   }
 };
 const { isDarkMode } = useTheme();
+const { success: toastSuccess, error: toastError } = useToast();
 
 const searchQuery = ref('');
 const statusFilter = ref('all');
@@ -88,17 +90,23 @@ const handleAdd = () => {
 const handleSave = (data) => {
   if (editingTag.value) {
     router.put(`/admin/tags/${editingTag.value.id}`, data, {
+      preserveState: true,
       onSuccess: () => {
+        toastSuccess('Tag updated successfully');
         isFormVisible.value = false;
         editingTag.value = null;
       },
+      onError: (err) => toastError(err?.message || 'Failed to update tag'),
     });
   } else {
     router.post('/admin/tags', data, {
+      preserveState: true,
       onSuccess: () => {
+        toastSuccess('Tag created successfully');
         isFormVisible.value = false;
         editingTag.value = null;
       },
+      onError: (err) => toastError(err?.message || 'Failed to create tag'),
     });
   }
 };
@@ -116,10 +124,13 @@ const handleDelete = (id) => {
 const confirmDelete = () => {
   if (deletingTagId.value !== null) {
     router.delete(`/admin/tags/${deletingTagId.value}`, {
+      preserveState: true,
       onSuccess: () => {
+        toastSuccess('Tag deleted successfully');
         localTags.value = localTags.value.filter(t => t.id !== deletingTagId.value);
         deletingTagId.value = null;
       },
+      onError: (err) => toastError(err?.message || 'Failed to delete tag'),
     });
   }
   showDeleteConfirm.value = false;

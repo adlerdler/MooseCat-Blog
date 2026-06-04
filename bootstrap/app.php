@@ -18,8 +18,9 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\PageVisitMiddleware::class,
         ]);
         $middleware->alias([
-            'maintenance' => \App\Http\Middleware\CheckMaintenanceMode::class,
-            'permission'  => \App\Http\Middleware\CheckPermission::class,
+            'maintenance'  => \App\Http\Middleware\CheckMaintenanceMode::class,
+            'permission'   => \App\Http\Middleware\CheckPermission::class,
+            'registration' => \App\Http\Middleware\CheckRegistrationEnabled::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

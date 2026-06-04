@@ -15,6 +15,7 @@ import { ref, computed, onMounted } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import { Motion, AnimatePresence } from 'motion-v';
 import { useTheme } from '../../composables/useTheme';
+import { usePageSeo } from '../../composables/usePageSeo';
 import { useAdSlot } from '../../composables/useAdSlot';
 import AdSlot from '../../components/front/AdSlot.vue';
 import { ArrowLeft, ArrowUp } from 'lucide-vue-next';
@@ -24,6 +25,15 @@ const props = defineProps({
 });
 
 const { initAccentTheme } = useTheme();
+const { SeoHead } = usePageSeo({
+  title: computed(() => props.video?.meta_title || (props.video?.title ? `${props.video.title} - ARCHYX` : 'VIDEO - ARCHYX')),
+  description: computed(() => props.video?.meta_description || props.video?.description || ''),
+  keywords: computed(() => props.video?.meta_keywords || ''),
+  image: computed(() => props.video?.thumbnail || ''),
+  url: computed(() => `${window.location.origin}/videos/${props.video?.slug || props.video?.id}`),
+  type: 'VideoObject',
+  publishedTime: computed(() => props.video?.published_at || ''),
+});
 const pageProps = usePage().props;
 const { hasActiveAd } = useAdSlot({ ads: pageProps.frontAds ?? [], adPositions: pageProps.frontAdPositions ?? [] });
 const showBackToTop = ref(false);
@@ -62,6 +72,7 @@ const scrollToTop = () => {
 </script>
 
 <template>
+  <SeoHead />
   <div class="min-h-screen bg-construct-paper selection:bg-construct-red selection:text-white">
     <!-- Back Button -->
     <button

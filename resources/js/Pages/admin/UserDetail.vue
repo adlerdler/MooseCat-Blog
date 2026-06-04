@@ -25,6 +25,7 @@ import {
   CheckCircle
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
+import { useToast } from '../../composables/useToast';
 import { findById, findIndexById } from '../../utils/typeConvert';
 import UserDetailForm from '../../components/admin/UserDetailForm.vue';
 
@@ -37,6 +38,7 @@ const props = defineProps({
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
+const { success: toastSuccess, error: toastError } = useToast();
 
 const isFormVisible = ref(false);
 const showSuccessMessage = ref(false);
@@ -166,6 +168,7 @@ const handleSave = (data) => {
   const form = useForm(payload);
   form.put(route('admin.users.update', props.user.id), {
     onSuccess: () => {
+      toastSuccess('Profile saved successfully');
       isFormVisible.value = false;
       showSuccessMessage.value = true;
       setTimeout(() => {

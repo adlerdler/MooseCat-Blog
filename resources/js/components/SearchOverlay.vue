@@ -4,21 +4,16 @@
  *
  * 功能说明：
  * - 全屏搜索界面
- * - 实时搜索文章、视频、项目、资源等内容
+ * - 通过 API 实时搜索文章、视频、项目、资源等内容
  * - 根据内容类型跳转到正确的路由
  * - 键盘导航支持
  *
- * 技术实现：
- * - 使用 computed 属性实现实时过滤
- * - 键盘事件监听（Escape 关闭）
- * - 点击遮罩层关闭搜索
- *
- * 使用示例：
- * <SearchOverlay :is-open="isSearchOpen" :posts="searchResults" @close="closeSearch" />
+ * 搜索流程：
+ * - 用户输入 → 300ms 防抖 → GET /api/search?q=xxx → 渲染结果
  */
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { Link } from '@inertiajs/vue3';
-import { Search, X, ArrowUpRight } from 'lucide-vue-next';
+import { Search, X, ArrowUpRight, Loader2 } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
 
 const props = defineProps({
@@ -36,14 +31,56 @@ const emit = defineEmits(['close']);
 
 const { t } = useI18n();
 const searchQuery = ref('');
+const searchResults = ref([]);
+const isLoading = ref(false);
+let debounceTimer = null;
+let abortController = null;
 
-const filteredPosts = computed(() => {
-  if (!searchQuery.value.trim()) return [];
-  const query = searchQuery.value.toLowerCase();
-  return props.posts.filter(post =>
-    post.title.toLowerCase().includes(query) ||
-    post.excerpt.toLowerCase().includes(query)
-  ).slice(0, 5);
+const performSearch = async (query) => {
+  const trimmed = query.trim();
+
+  if (!trimmed || trimmed.length < 2) {
+    searchResults.value = [];
+    isLoading.value = false;
+    return;
+  }
+
+  isLoading.value = true;
+
+  // 取消上一次未完成的请求
+  if (abortController) {
+    abortController.abort();
+  }
+  abortController = new AbortController();
+
+  try {
+    const response = await fetch(`/api/search?q=${encodeURIComponent(trimmed)}`, {
+      signal: abortController.signal,
+      headers: { 'Accept': 'application/json' }
+    });
+
+    if (!response.ok) throw new Error('Search failed');
+
+    const json = await response.json();
+    searchResults.value = json.data || [];
+  } catch (err) {
+    if (err.name !== 'AbortError') {
+      console.error('[Search] API error:', err);
+      searchResults.value = [];
+    }
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// 输入防抖：300ms 后触发搜索
+watch(searchQuery, (newVal) => {
+  if (debounceTimer) {
+    clearTimeout(debounceTimer);
+  }
+  debounceTimer = setTimeout(() => {
+    performSearch(newVal);
+  }, 300);
 });
 
 watch(() => props.isOpen, (newVal) => {
@@ -52,6 +89,12 @@ watch(() => props.isOpen, (newVal) => {
   } else {
     document.body.classList.remove('overflow-hidden');
     searchQuery.value = '';
+    searchResults.value = [];
+    isLoading.value = false;
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+      debounceTimer = null;
+    }
   }
 });
 
@@ -68,11 +111,15 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeydown);
   document.body.classList.remove('overflow-hidden');
+  if (debounceTimer) clearTimeout(debounceTimer);
+  if (abortController) abortController.abort();
 });
 
 const closeSearch = () => {
   emit('close');
 };
+
+const hasResults = computed(() => searchResults.value.length > 0);
 </script>
 
 <template>
@@ -106,31 +153,38 @@ const closeSearch = () => {
             />
           </div>
 
-          <div v-if="searchQuery.trim()" class="space-y-3 md:space-y-4 max-h-[40vh] overflow-y-auto pr-2">
-            <span class="text-[10px] font-bold tracking-[0.2em] opacity-40 uppercase block">
-              {{ t('matching_artifacts') || 'MATCHING ARTIFACTS' }}
-            </span>
+          <div v-if="searchQuery.trim().length >= 2" class="space-y-3 md:space-y-4 max-h-[40vh] overflow-y-auto pr-2">
+            <!-- 加载中 -->
+            <div v-if="isLoading" class="flex items-center justify-center p-6 md:p-8">
+              <Loader2 class="w-6 h-6 animate-spin text-black/20" />
+            </div>
 
-            <template v-if="filteredPosts.length > 0">
+            <!-- 搜索结果 -->
+            <template v-else-if="hasResults">
+              <span class="text-[10px] font-bold tracking-[0.2em] opacity-40 uppercase block">
+                {{ t('matching_artifacts') || 'MATCHING ARTIFACTS' }}
+              </span>
+
               <Link
-                v-for="post in filteredPosts"
-                :key="`${post.type}-${post.id}`"
-                :href="post.route || `/blog/${post.id}`"
+                v-for="result in searchResults"
+                :key="`${result.type}-${result.id}`"
+                :href="result.route"
                 @click="closeSearch"
                 class="group flex justify-between items-center p-3 md:p-4 border-2 border-transparent hover:border-black hover:bg-construct-paper transition-all"
               >
                 <div>
                   <span class="text-[10px] font-bold tracking-widest text-accent block uppercase mb-1">
-                    {{ post.category || post.type }}
+                    {{ result.category || result.type }}
                   </span>
                   <h4 class="font-display text-lg md:text-xl tracking-tight leading-none">
-                    {{ post.title }}
+                    {{ result.title }}
                   </h4>
                 </div>
                 <ArrowUpRight class="w-5 h-5 md:w-6 md:h-6 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
               </Link>
             </template>
 
+            <!-- 无结果 -->
             <div
               v-else
               class="p-6 md:p-8 text-center text-black/40 text-xs md:text-sm font-bold tracking-widest uppercase border-4 border-dashed border-black/10"
@@ -141,7 +195,7 @@ const closeSearch = () => {
 
           <div class="flex justify-between items-center text-[10px] md:text-xs font-bold tracking-[0.2em] opacity-40 uppercase">
             <span>{{ t('press_esc') || 'PRESS ESC' }}</span>
-            <span>v.01.2 ARCHITECTURE</span>
+            <span>v.01.3 BACKEND</span>
           </div>
         </div>
       </div>

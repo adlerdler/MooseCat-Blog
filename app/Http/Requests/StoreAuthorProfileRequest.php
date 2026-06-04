@@ -1,28 +1,31 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreAuthorProfileRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
-            //
+            'user_id'      => ['required', 'exists:users,id'],
+            'slug'         => ['required', 'string', 'unique:author_profiles,slug'],
+            'display_name' => ['nullable', 'string', 'max:255'],
+            'bio'          => ['nullable', 'string'],
+            'role_label'   => ['nullable', 'string', 'max:100'],
+            'role_title'   => ['nullable', 'string', 'max:100'],
+            'company'      => ['nullable', 'string', 'max:255'],
+            'social_links' => ['nullable', 'array'],
+            'skills'       => ['nullable', 'array'],
+            'manifestos'   => ['nullable', 'array'],
         ];
     }
 }

@@ -14,14 +14,14 @@ import { createApp, h } from 'vue';
 import { createInertiaApp, router } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { ZiggyVue } from 'ziggy-js';
+import { createPinia } from 'pinia';
 import { i18n, syncLocalesFromBackend, reapplyBrowserLocale } from './i18n';
-import { useTheme } from './composables/useTheme';
+import { useThemeStore } from './stores/theme';
 import AdminLayout from './Pages/admin/Layout.vue';
 import ErrorPage from './components/ErrorPage.vue';
 import ForbiddenPage from './components/Forbidden.vue';
 
-const { initTheme } = useTheme();
-initTheme();
+const pinia = createPinia();
 
 const getPageKeyFromRoute = (url) => {
     if (!url || url === '/' || url === '') return 'home';
@@ -79,6 +79,34 @@ router.on('navigate', (event) => {
     }, 50);
 });
 
+// ============================================================
+// 跨标签页登录状态自动同步
+// 当用户切回当前标签页时，自动从服务端刷新 auth 状态，
+// 解决在另一个标签页登录/登出后，当前页导航栏不更新的问题。
+// ============================================================
+let lastVisibilityChange = 0;
+let authReloadPending = false;
+
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+        const now = Date.now();
+        // 防抖：3秒内不重复刷新
+        if (now - lastVisibilityChange < 3000) return;
+        lastVisibilityChange = now;
+
+        // 避免并发请求
+        if (authReloadPending) return;
+        authReloadPending = true;
+
+        // 仅刷新 auth 数据，不重载整个页面
+        router.reload({
+            only: ['auth'],
+            onFinish: () => { authReloadPending = false; },
+            onError: () => { authReloadPending = false; },
+        });
+    }
+});
+
 createInertiaApp({
     title: (title) => title || 'Archyx Blog',
     resolve: (name) => {
@@ -127,12 +155,17 @@ createInertiaApp({
                 reapplyBrowserLocale();
             }
 
-            return createApp({ render: () => h(App, props) })
+            const app = createApp({ render: () => h(App, props) })
                 .use(plugin)
                 .use(ZiggyVue)
+                .use(pinia)
                 .use(i18n)
-                .component('ErrorPage', ErrorPage)
-                .mount(el);
+                .component('ErrorPage', ErrorPage);
+
+            // Pinia 已激活，初始化主题（DOM class/css 变量恢复）
+            useThemeStore().initTheme();
+
+            return app.mount(el);
         } catch (error) {
             console.error('[ERROR] Failed to setup Inertia app:', error);
             throw error;

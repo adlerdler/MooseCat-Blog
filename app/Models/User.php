@@ -136,6 +136,14 @@ class User extends Authenticatable implements HasMedia
     }
 
     /**
+     * Get the social accounts for the user (OAuth).
+     */
+    public function socialAccounts(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(SocialAccount::class);
+    }
+
+    /**
      * Get the journal entries for the user.
      */
     public function journals(): \Illuminate\Database\Eloquent\Relations\HasMany

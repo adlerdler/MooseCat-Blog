@@ -86,7 +86,7 @@ class DashboardController extends Controller
 
             // Admin 或拥有 dashboard 权限的用户 → 跳转仪表盘
             if ($user->hasRole('Administrator') || $user->hasPermissionTo('view_analytics')) {
-                return redirect()->intended(route('admin'));
+                return redirect('/admin/index');
             }
 
             // 其他用户 → 智能跳转到第一个可访问的后台页面
@@ -94,11 +94,11 @@ class DashboardController extends Controller
             $firstPath = $this->findFirstMenuPath($menus);
 
             if ($firstPath) {
-                return redirect()->intended($firstPath);
+                return redirect($firstPath);
             }
 
             // 没有任何可访问页面 → 跳转 403
-            return redirect()->intended(route('admin.forbidden'));
+            return redirect(route('admin.forbidden'));
         }
 
         return back()->withErrors([

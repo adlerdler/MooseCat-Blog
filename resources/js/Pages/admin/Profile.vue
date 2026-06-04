@@ -33,6 +33,7 @@ import {
   Loader
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
+import { useToast } from '../../composables/useToast';
 
 const props = defineProps({
   profile: { type: Object, default: () => ({}) },
@@ -40,6 +41,7 @@ const props = defineProps({
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
+const { success: toastSuccess, error: toastError } = useToast();
 
 const isEditing = ref(false);
 
@@ -71,14 +73,16 @@ const handleAvatarFileChange = (e) => {
   formData.append('avatar', file);
 
   router.post(route('admin.profile.avatar', props.profile.slug), formData, {
+    preserveState: true,
     onSuccess: () => {
       isUploadingAvatar.value = false;
       avatarPreviewUrl.value = null;
-      router.reload();
+      toastSuccess(t('admin_avatar_updated') || 'Avatar updated');
     },
     onError: () => {
       isUploadingAvatar.value = false;
       avatarPreviewUrl.value = null;
+      toastError(t('admin_avatar_failed') || 'Avatar upload failed');
     },
     preserveScroll: true,
   });
@@ -158,9 +162,13 @@ const handleSave = () => {
   });
 
   form.put(route('admin.profile.update', props.profile.slug), {
+    preserveState: true,
     onSuccess: () => {
       isEditing.value = false;
-      router.reload();
+      toastSuccess(t('admin_save_success') || 'Profile saved');
+    },
+    onError: () => {
+      toastError(t('admin_save_failed') || 'Save failed');
     },
   });
 };

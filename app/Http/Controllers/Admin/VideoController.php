@@ -7,6 +7,7 @@ use App\Http\Requests\StoreVideoRequest;
 use App\Http\Requests\UpdateVideoRequest;
 use App\Models\Category;
 use App\Models\Tag;
+use App\Models\User;
 use App\Models\Video;
 use App\Services\VideoService;
 use Illuminate\Http\Request;
@@ -37,15 +38,21 @@ class VideoController extends Controller
                 'category_id' => $video->category_id,
                 'published_at' => $video->published_at,
                 'tags' => $video->tags->pluck('name')->toArray(),
+                'meta_title' => $video->meta_title,
+                'meta_description' => $video->meta_description,
+                'meta_keywords' => $video->meta_keywords,
+                'author_id' => $video->author_id,
                 'created_at' => $video->created_at,
                 'updated_at' => $video->updated_at,
             ];
         })->toArray();
         $categories = Category::orderBy('sort_order')->get();
+        $users = User::whereHas('roles')->get();
 
         return Inertia::render('admin/Videos', [
             'videos' => $videos,
             'categories' => $categories,
+            'users' => $users,
             'total' => $videosData->total(),
         ]);
     }
@@ -64,6 +71,7 @@ class VideoController extends Controller
     public function store(StoreVideoRequest $request)
     {
         $data = $request->validated();
+        $data['author_id'] = $request->user()->id;
         $this->videoService->createVideo($data);
 
         return redirect()->route('videos.index')->with('success', '视频已创建');
@@ -94,9 +102,12 @@ class VideoController extends Controller
             'cover_image' => $video->cover_image,
             'duration' => $video->duration,
             'category' => $video->category_id,
-            'published_at' => $video->published_at ? date('Y.m.d', strtotime($video->published_at)) : date('Y.m.d'),
+            'published_at' => $video->published_at?->format('Y-m-d\TH:i'),
             'tags' => $video->tags->pluck('name')->join(', '),
             'status' => $video->status,
+            'meta_title' => $video->meta_title,
+            'meta_description' => $video->meta_description,
+            'meta_keywords' => $video->meta_keywords,
         ];
 
         return Inertia::render('admin/Videos', [

@@ -141,6 +141,10 @@ const confirmLogout = () => {
     localStorage.removeItem('admin_user');
     sessionStorage.clear();
   } catch { /* noop */ }
+
+  // 标记为手动退出，登录页据此显示通知
+  try { localStorage.setItem('active_logout', Date.now().toString()); } catch { /* noop */ }
+
   showLogoutConfirm.value = false;
   
   inertiaRouter.post('/admin/logout', {}, {
@@ -346,6 +350,9 @@ const performAutoLogout = () => {
 
   // 清空所有 toast，避免跳转后残留
   toasts.value = [];
+
+  // 标记为闲置超时退出，登录页据此显示通知
+  try { localStorage.setItem('active_logout', Date.now().toString()); } catch { /* noop */ }
 
   // 清理所有认证相关的 localStorage/sessionStorage 数据
   try {

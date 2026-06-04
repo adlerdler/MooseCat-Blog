@@ -106,42 +106,6 @@ const featuredPosts = computed(() => {
 
 console.log('[DEBUG] Home.vue script setup completed')
 
-const searchPosts = computed(() => {
-  const allContent = []
-
-  props.posts.forEach(post => {
-    allContent.push({
-      id: post.id,
-      type: 'post',
-      title: post.title,
-      excerpt: post.excerpt,
-      route: `/blog/${post.slug}`
-    })
-  })
-
-  props.videos.forEach(video => {
-    allContent.push({
-      id: video.id,
-      type: 'video',
-      title: video.title,
-      excerpt: video.description,
-      route: `/videos/${video.slug || video.id}`
-    })
-  })
-
-  props.projects.forEach(project => {
-    allContent.push({
-      id: project.id,
-      type: 'project',
-      title: project.title,
-      excerpt: project.description,
-      route: `/projects/${project.slug || project.id}`
-    })
-  })
-
-  return allContent
-})
-
 onMounted(() => {
   console.log('[DEBUG] Home.vue onMounted, props.posts:', props.posts)
   initAccentTheme()
@@ -469,7 +433,7 @@ onUnmounted(() => {
     />
 
     <!-- Search Overlay -->
-    <SearchOverlay v-if="isSearchVisible()" :is-open="isSearchOpen" :posts="searchPosts" @close="closeSearch" />
+    <SearchOverlay v-if="isSearchVisible()" :is-open="isSearchOpen" @close="closeSearch" />
 
     </div><!-- End of ml-16 wrapper -->
 

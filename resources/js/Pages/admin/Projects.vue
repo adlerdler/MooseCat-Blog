@@ -13,24 +13,25 @@ import { useI18n } from 'vue-i18n';
 import {
   FolderKanban,
   Plus,
-  Search,
-  Edit3,
-  Trash2,
-  Eye,
-  Clock,
-  Filter,
   ExternalLink,
   Github
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
+import { useToast } from '../../composables/useToast';
 import { formatToShort } from '../../utils/dateUtils';
 import ProjectForm from '../../components/admin/ProjectForm.vue';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import Pagination from '../../components/admin/Pagination.vue';
 import SearchFilterModal from '../../components/admin/SearchFilterModal.vue';
+import SeoForm from '../../components/admin/SeoForm.vue';
+import ContentCard from '../../components/admin/ContentCard.vue';
 
 const props = defineProps({
   projects: {
+    type: Array,
+    default: () => []
+  },
+  users: {
     type: Array,
     default: () => []
   }
@@ -46,7 +47,13 @@ const t = (key, fallback = '') => {
   }
 };
 const { isDarkMode } = useTheme();
+const { success: toastSuccess, error: toastError } = useToast();
 const page = usePage();
+
+const getAuthorName = (authorId) => {
+  const user = props.users.find(u => u.id === authorId);
+  return user ? (user.penName || user.name) : 'Unknown';
+};
 
 const PROJECT_STATUS = Object.freeze({
   COMPLETED: 'completed',
@@ -62,6 +69,8 @@ const isFormVisible = ref(false);
 const editingProject = ref(null);
 const showDeleteConfirm = ref(false);
 const deletingProjectId = ref(null);
+const showSeoModal = ref(false);
+const editingSeoProject = ref({ id: null, meta_title: '', meta_description: '', meta_keywords: '' });
 
 const localProjects = ref([...props.projects]);
 
@@ -101,11 +110,15 @@ const totalPages = computed(() => {
 });
 
 const getStatusColor = (status) => {
+  const dark = isDarkMode.value;
   switch (status) {
-    case 'Completed': return 'bg-green-900 text-green-300';
-    case 'In Progress': return 'bg-blue-900 text-blue-300';
-    case 'Planning': return 'bg-purple-900 text-purple-300';
-    default: return 'bg-gray-700 text-gray-300';
+    case 'completed': return dark ? 'bg-green-900 text-green-300' : 'bg-green-100 text-green-700';
+    case 'in-progress': return dark ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-700';
+    case 'planning': return dark ? 'bg-purple-900 text-purple-300' : 'bg-purple-100 text-purple-700';
+    case 'Completed': return dark ? 'bg-green-900 text-green-300' : 'bg-green-100 text-green-700';
+    case 'In Progress': return dark ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-700';
+    case 'Planning': return dark ? 'bg-purple-900 text-purple-300' : 'bg-purple-100 text-purple-700';
+    default: return dark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600';
   }
 };
 
@@ -117,10 +130,13 @@ const handleDelete = (id) => {
 const confirmDelete = () => {
   if (deletingProjectId.value !== null) {
     router.delete(`/admin/projects/${deletingProjectId.value}`, {
+      preserveState: true,
       onSuccess: () => {
+        toastSuccess('Project deleted successfully');
         localProjects.value = localProjects.value.filter(p => p.id !== deletingProjectId.value);
         deletingProjectId.value = null;
       },
+      onError: (err) => toastError(err?.message || 'Failed to delete project'),
     });
   }
   showDeleteConfirm.value = false;
@@ -150,7 +166,7 @@ const handleEdit = (project) => {
     technologies: techString,
     tags: tagsString,
     status: project.status || 'completed',
-    sort_order: project.sort_order || 0
+    sort_order: project.sort_order || 0,
   };
   isFormVisible.value = true;
 };
@@ -163,17 +179,23 @@ const handleAdd = () => {
 const handleSave = (data) => {
   if (editingProject.value) {
     router.put(`/admin/projects/${editingProject.value.id}`, data, {
+      preserveState: true,
       onSuccess: () => {
+        toastSuccess('Project updated successfully');
         isFormVisible.value = false;
         editingProject.value = null;
       },
+      onError: (err) => toastError(err?.message || 'Failed to update project'),
     });
   } else {
     router.post('/admin/projects', data, {
+      preserveState: true,
       onSuccess: () => {
+        toastSuccess('Project created successfully');
         isFormVisible.value = false;
         editingProject.value = null;
       },
+      onError: (err) => toastError(err?.message || 'Failed to create project'),
     });
   }
 };
@@ -181,6 +203,16 @@ const handleSave = (data) => {
 const handleCancel = () => {
   isFormVisible.value = false;
   editingProject.value = null;
+};
+
+const handleSeoEdit = (project) => {
+  editingSeoProject.value = {
+    id: project.id,
+    meta_title: project.meta_title || '',
+    meta_description: project.meta_description || '',
+    meta_keywords: project.meta_keywords || '',
+  };
+  showSeoModal.value = true;
 };
 
 const handleFilterChange = ({ key, value }) => {
@@ -232,104 +264,47 @@ const handleFilterChange = ({ key, value }) => {
 
     <!-- Projects Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div
+      <ContentCard
         v-for="project in paginatedProjects"
         :key="project.id"
-        :class="[
-          'flex flex-col rounded-lg shadow-md',
-          isDarkMode ? 'bg-gray-800' : 'bg-white'
-        ]"
+        :item="project"
+        :cover-image="project.image"
+        :title="project.title"
+        :description="project.description"
+        :tags="project.tags"
+        :date="formatToShort(project.created_at || project.date)"
+        :author="getAuthorName(project.author_id)"
+        :placeholder-icon="FolderKanban"
+        @edit="handleEdit"
+        @seo-edit="handleSeoEdit"
+        @delete="handleDelete"
       >
-        <!-- Project Image -->
-        <div :class="['relative aspect-video box-border rounded-t-lg overflow-hidden', !project.image ? 'border-2 border-b-0 border-dashed' : '', isDarkMode ? 'bg-gray-900' : 'bg-gray-100', !project.image && !isDarkMode ? 'border-gray-300' : '', !project.image && isDarkMode ? 'border-gray-600' : '']">
-          <img
-            v-if="project.image"
-            :src="project.image"
-            :alt="project.title"
-            class="w-full h-full object-cover"
-          />
-          <div v-else class="w-full h-full flex items-center justify-center">
-            <FolderKanban :class="['w-12 h-12', isDarkMode ? 'text-gray-600' : 'text-gray-400']" />
-          </div>
-          <div class="absolute top-2 right-2">
-            <span
-              :class="['text-[10px] px-2 py-1 uppercase font-bold', getStatusColor(project.status)]"
-            >
-              {{ project.status }}
-            </span>
-          </div>
-        </div>
-        
-        <!-- Project Info -->
-        <div class="p-4 flex flex-col flex-1">
-          <h3
-            :class="['font-bold mb-2 text-lg', isDarkMode ? 'text-white' : 'text-gray-900']"
-            style="display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1; line-clamp: 1; overflow: hidden;"
-          >{{ project.title }}</h3>
-          <p
-            :class="['text-sm mb-4', isDarkMode ? 'text-gray-400' : 'text-gray-600']"
-            style="display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; min-height: 2.5rem;"
-          >{{ project.description }}</p>
-          
-          <!-- Tags -->
-          <div class="flex flex-wrap gap-1 mb-4">
-            <span
-              v-for="tag in project.tags.slice(0, 3)"
-              :key="tag"
-              :class="['text-xs px-2 py-1 rounded', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600']"
-            >
-              {{ tag }}
-            </span>
-            <span v-if="project.tags.length > 3" :class="['text-xs px-2 py-1 rounded', isDarkMode ? 'bg-gray-700 text-gray-400' : 'bg-gray-100 text-gray-500']">
-              +{{ project.tags.length - 3 }}
-            </span>
-          </div>
-          
-          <div :class="['flex items-center justify-between pt-3 mt-auto']">
-            <div :class="['flex items-center gap-2 text-xs', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
-              <Clock size="14" />
-              {{ formatToShort(project.created_at || project.date) }}
-            </div>
-            
-            <div class="flex gap-2">
-              <a
-                v-if="project.github_url"
-                :href="project.github_url"
-                target="_blank"
-                rel="noopener noreferrer"
-                :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:text-white hover:bg-gray-700' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100']"
-                :title="'GitHub'"
-              >
-                <Github size="16" />
-              </a>
-              <a
-                v-if="project.url"
-                :href="project.url"
-                target="_blank"
-                rel="noopener noreferrer"
-                :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:text-white hover:bg-gray-700' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100']"
-                :title="'Live Demo'"
-              >
-                <ExternalLink size="16" />
-              </a>
-              <button
-                @click="handleEdit(project)"
-                :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:text-blue-400 hover:bg-gray-700' : 'text-gray-500 hover:text-blue-500 hover:bg-gray-100']"
-                :title="t('admin_edit')"
-              >
-                <Edit3 size="16" />
-              </button>
-              <button
-                @click="handleDelete(project.id)"
-                :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:text-red-400 hover:bg-gray-700' : 'text-gray-500 hover:text-red-500 hover:bg-gray-100']"
-                :title="t('admin_delete')"
-              >
-                <Trash2 size="16" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+        <template #top-right-badge>
+          <span :class="['text-[10px] px-2 py-1 uppercase font-bold rounded', getStatusColor(project.status)]">
+            {{ project.status }}
+          </span>
+        </template>
+        <template #actions-before>
+          <a
+            v-if="project.github_url"
+            :href="project.github_url"
+            target="_blank"
+            rel="noopener noreferrer"
+            :class="['p-2 transition-colors rounded', isDarkMode ? 'text-gray-400 hover:text-white hover:bg-gray-700' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100']"
+          >
+            <Github size="16" />
+          </a>
+          <a
+            v-if="project.url"
+            :href="project.url"
+            target="_blank"
+            rel="noopener noreferrer"
+            :class="['p-2 transition-colors rounded', isDarkMode ? 'text-gray-400 hover:text-white hover:bg-gray-700' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100']"
+          >
+            <ExternalLink size="16" />
+          </a>
+        </template>
+      </ContentCard>
     </div>
 
     <!-- Pagination -->
@@ -359,6 +334,13 @@ const handleFilterChange = ({ key, value }) => {
       confirm-variant="danger"
       @confirm="confirmDelete"
       @cancel="showDeleteConfirm = false"
+    />
+
+    <!-- SEO Edit Modal -->
+    <SeoForm
+      v-model:visible="showSeoModal"
+      :item="editingSeoProject"
+      resource-route="projects.update"
     />
   </div>
 </template>

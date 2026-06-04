@@ -14,6 +14,7 @@ import {
   watch,
   useI18n,
   useTheme,
+  useToast,
   Crown,
   Plus,
   Search,
@@ -40,6 +41,7 @@ const props = defineProps({
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
+const { success: toastSuccess, error: toastError } = useToast();
 
 const searchQuery = ref('');
 const activeFilter = ref('all');
@@ -86,9 +88,17 @@ const handleAdd = () => {
 
 const handleSave = (data) => {
   if (editingLevel.value) {
-    router.put(route('admin.user-levels.update', editingLevel.value.id), data);
+    router.put(route('admin.user-levels.update', editingLevel.value.id), data, {
+      preserveState: true,
+      onSuccess: () => toastSuccess('Level updated successfully'),
+      onError: (err) => toastError(err?.message || 'Failed to update level'),
+    });
   } else {
-    router.post(route('admin.user-levels.store'), data);
+    router.post(route('admin.user-levels.store'), data, {
+      preserveState: true,
+      onSuccess: () => toastSuccess('Level created successfully'),
+      onError: (err) => toastError(err?.message || 'Failed to create level'),
+    });
   }
   isFormVisible.value = false;
   editingLevel.value = null;
@@ -106,7 +116,11 @@ const handleDelete = (id) => {
 
 const confirmDelete = () => {
   if (deletingLevelId.value !== null) {
-    router.delete(route('admin.user-levels.destroy', deletingLevelId.value));
+    router.delete(route('admin.user-levels.destroy', deletingLevelId.value), {
+      preserveState: true,
+      onSuccess: () => toastSuccess('Level deleted successfully'),
+      onError: (err) => toastError(err?.message || 'Failed to delete level'),
+    });
     deletingLevelId.value = null;
   }
   showDeleteConfirm.value = false;
@@ -119,10 +133,10 @@ const moveUp = (level) => {
     const newSortOrder = levels.value[actualIndex - 1].sort_order;
     router.put(route('admin.user-levels.update', level.id), {
       sort_order: newSortOrder,
-    });
+    }, { preserveState: true });
     router.put(route('admin.user-levels.update', levels.value[actualIndex - 1].id), {
       sort_order: level.sort_order,
-    });
+    }, { preserveState: true });
   }
 };
 
@@ -133,10 +147,10 @@ const moveDown = (level) => {
     const newSortOrder = levels.value[actualIndex + 1].sort_order;
     router.put(route('admin.user-levels.update', level.id), {
       sort_order: newSortOrder,
-    });
+    }, { preserveState: true });
     router.put(route('admin.user-levels.update', levels.value[actualIndex + 1].id), {
       sort_order: level.sort_order,
-    });
+    }, { preserveState: true });
   }
 };
 

@@ -22,14 +22,15 @@
  *   :resources="resources"
  * />
  */
-import { ref, computed, watch, onUnmounted } from 'vue';
-import { Link } from '@inertiajs/vue3';
-import { Menu, Search, User, ChevronDown, ChevronUp, X, ArrowRight, Globe, FileText } from 'lucide-vue-next';
+import { computed, watch, onUnmounted } from 'vue';
+import { Link, usePage } from '@inertiajs/vue3';
+import { Menu, Search, User, LogIn, ChevronDown, ChevronUp, X, ArrowRight, Globe, FileText } from 'lucide-vue-next';
 import SettingsPanel from './SettingsPanel.vue';
 import SearchOverlay from './SearchOverlay.vue';
 import { useI18n } from 'vue-i18n';
 import { useSiteConfig } from '../composables/useSiteConfig';
 import { useMenuItems } from '../composables/useMenuItems';
+import { useUIStore } from '../stores/ui';
 
 const props = defineProps({
   isFooterVisible: {
@@ -82,70 +83,23 @@ const authorPath = computed(() => {
   return authorMenu?.path || '/author/adler-decht';
 });
 
-const searchPosts = computed(() => {
-  const allContent = [];
-
-  props.posts.forEach(post => {
-    allContent.push({
-      id: post.id,
-      type: 'post',
-      title: post.title,
-      excerpt: post.excerpt,
-      route: `/blog/${post.slug}`
-    });
-  });
-
-  props.videos.forEach(video => {
-    allContent.push({
-      id: video.id,
-      type: 'video',
-      title: video.title,
-      excerpt: video.description,
-      route: `/videos/${video.id}`
-    });
-  });
-
-  props.projects.forEach(project => {
-    allContent.push({
-      id: project.id,
-      type: 'project',
-      title: project.title,
-      excerpt: project.description,
-      route: `/projects/${project.id}`
-    });
-  });
-
-  props.resources.forEach(resource => {
-    allContent.push({
-      id: resource.id,
-      type: 'resource',
-      title: resource.title,
-      excerpt: resource.description,
-      route: '/resources'
-    });
-  });
-
-  return allContent;
-});
-
 const emit = defineEmits(['toggle-search', 'toggle-menu', 'update:is-footer-visible']);
 
 const { t, locale } = useI18n();
+const ui = useUIStore();
 
-const isMenuOpen = ref(false);
-const isSettingsOpen = ref(false);
-const isSearchOpen = ref(false);
-const footerVisible = ref(props.isFooterVisible);
-
+// 初始化并保持 footerVisible 与父组件同步
+if (props.isFooterVisible !== undefined) {
+  ui.footerVisible = props.isFooterVisible;
+}
 watch(() => props.isFooterVisible, (val) => {
-  footerVisible.value = val;
+  if (val !== undefined) ui.footerVisible = val;
 });
 
-watch(isMenuOpen, (newValue) => {
+// 当菜单打开时禁止 body 滚动
+watch(() => ui.isMenuOpen, (newValue) => {
   if (newValue) {
     document.body.classList.add('overflow-hidden');
-    isSettingsOpen.value = false;
-    isSearchOpen.value = false;
   } else {
     document.body.classList.remove('overflow-hidden');
   }
@@ -156,30 +110,30 @@ onUnmounted(() => {
 });
 
 const toggleFooter = () => {
-  footerVisible.value = !footerVisible.value;
-  emit('update:is-footer-visible', footerVisible.value);
+  ui.toggleFooter();
+  emit('update:is-footer-visible', ui.footerVisible);
 };
 
 const toggleMenu = () => {
-  isMenuOpen.value = !isMenuOpen.value;
-  emit('toggle-menu', isMenuOpen.value);
+  ui.toggleMenu();
+  emit('toggle-menu', ui.isMenuOpen);
 };
 
 const closeMenu = () => {
-  isMenuOpen.value = false;
+  ui.closeMenu();
   emit('toggle-menu', false);
 };
 
 const toggleSettings = () => {
-  isSettingsOpen.value = !isSettingsOpen.value;
+  ui.toggleSettings();
 };
 
 const toggleSearch = () => {
-  isSearchOpen.value = !isSearchOpen.value;
+  ui.toggleSearch();
 };
 
 const closeSearch = () => {
-  isSearchOpen.value = false;
+  ui.closeSearch();
 };
 
 const menuLinks = computed(() => {
@@ -190,6 +144,15 @@ const menuLinks = computed(() => {
 });
 
 const showSidebar = computed(() => true);
+
+// 认证状态
+const authUser = computed(() => usePage().props.auth?.user ?? null);
+const isAuthenticated = computed(() => authUser.value !== null);
+const userAvatar = computed(() => authUser.value?.avatar ?? null);
+const userInitial = computed(() => authUser.value?.name?.charAt(0)?.toUpperCase() ?? '?');
+
+// 注册开关（禁止注册时隐藏登录/个人中心图标）
+const isRegistrationEnabled = computed(() => props.siteConfig?.registration !== false);
 </script>
 
 <template>
@@ -218,12 +181,32 @@ const showSidebar = computed(() => true);
       <Search
         v-if="isSearchVisible()"
         class="w-6 h-6 cursor-pointer transition-colors hover:text-accent"
-        :class="{ 'text-accent': isSearchOpen }"
+        :class="{ 'text-accent': ui.isSearchOpen }"
         @click="toggleSearch"
       />
       <Link v-if="isAuthorBioVisible()" :href="authorPath">
         <User class="w-6 h-6 cursor-pointer hover:text-accent transition-colors" />
       </Link>
+      <!-- Auth: 未登录 → 登录图标指向登录页；已登录 → 头像指向个人中心 -->
+      <template v-if="isRegistrationEnabled">
+        <Link v-if="!isAuthenticated" href="/login" title="Login">
+          <LogIn class="w-6 h-6 cursor-pointer hover:text-accent transition-colors" />
+        </Link>
+        <Link v-else :href="'/profile/' + authUser?.slug" title="Profile">
+          <img
+            v-if="userAvatar"
+            :src="userAvatar"
+            :alt="authUser?.name"
+            class="w-7 h-7 rounded-full object-cover border border-accent/30 hover:border-accent transition-colors"
+          />
+          <div
+            v-else
+            class="w-7 h-7 rounded-full bg-accent/10 border border-accent/30 flex items-center justify-center hover:border-accent transition-colors"
+          >
+            <span class="text-xs font-bold text-accent">{{ userInitial }}</span>
+          </div>
+        </Link>
+      </template>
     </div>
 
     <!-- Bottom: Menu Toggle -->
@@ -233,7 +216,7 @@ const showSidebar = computed(() => true);
         class="hover:text-accent transition-colors"
         title="Toggle Footer"
       >
-        <ChevronDown v-if="footerVisible" class="w-6 h-6" />
+        <ChevronDown v-if="ui.footerVisible" class="w-6 h-6" />
         <ChevronUp v-else class="w-6 h-6" />
       </button>
       <Menu
@@ -258,7 +241,7 @@ const showSidebar = computed(() => true);
   <Teleport to="body">
     <Transition name="slide">
       <div
-        v-if="isMenuOpen"
+        v-if="ui.isMenuOpen"
         class="fixed inset-0 bg-accent z-[60] flex flex-col md:flex-row"
       >
         <!-- Mobile Header -->
@@ -324,7 +307,7 @@ const showSidebar = computed(() => true);
         <!-- Mobile Settings Panel (Overlay) -->
         <Transition name="fade">
           <div
-            v-if="isSettingsOpen"
+            v-if="ui.isSettingsOpen"
             class="md:hidden fixed inset-0 bg-black/95 z-[70] flex items-center justify-center p-8"
           >
             <div class="w-full max-w-md">
@@ -344,7 +327,7 @@ const showSidebar = computed(() => true);
     </Transition>
 
     <!-- Search Overlay -->
-    <SearchOverlay v-if="isSearchVisible()" :is-open="isSearchOpen" :posts="searchPosts" @close="closeSearch" />
+    <SearchOverlay v-if="isSearchVisible()" :is-open="ui.isSearchOpen" @close="closeSearch" />
   </Teleport>
 </template>
 

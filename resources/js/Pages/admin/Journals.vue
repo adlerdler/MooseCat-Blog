@@ -26,6 +26,7 @@ import {
   Plus
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
+import { useToast } from '../../composables/useToast';
 import { useJournalData } from '../../composables/useJournalData';
 import { findById, findIndexById } from '../../utils/typeConvert';
 import JournalForm from '../../components/admin/JournalForm.vue';
@@ -39,6 +40,7 @@ const props = defineProps({
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
+const { success: toastSuccess, error: toastError } = useToast();
 const { getJournalsByUserId, getMoodLabel, getWeatherLabel, getMoodTypes, getWeatherTypes } = useJournalData({
   journals: props.journals
 });
@@ -124,25 +126,29 @@ const handleSave = (data) => {
   if (data.action === 'edit') {
     const form = useForm(formData);
     form.put(route('admin.journals.update', data.id), {
+      preserveState: true,
       onSuccess: () => {
+        toastSuccess('Journal updated successfully');
         isFormVisible.value = false;
         editingJournal.value = null;
-        router.reload();
       },
       onError: (errors) => {
-        console.error('Update error:', errors);
+        const msg = Object.values(errors || {}).flat().join(', ') || 'Failed to update journal';
+        toastError(msg);
       }
     });
   } else if (data.action === 'add') {
     const form = useForm(formData);
     form.post(route('admin.journals.store'), {
+      preserveState: true,
       onSuccess: () => {
+        toastSuccess('Journal created successfully');
         isFormVisible.value = false;
         editingJournal.value = null;
-        router.reload();
       },
       onError: (errors) => {
-        console.error('Create error:', errors);
+        const msg = Object.values(errors || {}).flat().join(', ') || 'Failed to create journal';
+        toastError(msg);
       }
     });
   }
@@ -162,13 +168,15 @@ const confirmDelete = () => {
   if (deletingJournalId.value !== null) {
     const form = useForm({});
     form.delete(route('admin.journals.destroy', deletingJournalId.value), {
+      preserveState: true,
       onSuccess: () => {
+        toastSuccess('Journal deleted successfully');
         showDeleteConfirm.value = false;
         deletingJournalId.value = null;
-        router.reload();
       },
       onError: (errors) => {
-        console.error('Delete error:', errors);
+        const msg = Object.values(errors || {}).flat().join(', ') || 'Failed to delete journal';
+        toastError(msg);
         showDeleteConfirm.value = false;
         deletingJournalId.value = null;
       }

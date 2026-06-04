@@ -27,13 +27,13 @@ const props = defineProps({
 
 const { initAccentTheme } = useTheme();
 
-usePageSeo({
-  title: computed(() => props.project?.title ? `PROJECT // ${props.project.title} - ARCHYX` : 'PROJECT - ARCHYX'),
-  description: computed(() => props.project?.description || ''),
-  keywords: computed(() => props.project?.tech_stack?.join(', ') || ''),
+const { SeoHead } = usePageSeo({
+  title: computed(() => props.project?.meta_title || (props.project?.title ? `PROJECT // ${props.project.title} - ARCHYX` : 'PROJECT - ARCHYX')),
+  description: computed(() => props.project?.meta_description || props.project?.description || ''),
+  keywords: computed(() => props.project?.meta_keywords || (props.project?.technologies?.join(', ') || '')),
   image: computed(() => props.project?.image || ''),
   url: computed(() => `${window.location.origin}/projects/${props.project?.slug || props.project?.id}`),
-  type: 'CreativeWork'
+  type: 'CreativeWork',
 })
 
 // 检查项目是否存在且为已完成状态
@@ -80,6 +80,7 @@ const scrollToTop = () => {
 </script>
 
 <template>
+  <SeoHead />
   <div class="min-h-screen bg-construct-paper text-construct-black pb-32">
     <!-- 浮动返回按钮 -->
     <button

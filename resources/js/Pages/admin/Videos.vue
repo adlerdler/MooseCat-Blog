@@ -12,21 +12,24 @@ import { useI18n } from 'vue-i18n';
 import { router, usePage } from '@inertiajs/vue3';
 import {
   Play,
-  Plus,
-  Search,
-  Edit3,
-  Trash2,
-  Clock,
-  Filter,
-  Youtube,
-  Video
+  Plus
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
+import { useToast } from '../../composables/useToast';
 import { formatToSmartDate } from '../../utils/dateUtils';
 import VideoForm from '../../components/admin/VideoForm.vue';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import Pagination from '../../components/admin/Pagination.vue';
 import SearchFilterModal from '../../components/admin/SearchFilterModal.vue';
+import SeoForm from '../../components/admin/SeoForm.vue';
+import ContentCard from '../../components/admin/ContentCard.vue';
+
+const toDatetimeLocal = (dateStr) => {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
 
 const props = defineProps({
   videos: {
@@ -34,6 +37,10 @@ const props = defineProps({
     default: () => []
   },
   categories: {
+    type: Array,
+    default: () => []
+  },
+  users: {
     type: Array,
     default: () => []
   },
@@ -53,7 +60,13 @@ const t = (key, fallback = '') => {
   }
 };
 const { isDarkMode } = useTheme();
+const { success: toastSuccess, error: toastError } = useToast();
 const page = usePage();
+
+const getAuthorName = (authorId) => {
+  const user = props.users.find(u => u.id === authorId);
+  return user ? (user.penName || user.name) : 'Unknown';
+};
 
 const searchQuery = ref('');
 const currentPage = ref(1);
@@ -63,6 +76,8 @@ const isFormVisible = ref(false);
 const editingVideo = ref(null);
 const showDeleteConfirm = ref(false);
 const deletingVideoId = ref(null);
+const showSeoModal = ref(false);
+const editingSeoVideo = ref({ id: null, meta_title: '', meta_description: '', meta_keywords: '' });
 
 const localVideos = ref([...props.videos]);
 
@@ -92,13 +107,12 @@ watch(() => props.video, (newVideo) => {
 
 const platforms = ['all', 'YouTube', 'Vimeo', 'Bilibili'];
 
-const getPlatformIcon = (platform) => {
-  switch (platform) {
-    case 'YouTube': return Youtube;
-    case 'Vimeo': return Video;
-    case 'Bilibili': return Video;
-    default: return Play;
-  }
+const getStatusBadgeClass = (status) => {
+  const dark = isDarkMode.value;
+  const base = 'px-2 py-1 text-xs font-bold uppercase rounded';
+  if (status === 'published') return `${base} ${dark ? 'bg-green-900 text-green-300' : 'bg-green-100 text-green-700'}`;
+  if (status === 'draft') return `${base} ${dark ? 'bg-yellow-900 text-yellow-300' : 'bg-yellow-100 text-yellow-700'}`;
+  return `${base} ${dark ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-700'}`;
 };
 
 const filteredVideos = computed(() => {
@@ -137,10 +151,13 @@ const handleDelete = (id) => {
 const confirmDelete = () => {
   if (deletingVideoId.value !== null) {
     router.delete(route('videos.destroy', deletingVideoId.value), {
+      preserveState: true,
       onSuccess: () => {
+        toastSuccess('Video deleted successfully');
         showDeleteConfirm.value = false;
         deletingVideoId.value = null;
       },
+      onError: (err) => toastError(err?.message || 'Failed to delete video'),
     });
   }
 };
@@ -156,7 +173,7 @@ const handleEdit = (video) => {
     platform: video.platform,
     duration: video.duration,
     category: video.category_id,
-    date: video.published_at ? new Date(video.published_at).toISOString().split('T')[0].replace(/-/g, '.') : '',
+    date: toDatetimeLocal(video.published_at),
     tags: Array.isArray(video.tags) ? video.tags.join(', ') : video.tags,
     status: video.status,
   };
@@ -180,19 +197,21 @@ const handleSave = (data) => {
     duration: data.duration ? parseInt(data.duration) : null,
     category_id: category ? category.id : null,
     tags: data.tags,
-    published_at: data.date ? data.date.replace(/\./g, '-') : null,
+    published_at: data.date || null,
     status: data.status || 'draft',
   };
 
   if (editingVideo.value && editingVideo.value.id) {
     router.put(route('videos.update', editingVideo.value.id), payload, {
-      onError: (errors) => console.error('Update errors:', errors),
-      onSuccess: () => console.log('Update success'),
+      preserveState: true,
+      onError: (err) => toastError(err?.message || 'Failed to update video'),
+      onSuccess: () => toastSuccess('Video updated successfully'),
     });
   } else {
     router.post(route('videos.store'), payload, {
-      onError: (errors) => console.error('Store errors:', errors),
-      onSuccess: () => console.log('Store success'),
+      preserveState: true,
+      onError: (err) => toastError(err?.message || 'Failed to create video'),
+      onSuccess: () => toastSuccess('Video created successfully'),
     });
   }
   isFormVisible.value = false;
@@ -202,6 +221,16 @@ const handleSave = (data) => {
 const handleCancel = () => {
   isFormVisible.value = false;
   editingVideo.value = null;
+};
+
+const handleSeoEdit = (video) => {
+  editingSeoVideo.value = {
+    id: video.id,
+    meta_title: video.meta_title || '',
+    meta_description: video.meta_description || '',
+    meta_keywords: video.meta_keywords || '',
+  };
+  showSeoModal.value = true;
 };
 
 const handleFilterChange = ({ key, value }) => {
@@ -253,86 +282,27 @@ const handleFilterChange = ({ key, value }) => {
 
     <!-- Videos Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div
+      <ContentCard
         v-for="video in paginatedVideos"
         :key="video.id"
-        :class="[
-          'flex flex-col rounded-lg shadow-md',
-          isDarkMode ? 'bg-gray-800' : 'bg-white'
-        ]"
+        :item="video"
+        :cover-image="video.cover_image"
+        :title="video.title"
+        :description="video.description"
+        :tags="video.tags"
+        :date="formatToSmartDate(video.published_at || video.created_at)"
+        :author="getAuthorName(video.author_id)"
+        :placeholder-icon="Play"
+        @edit="handleEdit"
+        @seo-edit="handleSeoEdit"
+        @delete="handleDelete"
       >
-        <!-- Video Thumbnail -->
-        <div :class="['relative aspect-video box-border rounded-t-lg overflow-hidden', !video.cover_image ? 'border-2 border-b-0 border-dashed' : '', isDarkMode ? 'bg-gray-900' : 'bg-gray-100', !video.cover_image && !isDarkMode ? 'border-gray-300' : '', !video.cover_image && isDarkMode ? 'border-gray-600' : '']">
-          <img
-            v-if="video.cover_image"
-            :src="video.cover_image"
-            :alt="video.title"
-            class="w-full h-full object-cover"
-          />
-          <div v-else class="w-full h-full flex items-center justify-center">
-            <Play :class="['w-12 h-12', isDarkMode ? 'text-gray-600' : 'text-gray-400']" />
-          </div>
-          <div class="absolute bottom-2 right-2 px-2 py-1 bg-black/80 text-white text-xs font-bold uppercase">
+        <template #bottom-right-badge>
+          <span :class="getStatusBadgeClass(video.status)">
             {{ video.status }}
-          </div>
-        </div>
-        
-        <!-- Video Info -->
-        <div class="p-4 flex flex-col flex-1">
-          <h3
-            :class="['font-bold mb-2 text-lg', isDarkMode ? 'text-white' : 'text-gray-900']"
-            style="display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden;"
-          >{{ video.title }}</h3>
-          <p
-            :class="['text-sm mb-4', isDarkMode ? 'text-gray-400' : 'text-gray-600']"
-            style="display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; min-height: 2.5rem;"
-          >{{ video.description }}</p>
-          
-          <!-- Tags -->
-          <div class="flex flex-wrap gap-1 mb-4">
-            <span
-              v-for="tag in video.tags.slice(0, 3)"
-              :key="tag"
-              :class="['text-xs px-2 py-1 rounded', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600']"
-            >
-              {{ tag }}
-            </span>
-            <span v-if="video.tags.length > 3" :class="['text-xs px-2 py-1 rounded', isDarkMode ? 'bg-gray-700 text-gray-400' : 'bg-gray-100 text-gray-500']">
-              +{{ video.tags.length - 3 }}
-            </span>
-          </div>
-          
-          <div class="flex items-center justify-between mt-auto">
-            <div :class="['flex items-center gap-2 text-xs', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
-              <Clock size="12" />
-              {{ formatToSmartDate(video.created_at) }}
-            </div>
-            
-            <div class="flex gap-2">
-              <button
-                @click="handleEdit(video)"
-                :class="[
-                  'p-2 transition-colors',
-                  isDarkMode ? 'text-gray-400 hover:text-blue-400 hover:bg-gray-700' : 'text-gray-500 hover:text-blue-500 hover:bg-gray-100'
-                ]"
-                :title="t('admin_edit')"
-              >
-                <Edit3 size="14" />
-              </button>
-              <button
-                @click="handleDelete(video.id)"
-                :class="[
-                  'p-2 transition-colors',
-                  isDarkMode ? 'text-gray-400 hover:text-red-400 hover:bg-gray-700' : 'text-gray-500 hover:text-red-500 hover:bg-gray-100'
-                ]"
-                :title="t('admin_delete')"
-              >
-                <Trash2 size="14" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+          </span>
+        </template>
+      </ContentCard>
     </div>
 
     <!-- Pagination -->
@@ -362,6 +332,13 @@ const handleFilterChange = ({ key, value }) => {
       confirm-text="删除"
       @confirm="confirmDelete"
       @cancel="showDeleteConfirm = false"
+    />
+
+    <!-- SEO Edit Modal -->
+    <SeoForm
+      v-model:visible="showSeoModal"
+      :item="editingSeoVideo"
+      resource-route="videos.update"
     />
   </div>
 </template>

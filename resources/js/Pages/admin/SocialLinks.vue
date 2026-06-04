@@ -177,10 +177,11 @@ const confirmAddLink = () => {
       sort_order: socialLinksList.value.length + 1,
       is_active: true,
     }, {
+      preserveState: true,
+      preserveScroll: true,
       onSuccess: () => {
         cancelAddLink();
         success('成功', '链接已创建');
-        window.location.reload();
       },
       onError: () => {
         error('错误', '创建链接失败');
@@ -204,10 +205,11 @@ const confirmAddLink = () => {
       sort_order: list.length + 1,
       is_active: true,
     }, {
+      preserveState: true,
+      preserveScroll: true,
       onSuccess: () => {
         cancelAddLink();
         success('成功', '链接已创建');
-        window.location.reload();
       },
       onError: () => {
         error('错误', '创建链接失败');
@@ -225,12 +227,13 @@ const handleDelete = (id, type) => {
 const confirmDelete = () => {
   if (deletingItemType.value === 'social') {
     router.delete(`/admin/social-links/${deletingItemId.value}`, {
+      preserveState: true,
+      preserveScroll: true,
       onSuccess: () => {
         showDeleteConfirm.value = false;
         deletingItemId.value = null;
         deletingItemType.value = '';
         success('成功', '链接已删除');
-        window.location.reload();
       },
       onError: () => {
         error('错误', '删除链接失败');
@@ -238,13 +241,14 @@ const confirmDelete = () => {
     });
   } else {
     router.delete(`/admin/social-links/${deletingItemId.value}`, {
+      preserveState: true,
+      preserveScroll: true,
       data: { type: deletingItemType.value },
       onSuccess: () => {
         showDeleteConfirm.value = false;
         deletingItemId.value = null;
         deletingItemType.value = '';
         success('成功', '链接已删除');
-        window.location.reload();
       },
       onError: () => {
         error('错误', '删除链接失败');
@@ -287,6 +291,7 @@ const confirmSave = () => {
   };
   
   router.put('/admin/social-links', data, {
+    preserveState: true,
     preserveScroll: true,
   });
 };
@@ -335,6 +340,8 @@ const saveEdit = () => {
   }
   
   router.put(`/admin/social-links/${link.id}`, data, {
+    preserveState: true,
+    preserveScroll: true,
     onSuccess: () => {
       closeEditModal();
     }

@@ -27,6 +27,10 @@ class Video extends Model
         'likes_count',
         'category_id',
         'published_at',
+        'meta_title',
+        'meta_description',
+        'meta_keywords',
+        'author_id',
     ];
 
     protected $casts = [
@@ -58,6 +62,11 @@ class Video extends Model
     public function getRouteKeyName(): string
     {
         return 'slug';
+    }
+
+    public function author(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'author_id');
     }
 
     public function getActivitylogOptions(): LogOptions

@@ -19,9 +19,12 @@ import {
   Calendar,
   CheckCircle,
   Plus,
-  User
+  User,
+  X,
+  Save
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
+import { useToast } from '../../composables/useToast';
 import { findById, findIndexById } from '../../utils/typeConvert';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import SearchFilterModal from '../../components/admin/SearchFilterModal.vue';
@@ -37,6 +40,7 @@ const props = defineProps({
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
+const { success: toastSuccess, error: toastError } = useToast();
 
 const getSourceLabel = (source) => {
   const labels = {
@@ -58,7 +62,6 @@ const isFormVisible = ref(false);
 const editingSubscriber = ref(null);
 const showDeleteConfirm = ref(false);
 const deletingSubscriberId = ref(null);
-const showSuccessMessage = ref(false);
 
 const subscribers = ref([...props.subscribers]);
 
@@ -80,6 +83,11 @@ const filteredSubscribers = computed(() => {
 
 const totalPages = computed(() => Math.ceil(filteredSubscribers.value.length / itemsPerPage));
 
+const sourceSelectArrow = computed(() => {
+  const color = isDarkMode.value ? '%239ca3af' : '%236b7280';
+  return `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='${color}' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`;
+});
+
 const paginatedSubscribers = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage;
   return filteredSubscribers.value.slice(start, start + itemsPerPage);
@@ -87,6 +95,7 @@ const paginatedSubscribers = computed(() => {
 
 const toggleStatus = (subscriber) => {
   subscriber.is_active = !subscriber.is_active;
+  toastSuccess(subscriber.is_active ? t('admin_subscriber_activated') || 'Subscriber activated' : t('admin_subscriber_deactivated') || 'Subscriber deactivated');
 };
 
 const handleView = (subscriber) => {
@@ -127,11 +136,7 @@ const handleSave = (data) => {
   
   isFormVisible.value = false;
   editingSubscriber.value = null;
-  showSuccessMessage.value = true;
-  
-  setTimeout(() => {
-    showSuccessMessage.value = false;
-  }, 3000);
+  toastSuccess(data.action === 'edit' ? t('admin_save_success') || 'Updated' : t('admin_save_success') || 'Added');
 };
 
 const handleCancel = () => {
@@ -152,11 +157,7 @@ const confirmDelete = () => {
     }
     showDeleteConfirm.value = false;
     deletingSubscriberId.value = null;
-    showSuccessMessage.value = true;
-    
-    setTimeout(() => {
-      showSuccessMessage.value = false;
-    }, 3000);
+    toastSuccess(t('admin_delete_success') || 'Deleted');
   }
 };
 
@@ -190,12 +191,6 @@ const handleFilterChange = ({ key, value }) => {
           {{ t('admin_add_subscriber') }}
         </button>
       </div>
-    </div>
-
-    <!-- Success Message -->
-    <div v-if="showSuccessMessage" :class="['mb-6 p-4 rounded-lg flex items-center gap-3', isDarkMode ? 'bg-green-900/30 text-green-400 border border-green-700' : 'bg-green-50 text-green-700 border border-green-200']">
-      <CheckCircle size="20" />
-      <span class="font-medium">{{ t('admin_save_success') }}</span>
     </div>
 
     <!-- Search and Filter -->
@@ -300,78 +295,155 @@ const handleFilterChange = ({ key, value }) => {
       @update:current-page="(page) => currentPage = page"
     />
 
-    <!-- Edit Form -->
-    <div
-      v-if="isFormVisible"
-      class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-    >
-      <div :class="['rounded-lg shadow-xl w-full max-w-lg mx-4 p-6', isDarkMode ? 'bg-gray-800' : 'bg-white']">
-        <h2 :class="['text-xl font-bold mb-4', isDarkMode ? 'text-white' : 'text-gray-900']">
-          {{ editingSubscriber?.action === 'add' ? t('admin_add_subscriber') : editingSubscriber?.action === 'edit' ? t('admin_edit_subscriber') : t('admin_view_subscriber') }}
-        </h2>
-        <form @submit.prevent="handleSave(editingSubscriber)" class="space-y-4">
-          <div>
-            <label :class="['block text-sm font-medium mb-1', isDarkMode ? 'text-gray-300' : 'text-gray-700']">{{ t('admin_table_email') }}</label>
-            <input
-              v-model="editingSubscriber.email"
-              type="email"
-              required
-              :readonly="editingSubscriber?.action === 'view'"
-              :class="['w-full px-3 py-2 border rounded-lg', isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300']"
-            />
-          </div>
-          <div>
-            <label :class="['block text-sm font-medium mb-1', isDarkMode ? 'text-gray-300' : 'text-gray-700']">{{ t('admin_table_name') }}</label>
-            <input
-              v-model="editingSubscriber.name"
-              type="text"
-              required
-              :readonly="editingSubscriber?.action === 'view'"
-              :class="['w-full px-3 py-2 border rounded-lg', isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300']"
-            />
-          </div>
-          <div>
-            <label :class="['block text-sm font-medium mb-1', isDarkMode ? 'text-gray-300' : 'text-gray-700']">{{ t('admin_table_status') }}</label>
-            <select
-              v-model="editingSubscriber.is_active"
-              :disabled="editingSubscriber?.action === 'view'"
-              :class="['w-full px-3 py-2 border rounded-lg', isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300']"
-            >
-              <option :value="true">{{ t('admin_active') }}</option>
-              <option :value="false">{{ t('admin_inactive') }}</option>
-            </select>
-          </div>
-          <div>
-            <label :class="['block text-sm font-medium mb-1', isDarkMode ? 'text-gray-300' : 'text-gray-700']">{{ t('admin_table_source') }}</label>
-            <select
-              v-model="editingSubscriber.source"
-              :disabled="editingSubscriber?.action === 'view'"
-              :class="['w-full px-3 py-2 border rounded-lg', isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300']"
-            >
-              <option value="website">{{ getSourceLabel('website') }}</option>
-              <option value="newsletter">{{ getSourceLabel('newsletter') }}</option>
-              <option value="social">{{ getSourceLabel('social') }}</option>
-            </select>
-          </div>
-          <div class="flex justify-end gap-3 pt-4">
-            <button
-              type="button"
-              @click="handleCancel"
-              :class="['px-4 py-2 border rounded-lg', isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 hover:bg-gray-100']"
-            >
-              {{ editingSubscriber?.action === 'view' ? t('admin_close') : t('admin_cancel') }}
-            </button>
-            <button
-              v-if="editingSubscriber?.action !== 'view'"
-              type="submit"
-              class="px-4 py-2 bg-construct-red text-white rounded-lg hover:bg-construct-red/90"
-            >
-              {{ t('admin_save') }}
+    <!-- Add/Edit/View Form -->
+    <Transition name="modal">
+      <div
+        v-if="isFormVisible"
+        class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50"
+        @click.self="handleCancel"
+      >
+        <div :class="['modal-content w-full max-w-lg mx-4 flex flex-col max-h-[85vh] rounded-2xl shadow-2xl ring-1', isDarkMode ? 'bg-gray-800 ring-gray-700' : 'bg-white ring-gray-200/80']">
+          <!-- Header (sticky top) -->
+          <div class="flex items-center justify-between p-6 pb-3 flex-shrink-0">
+            <div class="flex items-center gap-4">
+              <div :class="['w-10 h-10 rounded-xl shadow-md flex items-center justify-center flex-shrink-0', editingSubscriber?.action === 'view' ? 'bg-gradient-to-br from-sky-500 to-cyan-600' : editingSubscriber?.action === 'edit' ? 'bg-gradient-to-br from-amber-500 to-orange-600' : 'bg-gradient-to-br from-emerald-500 to-teal-600']">
+                <component :is="editingSubscriber?.action === 'view' ? Eye : editingSubscriber?.action === 'edit' ? Edit3 : Plus" :size="18" :style="{ color: '#ffffff' }" />
+              </div>
+              <div>
+                <h3 :class="['font-display text-xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">
+                  {{ editingSubscriber?.action === 'add' ? t('admin_add_subscriber') : editingSubscriber?.action === 'edit' ? t('admin_edit_subscriber') : t('admin_view_subscriber') }}
+                </h3>
+                <p :class="['text-xs font-medium mt-0.5', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
+                  {{ editingSubscriber?.action === 'add' ? '创建新的订阅者' : editingSubscriber?.action === 'edit' ? '编辑订阅者信息' : '查看订阅者详情' }}
+                </p>
+              </div>
+            </div>
+            <button @click="handleCancel" :class="['p-2 rounded-xl transition-colors flex-shrink-0', isDarkMode ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500']">
+              <X :size="20" />
             </button>
           </div>
-        </form>
+
+          <form @submit.prevent="handleSave(editingSubscriber)" class="flex-1 flex flex-col overflow-hidden min-h-0">
+            <!-- Body (scrollable) -->
+            <div class="px-6 py-2 space-y-4 overflow-y-auto flex-1 scroll-smooth">
+              <!-- Email -->
+              <div>
+                <label :class="['block text-xs font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
+                  {{ t('admin_table_email') }} <span v-if="editingSubscriber?.action !== 'view'" class="text-construct-red">*</span>
+                </label>
+                <input
+                  v-model="editingSubscriber.email"
+                  type="email"
+                  required
+                  :readonly="editingSubscriber?.action === 'view'"
+                  :placeholder="editingSubscriber?.action === 'view' ? '' : 'subscriber@example.com'"
+                  :class="[
+                    'w-full px-4 py-3 rounded-xl border transition-all',
+                    editingSubscriber?.action === 'view'
+                      ? (isDarkMode ? 'bg-gray-800 border-gray-700 text-gray-300 cursor-default' : 'bg-gray-50 border-gray-200 text-gray-600 cursor-default')
+                      : [isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500' : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400', 'focus:border-construct-red focus:outline-none']
+                  ]"
+                />
+              </div>
+
+              <!-- Name -->
+              <div>
+                <label :class="['block text-xs font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
+                  {{ t('admin_table_name') }} <span v-if="editingSubscriber?.action !== 'view'" class="text-construct-red">*</span>
+                </label>
+                <input
+                  v-model="editingSubscriber.name"
+                  type="text"
+                  required
+                  :readonly="editingSubscriber?.action === 'view'"
+                  :placeholder="editingSubscriber?.action === 'view' ? '' : '输入订阅者姓名...'"
+                  :class="[
+                    'w-full px-4 py-3 rounded-xl border transition-all',
+                    editingSubscriber?.action === 'view'
+                      ? (isDarkMode ? 'bg-gray-800 border-gray-700 text-gray-300 cursor-default' : 'bg-gray-50 border-gray-200 text-gray-600 cursor-default')
+                      : [isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500' : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400', 'focus:border-construct-red focus:outline-none']
+                  ]"
+                />
+              </div>
+
+              <!-- Status + Source (side by side) -->
+              <div class="grid grid-cols-2 gap-4">
+                <!-- Status Toggle -->
+                <div>
+                  <label :class="['block text-xs font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
+                    {{ t('admin_table_status') }}
+                  </label>
+                  <div class="flex items-center gap-3 py-1">
+                    <button
+                      type="button"
+                      @click="editingSubscriber?.action !== 'view' && (editingSubscriber.is_active = !editingSubscriber.is_active)"
+                      :disabled="editingSubscriber?.action === 'view'"
+                      :class="[
+                        'w-12 h-7 rounded-full relative transition-colors',
+                        editingSubscriber?.action === 'view' ? 'cursor-default opacity-60' : 'cursor-pointer',
+                        editingSubscriber.is_active ? 'bg-green-500' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-400')
+                      ]"
+                    >
+                      <div :class="['absolute top-1 w-5 h-5 rounded-full bg-white shadow transition-transform', editingSubscriber.is_active ? 'left-6' : 'left-1']"></div>
+                    </button>
+                    <span :class="['text-sm font-semibold', editingSubscriber.is_active ? 'text-green-500' : (isDarkMode ? 'text-gray-400' : 'text-gray-500')]">
+                      {{ editingSubscriber.is_active ? t('admin_active') : t('admin_inactive') }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Source (polished select) -->
+                <div>
+                  <label :class="['block text-xs font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
+                    {{ t('admin_table_source') }}
+                  </label>
+                  <select
+                    v-model="editingSubscriber.source"
+                    :disabled="editingSubscriber?.action === 'view'"
+                    :class="[
+                      'w-full px-4 py-3 rounded-xl border transition-all appearance-none',
+                      editingSubscriber?.action === 'view'
+                        ? (isDarkMode ? 'bg-gray-800 border-gray-700 text-gray-300 cursor-default opacity-60' : 'bg-gray-50 border-gray-200 text-gray-600 cursor-default opacity-60')
+                        : (isDarkMode ? 'bg-gray-700 border-gray-600 text-white focus:border-construct-red focus:outline-none' : 'bg-gray-50 border-gray-300 text-gray-900 focus:border-construct-red focus:outline-none')
+                    ]"
+                    :style="{
+                      backgroundImage: sourceSelectArrow,
+                      backgroundRepeat: 'no-repeat',
+                      backgroundPosition: 'right 12px center',
+                      backgroundSize: '16px 16px',
+                      paddingRight: '40px'
+                    }"
+                  >
+                    <option value="website">{{ getSourceLabel('website') }}</option>
+                    <option value="newsletter">{{ getSourceLabel('newsletter') }}</option>
+                    <option value="social">{{ getSourceLabel('social') }}</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Footer (sticky bottom) -->
+            <div class="flex items-center justify-end gap-3 p-6 pt-3 flex-shrink-0">
+              <button
+                type="button"
+                @click="handleCancel"
+                :class="['px-6 py-3 font-bold text-sm tracking-wider uppercase rounded-xl border transition-colors', isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-500 hover:bg-gray-100']"
+              >
+                {{ editingSubscriber?.action === 'view' ? t('admin_close') : t('admin_cancel') }}
+              </button>
+              <button
+                v-if="editingSubscriber?.action !== 'view'"
+                type="submit"
+                class="flex items-center gap-2 px-6 py-3 bg-construct-red text-white font-bold text-sm tracking-wider uppercase rounded-xl shadow-lg shadow-construct-red/20 hover:bg-red-700 transition-all"
+              >
+                <Save :size="16" :style="{ color: '#ffffff' }" />
+                {{ t('admin_save') }}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
+    </Transition>
 
     <!-- Delete Confirm Dialog -->
     <ConfirmDialog
@@ -385,3 +457,30 @@ const handleFilterChange = ({ key, value }) => {
     />
   </div>
 </template>
+
+<style scoped>
+.font-display {
+  font-family: 'Outfit', sans-serif;
+}
+
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
+
+.modal-enter-active .modal-content,
+.modal-leave-active .modal-content {
+  transition: transform 0.35s ease, opacity 0.3s ease;
+}
+
+.modal-enter-from .modal-content,
+.modal-leave-to .modal-content {
+  transform: scale(0.95) translateY(10px);
+  opacity: 0;
+}
+</style>

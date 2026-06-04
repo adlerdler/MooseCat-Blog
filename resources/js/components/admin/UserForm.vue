@@ -17,7 +17,7 @@
  */
 import { ref, computed, watch, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { X, Save, AlertCircle } from 'lucide-vue-next';
+import { X, Save, AlertCircle, User } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
 
 const { t } = useI18n();
@@ -181,43 +181,45 @@ const toggleStatus = () => {
 
 <template>
   <Transition name="modal">
-    <div v-if="visible" class="fixed inset-0 z-[100] flex items-center justify-center">
-      <!-- Backdrop -->
-      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="handleCancel" />
-
+    <div v-if="visible" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm" @click.self="handleCancel">
       <!-- Modal -->
       <div
         :class="[
-          'relative w-full max-w-lg mx-4 rounded-xl shadow-2xl overflow-hidden',
-          isDarkMode ? 'bg-gray-800' : 'bg-white'
+          'modal-content relative w-full max-w-lg mx-4 flex flex-col max-h-[85vh] rounded-2xl shadow-2xl ring-1',
+          isDarkMode ? 'bg-gray-800 ring-gray-700' : 'bg-white ring-gray-200/80'
         ]"
       >
-        <!-- Header -->
-        <div
-          :class="[
-            'flex items-center justify-between p-6 border-b',
-            isDarkMode ? 'border-gray-700' : 'border-gray-200'
-          ]"
-        >
-          <h3 :class="['text-xl font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">
-            {{ formTitle }}
-          </h3>
+        <!-- Header (sticky top) -->
+        <div class="flex items-center justify-between p-6 pb-3 flex-shrink-0">
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 rounded-xl shadow-md bg-gradient-to-br from-teal-500 to-blue-600 flex items-center justify-center flex-shrink-0">
+              <User :size="18" :style="{ color: '#ffffff' }" />
+            </div>
+            <div>
+              <h3 :class="['font-display text-xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">
+                {{ formTitle }}
+              </h3>
+              <p :class="['text-xs font-medium mt-0.5', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
+                {{ isEditMode ? '编辑用户信息' : '创建新的用户账户' }}
+              </p>
+            </div>
+          </div>
           <button
             @click="handleCancel"
             :class="[
-              'p-2 rounded-lg transition-colors',
-              isDarkMode ? 'text-gray-400 hover:text-white hover:bg-gray-700' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+              'p-2 rounded-xl transition-colors flex-shrink-0',
+              isDarkMode ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-500 hover:bg-gray-100'
             ]"
           >
             <X class="w-5 h-5" />
           </button>
         </div>
 
-        <!-- Body -->
-        <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+        <!-- Body (scrollable) -->
+        <div class="px-6 py-2 space-y-4 overflow-y-auto flex-1 scroll-smooth">
           <!-- 错误提示（表单顶部，4秒自动消失） -->
           <Transition name="error-fade">
-            <div v-if="errorMessage" class="flex items-center gap-2 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+            <div v-if="errorMessage" class="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm dark:bg-red-900/20 dark:border-red-800 dark:text-red-300">
               <AlertCircle class="w-4 h-4 flex-shrink-0" />
               <span>{{ errorMessage }}</span>
             </div>
@@ -225,17 +227,17 @@ const toggleStatus = () => {
 
           <!-- Username -->
           <div>
-            <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
-              {{ t('admin_user_form_name') }} *
+            <label :class="['block text-xs font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
+              {{ t('admin_user_form_name') }} <span class="text-construct-red">*</span>
             </label>
             <input
               v-model="formData.name"
               type="text"
               :class="[
-                'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
+                'w-full px-4 py-3 rounded-xl border focus:border-construct-red focus:outline-none transition-all',
                 isDarkMode 
-                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500' 
+                  : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400'
               ]"
               placeholder="输入用户名..."
             />
@@ -243,17 +245,17 @@ const toggleStatus = () => {
 
           <!-- Email -->
           <div>
-            <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
-              {{ t('admin_user_form_email') }} *
+            <label :class="['block text-xs font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
+              {{ t('admin_user_form_email') }} <span class="text-construct-red">*</span>
             </label>
             <input
               v-model="formData.email"
               type="email"
               :class="[
-                'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
+                'w-full px-4 py-3 rounded-xl border focus:border-construct-red focus:outline-none transition-all',
                 isDarkMode 
-                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500' 
+                  : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400'
               ]"
               placeholder="输入邮箱地址..."
             />
@@ -261,38 +263,38 @@ const toggleStatus = () => {
 
           <!-- Password -->
           <div>
-            <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
+            <label :class="['block text-xs font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
               {{ t('admin_user_form_password') }} {{ isEditMode ? t('admin_user_form_password_hint') : '*' }}
             </label>
             <input
               v-model="formData.password"
               type="password"
               :class="[
-                'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
+                'w-full px-4 py-3 rounded-xl border focus:border-construct-red focus:outline-none transition-all',
                 isDarkMode 
-                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500' 
+                  : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400'
               ]"
               :placeholder="isEditMode ? '留空则不修改密码' : '输入密码...'"
             />
-            <p :class="['text-xs mt-1.5', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
+            <p :class="['text-[10px] mt-1.5 font-medium', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
               {{ t('admin_password_rule') }}
             </p>
           </div>
 
           <!-- Confirm Password (only for new user) -->
           <div v-if="!isEditMode">
-            <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
-              {{ t('admin_user_form_confirm_password') }} *
+            <label :class="['block text-xs font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
+              {{ t('admin_user_form_confirm_password') }} <span class="text-construct-red">*</span>
             </label>
             <input
               v-model="formData.password_confirmation"
               type="password"
               :class="[
-                'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
+                'w-full px-4 py-3 rounded-xl border focus:border-construct-red focus:outline-none transition-all',
                 isDarkMode 
-                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500' 
+                  : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400'
               ]"
               placeholder="确认密码..."
             />
@@ -300,16 +302,16 @@ const toggleStatus = () => {
 
           <!-- Role -->
           <div>
-            <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
+            <label :class="['block text-xs font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
               {{ t('admin_user_form_role') }}
             </label>
             <select
               v-model="formData.role_id"
               :class="[
-                'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
+                'w-full px-4 py-3 rounded-xl border focus:border-construct-red focus:outline-none transition-all',
                 isDarkMode 
                   ? 'bg-gray-700 border-gray-600 text-white' 
-                  : 'bg-white border-gray-300 text-gray-900'
+                  : 'bg-gray-50 border-gray-300 text-gray-900'
               ]"
             >
               <option v-for="role in roles" :key="role.id" :value="role.id">
@@ -320,21 +322,21 @@ const toggleStatus = () => {
 
           <!-- Status -->
           <div>
-            <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
+            <label :class="['block text-xs font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
               {{ t('admin_user_form_status') }}
             </label>
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-3 py-1">
               <button
                 type="button"
                 @click="toggleStatus"
                 :class="[
-                  'w-12 h-6 rounded-full relative transition-colors',
+                  'w-12 h-7 rounded-full relative transition-colors',
                   formData.status === 'active' ? 'bg-green-500' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-400')
                 ]"
               >
-                <div :class="['absolute top-1 w-4 h-4 rounded-full bg-white transition-transform', formData.status === 'active' ? 'left-7' : 'left-1']"></div>
+                <div :class="['absolute top-1 w-5 h-5 rounded-full bg-white shadow transition-transform', formData.status === 'active' ? 'left-6' : 'left-1']"></div>
               </button>
-              <span :class="['text-sm font-bold', formData.status === 'active' ? 'text-green-500' : (isDarkMode ? 'text-gray-400' : 'text-gray-500')]">
+              <span :class="['text-sm font-semibold', formData.status === 'active' ? 'text-green-500' : (isDarkMode ? 'text-gray-400' : 'text-gray-500')]">
                 {{ formData.status === 'active' ? t('admin_user_form_active') : t('admin_user_form_inactive') }}
               </span>
             </div>
@@ -342,29 +344,24 @@ const toggleStatus = () => {
 
         </div>
 
-        <!-- Footer -->
-        <div
-          :class="[
-            'flex gap-3 p-6 border-t',
-            isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-          ]"
-        >
+        <!-- Footer (sticky bottom) -->
+        <div class="flex gap-3 p-6 pt-3 flex-shrink-0">
           <button
             @click="handleCancel"
             :class="[
-              'flex-1 px-6 py-3 font-bold tracking-widest uppercase text-sm transition-colors rounded border',
+              'flex-1 px-6 py-3 font-bold tracking-wider uppercase text-sm rounded-xl border transition-colors',
               isDarkMode 
                 ? 'border-gray-600 text-gray-300 hover:bg-gray-700' 
-                : 'border-gray-300 text-gray-700 hover:bg-gray-100'
+                : 'border-gray-300 text-gray-500 hover:bg-gray-100'
             ]"
           >
             {{ t('admin_cancel') }}
           </button>
           <button
             @click="handleSubmit"
-            class="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-construct-red text-white font-bold tracking-widest uppercase text-sm hover:bg-red-700 transition-colors rounded"
+            class="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-construct-red text-white font-bold tracking-wider uppercase text-sm rounded-xl shadow-lg shadow-construct-red/20 hover:bg-red-700 transition-all"
           >
-            <Save class="w-4 h-4" />
+            <Save class="w-4 h-4" :style="{ color: '#ffffff' }" />
             {{ isEditMode ? t('admin_save') : t('admin_create') }}
           </button>
         </div>
@@ -374,6 +371,10 @@ const toggleStatus = () => {
 </template>
 
 <style scoped>
+.font-display {
+  font-family: 'Outfit', sans-serif;
+}
+
 .modal-enter-active,
 .modal-leave-active {
   transition: opacity 0.3s ease;
@@ -386,12 +387,12 @@ const toggleStatus = () => {
 
 .modal-enter-active .modal-content,
 .modal-leave-active .modal-content {
-  transition: transform 0.3s ease, opacity 0.3s ease;
+  transition: transform 0.35s ease, opacity 0.3s ease;
 }
 
 .modal-enter-from .modal-content,
 .modal-leave-to .modal-content {
-  transform: scale(0.95);
+  transform: scale(0.95) translateY(10px);
   opacity: 0;
 }
 

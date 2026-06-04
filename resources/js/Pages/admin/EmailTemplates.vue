@@ -28,7 +28,7 @@ const props = defineProps({
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
-const { success } = useToast();
+const { success, error: toastError } = useToast();
 
 const variables = [
   { name: 'user_name', desc: '收件人的全名' },
@@ -83,6 +83,12 @@ const confirmSave = () => {
   }, {
     preserveState: false,
     preserveScroll: true,
+    onSuccess: () => {
+      success(t('admin_save') + ' ' + t('confirm'));
+    },
+    onError: () => {
+      toastError(t('admin_save_failed') || 'Save failed');
+    },
     onFinish: () => {
       isSaving.value = false;
     },
@@ -109,6 +115,12 @@ const createTemplate = () => {
   router.post('/admin/email-templates', newTemplate.value, {
     preserveState: false,
     preserveScroll: true,
+    onSuccess: () => {
+      success(t('admin_create') + ' ' + t('confirm'));
+    },
+    onError: () => {
+      toastError(t('admin_create_failed') || 'Create failed');
+    },
     onFinish: () => {
       isCreating.value = false;
       showAddModal.value = false;
@@ -260,100 +272,110 @@ const createTemplate = () => {
     />
 
     <!-- Add Template Modal -->
-    <div v-if="showAddModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div :class="['w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-lg shadow-xl', isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200']">
-        <!-- Modal Header -->
-        <div class="flex items-center justify-between p-6 border-b" :class="isDarkMode ? 'border-gray-700' : 'border-gray-200'">
-          <h3 :class="['font-display text-2xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">{{ t('admin_add') }} Email Template</h3>
-          <button @click="showAddModal = false" :class="[isDarkMode ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900']">
-            <X size="20" />
-          </button>
-        </div>
-
-        <!-- Modal Body -->
-        <div class="p-6 space-y-6">
-          <!-- Template Key -->
-          <div>
-            <label :class="['block text-xs font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
-              Template Key <span class="text-construct-red">*</span>
-            </label>
-            <input
-              v-model="newTemplate.name"
-              type="text"
-              placeholder="e.g. order_confirmation"
-              :class="[
-                'w-full px-4 py-3 border focus:border-construct-red focus:outline-none font-mono text-sm',
-                isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'
-              ]"
-            />
-            <p class="text-[10px] mt-1 opacity-40 font-medium">唯一标识符，使用小写字母 + 下划线，如 welcome_email</p>
+    <Transition name="modal">
+      <div v-if="showAddModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" @click.self="showAddModal = false">
+        <div :class="['modal-content w-full max-w-2xl max-h-[90vh] flex flex-col rounded-2xl shadow-2xl ring-1', isDarkMode ? 'bg-gray-800 ring-gray-700' : 'bg-white ring-gray-200/80']">
+          <!-- Modal Header (sticky top) -->
+          <div class="flex items-center justify-between p-6 pb-3 flex-shrink-0">
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-10 rounded-xl shadow-md bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+                <Plus :size="18" :style="{ color: '#ffffff' }" />
+              </div>
+              <div>
+                <h3 :class="['font-display text-xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">{{ t('admin_add') }} Email Template</h3>
+                <p :class="['text-xs font-medium mt-0.5', isDarkMode ? 'text-gray-400' : 'text-gray-500']">创建新的邮件模板</p>
+              </div>
+            </div>
+            <button @click="showAddModal = false" :class="['p-2 rounded-xl transition-colors flex-shrink-0', isDarkMode ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500']">
+              <X :size="20" />
+            </button>
           </div>
 
-          <!-- Subject -->
-          <div>
-            <label :class="['block text-xs font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
-              Email Subject <span class="text-construct-red">*</span>
-            </label>
-            <input
-              v-model="newTemplate.subject"
-              type="text"
-              placeholder="Enter email subject..."
-              :class="[
-                'w-full px-4 py-3 border focus:border-construct-red focus:outline-none',
-                isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'
-              ]"
-            />
+          <!-- Modal Body (scrollable) -->
+          <div class="px-6 py-2 space-y-5 overflow-y-auto flex-1 scroll-smooth">
+            <!-- Template Key -->
+            <div>
+              <label :class="['block text-xs font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
+                Template Key <span class="text-construct-red">*</span>
+              </label>
+              <input
+                v-model="newTemplate.name"
+                type="text"
+                placeholder="e.g. order_confirmation"
+                :class="[
+                  'w-full px-4 py-3 rounded-xl border font-mono text-sm focus:border-construct-red focus:outline-none transition-all',
+                  isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500' : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400'
+                ]"
+              />
+              <p class="text-[10px] mt-1.5 font-medium opacity-40">唯一标识符，使用小写字母 + 下划线，如 welcome_email</p>
+            </div>
+
+            <!-- Subject -->
+            <div>
+              <label :class="['block text-xs font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
+                Email Subject <span class="text-construct-red">*</span>
+              </label>
+              <input
+                v-model="newTemplate.subject"
+                type="text"
+                placeholder="Enter email subject..."
+                :class="[
+                  'w-full px-4 py-3 rounded-xl border focus:border-construct-red focus:outline-none transition-all',
+                  isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500' : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400'
+                ]"
+              />
+            </div>
+
+            <!-- Description -->
+            <div>
+              <label :class="['block text-xs font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">Description</label>
+              <input
+                v-model="newTemplate.description"
+                type="text"
+                placeholder="Brief description of this template..."
+                :class="[
+                  'w-full px-4 py-3 rounded-xl border focus:border-construct-red focus:outline-none transition-all',
+                  isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500' : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400'
+                ]"
+              />
+            </div>
+
+            <!-- Content -->
+            <div>
+              <label :class="['block text-xs font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
+                HTML Content <span class="text-construct-red">*</span>
+              </label>
+              <textarea
+                v-model="newTemplate.content"
+                rows="10"
+                placeholder="<h1>Hello {{ user_name }}!</h1><p>Your order has been confirmed.</p>"
+                :class="[
+                  'w-full px-4 py-3 rounded-xl border font-mono text-sm resize-none focus:border-construct-red focus:outline-none transition-all',
+                  isDarkMode ? 'bg-gray-700 border-gray-600 text-emerald-400 placeholder-gray-500' : 'bg-gray-50 border-gray-300 text-emerald-700 placeholder-gray-400'
+                ]"
+              ></textarea>
+            </div>
           </div>
 
-          <!-- Description -->
-          <div>
-            <label :class="['block text-xs font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">Description</label>
-            <input
-              v-model="newTemplate.description"
-              type="text"
-              placeholder="Brief description of this template..."
-              :class="[
-                'w-full px-4 py-3 border focus:border-construct-red focus:outline-none',
-                isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'
-              ]"
-            />
+          <!-- Modal Footer (sticky bottom) -->
+          <div class="flex items-center justify-end gap-3 p-6 pt-3 flex-shrink-0">
+            <button
+              @click="showAddModal = false"
+              :class="['px-6 py-3 font-bold text-sm tracking-wider uppercase rounded-xl border transition-colors', isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-500 hover:bg-gray-100']"
+            >
+              {{ t('admin_cancel') }}
+            </button>
+            <button
+              @click="createTemplate"
+              :disabled="isCreating || !newTemplate.name || !newTemplate.subject || !newTemplate.content"
+              class="px-6 py-3 bg-construct-red text-white font-bold text-sm tracking-wider uppercase rounded-xl shadow-lg shadow-construct-red/20 hover:bg-red-700 transition-all disabled:opacity-50 disabled:shadow-none"
+            >
+              <Plus :size="16" class="inline mr-1.5" :style="{ color: '#ffffff' }" /> {{ isCreating ? 'CREATING...' : t('admin_add') }}
+            </button>
           </div>
-
-          <!-- Content -->
-          <div>
-            <label :class="['block text-xs font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
-              HTML Content <span class="text-construct-red">*</span>
-            </label>
-            <textarea
-              v-model="newTemplate.content"
-              rows="10"
-              placeholder="<h1>Hello {{user_name}}!</h1><p>Your order has been confirmed.</p>"
-              :class="[
-                'w-full px-4 py-3 border focus:border-construct-red focus:outline-none font-mono text-sm resize-none',
-                isDarkMode ? 'bg-gray-700 border-gray-600 text-emerald-400' : 'bg-white border-gray-300 text-emerald-700'
-              ]"
-            ></textarea>
-          </div>
-        </div>
-
-        <!-- Modal Footer -->
-        <div class="flex items-center justify-end gap-4 p-6 border-t" :class="isDarkMode ? 'border-gray-700' : 'border-gray-200'">
-          <button
-            @click="showAddModal = false"
-            :class="['px-6 py-2 font-bold text-sm tracking-wider border transition-colors', isDarkMode ? 'border-gray-700 text-gray-300 hover:bg-gray-700' : 'border-gray-200 text-gray-600 hover:bg-gray-100']"
-          >
-            {{ t('admin_cancel') }}
-          </button>
-          <button
-            @click="createTemplate"
-            :disabled="isCreating || !newTemplate.name || !newTemplate.subject || !newTemplate.content"
-            class="px-6 py-2 bg-construct-red text-white font-bold text-sm tracking-wider rounded hover:bg-red-700 transition-colors disabled:opacity-50"
-          >
-            <Plus size="16" class="inline mr-1" /> {{ isCreating ? 'CREATING...' : t('admin_add') }}
-          </button>
         </div>
       </div>
-    </div>
+    </Transition>
   </div>
 </template>
 
@@ -362,4 +384,25 @@ const createTemplate = () => {
   font-family: 'Outfit', sans-serif;
 }
 .prose h1 { margin-top: 0; }
+
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
+
+.modal-enter-active .modal-content,
+.modal-leave-active .modal-content {
+  transition: transform 0.35s ease, opacity 0.3s ease;
+}
+
+.modal-enter-from .modal-content,
+.modal-leave-to .modal-content {
+  transform: scale(0.95) translateY(10px);
+  opacity: 0;
+}
 </style>

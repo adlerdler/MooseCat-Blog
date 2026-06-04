@@ -10,7 +10,7 @@
  */
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { usePage, router } from '@inertiajs/vue3';
-import { Bell, Check, CheckCheck, Trash2, Info, AlertTriangle, AlertCircle, CheckCircle } from 'lucide-vue-next';
+import { Bell, Trash2, Info, AlertTriangle, AlertCircle, CheckCircle } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
 import { useTheme } from '../composables/useTheme';
 
@@ -146,13 +146,11 @@ const formatTime = (dateStr) => {
             :key="notification.id"
             class="group flex gap-3 px-4 py-3 transition-colors cursor-pointer"
             :class="[
-              isDarkMode ? 'border-b border-gray-700/50 hover:bg-gray-700/50' : 'border-b border-gray-100 hover:bg-gray-50',
-              !notification.read ? (isDarkMode ? 'bg-gray-700/30' : 'bg-gray-50/50') : ''
+              isDarkMode ? 'border-b border-gray-700/50 hover:bg-gray-700/50 bg-gray-700/30' : 'border-b border-gray-100 hover:bg-gray-50 bg-gray-50/50'
             ]"
           >
-            <!-- Read / Unread indicator -->
+            <!-- 通知类型图标 -->
             <button
-              v-if="!notification.read"
               @click="markAsRead(notification.id)"
               class="shrink-0 mt-0.5 p-0.5 rounded hover:bg-green-500/20 transition-colors"
               title="Mark as read"
@@ -165,24 +163,12 @@ const formatTime = (dateStr) => {
                 />
               </div>
             </button>
-            <button
-              v-else
-              @click="() => {}"
-              class="shrink-0 mt-0.5 p-0.5 rounded"
-            >
-              <div class="w-8 h-8 rounded-full flex items-center justify-center opacity-50"
-                :class="isDarkMode ? 'bg-gray-700' : 'bg-gray-100'">
-                <Check class="w-4 h-4 text-gray-400" />
-              </div>
-            </button>
 
-            <!-- Content -->
-            <div class="flex-1 min-w-0" @click="!notification.read && markAsRead(notification.id)">
+            <!-- 内容 -->
+            <div class="flex-1 min-w-0" @click="markAsRead(notification.id)">
               <div class="flex items-start justify-between gap-2">
                 <h4 class="text-sm font-bold truncate"
-                  :class="notification.read
-                    ? (isDarkMode ? 'text-gray-400' : 'text-gray-600')
-                    : (isDarkMode ? 'text-white' : 'text-gray-900')">
+                  :class="isDarkMode ? 'text-white' : 'text-gray-900'">
                   {{ notification.title }}
                 </h4>
               </div>

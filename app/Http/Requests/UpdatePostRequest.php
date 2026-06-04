@@ -44,8 +44,9 @@ class UpdatePostRequest extends FormRequest
             'status' => ['nullable', 'in:draft,published,scheduled'],
             'published_at' => ['nullable', 'date'],
             'is_featured' => ['nullable', 'boolean'],
-            'seo_title' => ['nullable', 'string', 'max:255'],
-            'seo_description' => ['nullable', 'string', 'max:500'],
+            'meta_title' => ['nullable', 'string', 'max:255'],
+            'meta_description' => ['nullable', 'string', 'max:500'],
+            'meta_keywords' => ['nullable', 'string', 'max:500'],
         ];
     }
 

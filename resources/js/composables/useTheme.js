@@ -1,167 +1,34 @@
 /**
  * useTheme.js - 主题管理 Composable
  *
- * 功能说明：
- * - 统一管理应用的深色/浅色主题状态（仅后台使用）
- * - 管理 Accent Color 主题（前台后台共享）
- * - 提供响应式的主题状态
- * - 支持 localStorage 持久化
- * - 提供便捷的主题相关工具函数
- *
- * 使用方式：
- * // 通过 options 传入数据（必须）
- * import { useTheme } from '../../composables/useTheme';
- * const { isDarkMode, themes } = useTheme({ themesData: props.themes });
+ * 向后兼容的包装层，实际逻辑委托给 useThemeStore（Pinia）。
+ * 使用 writable computed（get/set）保持响应式，与 Pinia 3.x proxy 完全兼容。
+ * 现有 69 处引用无需修改。
  */
-import { ref, computed, watch } from 'vue';
-
-let globalThemesData = null;
-
-const getActiveThemes = (themesData) => themesData.filter(t => t.is_active).sort((a, b) => a.sort_order - b.sort_order);
-const getDefaultTheme = (themesData) => themesData.find(t => t.is_default) || themesData[0];
-
-const isDarkMode = ref(true);
-const themes = ref([]);
-const currentTheme = ref(null);
-
-const updateAccentColor = () => {
-  if (currentTheme.value) {
-    document.documentElement.style.setProperty('--accent', currentTheme.value.color);
-  }
-};
-
-const safeGetItem = (key) => {
-  try { return localStorage.getItem(key); } catch { return null; }
-};
-
-const safeSetItem = (key, value) => {
-  try { localStorage.setItem(key, value); } catch { /* noop */ }
-};
-
-const initAccentTheme = () => {
-  const savedAccentTheme = safeGetItem('accent_theme');
-  const savedAccentColor = safeGetItem('accent_color');
-  if (savedAccentTheme) {
-    const found = themes.value.find(t => t.name === savedAccentTheme);
-    if (found) {
-      currentTheme.value = found;
-    } else if (savedAccentColor) {
-      // Fallback: theme data not loaded yet, but we have the saved color
-      currentTheme.value = { name: savedAccentTheme, color: savedAccentColor };
-    }
-  }
-  updateAccentColor();
-};
+import { computed } from 'vue';
+import { useThemeStore } from '../stores/theme';
 
 export function useTheme(options = {}) {
-  const themesData = options.themesData || [];
+  const store = useThemeStore();
 
-  if (!globalThemesData && themesData.length > 0) {
-    globalThemesData = themesData;
-    themes.value = getActiveThemes(globalThemesData);
-    // If a fallback theme was set from localStorage, update it with full data
-    if (currentTheme.value && currentTheme.value.name) {
-      const fullTheme = getActiveThemes(globalThemesData).find(
-        t => t.name === currentTheme.value.name
-      );
-      if (fullTheme) {
-        currentTheme.value = fullTheme;
-      } else {
-        currentTheme.value = getDefaultTheme(globalThemesData);
-      }
-    } else {
-      currentTheme.value = getDefaultTheme(globalThemesData);
-    }
-    updateAccentColor();
-  } else if (options.themesData && themesData.length > 0) {
-    globalThemesData = themesData;
-    themes.value = getActiveThemes(globalThemesData);
-    // If a fallback theme was set from localStorage, update it with full data
-    if (currentTheme.value && currentTheme.value.name) {
-      const fullTheme = getActiveThemes(globalThemesData).find(
-        t => t.name === currentTheme.value.name
-      );
-      if (fullTheme) {
-        currentTheme.value = fullTheme;
-      } else {
-        const newDefault = getDefaultTheme(globalThemesData);
-        if (newDefault) {
-          currentTheme.value = newDefault;
-        }
-      }
-    } else {
-      const newDefault = getDefaultTheme(globalThemesData);
-      if (newDefault) {
-        currentTheme.value = newDefault;
-      }
-    }
-    updateAccentColor();
+  // 首次调用时注入后端主题数据（幂等）
+  if (options.themesData?.length > 0) {
+    store.setThemesData(options.themesData);
   }
 
-  const initTheme = () => {
-    const savedTheme = safeGetItem('admin_theme');
-    isDarkMode.value = savedTheme !== 'light';
-
-    if (isDarkMode.value) {
-      document.documentElement.classList.remove('light');
-    } else {
-      document.documentElement.classList.add('light');
-    }
-
-    initAccentTheme();
-  };
-
-  const toggleTheme = () => {
-    isDarkMode.value = !isDarkMode.value;
-
-    if (isDarkMode.value) {
-      safeSetItem('admin_theme', 'dark');
-      document.documentElement.classList.remove('light');
-    } else {
-      safeSetItem('admin_theme', 'light');
-      document.documentElement.classList.add('light');
-    }
-  };
-
-  const setTheme = (theme) => {
-    currentTheme.value = theme;
-    safeSetItem('accent_theme', theme.name);
-    safeSetItem('accent_color', theme.color);
-    updateAccentColor();
-  };
-
-  const themeClass = computed(() => ({
-    'bg-gray-900': isDarkMode.value,
-    'bg-gray-800': isDarkMode.value,
-    'bg-gray-700': isDarkMode.value,
-    'bg-gray-600': isDarkMode.value,
-    'bg-white': !isDarkMode.value,
-    'bg-gray-50': !isDarkMode.value,
-    'bg-gray-100': !isDarkMode.value,
-    'bg-gray-200': !isDarkMode.value,
-    'text-white': isDarkMode.value,
-    'text-gray-900': !isDarkMode.value,
-    'text-gray-400': isDarkMode.value,
-    'text-gray-500': !isDarkMode.value,
-    'border-gray-700': isDarkMode.value,
-    'border-gray-600': isDarkMode.value,
-    'border-gray-200': !isDarkMode.value,
-    'border-gray-300': !isDarkMode.value,
-  }));
-
-  const getClass = (darkClass, lightClass) => {
-    return isDarkMode.value ? darkClass : lightClass;
-  };
-
   return {
-    isDarkMode,
-    toggleTheme,
-    themeClass,
-    getClass,
-    initTheme,
-    themes,
-    currentTheme,
-    setTheme,
-    initAccentTheme,
+    // 响应式 state + getters（writable computed，通过 Pinia proxy 读写）
+    isDarkMode: computed({ get: () => store.isDarkMode, set: (v) => { store.isDarkMode = v; } }),
+    themes: computed({ get: () => store.themes, set: (v) => { store.themes = v; } }),
+    currentTheme: computed({ get: () => store.currentTheme, set: (v) => { store.currentTheme = v; } }),
+    themeClass: computed(() => store.themeClass),
+    initialized: computed(() => store.initialized),
+    // Actions（直接引用）
+    toggleTheme: store.toggleTheme,
+    getClass: store.getClass,
+    initTheme: store.initTheme,
+    setTheme: store.setTheme,
+    initAccentTheme: store.initAccentTheme,
+    setThemesData: store.setThemesData,
   };
 }

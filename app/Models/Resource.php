@@ -22,6 +22,7 @@ class Resource extends Model
         'drives',
         'downloads_count',
         'likes_count',
+        'author_id',
     ];
 
     protected $casts = [
@@ -42,6 +43,11 @@ class Resource extends Model
     public function tags(): MorphToMany
     {
         return $this->morphToMany(Tag::class, 'taggable');
+    }
+
+    public function author(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'author_id');
     }
 
     public function getActivitylogOptions(): LogOptions

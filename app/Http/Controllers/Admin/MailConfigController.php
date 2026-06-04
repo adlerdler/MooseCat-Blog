@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\UpdateMailConfigRequest;
 use App\Models\AuthorProfile;
 use App\Models\MailConfig;
 use App\Services\MailService;
@@ -44,18 +45,9 @@ class MailConfigController extends Controller
      * 
      * Creates or updates the active mail config record in the database.
      */
-    public function update(Request $request): \Illuminate\Http\RedirectResponse
+    public function update(UpdateMailConfigRequest $request): \Illuminate\Http\RedirectResponse
     {
-        $validated = $request->validate([
-            'host'         => 'required|string',
-            'port'         => 'required|integer',
-            'username'     => 'required|string',
-            'encryption'   => 'nullable|string',
-            'fromAddress'  => 'required|email',
-            'fromName'     => 'required|string',
-            'password'     => 'nullable|string',
-            'driver'       => 'nullable|string',
-        ]);
+        $validated = $request->validated();
 
         $config = MailConfig::where('is_active', true)->first();
 

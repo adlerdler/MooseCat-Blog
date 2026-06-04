@@ -14,7 +14,7 @@
  */
 import { ref, computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { X, Save, Check, Palette } from 'lucide-vue-next';
+import { X, Save, Check, Palette, Shield } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
 import { useRolePermissions } from '../../composables/useRolePermissions';
 
@@ -152,93 +152,101 @@ const handleCancel = () => {
 
 <template>
   <Transition name="modal">
-    <div v-if="visible" class="fixed inset-0 z-[100] flex items-center justify-center">
-      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="handleCancel" />
+    <div v-if="visible" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm" @click.self="handleCancel">
 
       <div
         :class="[
-          'relative w-full max-w-2xl mx-4 rounded-xl shadow-2xl overflow-hidden max-h-[90vh]',
-          isDarkMode ? 'bg-gray-800' : 'bg-white'
+          'modal-content w-full max-w-2xl mx-4 flex flex-col max-h-[85vh] rounded-2xl shadow-2xl ring-1',
+          isDarkMode ? 'bg-gray-800 ring-gray-700' : 'bg-white ring-gray-200/80'
         ]"
       >
-        <div
-          :class="[
-            'flex items-center justify-between p-6 border-b',
-            isDarkMode ? 'border-gray-700' : 'border-gray-200'
-          ]"
-        >
-          <h3 :class="['text-xl font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">
-            {{ formTitle }}
-          </h3>
+        <!-- Header (sticky top) -->
+        <div class="flex items-center justify-between p-6 pb-3 flex-shrink-0">
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 rounded-xl shadow-md bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center flex-shrink-0">
+              <Shield :size="18" :style="{ color: '#ffffff' }" />
+            </div>
+            <div>
+              <h3 :class="['font-display text-xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">
+                {{ formTitle }}
+              </h3>
+              <p :class="['text-xs font-medium mt-0.5', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
+                {{ isEditMode ? '编辑角色与权限' : '创建新的角色' }}
+              </p>
+            </div>
+          </div>
           <button
             @click="handleCancel"
             :class="[
-              'p-2 rounded-lg transition-colors',
-              isDarkMode ? 'text-gray-400 hover:text-white hover:bg-gray-700' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+              'p-2 rounded-xl transition-colors flex-shrink-0',
+              isDarkMode ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-500 hover:bg-gray-100'
             ]"
           >
             <X class="w-5 h-5" />
           </button>
         </div>
 
-        <div class="p-6 space-y-4 max-h-[calc(90vh-200px)] overflow-y-auto">
+        <!-- Body (scrollable) -->
+        <div class="px-6 py-2 space-y-4 overflow-y-auto flex-1 scroll-smooth">
+          <!-- Name + Label -->
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
-                {{ t('admin_role_form_name') }} *
+              <label :class="['block text-xs font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
+                {{ t('admin_role_form_name') }} <span class="text-construct-red">*</span>
               </label>
               <input
                 v-model="formData.name"
                 type="text"
                 :class="[
-                  'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
+                  'w-full px-4 py-3 rounded-xl border focus:border-construct-red focus:outline-none transition-all font-mono text-sm',
                   isDarkMode
-                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
-                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500'
+                    : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400'
                 ]"
                 placeholder="e.g., admin, editor"
               />
-              <p :class="['text-xs mt-1', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
+              <p :class="['text-[10px] mt-1.5 font-medium opacity-40']">
                 Unique identifier, use lowercase
               </p>
             </div>
 
             <div>
-              <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
+              <label :class="['block text-xs font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
                 {{ t('admin_role_form_label') }}
               </label>
               <input
                 v-model="formData.label"
                 type="text"
                 :class="[
-                  'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red uppercase',
+                  'w-full px-4 py-3 rounded-xl border focus:border-construct-red focus:outline-none transition-all uppercase',
                   isDarkMode
-                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
-                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500'
+                    : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400'
                 ]"
                 placeholder="e.g., ADMIN, EDITOR"
               />
-              <p :class="['text-xs mt-1', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
+              <p :class="['text-[10px] mt-1.5 font-medium opacity-40']">
                 For i18n display
               </p>
             </div>
           </div>
 
+          <!-- Color + Guard -->
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
+              <label :class="['block text-xs font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
                 <Palette class="inline w-4 h-4 mr-1" />
                 {{ t('admin_role_form_color') }}
               </label>
-              <div class="flex flex-wrap gap-2">
+              <div class="flex flex-wrap gap-2 py-1">
                 <button
                   v-for="color in colorOptions"
                   :key="color.value"
                   type="button"
                   @click="formData.color = color.value"
                   :class="[
-                    'w-8 h-8 rounded-full border-2 transition-all',
-                    formData.color === color.value ? 'border-gray-900 scale-110' : 'border-transparent hover:scale-105',
+                    'w-9 h-9 rounded-xl border-2 transition-all',
+                    formData.color === color.value ? 'border-gray-900 scale-110 shadow-md' : 'border-transparent hover:scale-105',
                     color.class
                   ]"
                 />
@@ -246,47 +254,49 @@ const handleCancel = () => {
             </div>
 
             <div>
-              <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
+              <label :class="['block text-xs font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
                 {{ t('admin_role_form_guard') }}
               </label>
               <select
                 v-model="formData.guard_name"
                 :class="[
-                  'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
+                  'w-full px-4 py-3 rounded-xl border focus:border-construct-red focus:outline-none transition-all',
                   isDarkMode
                     ? 'bg-gray-700 border-gray-600 text-white'
-                    : 'bg-white border-gray-300 text-gray-900'
+                    : 'bg-gray-50 border-gray-300 text-gray-900'
                 ]"
               >
                 <option v-for="guard in guardOptions" :key="guard" :value="guard">
                   {{ GUARD_LABELS[guard] || guard }}
                 </option>
               </select>
-              <p :class="['text-xs mt-1', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
+              <p :class="['text-[10px] mt-1.5 font-medium opacity-40']">
                 Controls which guard this role applies to
               </p>
             </div>
           </div>
 
+          <!-- Description -->
           <div>
-            <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
-              {{ t('admin_role_form_description') }} *
+            <label :class="['block text-xs font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
+              {{ t('admin_role_form_description') }} <span class="text-construct-red">*</span>
             </label>
             <textarea
               v-model="formData.description"
               rows="2"
               :class="[
-                'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red resize-none',
+                'w-full px-4 py-3 rounded-xl border focus:border-construct-red focus:outline-none transition-all resize-none',
                 isDarkMode
-                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
-                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500'
+                  : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400'
               ]"
               placeholder="Describe this role's purpose..."
             ></textarea>
           </div>
 
+          <!-- Permissions -->
           <div>
-            <label :class="['block text-sm font-bold mb-3', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
+            <label :class="['block text-xs font-bold tracking-widest uppercase mb-3', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
               {{ t('admin_role_form_permissions') }}
             </label>
 
@@ -297,16 +307,16 @@ const handleCancel = () => {
                 type="button"
                 @click="togglePermission(permission.id)"
                 :class="[
-                  'flex items-center gap-2 px-3 py-2.5 rounded-lg border text-sm font-medium transition-all duration-200',
+                  'flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-medium transition-all duration-200',
                   hasPermission(permission.id)
                     ? 'bg-construct-red/10 border-construct-red text-construct-red hover:bg-construct-red/20'
                     : isDarkMode
                       ? 'bg-gray-700/50 border-gray-600 text-gray-300 hover:border-gray-500 hover:bg-gray-700'
-                      : 'bg-white border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+                      : 'bg-gray-50 border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-white'
                 ]"
               >
                 <div :class="[
-                  'w-4 h-4 rounded flex items-center justify-center border transition-colors',
+                  'w-4 h-4 rounded-md flex items-center justify-center border transition-colors',
                   hasPermission(permission.id)
                     ? 'bg-construct-red border-construct-red'
                     : isDarkMode
@@ -319,34 +329,30 @@ const handleCancel = () => {
               </button>
             </div>
 
-            <p :class="['text-xs mt-2', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
+            <p :class="['text-[10px] mt-2 font-medium opacity-40']">
               {{ t('admin_role_form_selected') }}: {{ formData.permissions?.length || 0 }}
             </p>
           </div>
         </div>
 
-        <div
-          :class="[
-            'flex gap-3 p-6 border-t',
-            isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-          ]"
-        >
+        <!-- Footer (sticky bottom) -->
+        <div class="flex gap-3 p-6 pt-3 flex-shrink-0">
           <button
             @click="handleCancel"
             :class="[
-              'flex-1 px-6 py-3 font-bold tracking-widest uppercase text-sm transition-colors rounded border',
+              'flex-1 px-6 py-3 font-bold tracking-wider uppercase text-sm rounded-xl border transition-colors',
               isDarkMode
                 ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
-                : 'border-gray-300 text-gray-700 hover:bg-gray-100'
+                : 'border-gray-300 text-gray-500 hover:bg-gray-100'
             ]"
           >
             {{ t('admin_cancel') }}
           </button>
           <button
             @click="handleSubmit"
-            class="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-construct-red text-white font-bold tracking-widest uppercase text-sm hover:bg-red-700 transition-colors rounded"
+            class="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-construct-red text-white font-bold tracking-wider uppercase text-sm rounded-xl shadow-lg shadow-construct-red/20 hover:bg-red-700 transition-all"
           >
-            <Save class="w-4 h-4" />
+            <Save class="w-4 h-4" :style="{ color: '#ffffff' }" />
             {{ isEditMode ? t('admin_save') : t('admin_create') }}
           </button>
         </div>
@@ -356,6 +362,10 @@ const handleCancel = () => {
 </template>
 
 <style scoped>
+.font-display {
+  font-family: 'Outfit', sans-serif;
+}
+
 .modal-enter-active,
 .modal-leave-active {
   transition: opacity 0.3s ease;
@@ -368,12 +378,12 @@ const handleCancel = () => {
 
 .modal-enter-active .modal-content,
 .modal-leave-active .modal-content {
-  transition: transform 0.3s ease, opacity 0.3s ease;
+  transition: transform 0.35s ease, opacity 0.3s ease;
 }
 
 .modal-enter-from .modal-content,
 .modal-leave-to .modal-content {
-  transform: scale(0.95);
+  transform: scale(0.95) translateY(10px);
   opacity: 0;
 }
 </style>

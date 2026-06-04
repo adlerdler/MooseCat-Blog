@@ -1,28 +1,29 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateMenuRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
-            //
+            'type'           => ['sometimes', 'required', 'string', 'in:front,admin'],
+            'label_key'      => ['sometimes', 'required', 'string', 'max:255'],
+            'path'           => ['nullable', 'string', 'max:500'],
+            'icon_name'      => ['nullable', 'string', 'max:255'],
+            'component_name' => ['nullable', 'string', 'max:255'],
+            'parent_id'      => ['nullable', 'integer', 'exists:menus,id'],
+            'sort_order'     => ['nullable', 'integer'],
+            'is_active'      => ['boolean'],
         ];
     }
 }

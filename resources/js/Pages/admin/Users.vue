@@ -25,6 +25,7 @@ import {
   Mail,
   Shield,
   X,
+  useToast,
   UserForm,
   ConfirmDialog,
   Pagination,
@@ -41,6 +42,7 @@ const props = defineProps({
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
+const { success: toastSuccess, error: toastError } = useToast();
 const { getRoleLabel, getRoleStyle } = useRolePermissions({
   roles: props.roles
 });
@@ -78,7 +80,9 @@ const toggleStatus = (user) => {
   const newStatus = user.status === 'active' ? 'inactive' : 'active';
   const form = useForm({ status: newStatus });
   form.patch(route('admin.users.toggle-status', user.id), {
+    preserveState: true,
     onSuccess: () => {
+      toastSuccess(`User ${newStatus === 'active' ? 'activated' : 'deactivated'} successfully`);
       user.status = newStatus;
     },
     onError: (errors) => {
@@ -103,11 +107,12 @@ const handleSave = (data) => {
   if (editingUser.value) {
     const form = useForm(formData);
     form.put(route('admin.users.update', editingUser.value.id), {
+      preserveState: true,
       onSuccess: () => {
+        toastSuccess('User updated successfully');
         isFormVisible.value = false;
         editingUser.value = null;
         serverErrors.value = {};
-        router.reload();
       },
       onError: (errors) => {
         serverErrors.value = errors;
@@ -116,11 +121,12 @@ const handleSave = (data) => {
   } else {
     const form = useForm(formData);
     form.post(route('admin.users.store'), {
+      preserveState: true,
       onSuccess: () => {
+        toastSuccess('User created successfully');
         isFormVisible.value = false;
         editingUser.value = null;
         serverErrors.value = {};
-        router.reload();
       },
       onError: (errors) => {
         serverErrors.value = errors;
@@ -144,13 +150,15 @@ const confirmDelete = () => {
   if (deletingUserId.value !== null) {
     const form = useForm({});
     form.delete(route('admin.users.destroy', deletingUserId.value), {
+      preserveState: true,
       onSuccess: () => {
+        toastSuccess('User deleted successfully');
         showDeleteConfirm.value = false;
         deletingUserId.value = null;
-        router.reload();
       },
       onError: (errors) => {
-        console.error('Delete error:', errors);
+        const msg = Object.values(errors || {}).flat().join(', ') || 'Failed to delete user';
+        toastError(msg);
         showDeleteConfirm.value = false;
         deletingUserId.value = null;
       }

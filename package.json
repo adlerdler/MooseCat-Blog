@@ -31,6 +31,7 @@
         "marked": "^18.0.3",
         "motion": "^12.38.0",
         "motion-v": "^2.2.1",
+        "pinia": "^3.0.4",
         "prismjs": "^1.30.0",
         "tippy.js": "^6.3.7",
         "vitesse": "github:zyyv/vue-github-calendar",

@@ -3,152 +3,47 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreSocialLinkRequest;
+use App\Http\Requests\UpdateSocialLinkRequest;
 use App\Models\FooterLink;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use App\Services\SocialLinksService;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class SocialLinksController extends Controller
 {
-    public function __construct()
-    {
+    public function __construct(
+        protected SocialLinksService $socialLinksService,
+    ) {
         $this->middleware('permission:manage_social_links');
     }
 
     public function index(): Response
     {
-        $socialLinks = FooterLink::socialLinks()
-            ->orderBy('sort_order')
-            ->get()
-            ->map(function ($link) {
-                return [
-                    'id' => $link->id,
-                    'platform' => $link->platform,
-                    'url' => $link->url,
-                    'icon' => $link->icon ?? $link->icon_name,
-                    'label' => $link->label,
-                    'sort_order' => $link->sort_order,
-                    'is_active' => $link->is_active,
-                ];
-            });
-        
-        $categoryLinks = FooterLink::categoryLinks()
-            ->orderBy('sort_order')
-            ->get()
-            ->map(function ($link) {
-                return [
-                    'id' => $link->id,
-                    'label' => $link->label,
-                    'url' => $link->url,
-                    'sort_order' => $link->sort_order,
-                    'is_active' => $link->is_active,
-                ];
-            });
-        
-        $dataLinks = FooterLink::dataLinks()
-            ->orderBy('sort_order')
-            ->get()
-            ->map(function ($link) {
-                return [
-                    'id' => $link->id,
-                    'label' => $link->label,
-                    'url' => $link->url,
-                    'sort_order' => $link->sort_order,
-                    'is_active' => $link->is_active,
-                ];
-            });
-
         return Inertia::render('admin/SocialLinks', [
-            'socialLinks' => $socialLinks,
+            'socialLinks' => $this->socialLinksService->getSocialLinks(),
             'navLinks' => [
-                'categories' => $categoryLinks,
-                'data' => $dataLinks,
+                'categories' => $this->socialLinksService->getCategoryLinks(),
+                'data'       => $this->socialLinksService->getDataLinks(),
             ],
         ]);
     }
 
-    public function store(Request $request)
+    public function store(StoreSocialLinkRequest $request)
     {
-        $type = $request->input('type', 'social');
-        
-        if ($type === 'social') {
-            $validated = $request->validate([
-                'platform' => 'required|string|max:255',
-                'url' => 'required|url|max:500',
-                'icon' => 'nullable|string|max:255',
-                'label' => 'nullable|string|max:255',
-                'sort_order' => 'nullable|integer',
-                'is_active' => 'boolean',
-            ]);
+        $validated = $request->validated();
+        $validated['type'] = $request->input('type', 'social');
 
-            FooterLink::create([
-                'type' => 'social_link',
-                'platform' => $validated['platform'],
-                'url' => $validated['url'],
-                'icon' => $validated['icon'] ?? $validated['platform'],
-                'icon_name' => $validated['platform'],
-                'label' => $validated['label'] ?? strtoupper($validated['platform']),
-                'sort_order' => $validated['sort_order'] ?? 0,
-                'is_active' => $validated['is_active'] ?? true,
-            ]);
-        } else {
-            $validated = $request->validate([
-                'label' => 'required|string|max:255',
-                'url' => 'required|string|max:500',
-                'sort_order' => 'nullable|integer',
-                'is_active' => 'boolean',
-            ]);
-
-            FooterLink::create([
-                'type' => 'nav_link',
-                'platform' => $type,
-                'label' => $validated['label'],
-                'url' => $validated['url'],
-                'sort_order' => $validated['sort_order'] ?? 0,
-                'is_active' => $validated['is_active'] ?? true,
-            ]);
-        }
+        $this->socialLinksService->create($validated);
 
         return redirect()->route('admin.social-links')->with('success', '链接已创建');
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateSocialLinkRequest $request, $id)
     {
         $footerLink = FooterLink::findOrFail($id);
-        
-        $validated = $request->validate([
-            'platform' => 'nullable|string|max:255',
-            'url' => 'required|string|max:500',
-            'icon' => 'nullable|string|max:255',
-            'label' => 'nullable|string|max:255',
-            'sort_order' => 'nullable|integer',
-            'is_active' => 'boolean',
-        ]);
 
-        $updateData = [
-            'url' => $validated['url'],
-            'is_active' => $validated['is_active'] ?? $footerLink->is_active,
-        ];
-        
-        if (!empty($validated['platform'] ?? null)) {
-            $updateData['platform'] = $validated['platform'];
-            $updateData['icon_name'] = $validated['platform'];
-        }
-        
-        if (!empty($validated['icon'] ?? null)) {
-            $updateData['icon'] = $validated['icon'];
-        }
-        
-        if (!empty($validated['label'] ?? null)) {
-            $updateData['label'] = $validated['label'];
-        }
-        
-        if (array_key_exists('sort_order', $validated) && $validated['sort_order'] !== null) {
-            $updateData['sort_order'] = (int) $validated['sort_order'];
-        }
-
-        $footerLink->update($updateData);
+        $this->socialLinksService->update($footerLink, $request->validated());
 
         return redirect()->route('admin.social-links')->with('success', '链接已更新');
     }
@@ -156,7 +51,7 @@ class SocialLinksController extends Controller
     public function destroy($id)
     {
         $footerLink = FooterLink::findOrFail($id);
-        $footerLink->delete();
+        $this->socialLinksService->delete($footerLink);
 
         return redirect()->route('admin.social-links')->with('success', '链接已删除');
     }

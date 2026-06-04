@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreNotificationRequest;
 use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -60,14 +61,9 @@ class NotificationsController extends Controller
     /**
      * 管理员手动创建通知
      */
-    public function store(Request $request): RedirectResponse
+    public function store(StoreNotificationRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'title'   => 'required|string|max:255',
-            'message' => 'required|string',
-            'type'    => 'required|string|in:info,warning,error,success',
-            'link'    => 'nullable|string|max:500',
-        ]);
+        $validated = $request->validated();
 
         try {
             $this->notificationService->createAdminNotification(

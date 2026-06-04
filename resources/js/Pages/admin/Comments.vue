@@ -32,6 +32,7 @@ import {
   SearchFilterModal
 } from '../../composables/useAdminImports';
 import { useTheme } from '../../composables/useTheme';
+import { useToast } from '../../composables/useToast';
 import { formatToShort } from '../../utils/dateUtils';
 import { Motion, AnimatePresence } from 'motion-v';
 
@@ -42,6 +43,7 @@ const props = defineProps({
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
+const { success: toastSuccess, error: toastError } = useToast();
 
 const searchQuery = ref('');
 const statusFilter = ref('all');
@@ -95,16 +97,26 @@ const getStatusLabel = (isApproved) => {
 
 const approveComment = (comment) => {
   router.put(`/admin/comments/${comment.id}`, { is_approved: true }, {
+    preserveState: true,
     onSuccess: () => {
       comment.is_approved = true;
+      toastSuccess(t('admin_comment_approved') || 'Comment approved');
+    },
+    onError: () => {
+      toastError(t('admin_update_failed') || 'Approval failed');
     },
   });
 };
 
 const rejectComment = (comment) => {
   router.put(`/admin/comments/${comment.id}`, { is_approved: false }, {
+    preserveState: true,
     onSuccess: () => {
       comment.is_approved = false;
+      toastSuccess(t('admin_comment_rejected') || 'Comment rejected');
+    },
+    onError: () => {
+      toastError(t('admin_update_failed') || 'Rejection failed');
     },
   });
 };
@@ -117,9 +129,14 @@ const handleDeleteClick = (comment) => {
 const confirmDelete = () => {
   if (commentToDelete.value) {
     router.delete(`/admin/comments/${commentToDelete.value.id}`, {
+      preserveState: true,
       onSuccess: () => {
         comments.value = comments.value.filter(c => c.id !== commentToDelete.value.id);
         commentToDelete.value = null;
+        toastSuccess(t('admin_comment_deleted') || 'Comment deleted');
+      },
+      onError: () => {
+        toastError(t('admin_delete_failed') || 'Delete failed');
       },
     });
   }
@@ -142,14 +159,16 @@ const submitReply = (comment) => {
   router.post(`/admin/comments/${comment.id}/reply`, {
     body: replyContent.value,
   }, {
+    preserveState: true,
     onSuccess: () => {
       replyingToId.value = null;
       replyContent.value = '';
+      toastSuccess(t('admin_reply_sent') || 'Reply sent');
       // 刷新页面以加载包含回复的最新数据
       router.reload({ only: ['comments'], preserveState: true, preserveScroll: true });
     },
     onError: (errors) => {
-      alert(Object.values(errors).flat()[0] || '回复失败，请重试');
+      toastError(Object.values(errors).flat()[0] || t('admin_reply_failed') || 'Reply failed');
     },
   });
 };
@@ -159,12 +178,14 @@ const deleteReply = (comment, reply) => {
   if (!confirm('确定要删除这条回复吗？')) return;
 
   router.delete(`/admin/comments/${reply.id}`, {
+    preserveState: true,
     onSuccess: () => {
       // 从本地 replies 数组中移除
       comment.replies = comment.replies.filter(r => r.id !== reply.id);
+      toastSuccess(t('admin_reply_deleted') || 'Reply deleted');
     },
     onError: () => {
-      alert('删除失败，请重试');
+      toastError(t('admin_delete_failed') || 'Delete failed');
     },
   });
 };

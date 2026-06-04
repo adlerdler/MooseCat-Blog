@@ -9,6 +9,7 @@ use Illuminate\Auth\Events\Login;
 use Spatie\Activitylog\Models\Activity;
 use App\Events\CommentCreated;
 use App\Listeners\SendCommentNotification;
+use App\Listeners\AwardCommentPoints;
 use App\Listeners\UpdateLastLoginAt;
 
 class AppServiceProvider extends ServiceProvider
@@ -37,7 +38,13 @@ class AppServiceProvider extends ServiceProvider
             SendCommentNotification::class,
         );
 
-        // 注册事件监听：登录时更新 last_login_at
+        // 注册事件监听：评论创建时给评论者加积分
+        Event::listen(
+            CommentCreated::class,
+            AwardCommentPoints::class,
+        );
+
+        // 注册事件监听：登录时更新 last_login_at + 每日登录积分
         Event::listen(
             Login::class,
             UpdateLastLoginAt::class,

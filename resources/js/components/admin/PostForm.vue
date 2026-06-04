@@ -55,6 +55,12 @@ const colorOptions = [
   { value: 'black', label: t('admin_post_form_black') }
 ];
 
+const toDatetimeLocal = (date) => {
+  const d = date ? new Date(date) : new Date();
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
 const formData = ref({
   title: '',
   category: '',
@@ -63,7 +69,8 @@ const formData = ref({
   content: '',
   color: 'red',
   tags: '',
-  thumbnail: ''
+  thumbnail: '',
+  date: toDatetimeLocal()
 });
 
 const initFormData = () => {
@@ -75,7 +82,8 @@ const initFormData = () => {
     content: '',
     color: 'red',
     tags: '',
-    thumbnail: ''
+    thumbnail: '',
+    date: toDatetimeLocal()
   };
 };
 
@@ -180,6 +188,22 @@ const handleMediaSelect = (file) => {
 
       <div>
         <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
+          {{ t('admin_post_form_date') }}
+        </label>
+        <input
+          v-model="formData.date"
+          type="datetime-local"
+          :class="[
+            'w-full px-4 py-2 text-sm rounded-xl border focus:outline-none focus:border-construct-red',
+            isDarkMode 
+              ? 'bg-gray-700 border-gray-600 text-white [color-scheme:dark]' 
+              : 'bg-white border-gray-300 text-gray-900'
+          ]"
+        />
+      </div>
+
+      <div>
+        <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
           {{ t('admin_post_form_thumbnail') }}
         </label>
         <div class="flex gap-2">
@@ -266,6 +290,7 @@ const handleMediaSelect = (file) => {
           <TagInput v-model="formData.tags" :label="t('admin_post_form_tags')" placeholder="输入标签，按回车或逗号添加" />
         </div>
       </div>
+
     </div>
   </ContentFormModal>
 

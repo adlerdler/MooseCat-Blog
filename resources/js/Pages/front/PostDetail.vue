@@ -71,14 +71,15 @@ const inContentAd = computed(() => {
   return getSingleAd('in_content');
 });
 
-usePageSeo({
+const { SeoHead } = usePageSeo({
   title: computed(() => props.post?.meta_title || (props.post?.title ? `${props.post.title} - ARCHYX` : 'ARCHYX')),
   description: computed(() => props.post?.meta_description || props.post?.excerpt || ''),
   keywords: computed(() => props.post?.meta_keywords || (props.post?.tags?.join(', ') || '')),
   image: computed(() => props.post?.cover_image || ''),
   url: computed(() => `${window.location.origin}/posts/${props.post?.slug}`),
   type: 'Article',
-  author: computed(() => getAuthorName(props.post?.author_id))
+  author: computed(() => getAuthorName(props.post?.author_id)),
+  publishedTime: computed(() => props.post?.published_at || ''),
 })
 
 const tableOfContents = computed(() => {
@@ -216,6 +217,7 @@ onUnmounted(() => {
 </script>
 
 <template>
+  <SeoHead />
   <div v-if="!post" class="min-h-screen bg-construct-paper flex items-center justify-center p-8">
     <div class="text-center">
       <h1 class="font-display text-4xl md:text-6xl mb-8 tracking-tighter">DATA CORRUPTION</h1>

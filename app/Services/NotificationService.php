@@ -16,6 +16,7 @@ class NotificationService
     private const TYPE_MAP = [
         'new_comment'                => 'info',
         'new_user'                   => 'info',
+        'level_up'                   => 'success',
         'system_info'                => 'info',
         'system_warning'             => 'warning',
         'system_error'               => 'error',
@@ -38,12 +39,11 @@ class NotificationService
     }
 
     /**
-     * 获取通知铃铛的最新未读通知
+     * 获取通知铃铛的最新未读通知（已读的不显示在铃铛下拉中）
      */
     public function getBellNotifications(User $user, int $limit = 5): Collection
     {
-        return $user->notifications()
-            ->orderBy('created_at', 'desc')
+        return $user->unreadNotifications()
             ->take($limit)
             ->get()
             ->map(fn ($notification) => $this->formatNotification($notification));

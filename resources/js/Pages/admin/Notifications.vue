@@ -26,9 +26,11 @@ import {
   X,
   Clock,
   Link,
+  ExternalLink,
   Pagination,
   SearchFilterModal
 } from '../../composables/useAdminImports';
+import { useToast } from '../../composables/useToast';
 import { formatToShort } from '../../utils/dateUtils';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import NotificationForm from '../../components/admin/NotificationForm.vue';
@@ -41,6 +43,7 @@ const props = defineProps({
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
+const { success: toastSuccess, error: toastError } = useToast();
 
 const typeOptions = [
   { value: 'info',    label: t('admin_notification_type_info') },
@@ -70,6 +73,25 @@ const getTypeBgColor = (type) => {
   }
   const colors = { info: 'bg-blue-100', warning: 'bg-yellow-100', error: 'bg-red-100', success: 'bg-green-100' };
   return colors[type] || 'bg-blue-100';
+};
+
+const getTypeBgGradient = (type) => {
+  const gradients = {
+    info: 'bg-gradient-to-br from-blue-400 to-cyan-600',
+    warning: 'bg-gradient-to-br from-yellow-400 to-amber-600',
+    error: 'bg-gradient-to-br from-red-400 to-rose-600',
+    success: 'bg-gradient-to-br from-green-400 to-emerald-600',
+  };
+  return gradients[type] || gradients.info;
+};
+
+const getTypeBadgeStyle = (type) => {
+  if (isDarkMode.value) {
+    const styles = { info: 'bg-blue-400/20 text-blue-300', warning: 'bg-yellow-400/20 text-yellow-300', error: 'bg-red-400/20 text-red-300', success: 'bg-green-400/20 text-green-300' };
+    return styles[type] || styles.info;
+  }
+  const styles = { info: 'bg-blue-100 text-blue-700', warning: 'bg-yellow-100 text-yellow-700', error: 'bg-red-100 text-red-700', success: 'bg-green-100 text-green-700' };
+  return styles[type] || styles.info;
 };
 
 const searchQuery = ref('');
@@ -130,9 +152,10 @@ const handleSave = (data) => {
     onSuccess: () => {
       isFormVisible.value = false;
       editingNotification.value = null;
+      toastSuccess(t('admin_notification_created') || 'Notification created');
     },
     onError: (errors) => {
-      console.error('Notification create error:', errors);
+      toastError(Object.values(errors).flat()[0] || t('admin_create_failed') || 'Create failed');
     },
   });
 };
@@ -150,9 +173,10 @@ const confirmDelete = () => {
       onSuccess: () => {
         showDeleteConfirm.value = false;
         deletingNotificationId.value = null;
+        toastSuccess(t('admin_notification_deleted') || 'Notification deleted');
       },
       onError: (errors) => {
-        console.error('Delete error:', errors);
+        toastError(Object.values(errors).flat()[0] || t('admin_delete_failed') || 'Delete failed');
         showDeleteConfirm.value = false;
         deletingNotificationId.value = null;
       },
@@ -167,7 +191,11 @@ const markAsRead = (id) => {
   router.patch(
     route('admin.notifications.mark-as-read', id),
     {},
-    { preserveScroll: true, preserveState: true }
+    { preserveScroll: true, preserveState: true,
+      onSuccess: () => {
+        toastSuccess(t('admin_notification_read') || 'Marked as read');
+      },
+    }
   );
 };
 
@@ -176,7 +204,11 @@ const markAllAsRead = () => {
   router.post(
     route('admin.notifications.mark-all-as-read'),
     {},
-    { preserveScroll: true, preserveState: true }
+    { preserveScroll: true, preserveState: true,
+      onSuccess: () => {
+        toastSuccess(t('admin_all_notifications_read') || 'All marked as read');
+      },
+    }
   );
 };
 
@@ -342,19 +374,28 @@ const handleFilterChange = ({ key, value }) => {
     <Transition name="modal">
       <div
         v-if="isFormVisible"
-        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
         @click.self="isFormVisible = false"
       >
-        <div :class="['w-full max-w-lg rounded-xl shadow-xl', isDarkMode ? 'bg-gray-800' : 'bg-white']">
-          <div :class="['flex items-center justify-between px-6 py-4 border-b', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
-            <h2 :class="['font-display text-lg tracking-tight', isDarkMode ? 'text-white' : 'text-gray-900']">
-              {{ t('admin_add_notification') }}
-            </h2>
+        <div :class="['modal-content w-full max-w-lg flex flex-col max-h-[85vh] rounded-2xl shadow-2xl ring-1 overflow-hidden', isDarkMode ? 'bg-gray-800 ring-gray-700' : 'bg-white ring-gray-200/80']">
+          <!-- Header (sticky) -->
+          <div class="flex items-center justify-between p-6 pb-3 flex-shrink-0">
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-10 rounded-xl shadow-md bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center flex-shrink-0">
+                <Bell :size="18" :style="{ color: '#ffffff' }" />
+              </div>
+              <div>
+                <h2 :class="['font-display text-xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">
+                  {{ t('admin_add_notification') }}
+                </h2>
+                <p :class="['text-xs font-medium mt-0.5', isDarkMode ? 'text-gray-400' : 'text-gray-500']">创建新的系统通知</p>
+              </div>
+            </div>
             <button
               @click="isFormVisible = false"
-              :class="['p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500']"
+              :class="['p-2 rounded-xl transition-colors flex-shrink-0', isDarkMode ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500']"
             >
-              <X size="20" />
+              <X :size="20" />
             </button>
           </div>
 
@@ -368,69 +409,89 @@ const handleFilterChange = ({ key, value }) => {
     </Transition>
 
     <!-- Detail Modal -->
-    <Teleport to="body">
+    <Transition name="modal">
       <div
         v-if="showDetailModal"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
         @click.self="showDetailModal = false"
       >
-        <div :class="['w-full max-w-xl mx-4 p-8 rounded-xl shadow-xl', isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900']">
-          <div class="flex items-center justify-between mb-6 border-b pb-4" :class="isDarkMode ? 'border-gray-700' : 'border-gray-100'">
-            <h3 class="text-2xl font-bold flex items-center gap-3">
-              <component
-                :is="getTypeIcon(viewingNotification?.type)"
-                :class="getTypeColor(viewingNotification?.type)"
-                size="24"
-              />
-              {{ viewingNotification?.title }}
-            </h3>
+        <div :class="['modal-content w-full max-w-xl mx-4 flex flex-col max-h-[85vh] rounded-2xl shadow-2xl ring-1 overflow-hidden', isDarkMode ? 'bg-gray-800 ring-gray-700 text-white' : 'bg-white ring-gray-200/80 text-gray-900']">
+          <!-- Header (sticky) -->
+          <div class="flex items-center justify-between p-6 pb-3 flex-shrink-0">
+            <div class="flex items-center gap-4">
+              <div :class="['w-10 h-10 rounded-xl shadow-md flex items-center justify-center flex-shrink-0', getTypeBgGradient(viewingNotification?.type)]">
+                <component :is="getTypeIcon(viewingNotification?.type)" :size="18" :style="{ color: '#ffffff' }" />
+              </div>
+              <div>
+                <h3 :class="['font-display text-xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">
+                  {{ viewingNotification?.title }}
+                </h3>
+                <p :class="['text-xs font-medium mt-0.5', isDarkMode ? 'text-gray-400' : 'text-gray-500']">通知详情</p>
+              </div>
+            </div>
             <button
               @click="showDetailModal = false"
-              :class="['p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500']"
+              :class="['p-2 rounded-xl transition-colors flex-shrink-0', isDarkMode ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500']"
             >
-              <X size="24" />
+              <X :size="20" />
             </button>
           </div>
 
-          <div class="space-y-4">
-            <div>
-              <span :class="['px-2 py-1 text-xs font-bold uppercase rounded', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600']">
+          <!-- Body (scrollable) -->
+          <div :class="['px-6 py-2 space-y-5 overflow-y-auto flex-1 scroll-smooth', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
+            <!-- Tags row -->
+            <div class="flex items-center gap-2 flex-wrap">
+              <span :class="['px-3 py-1 text-[10px] font-bold tracking-widest uppercase rounded-lg', getTypeBadgeStyle(viewingNotification?.type)]">
                 {{ viewingNotification?.type }}
               </span>
-              <span v-if="!viewingNotification?.read" class="ml-2 px-2 py-1 text-xs font-bold bg-construct-red text-white rounded">
+              <span v-if="!viewingNotification?.read" class="px-3 py-1 text-[10px] font-bold tracking-widest uppercase bg-construct-red text-white rounded-lg">
                 UNREAD
               </span>
             </div>
 
-            <p :class="['text-sm', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
-              {{ viewingNotification?.message }}
-            </p>
+            <!-- Message -->
+            <div>
+              <label :class="['block text-xs font-bold tracking-widest uppercase mb-3', isDarkMode ? 'text-gray-400' : 'text-gray-500']">通知内容</label>
+              <div :class="['p-4 rounded-xl text-sm leading-relaxed', isDarkMode ? 'bg-gray-700/50' : 'bg-gray-50']">
+                {{ viewingNotification?.message }}
+              </div>
+            </div>
 
-            <div v-if="viewingNotification?.link" class="flex items-center gap-2">
-              <Link :class="isDarkMode ? 'text-gray-500' : 'text-gray-400'" size="14" />
+            <!-- Link -->
+            <div v-if="viewingNotification?.link">
+              <label :class="['block text-xs font-bold tracking-widest uppercase mb-3', isDarkMode ? 'text-gray-400' : 'text-gray-500']">关联链接</label>
               <a
                 :href="viewingNotification?.link"
                 target="_blank"
-                :class="['text-sm', isDarkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-500']"
+                :class="[
+                  'flex items-center gap-3 px-4 py-3 rounded-xl border text-sm font-medium transition-all group',
+                  isDarkMode
+                    ? 'bg-gray-700/50 border-gray-600 text-blue-400 hover:border-blue-500 hover:bg-gray-700'
+                    : 'bg-gray-50 border-gray-200 text-blue-600 hover:border-blue-400 hover:bg-blue-50/50'
+                ]"
               >
-                {{ viewingNotification?.link }}
+                <Link :size="16" class="flex-shrink-0" :class="isDarkMode ? 'text-gray-500' : 'text-gray-400'" />
+                <span class="truncate flex-1">{{ viewingNotification?.link }}</span>
+                <ExternalLink :size="14" class="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" :class="isDarkMode ? 'text-gray-500' : 'text-gray-400'" />
               </a>
             </div>
 
+            <!-- Time -->
             <div class="flex items-center gap-2 text-sm" :class="isDarkMode ? 'text-gray-500' : 'text-gray-400'">
-              <Clock size="14" />
+              <Clock :size="14" class="flex-shrink-0" />
               <span>{{ formatToShort(viewingNotification?.created_at) }}</span>
             </div>
           </div>
 
-          <div class="mt-8 pt-6 border-t flex justify-end gap-3" :class="isDarkMode ? 'border-gray-700' : 'border-gray-100'">
+          <!-- Footer (sticky) -->
+          <div class="flex items-center justify-end gap-3 p-6 pt-3 flex-shrink-0">
             <button
               @click="showDetailModal = false"
               :class="[
-                'px-6 py-2 font-bold tracking-widest uppercase text-sm transition-colors rounded border',
+                'px-6 py-3 font-bold tracking-wider uppercase text-sm rounded-xl border transition-colors',
                 isDarkMode
                   ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
-                  : 'border-gray-300 text-gray-700 hover:bg-gray-100'
+                  : 'border-gray-300 text-gray-500 hover:bg-gray-100'
               ]"
             >
               {{ t('admin_close') }}
@@ -438,15 +499,15 @@ const handleFilterChange = ({ key, value }) => {
             <button
               v-if="!viewingNotification?.read"
               @click="markAsRead(viewingNotification.id); showDetailModal = false"
-              class="flex items-center gap-2 px-6 py-2 bg-green-600 text-white font-bold tracking-widest uppercase text-sm hover:bg-green-700 transition-colors rounded"
+              class="flex items-center gap-2 px-6 py-3 bg-green-600 text-white font-bold tracking-wider uppercase text-sm rounded-xl shadow-lg shadow-green-600/20 hover:bg-green-700 transition-all"
             >
-              <CheckCircle size="16" />
+              <CheckCircle :size="16" :style="{ color: '#ffffff' }" />
               {{ t('admin_mark_read') }}
             </button>
           </div>
         </div>
       </div>
-    </Teleport>
+    </Transition>
 
     <!-- Delete Confirm Dialog -->
     <ConfirmDialog
@@ -461,13 +522,28 @@ const handleFilterChange = ({ key, value }) => {
 </template>
 
 <style scoped>
+.font-display {
+  font-family: 'Outfit', sans-serif;
+}
+
 .modal-enter-active,
 .modal-leave-active {
-  transition: opacity 0.2s ease;
+  transition: opacity 0.3s ease;
 }
 
 .modal-enter-from,
 .modal-leave-to {
+  opacity: 0;
+}
+
+.modal-enter-active .modal-content,
+.modal-leave-active .modal-content {
+  transition: transform 0.35s ease, opacity 0.3s ease;
+}
+
+.modal-enter-from .modal-content,
+.modal-leave-to .modal-content {
+  transform: scale(0.95) translateY(10px);
   opacity: 0;
 }
 </style>

@@ -169,6 +169,7 @@ const handleDelete = (item) => {
 const confirmDelete = () => {
   const item = deleteConfirm.value.item;
   router.delete(route('admin.front-menu.destroy', item.id), {
+    preserveState: true,
     onSuccess: () => {
       if (currentTab.value === 'front') {
         frontMenuList.value = frontMenuList.value.filter(l => l.id !== item.id);
@@ -226,6 +227,7 @@ const confirmSave = () => {
   }));
   
   router.post(route('admin.front-menu.batch-update'), { menus: menusData }, {
+    preserveState: true,
     preserveScroll: true,
     onSuccess: () => {
       isSaving.value = false;

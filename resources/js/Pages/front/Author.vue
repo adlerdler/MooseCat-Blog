@@ -104,10 +104,12 @@ const endDate = computed(() => {
  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 });
 const rangeColor = computed(() => {
- const themeColor = currentTheme.value.color;
- const r = parseInt(themeColor.slice(1, 3), 16);
- const g = parseInt(themeColor.slice(3, 5), 16);
- const b = parseInt(themeColor.slice(5, 7), 16);
+ const defaultColor = '#a72525';
+ const themeColor = currentTheme.value?.color || defaultColor;
+ const hex = themeColor.startsWith('#') ? themeColor : defaultColor;
+ const r = parseInt(hex.slice(1, 3), 16);
+ const g = parseInt(hex.slice(3, 5), 16);
+ const b = parseInt(hex.slice(5, 7), 16);
  const toRgba = (opacity) => `rgba(${r}, ${g}, ${b}, ${opacity})`;
  return [
    '#e8e8e8',
@@ -115,7 +117,7 @@ const rangeColor = computed(() => {
    toRgba(0.3),
    toRgba(0.5),
    toRgba(0.75),
-   themeColor
+   hex
  ];
 });
 onMounted(() => {

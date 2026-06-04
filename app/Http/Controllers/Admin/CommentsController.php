@@ -4,11 +4,11 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdateCommentRequest;
+use App\Jobs\SendEmailJob;
 use App\Models\AuthorProfile;
 use App\Models\Comment;
 use App\Models\Post;
 use App\Services\CommentService;
-use App\Services\MailService;
 use App\Services\SettingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -142,11 +142,11 @@ class CommentsController extends Controller
             'siteUrl'       => $siteUrl,
         ])->render();
 
-        app(MailService::class)->send(
+        dispatch(new SendEmailJob(
             $comment->email,
             "{$penName} 回复了你的评论 | {$postTitle}",
             $htmlBody
-        );
+        ))->afterResponse();
     }
 
     public function update(UpdateCommentRequest $request, Comment $comment): RedirectResponse

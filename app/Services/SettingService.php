@@ -122,6 +122,8 @@ class SettingService
             'copyright' => $settings['copyright'] ?? '',
             'site_url' => $settings['site_url'] ?? '',
             'maintenance' => (bool) ($settings['maintenance'] ?? false),
+            'registration' => (bool) ($settings['registration'] ?? true),
+            'social_login' => (bool) ($settings['social_login'] ?? true),
             'comments' => (bool) ($settings['comments'] ?? true),
             'author_bio' => (bool) ($settings['author_bio'] ?? true),
             'search' => (bool) ($settings['search'] ?? true),

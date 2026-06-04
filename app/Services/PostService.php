@@ -48,10 +48,15 @@ class PostService
             $data['slug'] = $data['slug'] ?? (Str::random(8) . '-' . Str::random(4));
             $data['status'] = $data['status'] ?? 'published';
             $data['published_at'] = $data['published_at'] ?? now();
-            
+
             $tags = $data['tags'] ?? [];
             unset($data['tags']);
-            
+
+            // SEO 默认值：未提供时自动从标题/摘要/标签填充
+            $data['meta_title']       = ($data['meta_title'] ?? '')       ?: ($data['title'] ?? '');
+            $data['meta_description'] = ($data['meta_description'] ?? '') ?: ($data['excerpt'] ?? '');
+            $data['meta_keywords']    = ($data['meta_keywords'] ?? '')    ?: (is_array($tags) ? implode(', ', $tags) : '');
+
             $post = Post::create($data);
 
             if (!empty($tags)) {

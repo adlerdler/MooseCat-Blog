@@ -54,6 +54,12 @@ const confirmSave = () => {
   router.put('/admin/mail-config', mailSettings.value, {
     preserveState: false,
     preserveScroll: true,
+    onSuccess: () => {
+      success(t('admin_save') + ' ' + t('confirm'));
+    },
+    onError: () => {
+      error(t('admin_save_failed') || 'Save failed');
+    },
     onFinish: () => {
       isSaving.value = false;
     },

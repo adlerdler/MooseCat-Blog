@@ -63,7 +63,7 @@ const getDefaultTheme = () => {
   const themes = props.themes || [];
   return themes.find(t => t.is_default) || null;
 };
-const { success } = useToast();
+const { success, error: toastError } = useToast();
 
 const tabsConfig = [
   { id: 'site', label_key: 'admin_settings_site', icon_key: 'globe' },
@@ -209,6 +209,7 @@ const saveTheme = () => {
   isSavingTheme.value = true;
   if (editingTheme.value) {
     router.put(route('admin.settings.themes.update', editingTheme.value.id), themeForm.value, {
+      preserveState: true,
       onSuccess: () => {
         isSavingTheme.value = false;
         success(t('admin_update') + ' ' + t('confirm'));
@@ -216,11 +217,12 @@ const saveTheme = () => {
       },
       onError: (errors) => {
         isSavingTheme.value = false;
-        console.error('更新失败:', errors);
+        toastError(t('admin_update_failed') || 'Update failed');
       }
     });
   } else {
     router.post(route('admin.settings.themes.store'), themeForm.value, {
+      preserveState: true,
       onSuccess: () => {
         isSavingTheme.value = false;
         success(t('admin_create') + ' ' + t('confirm'));
@@ -228,7 +230,7 @@ const saveTheme = () => {
       },
       onError: (errors) => {
         isSavingTheme.value = false;
-        console.error('创建失败:', errors);
+        toastError(t('admin_create_failed') || 'Create failed');
       }
     });
   }
@@ -237,11 +239,12 @@ const saveTheme = () => {
 const deleteTheme = (theme) => {
   if (confirm(`确定要删除主题 "${theme.label}" 吗？`)) {
     router.delete(route('admin.settings.themes.destroy', theme.id), {
+      preserveState: true,
       onSuccess: () => {
         success(t('admin_delete') + ' ' + t('confirm'));
       },
       onError: (errors) => {
-        console.error('删除失败:', errors);
+        toastError(t('admin_delete_failed') || 'Delete failed');
       }
     });
   }
@@ -297,6 +300,7 @@ const confirmSave = () => {
     robots: seo.value.robots,
     llm_txt: seo.value.llm_txt,
   }, {
+    preserveState: true,
     preserveScroll: true,
     onSuccess: () => {
       isSaving.value = false;
@@ -304,7 +308,7 @@ const confirmSave = () => {
     },
     onError: (errors) => {
       isSaving.value = false;
-      console.error('保存失败:', errors);
+      toastError(t('admin_save_failed') || 'Save failed');
     },
   });
 };

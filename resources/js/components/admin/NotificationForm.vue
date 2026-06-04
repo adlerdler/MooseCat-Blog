@@ -62,94 +62,96 @@ const handleClose = () => {
 </script>
 
 <template>
-  <div :class="['p-6 space-y-6', isDarkMode ? 'bg-gray-800' : 'bg-white']">
-    <!-- Title -->
-    <div>
-      <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
-        {{ t('admin_notification_form_title') || '通知标题' }} *
-      </label>
-      <input
-        v-model="formData.title"
-        type="text"
-        :disabled="isViewMode"
-        :class="[
-          'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
-          isDarkMode
-            ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 disabled:opacity-50'
-            : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 disabled:opacity-50'
-        ]"
-        :placeholder="t('admin_notification_form_title_placeholder') || '输入通知标题...'"
-      />
+  <!-- Form Body (scrollable) -->
+  <div :class="['px-6 py-2 space-y-4 overflow-y-auto flex-1 scroll-smooth', isDarkMode ? 'bg-gray-800' : 'bg-white']">
+      <!-- Title -->
+      <div>
+        <label :class="['block text-xs font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
+          {{ t('admin_notification_form_title') || '通知标题' }} <span class="text-construct-red">*</span>
+        </label>
+        <input
+          v-model="formData.title"
+          type="text"
+          :disabled="isViewMode"
+          :class="[
+            'w-full px-4 py-3 rounded-xl border focus:border-construct-red focus:outline-none transition-all',
+            isDarkMode
+              ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500 disabled:opacity-50'
+              : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400 disabled:opacity-50'
+          ]"
+          :placeholder="t('admin_notification_form_title_placeholder') || '输入通知标题...'"
+        />
+      </div>
+
+      <!-- Type -->
+      <div>
+        <label :class="['block text-xs font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
+          {{ t('admin_notification_form_type') || '通知类型' }} <span class="text-construct-red">*</span>
+        </label>
+        <select
+          v-model="formData.type"
+          :disabled="isViewMode"
+          :class="[
+            'w-full px-4 py-3 rounded-xl border focus:border-construct-red focus:outline-none transition-all',
+            isDarkMode
+              ? 'bg-gray-700 border-gray-600 text-white disabled:opacity-50'
+              : 'bg-gray-50 border-gray-300 text-gray-900 disabled:opacity-50'
+          ]"
+        >
+          <option v-for="option in typeOptions" :key="option.value" :value="option.value">
+            {{ option.label }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Message -->
+      <div>
+        <label :class="['block text-xs font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
+          {{ t('admin_notification_form_message') || '通知内容' }} <span class="text-construct-red">*</span>
+        </label>
+        <textarea
+          v-model="formData.message"
+          :disabled="isViewMode"
+          rows="4"
+          :class="[
+            'w-full px-4 py-3 rounded-xl border focus:border-construct-red focus:outline-none transition-all resize-none',
+            isDarkMode
+              ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500 disabled:opacity-50'
+              : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400 disabled:opacity-50'
+          ]"
+          :placeholder="t('admin_notification_form_message_placeholder') || '输入通知内容...'"
+        />
+      </div>
+
+      <!-- Link -->
+      <div>
+        <label :class="['block text-xs font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
+          {{ t('admin_notification_form_link') || '关联链接' }}
+        </label>
+        <input
+          v-model="formData.link"
+          type="text"
+          :disabled="isViewMode"
+          :class="[
+            'w-full px-4 py-3 rounded-xl border focus:border-construct-red focus:outline-none transition-all font-mono text-sm',
+            isDarkMode
+              ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500 disabled:opacity-50'
+              : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400 disabled:opacity-50'
+          ]"
+          :placeholder="t('admin_notification_form_link_placeholder') || '输入关联链接（可选）...'"
+        />
+      </div>
     </div>
 
-    <!-- Type -->
-    <div>
-      <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
-        {{ t('admin_notification_form_type') || '通知类型' }} *
-      </label>
-      <select
-        v-model="formData.type"
-        :disabled="isViewMode"
-        :class="[
-          'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
-          isDarkMode
-            ? 'bg-gray-700 border-gray-600 text-white disabled:opacity-50'
-            : 'bg-white border-gray-300 text-gray-900 disabled:opacity-50'
-        ]"
-      >
-        <option v-for="option in typeOptions" :key="option.value" :value="option.value">
-          {{ option.label }}
-        </option>
-      </select>
-    </div>
-
-    <!-- Message -->
-    <div>
-      <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
-        {{ t('admin_notification_form_message') || '通知内容' }} *
-      </label>
-      <textarea
-        v-model="formData.message"
-        :disabled="isViewMode"
-        rows="4"
-        :class="[
-          'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red resize-none',
-          isDarkMode
-            ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 disabled:opacity-50'
-            : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 disabled:opacity-50'
-        ]"
-        :placeholder="t('admin_notification_form_message_placeholder') || '输入通知内容...'"
-      />
-    </div>
-
-    <!-- Link -->
-    <div>
-      <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
-        {{ t('admin_notification_form_link') || '关联链接' }}
-      </label>
-      <input
-        v-model="formData.link"
-        type="text"
-        :disabled="isViewMode"
-        :class="[
-          'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
-          isDarkMode
-            ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 disabled:opacity-50'
-            : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 disabled:opacity-50'
-        ]"
-        :placeholder="t('admin_notification_form_link_placeholder') || '输入关联链接（可选）...'"
-      />
-    </div>
-
-    <!-- Actions -->
-    <div :class="['flex items-center justify-end gap-3 pt-4 border-t', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
+    <!-- Actions (sticky bottom) -->
+    <div :class="['flex items-center justify-end gap-3 p-6 pt-3 flex-shrink-0', isDarkMode ? 'bg-gray-800' : 'bg-white']">
       <button
         @click="handleClose"
         :class="[
-          'px-4 py-2 text-sm font-bold tracking-widest rounded-lg transition-colors',
+          'px-6 py-3 text-sm font-bold tracking-wider uppercase rounded-xl border transition-colors',
           isDarkMode
-            ? 'text-gray-400 hover:text-white hover:bg-gray-700'
-            : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+            ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
+            : 'border-gray-300 text-gray-500 hover:bg-gray-100'
         ]"
       >
         {{ t('admin_cancel') || '取消' }}
@@ -157,11 +159,10 @@ const handleClose = () => {
       <button
         v-if="!isViewMode"
         @click="handleSave"
-        class="inline-flex items-center gap-2 px-4 py-2 bg-construct-red text-white text-sm font-bold tracking-widest rounded-lg hover:bg-red-700 transition-colors"
+        class="inline-flex items-center gap-2 px-6 py-3 bg-construct-red text-white text-sm font-bold tracking-wider uppercase rounded-xl shadow-lg shadow-construct-red/20 hover:bg-red-700 transition-all"
       >
-        <Save size="16" />
+        <Save :size="16" :style="{ color: '#ffffff' }" />
         {{ t('admin_save') || '保存' }}
       </button>
     </div>
-  </div>
 </template>

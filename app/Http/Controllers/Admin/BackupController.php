@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreBackupRequest;
 use App\Jobs\CreateBackupJob;
 use App\Services\BackupService;
 use Illuminate\Http\RedirectResponse;
@@ -32,12 +33,9 @@ class BackupController extends Controller
     /**
      * 创建备份（异步：立即返回，后台 Job 执行）
      */
-    public function create(Request $request): RedirectResponse
+    public function create(StoreBackupRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'type' => 'required|in:full,database,files,incremental',
-            'note' => 'nullable|string|max:255',
-        ]);
+        $validated = $request->validated();
 
         try {
             // 1. 创建 pending 状态的记录

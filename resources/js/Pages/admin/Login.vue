@@ -9,11 +9,12 @@
  * - 支持记住密码功能
  * - 支持密码显示/隐藏切换
  * - 支持中英文国际化
+ * - 超时/手动退出后在右下角显示通知，点击页面或X关闭
  */
-import { ref, computed } from 'vue';
+import { ref, computed, watch, onUnmounted } from 'vue';
 import { router, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
-import { Lock, Mail, AlertCircle, Eye, EyeOff, X, ShieldOff } from 'lucide-vue-next';
+import { Lock, Mail, AlertCircle, Eye, EyeOff, X, ShieldOff, Clock } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
 
 const { t } = useI18n();
@@ -25,12 +26,52 @@ const password = ref('');
 const rememberMe = ref(false);
 const showPassword = ref(false);
 const isLoading = ref(false);
-const dismissedDisabledNotice = ref(false);
 
-// 禁用提示：来自后端 disabled 错误
+// ─── 禁用用户提示（来自后端 disabled 错误） ────────────
+const dismissedDisabledNotice = ref(false);
 const disabledMessage = computed(() => {
   if (dismissedDisabledNotice.value) return null;
   return page.props.errors?.disabled || null;
+});
+
+let autoDismissTimer = null;
+const startAutoDismiss = () => {
+  stopAutoDismiss();
+  autoDismissTimer = setTimeout(() => {
+    dismissedDisabledNotice.value = true;
+  }, 10000);
+};
+const stopAutoDismiss = () => {
+  if (autoDismissTimer) {
+    clearTimeout(autoDismissTimer);
+    autoDismissTimer = null;
+  }
+};
+
+watch(disabledMessage, (val) => {
+  if (val) { startAutoDismiss(); }
+  else { stopAutoDismiss(); }
+}, { immediate: true });
+
+// ─── 登出通知（不自动消失，点击页面或 X 才关闭） ────
+const dismissedLogoutNotice = ref(false);
+const logoutMessage = computed(() => {
+  if (dismissedLogoutNotice.value) return null;
+  const flag = localStorage.getItem('active_logout');
+  return flag ? '会话已过期，请重新登录' : null;
+});
+
+// watch 仅在 setup 阶段读取一次 localStorage 标记
+watch(logoutMessage, (val) => {
+  if (val) { localStorage.removeItem('active_logout'); }
+}, { immediate: true });
+
+const dismissLogoutNotice = () => {
+  dismissedLogoutNotice.value = true;
+};
+
+onUnmounted(() => {
+  stopAutoDismiss();
 });
 
 const handleLogin = () => {
@@ -53,7 +94,7 @@ const togglePasswordVisibility = () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-construct-paper flex items-center justify-center p-8">
+  <div class="min-h-screen bg-construct-paper flex items-center justify-center p-8" @click="dismissLogoutNotice">
     <div class="w-full max-w-md">
       <!-- 标题 -->
       <div class="text-center mb-12">
@@ -148,6 +189,37 @@ const togglePasswordVisibility = () => {
       <!-- 装饰性边框 -->
       <div class="w-full h-2 bg-construct-black mt-4" />
     </div>
+
+    <!-- 登出通知（右下角，点击页面或 X 关闭） -->
+    <Transition name="slide-up">
+      <div
+        v-if="logoutMessage"
+        class="fixed bottom-8 right-8 z-50 max-w-sm"
+      >
+        <div class="bg-white border-4 border-construct-black p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.15)]">
+          <div class="flex items-start gap-4">
+            <div class="flex-shrink-0 w-10 h-10 bg-construct-black flex items-center justify-center">
+              <Clock class="w-5 h-5 text-white" />
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="font-display text-xs tracking-widest uppercase text-construct-black mb-1">
+                提示
+              </p>
+              <p class="font-mono text-sm text-gray-600 leading-relaxed">
+                {{ logoutMessage }}
+              </p>
+            </div>
+            <button
+              @click="dismissedLogoutNotice = true"
+              class="flex-shrink-0 text-gray-400 hover:text-construct-red transition-colors"
+            >
+              <X class="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+        <div class="w-full h-1.5 bg-construct-black" />
+      </div>
+    </Transition>
 
     <!-- 禁用用户提示（右下角） -->
     <Transition name="slide-up">

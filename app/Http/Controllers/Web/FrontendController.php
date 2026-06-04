@@ -446,6 +446,9 @@ class FrontendController extends Controller
             'role' => $project->role,
             'views_count' => $project->views_count,
             'likes_count' => $project->likes_count,
+            'meta_title' => $project->meta_title,
+            'meta_description' => $project->meta_description,
+            'meta_keywords' => $project->meta_keywords,
         ];
 
         return Inertia::render('front/ProjectDetail', [
@@ -471,6 +474,9 @@ class FrontendController extends Controller
             'views_count' => $video->views_count,
             'likes_count' => $video->likes_count,
             'published_at' => $video->published_at?->toISOString(),
+            'meta_title' => $video->meta_title,
+            'meta_description' => $video->meta_description,
+            'meta_keywords' => $video->meta_keywords,
         ];
 
         return Inertia::render('front/VideoDetail', [

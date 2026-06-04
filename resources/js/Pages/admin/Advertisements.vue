@@ -16,6 +16,7 @@ import {
   router,
   useI18n,
   useTheme,
+  useToast,
   Plus,
   Edit3,
   Trash2,
@@ -81,6 +82,7 @@ const t = (key, fallback = '') => {
   }
 };
 const { isDarkMode } = useTheme();
+const { success: toastSuccess, error: toastError } = useToast();
 
 const searchQuery = ref('');
 const positionFilter = ref('all');
@@ -149,8 +151,13 @@ const getPositionLabel = (positionId) => {
 const toggleStatus = (ad) => {
   const newStatus = !ad.is_active;
   router.put(`/admin/advertisements/${ad.id}`, { ...ad, is_active: newStatus }, {
+    preserveState: true,
     onSuccess: () => {
       ad.is_active = newStatus;
+      toastSuccess(newStatus ? t('admin_ad_activated') : t('admin_ad_deactivated') || 'Status updated');
+    },
+    onError: () => {
+      toastError(t('admin_update_failed') || 'Update failed');
     },
   });
 };
@@ -176,16 +183,26 @@ const handleAdd = () => {
 const handleSave = (data) => {
   if (editingAd.value && editingAd.value.id) {
     router.put(`/admin/advertisements/${editingAd.value.id}`, data, {
+      preserveState: true,
       onSuccess: () => {
         showFormModal.value = false;
         editingAd.value = null;
+        toastSuccess(t('admin_ad_updated') || 'Advertisement updated');
+      },
+      onError: () => {
+        toastError(t('admin_update_failed') || 'Update failed');
       },
     });
   } else {
     router.post('/admin/advertisements', data, {
+      preserveState: true,
       onSuccess: () => {
         showFormModal.value = false;
         editingAd.value = null;
+        toastSuccess(t('admin_ad_created') || 'Advertisement created');
+      },
+      onError: () => {
+        toastError(t('admin_create_failed') || 'Create failed');
       },
     });
   }
@@ -204,9 +221,14 @@ const handleDelete = (id) => {
 const confirmDelete = () => {
   if (deletingAdId.value !== null) {
     router.delete(`/admin/advertisements/${deletingAdId.value}`, {
+      preserveState: true,
       onSuccess: () => {
         ads.value = ads.value.filter(a => a.id !== deletingAdId.value);
         deletingAdId.value = null;
+        toastSuccess(t('admin_ad_deleted') || 'Advertisement deleted');
+      },
+      onError: () => {
+        toastError(t('admin_delete_failed') || 'Delete failed');
       },
     });
   }
@@ -429,167 +451,183 @@ const handleFilterChange = ({ key, value }) => {
     </div>
 
     <Teleport to="body">
-      <div 
-        v-if="showFormModal" 
-        :class="['fixed inset-0 z-50 flex items-center justify-center bg-black/50', isDarkMode ? 'bg-black/70' : 'bg-black/50']"
-        @click.self="handleCancel"
-      >
-        <div :class="[
-          'w-full max-w-lg mx-4 p-6 rounded-lg shadow-xl',
-          isDarkMode ? 'bg-gray-800' : 'bg-white'
-        ]">
-          <div class="flex items-center justify-between mb-6">
-            <h3 :class="['text-xl font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">
-              {{ editingAd && editingAd.id ? t('admin_edit_ad') : t('admin_add_ad') }}
-            </h3>
-            <button
-              @click="handleCancel"
-              :class="['p-2 transition-colors', isDarkMode ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500']"
-            >
-              <X size="20" />
-            </button>
-          </div>
-
-          <form @submit.prevent="handleSave(editingAd)" class="space-y-4">
-            <div>
-              <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
-                {{ t('admin_ad_title') }} *
-              </label>
-              <input
-                v-model="editingAd.title"
-                type="text"
-                required
-                :class="[
-                  'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
-                  isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'
-                ]"
-              />
-            </div>
-
-            <div>
-              <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
-                {{ t('admin_ad_image_url') }} *
-              </label>
-              <input
-                v-model="editingAd.image_url"
-                type="url"
-                required
-                :class="[
-                  'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
-                  isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'
-                ]"
-              />
-            </div>
-
-            <div>
-              <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
-                {{ t('admin_ad_link_url') }} *
-              </label>
-              <input
-                v-model="editingAd.link_url"
-                type="url"
-                required
-                :class="[
-                  'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
-                  isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'
-                ]"
-              />
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
-                  {{ t('admin_ad_position') }} *
-                </label>
-                <select
-                  v-model="editingAd.position_id"
-                  :class="[
-                    'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
-                    isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'
-                  ]"
-                >
-                  <option v-for="pos in positionOptions" :key="pos.value" :value="pos.value">{{ pos.label }}</option>
-                </select>
-              </div>
-
-              <div>
-                <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
-                  {{ t('admin_status') }}
-                </label>
-                <div class="flex items-center gap-4 mt-2">
-                  <label class="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      v-model="editingAd.is_active"
-                      :value="true"
-                      class="w-4 h-4 text-construct-red focus:ring-construct-red"
-                    />
-                    <span :class="isDarkMode ? 'text-gray-300' : 'text-gray-700'">{{ t('admin_active') }}</span>
-                  </label>
-                  <label class="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      v-model="editingAd.is_active"
-                      :value="false"
-                      class="w-4 h-4 text-construct-red focus:ring-construct-red"
-                    />
-                    <span :class="isDarkMode ? 'text-gray-300' : 'text-gray-700'">{{ t('admin_inactive') }}</span>
-                  </label>
+      <Transition name="modal">
+        <div 
+          v-if="showFormModal" 
+          class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+          @click.self="handleCancel"
+        >
+          <div :class="['modal-content w-full max-w-lg flex flex-col max-h-[85vh] rounded-2xl shadow-2xl ring-1', isDarkMode ? 'bg-gray-800 ring-gray-700' : 'bg-white ring-gray-200/80']">
+            <!-- Modal Header (sticky top) -->
+            <div class="flex items-center justify-between p-6 pb-3 flex-shrink-0">
+              <div class="flex items-center gap-4">
+                <div class="w-10 h-10 rounded-xl shadow-md bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center flex-shrink-0">
+                  <LayoutGrid :size="18" :style="{ color: '#ffffff' }" />
+                </div>
+                <div>
+                  <h3 :class="['font-display text-xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">
+                    {{ editingAd && editingAd.id ? t('admin_edit_ad') : t('admin_add_ad') }}
+                  </h3>
+                  <p :class="['text-xs font-medium mt-0.5', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
+                    {{ editingAd && editingAd.id ? '编辑广告信息' : '创建新的广告位' }}
+                  </p>
                 </div>
               </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
-                  {{ t('admin_start_date') }}
-                </label>
-                <input
-                  v-model="editingAd.start_date"
-                  type="date"
-                  :class="[
-                    'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
-                    isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'
-                  ]"
-                />
-              </div>
-
-              <div>
-                <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
-                  {{ t('admin_end_date') }}
-                </label>
-                <input
-                  v-model="editingAd.end_date"
-                  type="date"
-                  :class="[
-                    'w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-construct-red',
-                    isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'
-                  ]"
-                />
-              </div>
-            </div>
-
-            <div class="flex items-center gap-4 pt-4">
-              <button
-                type="button"
-                @click="handleCancel"
-                :class="[
-                  'flex-1 px-6 py-3 font-bold uppercase tracking-wider border transition-colors',
-                  isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-100'
-                ]"
-              >
-                {{ t('admin_cancel') }}
-              </button>
-              <button
-                type="submit"
-                class="flex-1 px-6 py-3 font-bold uppercase tracking-wider bg-construct-red text-white hover:bg-red-700 transition-colors"
-              >
-                {{ t('admin_save') }}
+              <button @click="handleCancel" :class="['p-2 rounded-xl transition-colors flex-shrink-0', isDarkMode ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500']">
+                <X :size="20" />
               </button>
             </div>
-          </form>
+
+            <form @submit.prevent="handleSave(editingAd)" class="flex-1 flex flex-col overflow-hidden min-h-0">
+              <!-- Modal Body (scrollable) -->
+              <div class="px-6 py-2 space-y-4 overflow-y-auto flex-1 scroll-smooth">
+                <!-- Title -->
+                <div>
+                  <label :class="['block text-xs font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
+                    {{ t('admin_ad_title') }} <span class="text-construct-red">*</span>
+                  </label>
+                  <input
+                    v-model="editingAd.title"
+                    type="text"
+                    required
+                    placeholder="输入广告标题..."
+                    :class="[
+                      'w-full px-4 py-3 rounded-xl border focus:border-construct-red focus:outline-none transition-all',
+                      isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500' : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400'
+                    ]"
+                  />
+                </div>
+
+                <!-- Image URL -->
+                <div>
+                  <label :class="['block text-xs font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
+                    {{ t('admin_ad_image_url') }} <span class="text-construct-red">*</span>
+                  </label>
+                  <input
+                    v-model="editingAd.image_url"
+                    type="url"
+                    required
+                    placeholder="https://..."
+                    :class="[
+                      'w-full px-4 py-3 rounded-xl border focus:border-construct-red focus:outline-none transition-all font-mono text-sm',
+                      isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500' : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400'
+                    ]"
+                  />
+                </div>
+
+                <!-- Link URL -->
+                <div>
+                  <label :class="['block text-xs font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
+                    {{ t('admin_ad_link_url') }} <span class="text-construct-red">*</span>
+                  </label>
+                  <input
+                    v-model="editingAd.link_url"
+                    type="url"
+                    required
+                    placeholder="https://..."
+                    :class="[
+                      'w-full px-4 py-3 rounded-xl border focus:border-construct-red focus:outline-none transition-all font-mono text-sm',
+                      isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500' : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400'
+                    ]"
+                  />
+                </div>
+
+                <!-- Position + Status -->
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label :class="['block text-xs font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
+                      {{ t('admin_ad_position') }} <span class="text-construct-red">*</span>
+                    </label>
+                    <select
+                      v-model="editingAd.position_id"
+                      :class="[
+                        'w-full px-4 py-3 rounded-xl border focus:border-construct-red focus:outline-none transition-all',
+                        isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'
+                      ]"
+                    >
+                      <option v-for="pos in positionOptions" :key="pos.value" :value="pos.value">{{ pos.label }}</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label :class="['block text-xs font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
+                      {{ t('admin_status') }}
+                    </label>
+                    <div class="flex items-center gap-4 py-2">
+                      <label class="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          v-model="editingAd.is_active"
+                          :value="true"
+                          class="w-4 h-4 text-construct-red focus:ring-construct-red"
+                        />
+                        <span :class="['text-sm font-medium', isDarkMode ? 'text-gray-300' : 'text-gray-700']">{{ t('admin_active') }}</span>
+                      </label>
+                      <label class="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          v-model="editingAd.is_active"
+                          :value="false"
+                          class="w-4 h-4 text-construct-red focus:ring-construct-red"
+                        />
+                        <span :class="['text-sm font-medium', isDarkMode ? 'text-gray-300' : 'text-gray-700']">{{ t('admin_inactive') }}</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Start Date + End Date -->
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label :class="['block text-xs font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
+                      {{ t('admin_start_date') }}
+                    </label>
+                    <input
+                      v-model="editingAd.start_date"
+                      type="date"
+                      :class="[
+                        'w-full px-4 py-3 rounded-xl border focus:border-construct-red focus:outline-none transition-all',
+                        isDarkMode ? 'bg-gray-700 border-gray-600 text-white [color-scheme:dark]' : 'bg-gray-50 border-gray-300 text-gray-900'
+                      ]"
+                    />
+                  </div>
+
+                  <div>
+                    <label :class="['block text-xs font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
+                      {{ t('admin_end_date') }}
+                    </label>
+                    <input
+                      v-model="editingAd.end_date"
+                      type="date"
+                      :class="[
+                        'w-full px-4 py-3 rounded-xl border focus:border-construct-red focus:outline-none transition-all',
+                        isDarkMode ? 'bg-gray-700 border-gray-600 text-white [color-scheme:dark]' : 'bg-gray-50 border-gray-300 text-gray-900'
+                      ]"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Modal Footer (sticky bottom) -->
+              <div class="flex items-center gap-3 p-6 pt-3 flex-shrink-0">
+                <button
+                  type="button"
+                  @click="handleCancel"
+                  :class="['flex-1 px-6 py-3 font-bold text-sm tracking-wider uppercase rounded-xl border transition-colors', isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-500 hover:bg-gray-100']"
+                >
+                  {{ t('admin_cancel') }}
+                </button>
+                <button
+                  type="submit"
+                  class="flex-1 px-6 py-3 bg-construct-red text-white font-bold text-sm tracking-wider uppercase rounded-xl shadow-lg shadow-construct-red/20 hover:bg-red-700 transition-all"
+                >
+                  {{ t('admin_save') }}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-      </div>
+      </Transition>
     </Teleport>
 
     <ConfirmDialog
@@ -602,6 +640,10 @@ const handleFilterChange = ({ key, value }) => {
 </template>
 
 <style scoped>
+.font-display {
+  font-family: 'Outfit', sans-serif;
+}
+
 .custom-scrollbar::-webkit-scrollbar {
   width: 5px;
 }
@@ -614,6 +656,27 @@ const handleFilterChange = ({ key, value }) => {
 }
 .dark .custom-scrollbar::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.05);
+}
+
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
+
+.modal-enter-active .modal-content,
+.modal-leave-active .modal-content {
+  transition: transform 0.35s ease, opacity 0.3s ease;
+}
+
+.modal-enter-from .modal-content,
+.modal-leave-to .modal-content {
+  transform: scale(0.95) translateY(10px);
+  opacity: 0;
 }
 </style>
 

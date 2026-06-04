@@ -41,6 +41,7 @@ import {
 } from '../../composables/useAdminImports';
 import { Motion, AnimatePresence } from 'motion-v';
 import axios from 'axios';
+import { router } from '@inertiajs/vue3';
 
 const props = defineProps({
   media: { type: Array, default: () => [] },
@@ -48,7 +49,7 @@ const props = defineProps({
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
-const { success } = useToast();
+const { success, error: toastError } = useToast();
 
 const searchQuery = ref('');
 const typeFilter = ref('all');
@@ -67,8 +68,8 @@ const handlePreview = (file) => {
 };
 
 const handleUploadSuccess = (newFiles) => {
-  // Refresh page to get latest data from server
-  window.location.reload();
+  success(t('admin_upload_success') || 'Upload successful');
+  router.reload({ preserveState: false });
 };
 
 const mediaFiles = computed(() => {
@@ -138,9 +139,10 @@ const confirmDelete = async () => {
   
   try {
     await axios.delete(`/admin/media/${deletingFile.value.id}`);
-    window.location.reload();
+    success(t('admin_delete_success') || 'File deleted');
+    router.reload({ preserveState: false });
   } catch (error) {
-    console.error('Delete failed:', error);
+    toastError(t('admin_delete_failed') || 'Delete failed');
   } finally {
     showDeleteConfirm.value = false;
     deletingFile.value = null;
