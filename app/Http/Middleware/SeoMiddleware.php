@@ -52,6 +52,7 @@ class SeoMiddleware
                 'sitemap' => false,
                 'robots' => false,
                 'llm_txt' => false,
+                'rss_feed' => true,
                 'meta_title' => '',
                 'meta_description' => '',
                 'meta_keywords' => '',
@@ -74,6 +75,7 @@ class SeoMiddleware
                 $config['sitemap'] = $seo->sitemap ?? false;
                 $config['robots'] = $seo->robots ?? false;
                 $config['llm_txt'] = $seo->llm_txt ?? false;
+                $config['rss_feed'] = $seo->rss_feed ?? true;
                 $config['meta_title'] = $seo->meta_title ?? '';
                 $config['meta_description'] = $seo->meta_description ?? '';
                 $config['meta_keywords'] = $seo->meta_keywords ?? '';

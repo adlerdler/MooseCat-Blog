@@ -42,6 +42,11 @@
             <link rel="canonical" href="{{ $seo['canonical_url'] }}">
         @endif
 
+        {{-- RSS Feed --}}
+        @if(!empty($seo['rss_feed']))
+            <link rel="alternate" type="application/rss+xml" href="{{ url('/feed') }}" title="RSS Feed">
+        @endif
+
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800,900&display=swap" rel="stylesheet" />

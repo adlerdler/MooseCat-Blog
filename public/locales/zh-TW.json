@@ -672,6 +672,7 @@
   "admin_edit_tag": "編輯標籤",
   "admin_edit_theme": "編輯主題",
   "admin_enable_llm_txt": "啟用 llm.txt",
+  "admin_enable_rss_feed": "啟用 RSS Feed",
   "admin_enabled": "啟用",
   "admin_enter_category_description": "輸入分類描述...",
   "admin_enter_category_name": "輸入分類名稱...",

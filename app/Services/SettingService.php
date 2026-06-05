@@ -147,6 +147,7 @@ class SettingService
             'sitemap' => (bool) ($seo->sitemap ?? false),
             'robots' => (bool) ($seo->robots ?? false),
             'llm_txt' => (bool) ($seo->llm_txt ?? false),
+            'rss_feed' => (bool) ($seo->rss_feed ?? true),
             'canonical_url' => $seo->canonical_url ?? '',
             'og_image' => $seo->og_image ?? '',
             'og_type' => $seo->og_type ?? 'website',

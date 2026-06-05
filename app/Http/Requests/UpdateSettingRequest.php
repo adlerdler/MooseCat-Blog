@@ -53,6 +53,7 @@ class UpdateSettingRequest extends FormRequest
             'sitemap'         => ['nullable'],
             'robots'          => ['nullable'],
             'llm_txt'         => ['nullable'],
+            'rss_feed'        => ['nullable'],
             // 用户通知设置
             'email_notifications'     => ['nullable', 'boolean'],
             'comment_approval_alert'  => ['nullable', 'boolean'],

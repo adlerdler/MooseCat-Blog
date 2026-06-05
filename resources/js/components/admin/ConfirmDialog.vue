@@ -58,7 +58,7 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['confirm', 'cancel']);
+const emit = defineEmits(['confirm', 'cancel', 'update:visible']);
 
 const { isDarkMode } = useTheme();
 
@@ -104,10 +104,12 @@ const displayVariant = computed(() => {
 });
 
 const handleConfirm = () => {
+  emit('update:visible', false);
   emit('confirm');
 };
 
 const handleCancel = () => {
+  emit('update:visible', false);
   emit('cancel');
 };
 

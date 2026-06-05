@@ -127,12 +127,24 @@ const submitForgotPassword = () => {
 const loginForm = useForm({
   email: '',
   password: '',
+  captcha: '',
   remember: false,
 });
 
+const loginCaptchaInput = ref('');
+
 const submitLogin = () => {
+  if (!loginCaptchaInput.value.trim()) {
+    showBottomLeftError(t('auth.captcha_required') || '请输入验证码');
+    return;
+  }
+  loginForm.captcha = loginCaptchaInput.value;
   loginForm.post(route('front.login.handle'), {
-    onFinish: () => loginForm.reset('password'),
+    onFinish: () => {
+      loginForm.reset('password', 'captcha');
+      loginCaptchaInput.value = '';
+      loadCaptcha();
+    },
   });
 };
 
@@ -181,7 +193,7 @@ const providerNames = { google: 'Google', github: 'GitHub' };
 
 // 表单错误 → 右下角 Toast 弹窗
 watch(() => { return { ...loginForm.errors }; }, (errors) => {
-  const msg = errors.email || errors.password;
+  const msg = errors.email || errors.password || errors.captcha;
   if (msg) showBottomLeftError(msg);
 }, { deep: true });
 
@@ -275,6 +287,25 @@ watch(() => { return { ...registerForm.errors }; }, (errors) => {
               </button>
             </div>
           </div>
+
+          <!-- 图片验证码 -->
+          <div>
+            <label class="block font-display text-[10px] sm:text-xs tracking-widest uppercase mb-1.5 sm:mb-2">
+              <Shield class="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1.5 sm:mr-2" />{{ t('auth.captcha') }}
+            </label>
+            <div class="flex gap-1.5 sm:gap-2 items-stretch">
+              <input v-model="loginCaptchaInput" type="text" required maxlength="4" autocomplete="off" :placeholder="t('auth.captcha_placeholder')"
+                class="flex-1 px-2.5 sm:px-3 py-2.5 sm:py-3 border-2 border-construct-black font-mono text-xs sm:text-sm focus:border-construct-red focus:outline-none uppercase placeholder:normal-case"
+                :disabled="loginForm.processing" />
+              <img v-if="captchaImg" :src="captchaImg" alt="Captcha" class="h-full w-auto border-2 border-construct-black cursor-pointer" @click="loadCaptcha" />
+              <div v-else class="border-2 border-construct-black bg-gray-100 flex items-center justify-center px-3 text-[10px] text-gray-400 shrink-0">CAPTCHA</div>
+              <button type="button" @click="loadCaptcha" tabindex="-1"
+                class="px-2 sm:px-2.5 border-2 border-construct-black hover:bg-construct-black hover:text-white transition-colors shrink-0">
+                <RefreshCw class="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              </button>
+            </div>
+          </div>
+
           <div class="flex items-center">
             <input v-model="loginForm.remember" type="checkbox" id="remember-me"
               class="w-3.5 h-3.5 sm:w-4 sm:h-4 border-2 border-construct-black accent-construct-red cursor-pointer" />

@@ -447,6 +447,7 @@
   "admin_enable_sitemap": "Enable Sitemap",
   "admin_enable_robots": "Enable Robots.txt",
   "admin_enable_llm_txt": "Enable llm.txt",
+  "admin_enable_rss_feed": "Enable RSS Feed",
   "admin_enable_cache": "Enable Cache",
   "admin_cache_duration": "Cache Duration",
   "admin_seconds": "seconds",

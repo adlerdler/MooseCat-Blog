@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\CaptchaService;
 use App\Services\DashboardService;
 use App\Services\MenuService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -59,10 +61,18 @@ class DashboardController extends Controller
      * Handle login request
      *
      * @param Request $request
+     * @param CaptchaService $captchaService
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function handleLogin(Request $request)
+    public function handleLogin(Request $request, CaptchaService $captchaService)
     {
+        // 校验图片验证码
+        if (! $captchaService->check($request->captcha)) {
+            throw ValidationException::withMessages([
+                'captcha' => '验证码错误',
+            ]);
+        }
+
         $credentials = $request->validate([
             'email' => 'required|email',
             'password' => 'required',

@@ -457,41 +457,38 @@ const categoryPieChartOption = computed(() => ({
 </script>
 
 <template>
-  <div class="p-8">
+  <div class="p-8 space-y-6">
     <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       <div
         v-for="stat in stats"
         :key="stat.label"
-        :class="[
-          'p-6 hover:border-construct-red transition-colors',
-          isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'
-        ]"
+        class="group p-6 rounded-xl backdrop-blur-xl bg-white/60 dark:bg-gray-900/40 border border-white/30 dark:border-gray-700/30 shadow-lg hover:shadow-xl hover:border-construct-red/50 transition-all duration-300 hover:-translate-y-1"
       >
         <div class="flex items-center justify-between mb-4">
           <component
             :is="stat.icon"
             :class="[
-              stat.icon === FileText ? (isDarkMode ? 'text-construct-red' : 'text-red-600') :
-              stat.icon === Play ? (isDarkMode ? 'text-blue-400' : 'text-blue-600') :
-              stat.icon === FolderKanban ? (isDarkMode ? 'text-green-400' : 'text-green-600') :
-              (isDarkMode ? 'text-purple-400' : 'text-purple-600')
+              stat.icon === FileText ? 'text-construct-red' :
+              stat.icon === Play ? 'text-blue-500' :
+              stat.icon === FolderKanban ? 'text-green-500' :
+              'text-purple-500'
             ]"
             size="24"
           />
-          <span :class="['text-xs font-bold', isDarkMode ? 'text-green-400' : 'text-green-600']">{{ stat.change }}</span>
+          <span class="text-xs font-bold text-green-500">{{ stat.change }}</span>
         </div>
-        <div :class="['font-display text-4xl mb-1', isDarkMode ? 'text-white' : 'text-gray-900']">{{ stat.value }}</div>
-        <div :class="['text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ stat.label }}</div>
+        <div class="font-display text-4xl mb-1 text-gray-900 dark:text-white">{{ stat.value }}</div>
+        <div class="text-xs font-bold tracking-widest uppercase text-gray-500 dark:text-gray-400">{{ stat.label }}</div>
       </div>
     </div>
 
     <!-- Charts Row -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <!-- Post Trend Chart -->
-      <div :class="['p-6 border', isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200']">
+      <div class="p-6 rounded-xl backdrop-blur-xl bg-white/60 dark:bg-gray-900/40 border border-white/30 dark:border-gray-700/30 shadow-lg">
         <div class="flex items-center justify-between mb-6">
-          <h3 :class="['font-display text-xl tracking-tighter flex items-center gap-3', isDarkMode ? 'text-white' : 'text-gray-900']">
+          <h3 class="font-display text-xl tracking-tighter flex items-center gap-3 text-gray-900 dark:text-white">
             <TrendingUp size="24" class="text-construct-red" />
             {{ t('chart_post_trends') }}
           </h3>
@@ -502,9 +499,9 @@ const categoryPieChartOption = computed(() => ({
       </div>
 
       <!-- User Growth Chart -->
-      <div :class="['p-6 border', isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200']">
+      <div class="p-6 rounded-xl backdrop-blur-xl bg-white/60 dark:bg-gray-900/40 border border-white/30 dark:border-gray-700/30 shadow-lg">
         <div class="flex items-center justify-between mb-6">
-          <h3 :class="['font-display text-xl tracking-tighter flex items-center gap-3', isDarkMode ? 'text-white' : 'text-gray-900']">
+          <h3 class="font-display text-xl tracking-tighter flex items-center gap-3 text-gray-900 dark:text-white">
             <Users size="24" class="text-construct-red" />
             {{ t('chart_user_growth') }}
           </h3>
@@ -516,22 +513,19 @@ const categoryPieChartOption = computed(() => ({
     </div>
 
     <!-- Analytics Row -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <!-- Traffic Chart -->
-      <div :class="['lg:col-span-2 p-6 border', isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200']">
+      <div class="lg:col-span-2 p-6 rounded-xl backdrop-blur-xl bg-white/60 dark:bg-gray-900/40 border border-white/30 dark:border-gray-700/30 shadow-lg">
         <div class="flex items-center justify-between mb-6">
-          <h3 :class="['font-display text-xl tracking-tighter flex items-center gap-3', isDarkMode ? 'text-white' : 'text-gray-900']">
+          <h3 class="font-display text-xl tracking-tighter flex items-center gap-3 text-gray-900 dark:text-white">
             <TrendingUp size="24" class="text-construct-red" />
             {{ t('chart_traffic_overview') }}
           </h3>
           <div class="flex items-center gap-2">
-            <Calendar :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'" size="16" />
+            <Calendar class="text-gray-500 dark:text-gray-400" size="16" />
             <select
               v-model="timeRange"
-              :class="[
-                'px-3 py-1 text-sm focus:border-construct-red focus:outline-none border',
-                isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'
-              ]"
+              class="px-3 py-1 text-sm rounded-lg backdrop-blur-xl bg-white/50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-600 focus:border-construct-red focus:outline-none text-gray-900 dark:text-white transition-colors"
             >
               <option value="7d">{{ t('chart_7_days') }}</option>
               <option value="30d">{{ t('chart_30_days') }}</option>
@@ -545,8 +539,8 @@ const categoryPieChartOption = computed(() => ({
       </div>
 
       <!-- Category Distribution -->
-      <div :class="['p-6 border', isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200']">
-        <h3 :class="['font-display text-xl tracking-tighter mb-6 flex items-center gap-3', isDarkMode ? 'text-white' : 'text-gray-900']">
+      <div class="p-6 rounded-xl backdrop-blur-xl bg-white/60 dark:bg-gray-900/40 border border-white/30 dark:border-gray-700/30 shadow-lg">
+        <h3 class="font-display text-xl tracking-tighter mb-6 flex items-center gap-3 text-gray-900 dark:text-white">
           <BarChart3 size="24" class="text-construct-red" />
           {{ t('chart_content_distribution') }}
         </h3>

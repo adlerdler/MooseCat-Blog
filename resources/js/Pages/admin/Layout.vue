@@ -143,7 +143,7 @@ const confirmLogout = () => {
   } catch { /* noop */ }
 
   // 标记为手动退出，登录页据此显示通知
-  try { localStorage.setItem('active_logout', Date.now().toString()); } catch { /* noop */ }
+  try { localStorage.setItem('manual_logout', Date.now().toString()); } catch { /* noop */ }
 
   showLogoutConfirm.value = false;
   
@@ -352,7 +352,7 @@ const performAutoLogout = () => {
   toasts.value = [];
 
   // 标记为闲置超时退出，登录页据此显示通知
-  try { localStorage.setItem('active_logout', Date.now().toString()); } catch { /* noop */ }
+  try { localStorage.setItem('timeout_logout', Date.now().toString()); } catch { /* noop */ }
 
   // 清理所有认证相关的 localStorage/sessionStorage 数据
   try {
@@ -407,9 +407,28 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div :class="['min-h-screen transition-colors', isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900 admin-layout']">
+  <div :class="['min-h-screen relative overflow-hidden', isDarkMode ? 'bg-gray-950 text-white' : 'bg-gray-50 text-gray-900']">
+    <!-- Fluid Blur Gradient Background -->
+    <div class="fixed inset-0 pointer-events-none z-0">
+      <!-- Blob 1 - Red/Pink -->
+      <div :class="['absolute w-[500px] h-[500px] rounded-full blur-[100px] animate-blob', isDarkMode ? 'bg-gradient-to-r from-construct-red/20 to-pink-400/20' : 'bg-gradient-to-r from-construct-red/30 to-pink-400/30']"
+           style="top: 10%; left: 15%; animation-delay: 0s;" />
+      <!-- Blob 2 - Blue/Cyan -->
+      <div :class="['absolute w-[600px] h-[600px] rounded-full blur-[120px] animate-blob-reverse', isDarkMode ? 'bg-gradient-to-r from-blue-400/20 to-cyan-300/20' : 'bg-gradient-to-r from-blue-400/30 to-cyan-300/30']"
+           style="top: 40%; right: 10%; animation-delay: 2s;" />
+      <!-- Blob 3 - Green/Teal -->
+      <div :class="['absolute w-[450px] h-[450px] rounded-full blur-[90px] animate-blob', isDarkMode ? 'bg-gradient-to-r from-emerald-400/15 to-teal-300/15' : 'bg-gradient-to-r from-emerald-400/30 to-teal-300/30']"
+           style="bottom: 5%; left: 30%; animation-delay: 4s;" />
+      <!-- Blob 4 - Purple -->
+      <div :class="['absolute w-[400px] h-[400px] rounded-full blur-[100px] animate-blob-reverse', isDarkMode ? 'bg-gradient-to-r from-purple-400/15 to-violet-300/15' : 'bg-gradient-to-r from-purple-400/30 to-violet-300/30']"
+           style="top: 60%; left: 50%; animation-delay: 6s;" />
+      <!-- Blob 5 - Amber/Orange -->
+      <div :class="['absolute w-[350px] h-[350px] rounded-full blur-[80px] animate-blob', isDarkMode ? 'bg-gradient-to-r from-amber-300/10 to-orange-300/10' : 'bg-gradient-to-r from-amber-300/30 to-orange-300/30']"
+           style="top: 20%; right: 30%; animation-delay: 8s;" />
+    </div>
+
     <!-- Header -->
-    <header :class="['fixed top-0 right-0 h-16 flex items-center justify-between px-6 z-50 transition-all duration-300', isDarkMode ? 'bg-gray-800' : 'bg-white admin-header', isSidebarOpen && !isSidebarCollapsed ? 'lg:left-56' : 'lg:left-16']">
+    <header :class="['fixed top-0 right-0 h-16 flex items-center justify-between px-6 z-50 transition-all duration-300 bg-transparent', isSidebarOpen && !isSidebarCollapsed ? 'lg:left-56' : 'lg:left-16']">
       <div class="flex items-center gap-4">
         <button
           @click="toggleSidebar"
@@ -463,14 +482,13 @@ onUnmounted(() => {
     <!-- Sidebar -->
     <aside
       :class="[
-        'fixed left-0 top-0 bottom-0 transition-all duration-300 z-40 admin-sidebar overflow-visible',
-        isDarkMode ? 'bg-gray-800' : 'bg-white',
+        'fixed left-0 top-0 bottom-0 transition-all duration-300 z-40 admin-sidebar overflow-visible overflow-hidden bg-transparent',
         isSidebarOpen && !isSidebarCollapsed ? 'w-56 lg:w-56' : '',
         isSidebarOpen && isSidebarCollapsed ? 'w-16 lg:w-16' : '',
         !isSidebarOpen ? 'w-0 lg:w-16' : ''
       ]"
     >
-      <div class="flex flex-col h-full">
+      <div class="relative flex flex-col h-full">
         <!-- Logo at top-left -->
         <div class="p-2 pt-4">
           <div class="flex items-center gap-2 px-2 py-2">
@@ -539,8 +557,8 @@ onUnmounted(() => {
                       ? 'bg-red-500/10 border-l-4 border-construct-red text-construct-red'
                       : 'bg-red-50 border-l-4 border-construct-red text-construct-red'
                   : isDarkMode
-                    ? 'text-gray-400 hover:bg-construct-red hover:text-white'
-                    : 'text-gray-600 hover:bg-construct-red hover:text-white',
+                    ? 'text-gray-400 hover:bg-white/10 hover:text-white'
+                    : 'text-gray-600 hover:bg-gray-100/80 hover:text-gray-900',
                 isSidebarCollapsed ? 'justify-center' : ''
               ]"
             >
@@ -591,8 +609,8 @@ onUnmounted(() => {
                         ? 'bg-red-500/10 border-l-4 border-construct-red text-construct-red'
                         : 'bg-red-50 border-l-4 border-construct-red text-construct-red'
                     : isDarkMode
-                      ? 'text-gray-400 hover:bg-construct-red hover:text-white'
-                      : 'text-gray-600 hover:bg-construct-red hover:text-white'
+                      ? 'text-gray-400 hover:bg-white/10 hover:text-white'
+                      : 'text-gray-600 hover:bg-gray-100/80 hover:text-gray-900'
                 ]"
               >
                 <component 
@@ -624,8 +642,8 @@ onUnmounted(() => {
                     ? 'bg-red-500/10 border-l-4 border-construct-red text-construct-red'
                     : 'bg-red-50 border-l-4 border-construct-red text-construct-red'
                 : isDarkMode
-                  ? 'text-gray-400 hover:bg-construct-red hover:text-white'
-                  : 'text-gray-600 hover:bg-construct-red hover:text-white',
+                  ? 'text-gray-400 hover:bg-white/10 hover:text-white'
+                  : 'text-gray-600 hover:bg-gray-100/80 hover:text-gray-900',
               !item.path && 'opacity-50 cursor-not-allowed',
               isSidebarCollapsed ? 'justify-center' : ''
             ]"
@@ -658,8 +676,8 @@ onUnmounted(() => {
           <div 
             @click="toggleUserMenu"
             :class="[
-              'flex items-center gap-2 px-2 py-2 rounded-lg cursor-pointer transition-colors',
-              isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
+              'flex items-center gap-2 px-2 py-2 rounded-lg cursor-pointer transition-colors backdrop-blur-xl',
+              isDarkMode ? 'hover:bg-white/10' : 'hover:bg-gray-100/80'
             ]"
           >
             <div :class="['w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden', isDarkMode ? 'bg-gray-700' : 'bg-gray-100']">
@@ -683,10 +701,8 @@ onUnmounted(() => {
     <Transition name="dropdown">
       <div
         v-if="isUserMenuOpen"
-        :class="[
-          'fixed w-48 rounded-xl shadow-xl ring-1 z-[100]',
-          isDarkMode ? 'bg-gray-800 ring-gray-700' : 'bg-white ring-gray-200'
-        ]"
+        class="fixed w-48 rounded-xl shadow-xl backdrop-blur-xl ring-1 z-[100]"
+        :class="isDarkMode ? 'bg-gray-900/90 ring-gray-700/50' : 'bg-white/90 ring-gray-200/50'"
         style="bottom: 80px; left: 8px;"
       >
         <div :class="['p-4']">
@@ -732,8 +748,8 @@ onUnmounted(() => {
           v-if="item.children && item.children.length > 0"
           v-show="isSidebarCollapsed && isMenuExpanded(item.id)"
           :class="[
-            'fixed w-48 py-2 rounded-lg shadow-xl z-[100]',
-            isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'
+            'fixed w-48 py-2 rounded-lg shadow-xl backdrop-blur-xl z-[100]',
+            isDarkMode ? 'bg-gray-900/90 border border-gray-700/30' : 'bg-white/90 border border-gray-200/50'
           ]"
           :style="{ top: getMenuTopPosition(item.id) + 'px', left: '4rem' }"
           @mouseenter="handleMouseEnter(item.id)"
@@ -755,8 +771,8 @@ onUnmounted(() => {
                   ? 'bg-red-500/10 text-construct-red'
                   : 'bg-red-50 text-construct-red'
                 : isDarkMode
-                  ? 'text-gray-300 hover:bg-gray-700'
-                  : 'text-gray-700 hover:bg-gray-100'
+                  ? 'text-gray-300 hover:bg-white/10'
+                  : 'text-gray-700 hover:bg-gray-100/80'
             ]"
           >
             <component 
@@ -775,8 +791,8 @@ onUnmounted(() => {
     <!-- Main Content -->
     <main
       :class="[
-        'pt-16 min-h-screen transition-all duration-300 admin-content',
-        isDarkMode ? 'bg-gray-900' : 'bg-gray-50',
+        'pt-16 min-h-screen transition-all duration-300 admin-content relative z-10',
+        'bg-transparent',
         isSidebarOpen && !isSidebarCollapsed ? 'lg:ml-56' : 'lg:ml-16'
       ]"
     >

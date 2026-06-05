@@ -20,6 +20,7 @@ class Seo extends Model
         'sitemap',
         'robots',
         'llm_txt',
+        'rss_feed',
         'canonical_url',
         'og_image',
         'og_type',
@@ -30,6 +31,7 @@ class Seo extends Model
         'sitemap' => 'boolean',
         'robots' => 'boolean',
         'llm_txt' => 'boolean',
+        'rss_feed' => 'boolean',
     ];
 
     /**

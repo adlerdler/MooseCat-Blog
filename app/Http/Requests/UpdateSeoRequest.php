@@ -28,6 +28,7 @@ class UpdateSeoRequest extends FormRequest
             'sitemap'          => ['boolean'],
             'robots'           => ['boolean'],
             'llm_txt'          => ['boolean'],
+            'rss_feed'         => ['boolean'],
         ];
     }
 }

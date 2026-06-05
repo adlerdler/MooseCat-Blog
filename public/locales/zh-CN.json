@@ -461,6 +461,7 @@
   "admin_enable_sitemap": "启用站点地图",
   "admin_enable_robots": "启用 Robots.txt",
   "admin_enable_llm_txt": "启用 llm.txt",
+  "admin_enable_rss_feed": "启用 RSS Feed",
   "admin_enable_cache": "启用缓存",
   "admin_cache_duration": "缓存时长",
   "admin_seconds": "秒",

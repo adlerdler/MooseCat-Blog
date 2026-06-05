@@ -39,6 +39,7 @@ use App\Http\Controllers\Web\LikeController;
 use App\Http\Controllers\Web\SitemapController;
 use App\Http\Controllers\Web\RobotsController;
 use App\Http\Controllers\Web\LlmTxtController;
+use App\Http\Controllers\Web\FeedController;
 use App\Models\AuthorProfile;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
@@ -56,6 +57,8 @@ Route::get('/test', function () {
 Route::get('/sitemap.xml', [SitemapController::class, 'index']);
 Route::get('/robots.txt', [RobotsController::class, 'index']);
 Route::get('/llm.txt', [LlmTxtController::class, 'index']);
+Route::get('/feed', [FeedController::class, 'index'])->name('feed');
+Route::get('/rss.xml', [FeedController::class, 'index']);
 
 // 前台公共路由（受维护模式控制）
 Route::middleware(['maintenance'])->group(function () {

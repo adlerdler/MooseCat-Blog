@@ -130,7 +130,7 @@ class SettingsController extends Controller
             'google_analytics', 'baidu_analytics', 'canonical_url',
             'og_image', 'og_type', 'twitter_card',
         ];
-        $seoBooleanFields = ['sitemap', 'robots', 'llm_txt'];
+        $seoBooleanFields = ['sitemap', 'robots', 'llm_txt', 'rss_feed'];
         $userNotificationFields = [
             'email_notifications', 'comment_approval_alert', 'new_user_alert',
             'weekly_report', 'digest_email', 'digest_frequency'

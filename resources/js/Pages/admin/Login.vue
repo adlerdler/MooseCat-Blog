@@ -11,79 +11,127 @@
  * - 支持中英文国际化
  * - 超时/手动退出后在右下角显示通知，点击页面或X关闭
  */
-import { ref, computed, watch, onUnmounted } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { router, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
-import { Lock, Mail, AlertCircle, Eye, EyeOff, X, ShieldOff, Clock } from 'lucide-vue-next';
+import { Lock, Mail, AlertCircle, Eye, EyeOff, X, ShieldOff, Clock, Shield, RefreshCw, AlertTriangle, LogOut } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
 
 const { t } = useI18n();
 const { isDarkMode, initTheme } = useTheme();
 const page = usePage();
 
+// ─── 统一通知系统 ────
+const notification = ref({
+  show: false,
+  message: '',
+  icon: 'alert', // alert | shield | clock | logout
+  autoDismiss: true,
+});
+let notificationTimer = null;
+
+const showNotification = (message, icon = 'alert', autoDismiss = true, duration = 5000) => {
+  clearTimeout(notificationTimer);
+  notification.value = { show: true, message, icon, autoDismiss };
+  if (autoDismiss) {
+    notificationTimer = setTimeout(() => {
+      notification.value.show = false;
+    }, duration);
+  }
+};
+
+const dismissNotification = () => {
+  clearTimeout(notificationTimer);
+  notification.value.show = false;
+};
+
+onUnmounted(() => {
+  clearTimeout(notificationTimer);
+});
+
 const email = ref('');
 const password = ref('');
+const captcha = ref('');
+const captchaImg = ref('');
 const rememberMe = ref(false);
 const showPassword = ref(false);
 const isLoading = ref(false);
 
-// ─── 禁用用户提示（来自后端 disabled 错误） ────────────
+// 加载验证码
+const loadCaptcha = async () => {
+  try {
+    const res = await fetch('/api/captcha');
+    const data = await res.json();
+    captchaImg.value = data.captcha;
+  } catch {
+    captchaImg.value = '';
+  }
+};
+
+onMounted(() => { loadCaptcha(); });
+
+// ─── 禁用用户提示（来自后端 disabled 错误，10秒自动消失） ────
 const dismissedDisabledNotice = ref(false);
 const disabledMessage = computed(() => {
   if (dismissedDisabledNotice.value) return null;
   return page.props.errors?.disabled || null;
 });
 
-let autoDismissTimer = null;
-const startAutoDismiss = () => {
-  stopAutoDismiss();
-  autoDismissTimer = setTimeout(() => {
-    dismissedDisabledNotice.value = true;
-  }, 10000);
-};
-const stopAutoDismiss = () => {
-  if (autoDismissTimer) {
-    clearTimeout(autoDismissTimer);
-    autoDismissTimer = null;
-  }
-};
-
 watch(disabledMessage, (val) => {
-  if (val) { startAutoDismiss(); }
-  else { stopAutoDismiss(); }
+  if (val) {
+    showNotification(val, 'shield', true, 10000);
+    dismissedDisabledNotice.value = true;
+  }
 }, { immediate: true });
 
-// ─── 登出通知（不自动消失，点击页面或 X 才关闭） ────
+// ─── 登出通知（手动退出10秒自动消失，超时退出不自动消失） ────
 const dismissedLogoutNotice = ref(false);
 const logoutMessage = computed(() => {
   if (dismissedLogoutNotice.value) return null;
-  const flag = localStorage.getItem('active_logout');
-  return flag ? '会话已过期，请重新登录' : null;
+  const manual = localStorage.getItem('manual_logout');
+  const timeout = localStorage.getItem('timeout_logout');
+  if (manual) return { text: '已安全退出登录', type: 'manual' };
+  if (timeout) return { text: '会话已过期，请重新登录', type: 'timeout' };
+  return null;
 });
 
-// watch 仅在 setup 阶段读取一次 localStorage 标记
 watch(logoutMessage, (val) => {
-  if (val) { localStorage.removeItem('active_logout'); }
+  if (val) {
+    localStorage.removeItem('manual_logout');
+    localStorage.removeItem('timeout_logout');
+    if (val.type === 'manual') {
+      showNotification(val.text, 'logout', true, 10000);
+    } else {
+      showNotification(val.text, 'clock', false);
+    }
+    dismissedLogoutNotice.value = true;
+  }
 }, { immediate: true });
 
 const dismissLogoutNotice = () => {
+  dismissNotification();
   dismissedLogoutNotice.value = true;
+  dismissedDisabledNotice.value = true;
 };
 
-onUnmounted(() => {
-  stopAutoDismiss();
-});
-
 const handleLogin = () => {
+  if (!captcha.value.trim()) {
+    showNotification('请输入验证码', 'alert', true, 5000);
+    return;
+  }
+
   isLoading.value = true;
 
   router.post('/admin/login', {
     email: email.value,
     password: password.value,
+    captcha: captcha.value,
     remember: rememberMe.value,
   }, {
     onFinish: () => {
       isLoading.value = false;
+      captcha.value = '';
+      loadCaptcha();
     },
   });
 };
@@ -95,6 +143,33 @@ const togglePasswordVisibility = () => {
 
 <template>
   <div class="min-h-screen bg-construct-paper flex items-center justify-center p-8" @click="dismissLogoutNotice">
+
+    <!-- 统一通知（右下角） -->
+    <Transition name="slide-up">
+      <div v-if="notification.show"
+        class="fixed bottom-8 right-8 z-50 max-w-sm">
+        <div class="bg-white border-4 border-construct-black p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.15)]">
+          <div class="flex items-start gap-4">
+            <div class="flex-shrink-0 w-10 h-10 bg-construct-black flex items-center justify-center">
+              <AlertTriangle v-if="notification.icon === 'alert'" class="w-5 h-5 text-construct-red" />
+              <ShieldOff v-else-if="notification.icon === 'shield'" class="w-5 h-5 text-white" />
+              <Clock v-else-if="notification.icon === 'clock'" class="w-5 h-5 text-white" />
+              <LogOut v-else-if="notification.icon === 'logout'" class="w-5 h-5 text-white" />
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="font-mono text-sm text-gray-600 leading-relaxed">
+                {{ notification.message }}
+              </p>
+            </div>
+            <button @click="dismissNotification" class="flex-shrink-0 text-gray-400 hover:text-construct-red transition-colors">
+              <X class="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+        <div class="w-full h-1.5 bg-construct-black" />
+      </div>
+    </Transition>
+
     <div class="w-full max-w-md">
       <!-- 标题 -->
       <div class="text-center mb-12">
@@ -146,6 +221,31 @@ const togglePasswordVisibility = () => {
             </div>
           </div>
 
+          <!-- 验证码 -->
+          <div>
+            <label class="block font-display text-xs tracking-widest uppercase mb-2">
+              <Shield class="w-4 h-4 inline mr-2" />
+              {{ t('auth.captcha') }}
+            </label>
+            <div class="flex gap-2 items-stretch">
+              <input
+                v-model="captcha"
+                type="text"
+                maxlength="4"
+                autocomplete="off"
+                :placeholder="t('auth.captcha_placeholder')"
+                class="flex-1 px-4 py-3 border-2 border-construct-black font-mono text-sm tracking-widest uppercase focus:border-construct-red focus:outline-none transition-colors"
+                :disabled="isLoading"
+              />
+              <img v-if="captchaImg" :src="captchaImg" alt="Captcha" class="h-full w-auto border-2 border-construct-black cursor-pointer" @click="loadCaptcha" />
+              <div v-else class="border-2 border-construct-black bg-gray-100 flex items-center justify-center px-3 text-xs text-gray-400 shrink-0">CAPTCHA</div>
+              <button type="button" @click="loadCaptcha" tabindex="-1"
+                class="px-2.5 border-2 border-construct-black hover:bg-construct-black hover:text-white transition-colors shrink-0">
+                <RefreshCw class="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
           <!-- 记住密码 -->
           <div class="flex items-center">
             <input
@@ -160,9 +260,9 @@ const togglePasswordVisibility = () => {
           </div>
 
           <!-- 错误提示 -->
-          <div v-if="$page.props.errors && $page.props.errors.email" class="flex items-center gap-2 text-red-600 text-sm">
+          <div v-if="$page.props.errors && ($page.props.errors.email || $page.props.errors.captcha)" class="flex items-center gap-2 text-red-600 text-sm">
             <AlertCircle class="w-4 h-4" />
-            <span>{{ $page.props.errors.email }}</span>
+            <span>{{ $page.props.errors.email || $page.props.errors.captcha }}</span>
           </div>
 
           <!-- 登录按钮 -->
@@ -189,69 +289,6 @@ const togglePasswordVisibility = () => {
       <!-- 装饰性边框 -->
       <div class="w-full h-2 bg-construct-black mt-4" />
     </div>
-
-    <!-- 登出通知（右下角，点击页面或 X 关闭） -->
-    <Transition name="slide-up">
-      <div
-        v-if="logoutMessage"
-        class="fixed bottom-8 right-8 z-50 max-w-sm"
-      >
-        <div class="bg-white border-4 border-construct-black p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.15)]">
-          <div class="flex items-start gap-4">
-            <div class="flex-shrink-0 w-10 h-10 bg-construct-black flex items-center justify-center">
-              <Clock class="w-5 h-5 text-white" />
-            </div>
-            <div class="flex-1 min-w-0">
-              <p class="font-display text-xs tracking-widest uppercase text-construct-black mb-1">
-                提示
-              </p>
-              <p class="font-mono text-sm text-gray-600 leading-relaxed">
-                {{ logoutMessage }}
-              </p>
-            </div>
-            <button
-              @click="dismissedLogoutNotice = true"
-              class="flex-shrink-0 text-gray-400 hover:text-construct-red transition-colors"
-            >
-              <X class="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-        <div class="w-full h-1.5 bg-construct-black" />
-      </div>
-    </Transition>
-
-    <!-- 禁用用户提示（右下角） -->
-    <Transition name="slide-up">
-      <div
-        v-if="disabledMessage"
-        class="fixed bottom-8 right-8 z-50 max-w-sm animate-in"
-      >
-        <div class="bg-white border-4 border-construct-black p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.15)]">
-          <div class="flex items-start gap-4">
-            <div class="flex-shrink-0 w-10 h-10 bg-construct-black flex items-center justify-center">
-              <ShieldOff class="w-5 h-5 text-white" />
-            </div>
-            <div class="flex-1 min-w-0">
-              <p class="font-display text-xs tracking-widest uppercase text-construct-black mb-1">
-                {{ t('login_access_denied') }}
-              </p>
-              <p class="font-mono text-sm text-gray-600 leading-relaxed">
-                {{ disabledMessage }}
-              </p>
-            </div>
-            <button
-              @click="dismissedDisabledNotice = true"
-              class="flex-shrink-0 text-gray-400 hover:text-construct-red transition-colors"
-            >
-              <X class="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-        <!-- 装饰条 -->
-        <div class="w-full h-1.5 bg-construct-black" />
-      </div>
-    </Transition>
   </div>
 </template>
 

@@ -24,7 +24,8 @@ import {
   Save,
   Zap,
   Image,
-  useToast
+  useToast,
+  ConfirmDialog
 } from '../../composables/useAdminImports';
 import { Plus, Edit2, Trash2 } from 'lucide-vue-next';
 import { router } from '@inertiajs/vue3';
@@ -100,8 +101,15 @@ const site = ref({
   file_types: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf', 'doc', 'docx'],
   ...(props.siteConfig || {}),
 });
-const seo = ref({ ...(props.seoConfig || {}) });
-const activeTab = ref('site');
+const seo = ref({
+  rss_feed: true,
+  ...(props.seoConfig || {}),
+});
+const activeTab = ref(localStorage.getItem('settings_active_tab') || 'site');
+
+watch(activeTab, (val) => {
+  localStorage.setItem('settings_active_tab', val);
+});
 const isSaving = ref(false);
 const showSaveConfirm = ref(false);
 const showMediaPicker = ref(false);
@@ -290,6 +298,7 @@ const confirmSave = () => {
     sitemap: seo.value.sitemap,
     robots: seo.value.robots,
     llm_txt: seo.value.llm_txt,
+    rss_feed: seo.value.rss_feed,
     // 用户通知设置
     email_notifications: userNotifications.value.email_notifications,
     comment_approval_alert: userNotifications.value.comment_approval_alert,
@@ -359,7 +368,7 @@ const resetSettings = () => {
     </div>
 
     <!-- Settings Content -->
-    <div :class="['rounded-xl border p-8', isDarkMode ? 'bg-gray-800/60 border-gray-700/50' : 'bg-white border-gray-200/60 shadow-sm']">
+    <div :class="['rounded-xl border p-8 backdrop-blur-xl', isDarkMode ? 'bg-gray-900/40 border-gray-700/30' : 'bg-white/40 border-white/20 shadow-sm']">
       <fieldset class="border-none p-0 m-0">
         <!-- Site Settings -->
         <div v-if="activeTab === 'site'">
@@ -734,6 +743,13 @@ const resetSettings = () => {
                 </div>
                 <span :class="['font-bold tracking-wider', isDarkMode ? 'text-gray-300' : 'text-gray-700']">{{ t('admin_enable_llm_txt') }}</span>
                 <input v-model="seo.llm_txt" type="checkbox" class="hidden" />
+              </label>
+              <label class="flex items-center gap-3 cursor-pointer">
+                <div class="w-12 h-6 rounded-full relative transition-colors flex-shrink-0" :class="seo.rss_feed ? 'bg-construct-red' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-400')">
+                  <div class="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform" :class="seo.rss_feed ? 'translate-x-[1.625rem]' : 'translate-x-0.5'"></div>
+                </div>
+                <span :class="['font-bold tracking-wider', isDarkMode ? 'text-gray-300' : 'text-gray-700']">{{ t('admin_enable_rss_feed') }}</span>
+                <input v-model="seo.rss_feed" type="checkbox" class="hidden" />
               </label>
             </div>
           </div>
