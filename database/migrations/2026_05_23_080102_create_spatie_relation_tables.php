@@ -13,8 +13,8 @@ return new class extends Migration
     {
         // 创建 role_has_permissions 中间表
         Schema::create('role_has_permissions', function (Blueprint $table) {
-            $table->unsignedBigInteger('permission_id');
-            $table->unsignedBigInteger('role_id');
+            $table->unsignedBigInteger('permission_id')->comment('权限ID');
+            $table->unsignedBigInteger('role_id')->comment('角色ID');
             $table->primary(['permission_id', 'role_id']);
             $table->foreign('permission_id')->references('id')->on('permissions')->onDelete('cascade');
             $table->foreign('role_id')->references('id')->on('roles')->onDelete('cascade');
@@ -22,7 +22,7 @@ return new class extends Migration
 
         // 创建 model_has_roles 中间表
         Schema::create('model_has_roles', function (Blueprint $table) {
-            $table->unsignedBigInteger('role_id');
+            $table->unsignedBigInteger('role_id')->comment('角色ID');
             $table->morphs('model');
             $table->primary(['role_id', 'model_id', 'model_type']);
             $table->foreign('role_id')->references('id')->on('roles')->onDelete('cascade');
@@ -30,7 +30,7 @@ return new class extends Migration
 
         // 创建 model_has_permissions 中间表
         Schema::create('model_has_permissions', function (Blueprint $table) {
-            $table->unsignedBigInteger('permission_id');
+            $table->unsignedBigInteger('permission_id')->comment('权限ID');
             $table->morphs('model');
             $table->primary(['permission_id', 'model_id', 'model_type']);
             $table->foreign('permission_id')->references('id')->on('permissions')->onDelete('cascade');

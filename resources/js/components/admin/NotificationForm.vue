@@ -63,40 +63,30 @@ const handleClose = () => {
 
 <template>
   <!-- Form Body (scrollable) -->
-  <div :class="['px-6 py-2 space-y-4 overflow-y-auto flex-1 scroll-smooth', isDarkMode ? 'bg-gray-800' : 'bg-white']">
+  <div class="nf-form-body" :class="isDarkMode ? 'nf-is-dark' : 'nf-is-light'">
       <!-- Title -->
       <div>
-        <label :class="['block text-xs font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
+        <label class="nf-label">
           {{ t('admin_notification_form_title') || '通知标题' }} <span class="text-construct-red">*</span>
         </label>
         <input
           v-model="formData.title"
           type="text"
           :disabled="isViewMode"
-          :class="[
-            'w-full px-4 py-3 rounded-xl border focus:border-construct-red focus:outline-none transition-all',
-            isDarkMode
-              ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500 disabled:opacity-50'
-              : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400 disabled:opacity-50'
-          ]"
+          class="nf-input"
           :placeholder="t('admin_notification_form_title_placeholder') || '输入通知标题...'"
         />
       </div>
 
       <!-- Type -->
       <div>
-        <label :class="['block text-xs font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
+        <label class="nf-label">
           {{ t('admin_notification_form_type') || '通知类型' }} <span class="text-construct-red">*</span>
         </label>
         <select
           v-model="formData.type"
           :disabled="isViewMode"
-          :class="[
-            'w-full px-4 py-3 rounded-xl border focus:border-construct-red focus:outline-none transition-all',
-            isDarkMode
-              ? 'bg-gray-700 border-gray-600 text-white disabled:opacity-50'
-              : 'bg-gray-50 border-gray-300 text-gray-900 disabled:opacity-50'
-          ]"
+          class="nf-select"
         >
           <option v-for="option in typeOptions" :key="option.value" :value="option.value">
             {{ option.label }}
@@ -106,63 +96,187 @@ const handleClose = () => {
 
       <!-- Message -->
       <div>
-        <label :class="['block text-xs font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
+        <label class="nf-label">
           {{ t('admin_notification_form_message') || '通知内容' }} <span class="text-construct-red">*</span>
         </label>
         <textarea
           v-model="formData.message"
           :disabled="isViewMode"
           rows="4"
-          :class="[
-            'w-full px-4 py-3 rounded-xl border focus:border-construct-red focus:outline-none transition-all resize-none',
-            isDarkMode
-              ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500 disabled:opacity-50'
-              : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400 disabled:opacity-50'
-          ]"
+          class="nf-textarea"
           :placeholder="t('admin_notification_form_message_placeholder') || '输入通知内容...'"
         />
       </div>
 
       <!-- Link -->
       <div>
-        <label :class="['block text-xs font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
+        <label class="nf-label">
           {{ t('admin_notification_form_link') || '关联链接' }}
         </label>
         <input
           v-model="formData.link"
           type="text"
           :disabled="isViewMode"
-          :class="[
-            'w-full px-4 py-3 rounded-xl border focus:border-construct-red focus:outline-none transition-all font-mono text-sm',
-            isDarkMode
-              ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500 disabled:opacity-50'
-              : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400 disabled:opacity-50'
-          ]"
+          class="nf-input nf-input--mono"
           :placeholder="t('admin_notification_form_link_placeholder') || '输入关联链接（可选）...'"
         />
       </div>
     </div>
 
     <!-- Actions (sticky bottom) -->
-    <div :class="['flex items-center justify-end gap-3 p-6 pt-3 flex-shrink-0', isDarkMode ? 'bg-gray-800' : 'bg-white']">
-      <button
-        @click="handleClose"
-        :class="[
-          'px-6 py-3 text-sm font-bold tracking-wider uppercase rounded-xl border transition-colors',
-          isDarkMode
-            ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
-            : 'border-gray-300 text-gray-500 hover:bg-gray-100'
-        ]"
-      >
+    <div class="nf-footer" :class="isDarkMode ? 'nf-is-dark' : 'nf-is-light'">
+      <button @click="handleClose" class="nf-btn-cancel">
         {{ t('admin_cancel') || '取消' }}
       </button>
       <button
         v-if="!isViewMode"
         @click="handleSave"
-        class="inline-flex items-center gap-2 px-6 py-3 bg-construct-red text-white text-sm font-bold tracking-wider uppercase rounded-xl shadow-lg shadow-construct-red/20 hover:bg-red-700 transition-all"
+        class="nf-btn-save"
       >
-        <Save :size="16" :style="{ color: '#ffffff' }" />
+        <Save :size="16" style="color: #ffffff;" />
         {{ t('admin_save') || '保存' }}
       </button>
     </div>
 </template>
+
+<style scoped>
+/* ========== Dark/Light Context ========== */
+.nf-form-body,
+.nf-footer {
+  transition: background 0.2s ease;
+}
+.nf-form-body.nf-is-dark,
+.nf-footer.nf-is-dark {
+  --nf-bg: #1f2937;
+  --nf-input-bg: #374151;
+  --nf-input-border: #4b5563;
+  --nf-input-text: #ffffff;
+  --nf-input-placeholder: #6b7280;
+  --nf-label: #9ca3af;
+  --nf-btn-cancel-text: #d1d5db;
+  --nf-btn-cancel-border: #4b5563;
+  --nf-btn-cancel-hover: #374151;
+}
+.nf-form-body.nf-is-light,
+.nf-footer.nf-is-light {
+  --nf-bg: #ffffff;
+  --nf-input-bg: #f9fafb;
+  --nf-input-border: #d1d5db;
+  --nf-input-text: #111827;
+  --nf-input-placeholder: #9ca3af;
+  --nf-label: #6b7280;
+  --nf-btn-cancel-text: #6b7280;
+  --nf-btn-cancel-border: #d1d5db;
+  --nf-btn-cancel-hover: #f3f4f6;
+}
+
+.nf-form-body {
+  padding: 0.5rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  overflow-y: auto;
+  flex: 1;
+  scroll-behavior: smooth;
+  background: var(--nf-bg);
+}
+
+/* ========== Form Controls ========== */
+.nf-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+  color: var(--nf-label);
+}
+
+.nf-input,
+.nf-select,
+.nf-textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--nf-input-border);
+  border-radius: 0.75rem;
+  background: var(--nf-input-bg);
+  color: var(--nf-input-text);
+  transition: all 0.2s ease;
+  outline: none;
+}
+.nf-input:focus,
+.nf-select:focus,
+.nf-textarea:focus {
+  border-color: var(--accent, #CF202E);
+  box-shadow: 0 0 0 2px rgba(207, 32, 46, 0.15);
+}
+.nf-input::placeholder,
+.nf-textarea::placeholder {
+  color: var(--nf-input-placeholder);
+}
+.nf-input:disabled,
+.nf-select:disabled,
+.nf-textarea:disabled {
+  opacity: 0.5;
+}
+.nf-textarea {
+  resize: none;
+}
+.nf-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%236b7280' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  padding-right: 2.5rem;
+}
+.nf-input--mono {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 0.875rem;
+}
+
+/* ========== Footer ========== */
+.nf-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 0.75rem 1.5rem 1.5rem;
+  flex-shrink: 0;
+  background: var(--nf-bg);
+}
+
+.nf-btn-cancel {
+  padding: 0.75rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border-radius: 0.75rem;
+  border: 1px solid var(--nf-btn-cancel-border);
+  color: var(--nf-btn-cancel-text);
+  background: transparent;
+  transition: all 0.15s ease;
+}
+.nf-btn-cancel:hover {
+  background: var(--nf-btn-cancel-hover);
+}
+
+.nf-btn-save {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--accent, #CF202E);
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 16px rgba(207, 32, 46, 0.2);
+  transition: all 0.15s ease;
+}
+.nf-btn-save:hover {
+  background: #b91c1c;
+}
+</style>

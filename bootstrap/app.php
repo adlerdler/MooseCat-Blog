@@ -16,11 +16,16 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\HandleInertiaRequests::class,
             \App\Http\Middleware\ActivityLogMiddleware::class,
             \App\Http\Middleware\PageVisitMiddleware::class,
+            \App\Http\Middleware\SeoMiddleware::class,
         ]);
         $middleware->alias([
             'maintenance'  => \App\Http\Middleware\CheckMaintenanceMode::class,
             'permission'   => \App\Http\Middleware\CheckPermission::class,
             'registration' => \App\Http\Middleware\CheckRegistrationEnabled::class,
+        ]);
+        $middleware->validateCsrfTokens(except: [
+            '/api/send-verification-code',
+            '/api/captcha',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

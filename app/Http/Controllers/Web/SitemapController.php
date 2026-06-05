@@ -7,17 +7,26 @@ use App\Models\Post;
 use App\Models\Project;
 use App\Models\Video;
 use App\Models\Category;
+use App\Models\Seo;
 use Illuminate\Http\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
  * SitemapController - 动态生成 sitemap.xml
  * 
  * 自动收集所有已发布内容，生成符合 Sitemap Protocol 0.9 的 XML。
+ * 受 SEO 设置中的 sitemap 开关控制。
  */
 class SitemapController extends Controller
 {
     public function index(): Response
     {
+        // 检查 sitemap 是否启用
+        $seo = Seo::getGlobalSeo();
+        if (!$seo || !$seo->sitemap) {
+            throw new NotFoundHttpException('Sitemap is not enabled');
+        }
+
         $urls = [];
 
         // --- 静态页面 ---

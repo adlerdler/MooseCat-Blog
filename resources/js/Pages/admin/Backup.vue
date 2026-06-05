@@ -181,23 +181,20 @@ const handleFilterChange = ({ key, value }) => {
 <template>
   <div class="p-8">
     <!-- Page Header -->
-    <div class="mb-8">
+    <div class="mb-10">
       <div class="flex items-center justify-between">
         <div>
           <div class="flex items-center gap-4 mb-2">
             <Archive class="text-construct-red" size="32" />
             <h2 :class="['font-display text-4xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">{{ t('admin_backup') }}</h2>
           </div>
-          <p :class="['text-sm font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">System backup management</p>
+          <p :class="['text-sm font-black tracking-[0.2em] uppercase opacity-50', isDarkMode ? 'text-gray-400' : 'text-gray-500']">System backup management</p>
         </div>
         <button
           @click="showCreateModal = true"
-          :class="[
-            'flex items-center gap-2 px-6 py-3 font-bold uppercase tracking-wider transition-all hover:opacity-90',
-            isDarkMode ? 'bg-construct-red text-white' : 'bg-construct-red text-white'
-          ]"
+          class="flex items-center gap-3 px-8 py-4 bg-construct-red text-white font-black text-xs uppercase tracking-[0.2em] transition-all hover:scale-105 active:scale-95 shadow-lg shadow-construct-red/20 rounded-xl"
         >
-          <Plus class="text-white" size="20" />
+          <Plus size="18" />
           {{ t('admin_create_backup') }}
         </button>
       </div>
@@ -229,7 +226,7 @@ const handleFilterChange = ({ key, value }) => {
         v-for="backup in paginatedBackups" 
         :key="backup.id"
         :class="[
-          'p-6 border transition-all hover:border-construct-red',
+          'p-6 border rounded-xl transition-all hover:border-construct-red',
           isDarkMode ? 'bg-gray-800/50 border-gray-700' : 'bg-white border-gray-200'
         ]"
       >
@@ -237,9 +234,9 @@ const handleFilterChange = ({ key, value }) => {
           <div :class="['p-3 rounded-full', isDarkMode ? 'bg-gray-700' : 'bg-gray-100']">
             <component :is="getTypeIcon(backup.type)" :class="getTypeColor(backup.type)" size="24" />
           </div>
-          <div class="flex-1">
-            <div class="flex items-center justify-between mb-2">
-              <div class="flex items-center gap-3">
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between mb-2 gap-4">
+              <div class="flex items-center gap-3 flex-wrap">
                 <span :class="['font-bold text-lg', isDarkMode ? 'text-white' : 'text-gray-900']">{{ backup.name }}</span>
                 <span :class="['px-2 py-1 text-xs font-bold uppercase rounded', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600']">
                   {{ t('admin_backup_' + backup.type) }}
@@ -249,23 +246,23 @@ const handleFilterChange = ({ key, value }) => {
                   {{ t('admin_backup_status_' + backup.status) }}
                 </span>
               </div>
-              <div class="flex items-center gap-4">
+              <div class="flex items-center gap-4 flex-shrink-0">
                 <span :class="['text-sm', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ backup.size }}</span>
               </div>
             </div>
             <p :class="['mb-3', isDarkMode ? 'text-gray-300' : 'text-gray-700']">{{ backup.note }}</p>
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2 text-sm">
+            <div class="flex items-center justify-between gap-4">
+              <div class="flex items-center gap-2 text-sm flex-shrink-0">
                 <Clock :class="isDarkMode ? 'text-gray-500' : 'text-gray-400'" size="14" />
                 <span :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'">
                   {{ t('admin_created') }}: {{ formatToShort(backup.createdAt) }}
                 </span>
               </div>
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-2 flex-shrink-0">
                 <button
                   @click="handleDownload(backup)"
                   :class="[
-                    'p-2 transition-colors',
+                    'p-2 rounded-lg transition-colors',
                     isDarkMode ? 'hover:bg-gray-700 text-gray-400 hover:text-white' : 'hover:bg-gray-100 text-gray-500 hover:text-gray-900'
                   ]"
                   :title="t('admin_download')"
@@ -275,7 +272,7 @@ const handleFilterChange = ({ key, value }) => {
                 <button
                   @click="handleDelete(backup)"
                   :class="[
-                    'p-2 transition-colors',
+                    'p-2 rounded-lg transition-colors',
                     isDarkMode ? 'hover:bg-gray-700 text-gray-400 hover:text-red-400' : 'hover:bg-gray-100 text-gray-500 hover:text-red-600'
                   ]"
                   :title="t('admin_delete')"
@@ -306,28 +303,28 @@ const handleFilterChange = ({ key, value }) => {
 
     <!-- Create Backup Modal -->
     <Teleport to="body">
-      <Transition name="modal">
-        <div v-if="showCreateModal" class="fixed inset-0 z-[200] flex items-center justify-center">
+      <Transition name="fade">
+        <div v-if="showCreateModal" class="fixed inset-0 z-[200] flex items-center justify-center p-4">
           <!-- Backdrop -->
-          <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="showCreateModal = false" />
+          <div class="absolute inset-0 bg-black/50" @click="showCreateModal = false" />
 
           <!-- Modal -->
           <div
             :class="[
-              'relative w-full max-w-md mx-4 rounded-xl shadow-2xl overflow-hidden',
-              isDarkMode ? 'bg-gray-800' : 'bg-white'
+              'relative w-full max-w-md rounded-xl shadow-2xl border',
+              isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
             ]"
           >
             <!-- Header -->
-            <div class="flex items-center justify-between p-6">
+            <div class="flex items-center justify-between px-8 py-6" :class="isDarkMode ? 'border-b border-gray-700' : 'border-b border-gray-200'">
               <div class="flex items-center gap-3">
                 <div :class="[
                   'w-10 h-10 rounded-full flex items-center justify-center',
                   isDarkMode ? 'bg-construct-red/20' : 'bg-construct-red/10'
                 ]">
-                  <Archive :class="['w-5 h-5', isDarkMode ? 'text-construct-red' : 'text-construct-red']" />
+                  <Archive class="text-construct-red" size="20" />
                 </div>
-                <h3 :class="['text-lg font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">
+                <h3 class="font-display text-xl tracking-tighter" :class="isDarkMode ? 'text-white' : 'text-gray-900'">
                   {{ t('admin_create_backup') }}
                 </h3>
               </div>
@@ -335,20 +332,20 @@ const handleFilterChange = ({ key, value }) => {
                 @click="showCreateModal = false"
                 :class="[
                   'p-2 rounded-lg transition-colors',
-                  isDarkMode ? 'text-gray-400 hover:text-white hover:bg-gray-700' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+                  isDarkMode ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-500 hover:bg-gray-100'
                 ]"
               >
-                <X class="w-5 h-5" />
+                <X size="20" />
               </button>
             </div>
 
             <!-- Body -->
-            <div class="px-6 pb-6">
+            <div class="p-8">
               <!-- Error Alert -->
               <div
                 v-if="createError"
                 :class="[
-                  'mb-4 p-3 border rounded-lg flex items-start gap-2 text-sm',
+                  'mb-6 p-3 border rounded-lg flex items-start gap-2 text-sm',
                   isDarkMode
                     ? 'bg-red-900/30 border-red-800 text-red-400'
                     : 'bg-red-50 border-red-200 text-red-600'
@@ -359,7 +356,7 @@ const handleFilterChange = ({ key, value }) => {
               </div>
 
               <div class="mb-6">
-                <label :class="['block mb-2 text-sm font-bold', isDarkMode ? 'text-gray-300' : 'text-gray-700']">{{ t('admin_backup_type') }}</label>
+                <label :class="['block mb-2 text-sm font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_backup_type') }}</label>
                 <div class="grid grid-cols-2 gap-3">
                   <button
                     v-for="type in ['full', 'database', 'files', 'incremental']"
@@ -378,14 +375,14 @@ const handleFilterChange = ({ key, value }) => {
                 </div>
               </div>
 
-              <div class="mb-6">
-                <label :class="['block mb-2 text-sm font-bold', isDarkMode ? 'text-gray-300' : 'text-gray-700']">{{ t('admin_backup_note') }}</label>
+              <div>
+                <label :class="['block mb-2 text-sm font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_backup_note') }}</label>
                 <textarea
                   v-model="createBackupForm.note"
                   rows="3"
                   :class="[
                     'w-full px-4 py-3 border rounded-lg focus:border-construct-red focus:outline-none transition-colors resize-none',
-                    isDarkMode ? 'bg-gray-900 border-gray-700 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'
+                    isDarkMode ? 'bg-gray-900 border-gray-700 text-white placeholder-gray-500' : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400'
                   ]"
                   :placeholder="t('admin_backup_note_placeholder')"
                 ></textarea>
@@ -393,14 +390,14 @@ const handleFilterChange = ({ key, value }) => {
             </div>
 
             <!-- Footer -->
-            <div class="flex gap-3 px-6 pb-6">
+            <div class="flex gap-3 px-8 py-6" :class="isDarkMode ? 'border-t border-gray-700' : 'border-t border-gray-200'">
               <button
                 @click="showCreateModal = false"
                 :class="[
-                  'flex-1 px-6 py-3 font-bold tracking-widest uppercase text-sm transition-colors rounded-lg',
+                  'flex-1 px-6 py-3 border font-bold tracking-wider text-sm transition-colors rounded-lg',
                   isDarkMode 
-                    ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'border-gray-700 text-white hover:bg-gray-700' 
+                    : 'border-gray-300 text-gray-900 hover:bg-gray-100'
                 ]"
               >
                 {{ t('admin_cancel') }}
@@ -409,10 +406,10 @@ const handleFilterChange = ({ key, value }) => {
                 @click="handleCreateBackup"
                 :disabled="createBackupForm.processing"
                 :class="[
-                  'flex-1 px-6 py-3 font-bold tracking-widest uppercase text-sm transition-colors rounded-lg flex items-center justify-center gap-2',
+                  'flex-1 px-6 py-3 bg-construct-red text-white font-bold tracking-wider text-sm transition-all rounded-lg flex items-center justify-center gap-2',
                   createBackupForm.processing
-                    ? 'bg-red-400 cursor-not-allowed'
-                    : 'bg-construct-red text-white hover:bg-red-700'
+                    ? 'opacity-50 cursor-not-allowed'
+                    : 'hover:bg-red-700'
                 ]"
               >
                 <Loader v-if="createBackupForm.processing" size="16" class="animate-spin" />

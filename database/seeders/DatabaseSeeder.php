@@ -25,6 +25,9 @@ class DatabaseSeeder extends Seeder
             'name' => 'Admin User',
             'email' => 'admin@archyx.com',
             'password' => Hash::make('password'),
+            'level_id' => 1,
+            'status' => 'active',
+            'points' => 1000,
         ]);
         $adminUser->assignRole('Administrator');
 
@@ -32,6 +35,9 @@ class DatabaseSeeder extends Seeder
             'name' => 'Content Editor',
             'email' => 'editor@archyx.com',
             'password' => Hash::make('password'),
+            'level_id' => 2,
+            'status' => 'active',
+            'points' => 500,
         ]);
         $editorUser->assignRole('Editor');
 
@@ -39,6 +45,9 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test Author',
             'email' => 'author@archyx.com',
             'password' => Hash::make('password'),
+            'level_id' => 3,
+            'status' => 'active',
+            'points' => 300,
         ]);
         $authorUser->assignRole('Author');
 
@@ -46,6 +55,9 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'email' => 'user@archyx.com',
             'password' => Hash::make('password'),
+            'level_id' => 4,
+            'status' => 'active',
+            'points' => 100,
         ]);
         $testUser->assignRole('Subscriber');
 

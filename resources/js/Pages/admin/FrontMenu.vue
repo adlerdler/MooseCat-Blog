@@ -28,8 +28,6 @@ import {
   LayoutDashboard,
   Edit3,
   X,
-  ChevronUp,
-  ChevronDown,
   Eye,
   EyeOff,
   Search,
@@ -38,6 +36,7 @@ import {
   SearchFilterModal
 } from '../../composables/useAdminImports';
 import { useMenuItems } from '../../composables/useMenuItems';
+import { useDragSort } from '../../composables/useDragSort';
 import { router } from '@inertiajs/vue3';
 import axios from 'axios';
 
@@ -249,51 +248,12 @@ const handleReset = () => {
   }
 };
 
-// 移动菜单项
-const moveItem = (index, direction) => {
-  const targetList = currentTab.value === 'front' ? frontMenuList : adminMenuList;
-  
-  if (currentTab.value === 'front') {
-    const newIndex = direction === 'up' ? index - 1 : index + 1;
-    if (newIndex >= 0 && newIndex < targetList.value.length) {
-      const temp = targetList.value[index];
-      targetList.value[index] = targetList.value[newIndex];
-      targetList.value[newIndex] = temp;
-      // 更新排序
-      targetList.value.forEach((item, i) => {
-        item.sort_order = i + 1;
-      });
-    }
-  } else {
-    // 后台树形菜单的排序需要更复杂的处理
-    const moveInTree = (items, targetId, direction) => {
-      for (let i = 0; i < items.length; i++) {
-        if (items[i].id === targetId) {
-          const newIndex = direction === 'up' ? i - 1 : i + 1;
-          if (newIndex >= 0 && newIndex < items.length) {
-            const temp = items[i];
-            items[i] = items[newIndex];
-            items[newIndex] = temp;
-            items.forEach((item, idx) => {
-              item.sort_order = idx + 1;
-            });
-            return true;
-          }
-          return false;
-        }
-        if (items[i].children && items[i].children.length > 0) {
-          if (moveInTree(items[i].children, targetId, direction)) {
-            return true;
-          }
-        }
-      }
-      return false;
-    };
-    
-    const item = flattenedAdminMenu.value[index];
-    moveInTree(targetList.value, item.id, direction);
-  }
-};
+// Use drag sort composable
+const { handleDragStart, handleDragOver, handleDragEnd } = useDragSort({
+  updateUrl: (id) => route('admin.front-menu.update', id),
+  onUpdateSuccess: () => success(t('admin_save') + ' ' + t('confirm')),
+  onUpdateError: (err) => error(err?.message || 'Failed to update sort order')
+});
 
 // 切换禁用状态
 const toggleActive = (item) => {
@@ -340,30 +300,30 @@ const handleFilterChange = ({ key, value }) => {
 <template>
   <div class="p-8">
     <!-- Page Header -->
-    <div class="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
-      <div>
-        <h2 :class="['font-display text-4xl tracking-tighter mb-2', isDarkMode ? 'text-white' : 'text-gray-900']">
-          {{ t('admin_menu_management') }}
-        </h2>
-        <p :class="['text-sm font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
-          {{ t('admin_menu_management_subtitle') }}
-        </p>
-      </div>
-      
-      <div class="flex gap-3">
-        <button 
-          @click="handleReset"
-          :class="['px-6 py-3 border flex items-center gap-2 font-bold text-xs tracking-wider uppercase transition-colors rounded', isDarkMode ? 'border-gray-700 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-100']"
-        >
-          <RotateCcw size="16" /> {{ t('admin_reset') }}
-        </button>
-        <button 
-          @click="handleSave"
-          :disabled="isSaving"
-          class="flex items-center gap-2 px-8 py-3 bg-construct-red text-white font-bold tracking-widest uppercase text-sm hover:bg-red-700 transition-colors rounded shadow-sm disabled:opacity-50"
-        >
-          <Save size="16" class="!text-white" /> {{ isSaving ? t('admin_save') + '...' : t('admin_save') }}
-        </button>
+    <div class="mb-8">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-4">
+          <Folder :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'" size="32" />
+          <div>
+            <h2 :class="['font-display text-4xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">{{ t('admin_menu_management') }}</h2>
+            <p :class="['text-sm font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_menu_management_subtitle') }}</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <button 
+            @click="handleReset"
+            :class="['px-6 py-3 border flex items-center gap-2 font-bold text-xs tracking-wider uppercase transition-colors rounded-xl', isDarkMode ? 'border-gray-700 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-100']"
+          >
+            <RotateCcw size="16" /> {{ t('admin_reset') }}
+          </button>
+          <button 
+            @click="handleSave"
+            :disabled="isSaving"
+            class="flex items-center gap-2 px-8 py-3 bg-construct-red text-white font-bold tracking-widest uppercase text-sm hover:bg-red-700 transition-colors rounded-xl shadow-sm disabled:opacity-50"
+          >
+            <Save size="16" class="!text-white" /> {{ isSaving ? t('admin_save') + '...' : t('admin_save') }}
+          </button>
+        </div>
       </div>
     </div>
 
@@ -394,20 +354,42 @@ const handleFilterChange = ({ key, value }) => {
     </div>
 
     <!-- Search & Filter Bar -->
-    <SearchFilterModal
-      v-model:search-query="searchQuery"
-      :search-placeholder="t('admin_search_menu') || '搜索菜单...'"
-      :filters="[
-        {
-          key: 'showInactive',
-          type: 'checkbox',
-          checkedLabel: t('admin_show_inactive') || '显示禁用',
-          uncheckedLabel: t('admin_hide_inactive') || '隐藏禁用'
-        }
-      ]"
-      :filter-values="{ showInactive: showInactive }"
-      @filter-change="handleFilterChange"
-    />
+    <div class="-mb-10">
+      <SearchFilterModal
+        v-model:search-query="searchQuery"
+        :search-placeholder="t('admin_search_menu') || '搜索菜单...'"
+        :filters="[
+          {
+            key: 'showInactive',
+            type: 'checkbox',
+            checkedLabel: t('admin_show_inactive') || '显示禁用',
+            uncheckedLabel: t('admin_hide_inactive') || '隐藏禁用'
+          }
+        ]"
+        :filter-values="{ showInactive: showInactive }"
+        @filter-change="handleFilterChange"
+      />
+    </div>
+
+    <!-- Help Notice -->
+    <div :class="['mt-16 mb-6 p-5 border rounded-xl flex items-start gap-4', isDarkMode ? 'bg-blue-900/20 border-blue-800/50' : 'bg-blue-50/80 border-blue-100']">
+      <div :class="['p-2 rounded-lg text-white shadow-sm shrink-0', isDarkMode ? 'bg-blue-600' : 'bg-blue-500']">
+        <Info size="18" />
+      </div>
+      <div>
+        <h4 :class="['font-bold mb-1.5 text-sm', isDarkMode ? 'text-blue-300' : 'text-blue-900']">
+          {{ t('admin_configuration_note') || '配置提示' }}
+        </h4>
+        <p :class="['text-sm leading-relaxed', isDarkMode ? 'text-blue-400/90' : 'text-blue-700/90']">
+          {{ t('admin_menu_help_text') || '菜单标签使用语言文件中的翻译键。确保你输入的' }} 
+          <code :class="['px-1.5 py-0.5 rounded text-xs font-bold', isDarkMode ? 'bg-blue-800/60 text-blue-300' : 'bg-blue-100 text-blue-800']">label_key</code> 
+          {{ t('admin_menu_help_text_2') || '存在于' }} 
+          <code :class="['px-1.5 py-0.5 rounded text-xs font-bold', isDarkMode ? 'bg-blue-800/60 text-blue-300' : 'bg-blue-100 text-blue-800']">zh.json</code>、
+          <code :class="['px-1.5 py-0.5 rounded text-xs font-bold', isDarkMode ? 'bg-blue-800/60 text-blue-300' : 'bg-blue-100 text-blue-800']">en.json</code> 
+          {{ t('admin_menu_help_text_3') || '等语言文件中，以显示正确的多语言文本。' }}
+        </p>
+      </div>
+    </div>
 
     <!-- Menu List Table -->
     <div :class="['border rounded-lg overflow-hidden', isDarkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white']">
@@ -430,38 +412,19 @@ const handleFilterChange = ({ key, value }) => {
               v-for="(item, index) in filteredFrontMenu" 
               :key="item.id"
               :class="[
-                'border-b transition-colors', 
+                'border-b transition-colors cursor-move', 
                 isDarkMode ? 'border-gray-700 hover:bg-gray-700/30' : 'border-gray-100 hover:bg-gray-50/50',
                 !item.is_active ? 'opacity-50' : ''
               ]"
+              draggable="true"
+              @dragstart="handleDragStart($event, item)"
+              @dragover="(e) => handleDragOver(e, item, frontMenuList)"
+              @dragend="() => handleDragEnd(frontMenuList)"
             >
               <td class="px-4 py-3">
-                <div class="flex items-center justify-center gap-1">
-                  <button 
-                    @click="moveItem(index, 'up')"
-                    :disabled="index === 0"
-                    :class="[
-                      'p-1 rounded transition-colors',
-                      index > 0 
-                        ? (isDarkMode ? 'text-gray-400 hover:text-white hover:bg-gray-600' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100')
-                        : 'opacity-20 cursor-not-allowed'
-                    ]"
-                  >
-                    <ChevronUp size="14" />
-                  </button>
+                <div class="flex items-center justify-center gap-2">
+                  <GripVertical :class="isDarkMode ? 'text-gray-500' : 'text-gray-400'" size="16" />
                   <span class="text-xs font-bold w-4 text-center">{{ index + 1 }}</span>
-                  <button 
-                    @click="moveItem(index, 'down')"
-                    :disabled="index === filteredFrontMenu.length - 1"
-                    :class="[
-                      'p-1 rounded transition-colors',
-                      index < filteredFrontMenu.length - 1 
-                        ? (isDarkMode ? 'text-gray-400 hover:text-white hover:bg-gray-600' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100')
-                        : 'opacity-20 cursor-not-allowed'
-                    ]"
-                  >
-                    <ChevronDown size="14" />
-                  </button>
                 </div>
               </td>
               <td class="px-4 py-3 text-center">
@@ -483,8 +446,8 @@ const handleFilterChange = ({ key, value }) => {
                   v-model="item.label_key"
                   type="text"
                   :class="[
-                    'w-full px-3 py-2 border rounded font-mono text-xs focus:border-construct-red focus:outline-none transition-all',
-                    isDarkMode ? 'bg-gray-900 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'
+                    'w-full px-3 py-1.5 border rounded-lg font-mono text-xs focus:border-construct-red focus:ring-1 focus:ring-construct-red/20 focus:outline-none transition-all',
+                    isDarkMode ? 'bg-gray-900/50 border-gray-700 text-white placeholder-gray-600' : 'bg-gray-50/50 border-gray-200 text-gray-900 placeholder-gray-400 hover:border-gray-300'
                   ]"
                   :placeholder="t('admin_label_key_placeholder') || 'e.g. nav_home'"
                 />
@@ -500,19 +463,26 @@ const handleFilterChange = ({ key, value }) => {
                     v-model="item.path"
                     type="text"
                     :class="[
-                      'flex-1 px-3 py-2 border rounded font-mono text-xs focus:border-construct-red focus:outline-none transition-all',
-                      isDarkMode ? 'bg-gray-900 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'
+                      'flex-1 px-3 py-1.5 border rounded-lg font-mono text-xs focus:border-construct-red focus:ring-1 focus:ring-construct-red/20 focus:outline-none transition-all',
+                      isDarkMode ? 'bg-gray-900/50 border-gray-700 text-white placeholder-gray-600' : 'bg-gray-50/50 border-gray-200 text-gray-900 placeholder-gray-400 hover:border-gray-300'
                     ]"
                     placeholder="/"
                   />
-                  <ExternalLink size="14" class="opacity-40 shrink-0" />
+                  <a 
+                    v-if="item.path"
+                    :href="item.path"
+                    target="_blank"
+                    class="p-1 text-gray-400 hover:text-construct-red transition-colors shrink-0"
+                  >
+                    <ExternalLink size="14" />
+                  </a>
                 </div>
               </td>
               <td class="px-4 py-3 text-right">
                 <div class="flex items-center justify-end gap-1">
                   <button 
                     @click="handleDelete(item)"
-                    class="p-2 text-gray-400 hover:text-red-500 transition-colors rounded hover:bg-red-50 dark:hover:bg-red-900/20"
+                    class="p-2 text-gray-400 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"
                   >
                     <Trash2 size="16" />
                   </button>
@@ -525,38 +495,19 @@ const handleFilterChange = ({ key, value }) => {
               v-for="(item, index) in flattenedAdminMenu" 
               :key="item.id"
               :class="[
-                'border-b transition-colors', 
+                'border-b transition-colors cursor-move', 
                 isDarkMode ? 'border-gray-700 hover:bg-gray-700/30' : 'border-gray-100 hover:bg-gray-50/50',
                 !item.is_active ? 'opacity-50' : ''
               ]"
+              draggable="true"
+              @dragstart="handleDragStart($event, item)"
+              @dragover="(e) => handleDragOver(e, item, adminMenuList)"
+              @dragend="() => handleDragEnd(adminMenuList)"
             >
               <td class="px-4 py-3">
-                <div class="flex items-center justify-center gap-1">
-                  <button 
-                    @click="moveItem(index, 'up')"
-                    :disabled="index === 0"
-                    :class="[
-                      'p-1 rounded transition-colors',
-                      index > 0 
-                        ? (isDarkMode ? 'text-gray-400 hover:text-white hover:bg-gray-600' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100')
-                        : 'opacity-20 cursor-not-allowed'
-                    ]"
-                  >
-                    <ChevronUp size="14" />
-                  </button>
+                <div class="flex items-center justify-center gap-2">
+                  <GripVertical :class="isDarkMode ? 'text-gray-500' : 'text-gray-400'" size="16" />
                   <span class="text-xs font-bold w-4 text-center">{{ index + 1 }}</span>
-                  <button 
-                    @click="moveItem(index, 'down')"
-                    :disabled="index === flattenedAdminMenu.length - 1"
-                    :class="[
-                      'p-1 rounded transition-colors',
-                      index < flattenedAdminMenu.length - 1 
-                        ? (isDarkMode ? 'text-gray-400 hover:text-white hover:bg-gray-600' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100')
-                        : 'opacity-20 cursor-not-allowed'
-                    ]"
-                  >
-                    <ChevronDown size="14" />
-                  </button>
                 </div>
               </td>
               <td class="px-4 py-3 text-center">
@@ -580,8 +531,8 @@ const handleFilterChange = ({ key, value }) => {
                     v-model="item.label_key"
                     type="text"
                     :class="[
-                      'flex-1 px-3 py-2 border rounded font-mono text-xs focus:border-construct-red focus:outline-none transition-all',
-                      isDarkMode ? 'bg-gray-900 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'
+                      'flex-1 px-3 py-1.5 border rounded-lg font-mono text-xs focus:border-construct-red focus:ring-1 focus:ring-construct-red/20 focus:outline-none transition-all',
+                      isDarkMode ? 'bg-gray-900/50 border-gray-700 text-white placeholder-gray-600' : 'bg-gray-50/50 border-gray-200 text-gray-900 placeholder-gray-400 hover:border-gray-300'
                     ]"
                     :placeholder="t('admin_label_key_placeholder') || 'e.g. admin_dashboard'"
                   />
@@ -598,20 +549,19 @@ const handleFilterChange = ({ key, value }) => {
                     v-model="item.path"
                     type="text"
                     :class="[
-                      'flex-1 px-3 py-2 border rounded font-mono text-xs focus:border-construct-red focus:outline-none transition-all',
-                      isDarkMode ? 'bg-gray-900 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'
+                      'flex-1 px-3 py-1.5 border rounded-lg font-mono text-xs focus:border-construct-red focus:ring-1 focus:ring-construct-red/20 focus:outline-none transition-all',
+                      isDarkMode ? 'bg-gray-900/50 border-gray-700 text-white placeholder-gray-600' : 'bg-gray-50/50 border-gray-200 text-gray-900 placeholder-gray-400 hover:border-gray-300'
                     ]"
                     placeholder="/admin/"
                   />
-                  <ExternalLink size="14" class="opacity-40 shrink-0" />
                 </div>
               </td>
               <td class="px-4 py-3">
                 <select 
                   v-model="item.icon_name"
                   :class="[
-                    'w-full px-3 py-2 border rounded font-mono text-xs focus:border-construct-red focus:outline-none transition-all appearance-none',
-                    isDarkMode ? 'bg-gray-900 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'
+                    'w-full px-3 py-1.5 border rounded-lg font-mono text-xs focus:border-construct-red focus:ring-1 focus:ring-construct-red/20 focus:outline-none transition-all appearance-none cursor-pointer',
+                    isDarkMode ? 'bg-gray-900/50 border-gray-700 text-white' : 'bg-gray-50/50 border-gray-200 text-gray-900 hover:border-gray-300'
                   ]"
                 >
                   <option value="" disabled>{{ t('admin_select_icon') || '选择图标' }}</option>
@@ -622,8 +572,8 @@ const handleFilterChange = ({ key, value }) => {
                 <select 
                   v-model="item.parent_id"
                   :class="[
-                    'w-full px-3 py-2 border rounded text-xs focus:border-construct-red focus:outline-none transition-all appearance-none',
-                    isDarkMode ? 'bg-gray-900 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'
+                    'w-full px-3 py-1.5 border rounded-lg text-xs focus:border-construct-red focus:ring-1 focus:ring-construct-red/20 focus:outline-none transition-all appearance-none cursor-pointer',
+                    isDarkMode ? 'bg-gray-900/50 border-gray-700 text-white' : 'bg-gray-50/50 border-gray-200 text-gray-900 hover:border-gray-300'
                   ]"
                 >
                   <option :value="null">{{ t('admin_no_parent') || '无父级' }}</option>
@@ -634,7 +584,7 @@ const handleFilterChange = ({ key, value }) => {
                 <div class="flex items-center justify-end gap-1">
                   <button 
                     @click="handleDelete(item)"
-                    class="p-2 text-gray-400 hover:text-red-500 transition-colors rounded hover:bg-red-50 dark:hover:bg-red-900/20"
+                    class="p-2 text-gray-400 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"
                   >
                     <Trash2 size="16" />
                   </button>
@@ -669,26 +619,6 @@ const handleFilterChange = ({ key, value }) => {
           <Plus size="18" class="group-hover:scale-125 transition-transform" /> 
           {{ currentTab === 'front' ? (t('admin_add_front_item') || 'Add Frontend Item') : (t('admin_add_backend_item') || 'Add Backend Item') }}
         </button>
-      </div>
-    </div>
-
-    <!-- Help Notice -->
-    <div :class="['mt-8 p-6 border rounded-lg flex items-start gap-4', isDarkMode ? 'bg-blue-900/20 border-blue-800' : 'bg-blue-50 border-blue-100']">
-      <div :class="['p-2 rounded text-white shadow-sm', isDarkMode ? 'bg-blue-600' : 'bg-blue-500']">
-        <Info size="20" />
-      </div>
-      <div>
-        <h4 :class="['font-bold mb-1', isDarkMode ? 'text-blue-300' : 'text-blue-900']">
-          {{ t('admin_configuration_note') || 'Configuration Note' }}
-        </h4>
-        <p :class="['text-sm leading-relaxed', isDarkMode ? 'text-blue-400' : 'text-blue-700']">
-          {{ t('admin_menu_help_text') || 'The menu labels use translation keys from the language files. Ensure the' }} 
-          <code :class="['px-1 rounded text-xs font-bold', isDarkMode ? 'bg-blue-800' : 'bg-blue-100']">label_key</code> 
-          {{ t('admin_menu_help_text_2') || 'you enter exists in' }} 
-          <code :class="['px-1 rounded text-xs', isDarkMode ? 'bg-blue-800' : 'bg-blue-100']">zh.json</code>, 
-          <code :class="['px-1 rounded text-xs', isDarkMode ? 'bg-blue-800' : 'bg-blue-100']">en.json</code>, 
-          {{ t('admin_menu_help_text_3') || 'etc. to display correct multi-language text.' }}
-        </p>
       </div>
     </div>
 

@@ -20,6 +20,9 @@ class InteractionSeeder extends Seeder
                 'interactable_id' => $post->id,
                 'interactable_type' => Post::class,
                 'type' => 'like',
+                'visitor_id' => md5('user-' . $user->id),
+                'ip_address' => '127.0.0.1',
+                'user_agent' => 'Seeder/1.0',
             ]);
 
             $post->increment('likes_count');

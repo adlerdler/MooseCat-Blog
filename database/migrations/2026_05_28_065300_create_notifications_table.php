@@ -13,11 +13,12 @@ return new class extends Migration
     {
         Schema::create('notifications', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('type');
-            $table->morphs('notifiable');
-            $table->text('data');
-            $table->timestamp('read_at')->nullable();
-            $table->timestamps();
+            $table->string('type')->comment('通知类型');
+            $table->morphs('notifiable')->comment('通知接收者（多态关联）');
+            $table->text('data')->comment('通知数据JSON');
+            $table->timestamp('read_at')->nullable()->comment('已读时间');
+            $table->timestamp('created_at')->nullable();
+            $table->timestamp('updated_at')->nullable();
         });
     }
 

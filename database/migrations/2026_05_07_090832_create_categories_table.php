@@ -11,12 +11,13 @@ return new class extends Migration
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
             $table->foreignId('parent_id')->nullable()->constrained('categories')->nullOnDelete()->comment('父分类ID');
-            $table->string('name')->unique()->comment('名称');
+            $table->string('name')->unique()->comment('分类名称');
             $table->string('slug')->unique()->comment('URL标识符');
-            $table->string('description')->nullable()->comment('描述');
-            $table->enum('status', ['active', 'inactive'])->default('active')->comment('状态');
-            $table->integer('sort_order')->default(0)->comment('排序');
-            $table->timestamps();
+            $table->string('description')->nullable()->comment('分类描述');
+            $table->string('status', 50)->default('active')->comment('状态');
+            $table->integer('sort_order')->default(0)->comment('排序序号');
+            $table->timestamp('created_at')->nullable();
+            $table->timestamp('updated_at')->nullable();
         });
     }
 

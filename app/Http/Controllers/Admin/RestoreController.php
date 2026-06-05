@@ -33,6 +33,20 @@ class RestoreController extends Controller
     }
 
     /**
+     * 预览备份内容（AJAX，读取 ZIP 真实数据）
+     */
+    public function preview(string $id): \Illuminate\Http\JsonResponse
+    {
+        $data = $this->backupService->preview((int) $id);
+
+        if ($data === null) {
+            return response()->json(['error' => '备份记录不存在或文件不可读'], 404);
+        }
+
+        return response()->json($data);
+    }
+
+    /**
      * 执行恢复
      */
     public function restore(Request $request, string $id): RedirectResponse

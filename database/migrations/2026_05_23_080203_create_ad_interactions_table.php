@@ -10,12 +10,13 @@ return new class extends Migration
     {
         Schema::create('ad_interactions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('advertisement_id')->constrained('advertisements')->cascadeOnDelete();
-            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->enum('type', ['click', 'view']);
-            $table->string('ip_address', 45);
-            $table->string('user_agent')->nullable();
-            $table->timestamps();
+            $table->foreignId('advertisement_id')->constrained('advertisements')->cascadeOnDelete()->comment('广告ID');
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete()->comment('用户ID');
+            $table->string('type', 50)->comment('交互类型');
+            $table->string('ip_address', 45)->comment('访问者IP地址');
+            $table->string('user_agent')->nullable()->comment('访问者User-Agent');
+            $table->timestamp('created_at')->nullable();
+            $table->timestamp('updated_at')->nullable();
         });
     }
 

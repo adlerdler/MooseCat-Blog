@@ -13,16 +13,17 @@ return new class extends Migration
     {
         Schema::create('activity_log', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('log_name')->nullable();
-            $table->text('description');
-            $table->string('event')->nullable();
-            $table->nullableMorphs('subject', 'subject');
-            $table->nullableMorphs('causer', 'causer');
-            $table->json('properties')->nullable();
-            $table->uuid('batch_uuid')->nullable();
+            $table->string('log_name')->nullable()->comment('日志名称');
+            $table->text('description')->comment('日志描述');
+            $table->string('event')->nullable()->comment('事件名称');
+            $table->nullableMorphs('subject', 'subject')->comment('操作主体（多态关联）');
+            $table->nullableMorphs('causer', 'causer')->comment('操作者（多态关联）');
+            $table->json('properties')->nullable()->comment('额外属性JSON');
+            $table->uuid('batch_uuid')->nullable()->comment('批次UUID');
             $table->string('ip_address', 45)->nullable()->comment('IP地址');
             $table->string('user_agent')->nullable()->comment('User-Agent');
-            $table->timestamps();
+            $table->timestamp('created_at')->nullable();
+            $table->timestamp('updated_at')->nullable();
             $table->index('log_name');
         });
     }

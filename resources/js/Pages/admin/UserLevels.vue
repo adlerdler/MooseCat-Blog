@@ -7,6 +7,7 @@
  * - 等级列表展示（名称、等级、折扣、颜色、状态）
  * - 等级搜索和筛选
  * - 添加、编辑、删除等级
+ * - 拖拽排序
  */
 import {
   ref,
@@ -22,15 +23,16 @@ import {
   Trash2,
   X,
   Filter,
-  Check,
-  ChevronUp,
-  ChevronDown,
+  LayoutGrid,
+  List,
+  GripVertical,
   UserLevelForm,
   ConfirmDialog,
   Pagination,
   SearchFilterModal
 } from '../../composables/useAdminImports';
 import { router, useForm } from '@inertiajs/vue3';
+import { useDragSort } from '../../composables/useDragSort';
 
 const props = defineProps({
   levels: {
@@ -51,6 +53,22 @@ const isFormVisible = ref(false);
 const editingLevel = ref(null);
 const showDeleteConfirm = ref(false);
 const deletingLevelId = ref(null);
+
+// Load saved view mode from localStorage
+const savedViewMode = localStorage.getItem('admin_user_levels_view_mode');
+const viewMode = ref(savedViewMode || 'card');
+
+// Save view mode when changed
+watch(viewMode, (newMode) => {
+  localStorage.setItem('admin_user_levels_view_mode', newMode);
+});
+
+// Use drag sort composable
+const { handleDragStart, handleDragOver, handleDragEnd } = useDragSort({
+  updateUrl: (id) => route('admin.user-levels.update', id),
+  onUpdateSuccess: () => toastSuccess('Sort order updated'),
+  onUpdateError: (err) => toastError(err?.message || 'Failed to update sort order')
+});
 
 const levels = ref([...props.levels]);
 
@@ -126,34 +144,6 @@ const confirmDelete = () => {
   showDeleteConfirm.value = false;
 };
 
-const moveUp = (level) => {
-  const index = filteredLevels.value.findIndex(l => l.id === level.id);
-  if (index > 0) {
-    const actualIndex = levels.value.findIndex(l => l.id === level.id);
-    const newSortOrder = levels.value[actualIndex - 1].sort_order;
-    router.put(route('admin.user-levels.update', level.id), {
-      sort_order: newSortOrder,
-    }, { preserveState: true });
-    router.put(route('admin.user-levels.update', levels.value[actualIndex - 1].id), {
-      sort_order: level.sort_order,
-    }, { preserveState: true });
-  }
-};
-
-const moveDown = (level) => {
-  const index = filteredLevels.value.findIndex(l => l.id === level.id);
-  if (index < filteredLevels.value.length - 1) {
-    const actualIndex = levels.value.findIndex(l => l.id === level.id);
-    const newSortOrder = levels.value[actualIndex + 1].sort_order;
-    router.put(route('admin.user-levels.update', level.id), {
-      sort_order: newSortOrder,
-    }, { preserveState: true });
-    router.put(route('admin.user-levels.update', levels.value[actualIndex + 1].id), {
-      sort_order: level.sort_order,
-    }, { preserveState: true });
-  }
-};
-
 const handleFilterChange = ({ key, value }) => {
   if (key === 'active') {
     activeFilter.value = value;
@@ -164,22 +154,19 @@ const handleFilterChange = ({ key, value }) => {
 
 <template>
   <div class="p-8">
-    <div class="mb-10">
+    <!-- Page Header -->
+    <div class="mb-8">
       <div class="flex items-center justify-between">
-        <div>
-          <div class="flex items-center gap-4 mb-2">
-            <Crown class="text-construct-red" size="32" />
-            <h2 :class="['font-display text-4xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">
-              {{ t('admin_user_levels') }}
-            </h2>
+        <div class="flex items-center gap-4">
+          <Crown class="text-construct-red" size="32" />
+          <div>
+            <h2 :class="['font-display text-4xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">{{ t('admin_user_levels') }}</h2>
+            <p :class="['text-sm font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_user_levels_subtitle') }}</p>
           </div>
-          <p :class="['text-sm font-black tracking-[0.2em] uppercase opacity-50', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
-            {{ t('admin_user_levels_subtitle') }}
-          </p>
         </div>
         <button
           @click="handleAdd"
-          class="flex items-center gap-3 px-8 py-4 bg-construct-red text-white font-black text-xs uppercase tracking-[0.2em] transition-all hover:scale-105 active:scale-95 shadow-lg shadow-construct-red/20 rounded-xl"
+          class="flex items-center gap-2 px-6 py-3 bg-construct-red text-white font-bold tracking-wider rounded-xl shadow-sm hover:scale-105 active:scale-95 transition-all"
         >
           <Plus size="18" />
           {{ t('admin_add_level') }}
@@ -187,26 +174,113 @@ const handleFilterChange = ({ key, value }) => {
       </div>
     </div>
 
-    <SearchFilterModal
-      v-model:search-query="searchQuery"
-      :search-placeholder="t('admin_search_levels')"
-      :filters="[
-        {
-          key: 'active',
-          options: [
-            { value: 'all', label: t('admin_all_status') || '所有状态' },
-            { value: 'active', label: t('admin_active') },
-            { value: 'inactive', label: t('admin_inactive') }
-          ]
-        }
-      ]"
-      :filter-values="{ active: activeFilter }"
-      @filter-change="handleFilterChange"
-    />
+    <!-- Search and View Toggle -->
+    <div class="flex items-center gap-4 mt-6">
+      <div class="flex-1">
+        <div class="-mb-10">
+          <SearchFilterModal
+            v-model:search-query="searchQuery"
+            :search-placeholder="t('admin_search_levels')"
+            :filters="[
+              {
+                key: 'active',
+                options: [
+                  { value: 'all', label: t('admin_all_status') || '所有状态' },
+                  { value: 'active', label: t('admin_active') },
+                  { value: 'inactive', label: t('admin_inactive') }
+                ]
+              }
+            ]"
+            :filter-values="{ active: activeFilter }"
+            @filter-change="handleFilterChange"
+          />
+        </div>
+      </div>
+      <!-- View Toggle -->
+      <div class="flex items-center gap-1 p-1 rounded-xl flex-shrink-0 h-14" :class="isDarkMode ? 'bg-gray-800' : 'bg-gray-100'">
+        <button
+          @click="viewMode = 'card'"
+          :class="['p-3 rounded-lg transition-all h-full flex items-center justify-center', viewMode === 'card' ? 'bg-white dark:bg-gray-700 shadow-sm text-construct-red' : 'text-gray-400 hover:text-gray-600']"
+          title="Card View"
+        >
+          <LayoutGrid size="18" />
+        </button>
+        <button
+          @click="viewMode = 'table'"
+          :class="['p-3 rounded-lg transition-all h-full flex items-center justify-center', viewMode === 'table' ? 'bg-white dark:bg-gray-700 shadow-sm text-construct-red' : 'text-gray-400 hover:text-gray-600']"
+          title="Table View"
+        >
+          <List size="18" />
+        </button>
+      </div>
+    </div>
 
-    <div :class="['border overflow-hidden', isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200']">
+    <!-- Levels Cards -->
+    <div v-if="viewMode === 'card'" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mt-6">
+      <div
+        v-for="level in paginatedLevels"
+        :key="level.id"
+        :class="[
+          'p-6 rounded-xl transition-all duration-200 hover:scale-[1.02] cursor-move',
+          isDarkMode ? 'bg-gray-800/80 hover:bg-gray-800' : 'bg-white hover:bg-gray-50'
+        ]"
+        draggable="true"
+        @dragstart="handleDragStart($event, level)"
+        @dragover="(e) => handleDragOver(e, level, levels)"
+        @dragend="() => handleDragEnd(levels)"
+      >
+        <!-- Level Header -->
+        <div class="flex items-start justify-between mb-4">
+          <div class="flex items-center gap-3">
+            <div :class="['w-12 h-12 rounded-xl flex items-center justify-center shadow-md']" :style="{ backgroundColor: level.color }">
+              <span class="font-bold text-white text-lg">{{ level.level }}</span>
+            </div>
+            <div>
+              <h4 :class="['font-bold text-lg', isDarkMode ? 'text-white' : 'text-gray-900']">{{ level.name }}</h4>
+              <p :class="['text-xs', isDarkMode ? 'text-gray-500' : 'text-gray-400']">{{ level.description }}</p>
+            </div>
+          </div>
+          <GripVertical :class="isDarkMode ? 'text-gray-500' : 'text-gray-400'" size="20" />
+        </div>
+
+        <!-- Discount -->
+        <div class="mb-4">
+          <span v-if="level.discount > 0" :class="['px-3 py-1 rounded-full text-xs font-bold', isDarkMode ? 'bg-green-500/20 text-green-400' : 'bg-green-50 text-green-600']">
+            {{ level.discount }}% {{ t('admin_discount') }}
+          </span>
+          <span v-else :class="['text-sm', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
+            {{ t('admin_no_discount') }}
+          </span>
+        </div>
+
+        <!-- Status -->
+        <div class="flex items-center justify-between">
+          <span
+            :class="[
+              'px-3 py-1 rounded-full text-xs font-bold',
+              level.is_active
+                ? (isDarkMode ? 'bg-green-500/20 text-green-400' : 'bg-green-50 text-green-600')
+                : (isDarkMode ? 'bg-red-500/20 text-red-400' : 'bg-red-50 text-red-600')
+            ]"
+          >
+            {{ level.is_active ? t('admin_active') : t('admin_inactive') }}
+          </span>
+          <div class="flex items-center gap-1">
+            <button @click="handleEdit(level)" :class="['p-2 rounded-lg transition-all', isDarkMode ? 'hover:bg-gray-700 text-gray-400 hover:text-white' : 'hover:bg-gray-100 text-gray-500 hover:text-gray-700']">
+              <Edit3 size="16" />
+            </button>
+            <button @click="handleDelete(level.id)" :class="['p-2 rounded-lg transition-all', isDarkMode ? 'hover:bg-red-500/20 text-gray-400 hover:text-red-400' : 'hover:bg-red-50 text-gray-500 hover:text-red-500']">
+              <Trash2 size="16" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Levels Table -->
+    <div v-if="viewMode === 'table'" :class="['mt-6 rounded-xl overflow-hidden', isDarkMode ? 'bg-gray-800/80' : 'bg-white']">
       <table class="w-full">
-        <thead :class="isDarkMode ? 'bg-gray-700' : 'bg-gray-100'">
+        <thead :class="isDarkMode ? 'bg-gray-700/50' : 'bg-gray-100/50'">
           <tr>
             <th :class="['px-6 py-4 text-left text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_table_order') }}</th>
             <th :class="['px-6 py-4 text-left text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_table_level') }}</th>
@@ -219,27 +293,18 @@ const handleFilterChange = ({ key, value }) => {
         </thead>
         <tbody>
           <tr
-            v-for="(level, index) in paginatedLevels"
+            v-for="level in paginatedLevels"
             :key="level.id"
-            :class="['border-t transition-colors', isDarkMode ? 'border-gray-700 hover:bg-gray-700/50' : 'border-gray-200 hover:bg-gray-50']"
+            :class="['transition-colors cursor-move', isDarkMode ? 'hover:bg-gray-700/50' : 'hover:bg-gray-50']"
+            draggable="true"
+            @dragstart="handleDragStart($event, level)"
+            @dragover="(e) => handleDragOver(e, level, levels)"
+            @dragend="() => handleDragEnd(levels)"
           >
             <td class="px-6 py-4">
-              <div class="flex items-center justify-center gap-1">
-                <button
-                  @click="moveUp(level)"
-                  :disabled="index === 0"
-                  :class="['p-1 rounded transition-colors', index === 0 ? 'opacity-20 cursor-not-allowed' : (isDarkMode ? 'text-gray-400 hover:text-white hover:bg-gray-600' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100')]"
-                >
-                  <ChevronUp size="14" />
-                </button>
-                <span class="text-xs font-bold w-4 text-center">{{ index + 1 }}</span>
-                <button
-                  @click="moveDown(level)"
-                  :disabled="index === paginatedLevels.length - 1"
-                  :class="['p-1 rounded transition-colors', index === paginatedLevels.length - 1 ? 'opacity-20 cursor-not-allowed' : (isDarkMode ? 'text-gray-400 hover:text-white hover:bg-gray-600' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100')]"
-                >
-                  <ChevronDown size="14" />
-                </button>
+              <div class="flex items-center gap-2">
+                <GripVertical :class="isDarkMode ? 'text-gray-500' : 'text-gray-400'" size="16" />
+                <span class="text-xs font-bold">{{ level.sort_order }}</span>
               </div>
             </td>
             <td class="px-6 py-4">
@@ -280,17 +345,11 @@ const handleFilterChange = ({ key, value }) => {
               </span>
             </td>
             <td class="px-6 py-4">
-              <div class="flex items-center justify-center gap-2">
-                <button
-                  @click="handleEdit(level)"
-                  :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:bg-gray-600' : 'text-gray-500 hover:bg-gray-100']"
-                >
+              <div class="flex items-center justify-center gap-1">
+                <button @click="handleEdit(level)" :class="['p-2 rounded-lg transition-all', isDarkMode ? 'hover:bg-gray-700 text-gray-400 hover:text-white' : 'hover:bg-gray-100 text-gray-500 hover:text-gray-700']">
                   <Edit3 size="16" />
                 </button>
-                <button
-                  @click="handleDelete(level.id)"
-                  :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:bg-red-500/20' : 'text-gray-500 hover:bg-red-50']"
-                >
+                <button @click="handleDelete(level.id)" :class="['p-2 rounded-lg transition-all', isDarkMode ? 'hover:bg-red-500/20 text-gray-400 hover:text-red-400' : 'hover:bg-red-50 text-gray-500 hover:text-red-500']">
                   <Trash2 size="16" />
                 </button>
               </div>
@@ -300,6 +359,7 @@ const handleFilterChange = ({ key, value }) => {
       </table>
     </div>
 
+    <!-- Pagination -->
     <Pagination
       :current-page="currentPage"
       :total-pages="totalPages"
@@ -308,6 +368,7 @@ const handleFilterChange = ({ key, value }) => {
       @update:current-page="(page) => currentPage = page"
     />
 
+    <!-- User Level Form -->
     <UserLevelForm
       :edit-data="editingLevel"
       :visible="isFormVisible"
@@ -315,6 +376,7 @@ const handleFilterChange = ({ key, value }) => {
       @cancel="handleCancel"
     />
 
+    <!-- Delete Confirm Dialog -->
     <ConfirmDialog
       :visible="showDeleteConfirm"
       :title="t('admin_confirm_delete')"

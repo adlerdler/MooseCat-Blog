@@ -74,7 +74,7 @@ class VideoController extends Controller
         $data['author_id'] = $request->user()->id;
         $this->videoService->createVideo($data);
 
-        return redirect()->route('videos.index')->with('success', '视频已创建');
+        return redirect()->route('admin.videos.index')->with('success', '视频已创建');
     }
 
     public function show(Video $video): Response
@@ -121,13 +121,13 @@ class VideoController extends Controller
     {
         $this->videoService->updateVideo($video, $request->validated());
 
-        return redirect()->route('videos.index')->with('success', '视频已更新');
+        return redirect()->route('admin.videos.index')->with('success', '视频已更新');
     }
 
     public function destroy(Video $video)
     {
         $video->delete();
 
-        return redirect()->route('videos.index')->with('success', '视频已删除');
+        return redirect()->route('admin.videos.index')->with('success', '视频已删除');
     }
 }

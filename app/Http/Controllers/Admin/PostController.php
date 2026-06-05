@@ -83,7 +83,7 @@ class PostController extends Controller
         
         $this->postService->createPost($data);
 
-        return redirect()->route('posts.index')->with('success', '文章已创建');
+        return redirect()->route('admin.posts.index')->with('success', '文章已创建');
     }
 
     public function show(Post $post): Response
@@ -132,20 +132,20 @@ class PostController extends Controller
     {
         $this->postService->updatePost($post, $request->validated());
 
-        return redirect()->route('posts.index')->with('success', '文章已更新');
+        return redirect()->route('admin.posts.index')->with('success', '文章已更新');
     }
 
     public function destroy(Post $post)
     {
         $post->delete();
 
-        return redirect()->route('posts.index')->with('success', '文章已删除');
+        return redirect()->route('admin.posts.index')->with('success', '文章已删除');
     }
 
     public function publish(Post $post)
     {
         $this->postService->publishPost($post);
 
-        return redirect()->route('posts.index')->with('success', '文章已发布');
+        return redirect()->route('admin.posts.index')->with('success', '文章已发布');
     }
 }

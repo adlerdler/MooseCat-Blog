@@ -8,9 +8,11 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Auth\Events\Login;
 use Spatie\Activitylog\Models\Activity;
 use App\Events\CommentCreated;
+use App\Events\SeoFilesNeedRegenerate;
 use App\Listeners\SendCommentNotification;
 use App\Listeners\AwardCommentPoints;
 use App\Listeners\UpdateLastLoginAt;
+use App\Listeners\RegenerateSeoFiles;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -48,6 +50,12 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(
             Login::class,
             UpdateLastLoginAt::class,
+        );
+
+        // 注册事件监听：SEO 文件重新生成
+        Event::listen(
+            SeoFilesNeedRegenerate::class,
+            RegenerateSeoFiles::class,
         );
     }
 }

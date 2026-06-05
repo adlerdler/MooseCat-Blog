@@ -10,13 +10,14 @@ return new class extends Migration
     {
         Schema::create('user_points_history', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
-            $table->integer('points');
-            $table->string('type', 100);
-            $table->text('description')->nullable();
-            $table->foreignId('reference_id')->nullable();
-            $table->string('reference_type', 255)->nullable();
-            $table->timestamps();
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete()->comment('用户ID');
+            $table->integer('points')->comment('积分变动数量');
+            $table->string('type', 100)->comment('积分变动类型');
+            $table->text('description')->nullable()->comment('变动描述');
+            $table->foreignId('reference_id')->nullable()->comment('关联记录ID');
+            $table->string('reference_type', 255)->nullable()->comment('关联记录类型');
+            $table->timestamp('created_at')->nullable();
+            $table->timestamp('updated_at')->nullable();
         });
     }
 

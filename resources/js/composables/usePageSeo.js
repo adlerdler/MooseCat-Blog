@@ -41,7 +41,7 @@ export function usePageSeo(seoConfig) {
    */
   const jsonLdContent = computed(() => {
     const type = getValue('type')
-    if (type !== 'Article') return null
+    if (!['Article', 'Person'].includes(type)) return null
 
     const title = getValue('title')
     const description = getValue('description')
@@ -50,25 +50,39 @@ export function usePageSeo(seoConfig) {
     const author = getValue('author')
     const publishedTime = getValue('publishedTime')
 
-    if (!title) return null
-
-    const article = {
-      '@context': 'https://schema.org',
-      '@type': 'Article',
-      headline: title,
-    }
-    if (description) article.description = description
-    if (image) article.image = image
-    if (url) article.url = url
-    if (publishedTime) article.datePublished = publishedTime
-    if (author) {
-      article.author = {
-        '@type': 'Person',
-        name: author,
+    if (type === 'Article' && title) {
+      const article = {
+        '@context': 'https://schema.org',
+        '@type': 'Article',
+        headline: title,
       }
+      if (description) article.description = description
+      if (image) article.image = image
+      if (url) article.url = url
+      if (publishedTime) article.datePublished = publishedTime
+      if (author) {
+        article.author = { '@type': 'Person', name: author }
+      }
+      return JSON.stringify(article)
     }
 
-    return JSON.stringify(article)
+    if (type === 'Person') {
+      const person = {
+        '@context': 'https://schema.org',
+        '@type': 'Person',
+        name: getValue('personName') || title,
+      }
+      if (getValue('jobTitle')) person.jobTitle = getValue('jobTitle')
+      if (description) person.description = description
+      if (image) person.image = image
+      if (url) person.url = url
+      if (getValue('email')) person.email = getValue('email')
+      if (getValue('sameAs')?.length) person.sameAs = getValue('sameAs')
+      if (getValue('knowsAbout')?.length) person.knowsAbout = getValue('knowsAbout')
+      return JSON.stringify(person)
+    }
+
+    return null
   })
 
   const SeoHead = () => h(Head, {

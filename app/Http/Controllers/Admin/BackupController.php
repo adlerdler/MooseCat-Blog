@@ -4,10 +4,12 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreBackupRequest;
+use App\Models\Backup;
 use App\Jobs\CreateBackupJob;
 use App\Services\BackupService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -68,6 +70,22 @@ class BackupController extends Controller
             return back()->with('error', '备份文件不存在或尚未完成');
         }
 
+        // 记录下载操作日志（GET 请求不被中间件捕获）
+        $backup = Backup::find((int) $id);
+        if ($backup) {
+            activity()
+                ->causedBy(Auth::user())
+                ->performedOn($backup)
+                ->withProperties([
+                    'filename'  => $backup->filename,
+                    'size'      => $this->backupService->formatSize((int) $backup->size),
+                    'type'      => $this->typeLabel($backup->type),
+                ])
+                ->inLog('backups')
+                ->event('downloaded')
+                ->log("下载{$this->typeLabel($backup->type)}备份: {$backup->filename}");
+        }
+
         return $response;
     }
 
@@ -76,7 +94,24 @@ class BackupController extends Controller
      */
     public function destroy(string $id): RedirectResponse
     {
+        // 先查备份信息用于日志（删除后模型即不存在）
+        $backup = Backup::find((int) $id);
+
         $success = $this->backupService->delete((int) $id);
+
+        if ($backup) {
+            activity()
+                ->causedBy(Auth::user())
+                ->performedOn($backup)
+                ->withProperties([
+                    'filename' => $backup->filename,
+                    'size'     => $this->backupService->formatSize((int) $backup->size),
+                    'type'     => $this->typeLabel($backup->type),
+                ])
+                ->inLog('backups')
+                ->event('deleted')
+                ->log("删除{$this->typeLabel($backup->type)}备份: {$backup->filename}");
+        }
 
         return back()->with(
             $success ? 'success' : 'error',

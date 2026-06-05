@@ -9,6 +9,7 @@ use App\Jobs\SendEmailJob;
 use App\Models\AuthorProfile;
 use App\Models\SocialAccount;
 use App\Models\User;
+use App\Notifications\NewUserRegisteredNotification;
 use App\Services\CaptchaService;
 use App\Services\MailService;
 use App\Services\PointsService;
@@ -244,6 +245,9 @@ class FrontendAuthController extends Controller
         // 发送欢迎邮件
         $this->sendWelcomeEmail($user, null);
 
+        // 通知管理员（异步，不阻塞注册流程）
+        $this->notifyAdminsNewUser($user);
+
         Auth::login($user);
         $request->session()->regenerate();
 
@@ -282,7 +286,6 @@ class FrontendAuthController extends Controller
         $providerMap = [
             'google' => \Laravel\Socialite\Two\GoogleProvider::class,
             'github' => \Laravel\Socialite\Two\GithubProvider::class,
-            'apple'  => \Laravel\Socialite\Two\AppleProvider::class,
         ];
 
         $providerClass = $providerMap[$provider] ?? null;
@@ -324,7 +327,6 @@ class FrontendAuthController extends Controller
         $providerMap = [
             'google' => \Laravel\Socialite\Two\GoogleProvider::class,
             'github' => \Laravel\Socialite\Two\GithubProvider::class,
-            'apple'  => \Laravel\Socialite\Two\AppleProvider::class,
         ];
 
         $providerClass = $providerMap[$provider] ?? null;
@@ -430,6 +432,9 @@ class FrontendAuthController extends Controller
 
             // 发送欢迎邮件（标注注册来源）
             $this->sendWelcomeEmail($user, $provider);
+
+            // 通知管理员（异步，不阻塞注册流程）
+            $this->notifyAdminsNewUser($user);
         }
 
         Auth::login($user);
@@ -592,5 +597,18 @@ class FrontendAuthController extends Controller
         ])->render();
 
         dispatch(new SendEmailJob($user->email, $subject, $htmlBody))->afterResponse();
+    }
+
+    /**
+     * 新用户注册时通知开启了 new_user_alert 的用户
+     */
+    protected function notifyAdminsNewUser(User $newUser): void
+    {
+        // 查找所有开启了新用户通知的用户（不限制角色）
+        $usersToNotify = User::where('new_user_alert', true)->get();
+
+        foreach ($usersToNotify as $user) {
+            $user->notify(new NewUserRegisteredNotification($newUser));
+        }
     }
 }

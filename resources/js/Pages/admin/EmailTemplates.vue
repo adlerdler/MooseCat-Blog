@@ -147,16 +147,16 @@ const createTemplate = () => {
 
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
       <!-- Templates List -->
-      <div class="lg:col-span-1 space-y-4">
+      <div class="lg:col-span-1 space-y-3">
         <div 
           v-for="tpl in templates" 
           :key="tpl.id"
           @click="selectTemplate(tpl)"
           :class="[
-            'p-5 border cursor-pointer transition-all',
+            'p-4 cursor-pointer transition-all duration-200 rounded-xl',
             selectedTemplate.id === tpl.id 
-              ? 'border-construct-red bg-red-50 dark:bg-construct-red/10' 
-              : isDarkMode ? 'bg-gray-800 border-gray-700 hover:border-gray-500' : 'bg-white border-gray-200 hover:border-gray-300'
+              ? 'bg-construct-red/10 shadow-lg' 
+              : isDarkMode ? 'bg-gray-800/50 hover:bg-gray-800' : 'bg-gray-50/50 hover:bg-gray-100/80'
           ]"
         >
           <div class="flex items-center justify-between mb-2">
@@ -169,29 +169,29 @@ const createTemplate = () => {
 
       <!-- Editor Area -->
       <div class="lg:col-span-3 space-y-6" v-if="selectedTemplate.id">
-        <div :class="['border p-8', isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200']">
-          <div class="flex items-center justify-between mb-8 border-b pb-6" :class="isDarkMode ? 'border-gray-700' : 'border-gray-100'">
+        <div :class="['p-8 rounded-xl', isDarkMode ? 'bg-gray-800/80' : 'bg-white']">
+          <div class="flex items-center justify-between mb-8 pb-6">
             <div class="flex-1 mr-8">
               <label :class="['block text-[10px] font-black uppercase tracking-widest opacity-50 mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">Email Subject</label>
               <input
                 v-model="selectedTemplate.subject"
                 type="text"
                 :class="[
-                  'w-full px-4 py-2 border font-bold focus:border-construct-red focus:outline-none transition-all',
-                  isDarkMode ? 'bg-gray-900 border-gray-700 text-white' : 'bg-gray-50 border-gray-200 text-gray-900'
+                  'w-full px-4 py-2 font-bold focus:outline-none transition-all',
+                  isDarkMode ? 'bg-gray-700/50 border-b-2 border-gray-600 text-white focus:border-construct-red' : 'bg-gray-50/50 border-b-2 border-gray-300 text-gray-900 focus:border-construct-red'
                 ]"
               />
             </div>
-            <div class="flex items-center gap-2 bg-gray-100 dark:bg-gray-900 p-1 rounded">
+            <div class="flex items-center gap-1 p-1 rounded-xl" :class="isDarkMode ? 'bg-gray-700/50' : 'bg-gray-100'">
               <button 
                 @click="activeMode = 'visual'"
-                :class="['px-4 py-2 text-xs font-bold transition-all', activeMode === 'visual' ? 'bg-white dark:bg-gray-700 shadow-sm text-construct-red' : 'text-gray-500 hover:text-gray-700']"
+                :class="['px-4 py-2 text-xs font-bold transition-all rounded-lg', activeMode === 'visual' ? 'bg-white dark:bg-gray-600 shadow-sm text-construct-red' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300']"
               >
                 <Layout size="14" class="inline mr-1" /> VISUAL
               </button>
               <button 
                 @click="activeMode = 'code'"
-                :class="['px-4 py-2 text-xs font-bold transition-all', activeMode === 'code' ? 'bg-white dark:bg-gray-700 shadow-sm text-construct-red' : 'text-gray-500 hover:text-gray-700']"
+                :class="['px-4 py-2 text-xs font-bold transition-all rounded-lg', activeMode === 'code' ? 'bg-white dark:bg-gray-600 shadow-sm text-construct-red' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300']"
               >
                 <FileCode size="14" class="inline mr-1" /> HTML
               </button>
@@ -206,15 +206,15 @@ const createTemplate = () => {
                   v-model="selectedTemplate.content"
                   rows="15"
                   :class="[
-                    'w-full p-6 border font-mono text-sm focus:border-construct-red focus:outline-none resize-none transition-all',
-                    isDarkMode ? 'bg-gray-900 border-gray-700 text-emerald-400' : 'bg-gray-50 border-gray-200 text-emerald-700'
+                    'w-full p-6 font-mono text-sm focus:outline-none resize-none transition-all rounded-xl',
+                    isDarkMode ? 'bg-gray-900/80 text-emerald-400 border border-gray-700' : 'bg-gray-50 text-emerald-700 border border-gray-200'
                   ]"
                 ></textarea>
               </div>
               <div v-else>
                 <!-- Simplified Visual Preview/Editor -->
-                <div :class="['w-full min-h-[400px] p-8 border border-dashed rounded-lg flex flex-col', isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-300']">
-                   <div class="bg-white text-gray-900 p-8 shadow-lg max-w-md mx-auto w-full border border-gray-200 rounded prose prose-sm" v-html="selectedTemplate.content"></div>
+                <div :class="['w-full min-h-[400px] p-8 rounded-xl flex flex-col', isDarkMode ? 'bg-gray-900/50 border border-gray-700' : 'bg-gray-50 border border-gray-200']">
+                   <div class="bg-white text-gray-900 p-8 shadow-lg max-w-md mx-auto w-full rounded-lg" v-html="selectedTemplate.content"></div>
                    <div class="mt-8 text-center text-xs text-gray-400 font-bold uppercase tracking-widest">
                      [ Visual Editor Engine Loading... ]
                    </div>
@@ -223,14 +223,14 @@ const createTemplate = () => {
 
               <div class="flex items-center justify-between mt-8">
                 <div class="flex items-center gap-4">
-                  <button :class="['px-6 py-2 border font-bold text-xs transition-all hover:bg-gray-100 dark:hover:bg-gray-700', isDarkMode ? 'border-gray-700 text-gray-300' : 'border-gray-200 text-gray-600']">
+                  <button :class="['px-6 py-2 font-bold text-xs transition-all hover:scale-105 active:scale-95 rounded-lg', isDarkMode ? 'text-gray-400 hover:text-white hover:bg-gray-700' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100']">
                     <RotateCcw size="14" class="inline mr-2" /> RESTORE DEFAULT
                   </button>
                 </div>
                 <button
                   @click="saveTemplate"
                   :disabled="isSaving"
-                  class="flex items-center gap-2 px-10 py-3 bg-construct-red text-white font-bold tracking-wider rounded shadow-sm hover:bg-red-700 transition-colors disabled:opacity-50"
+                  class="flex items-center gap-2 px-10 py-3 bg-construct-red text-white font-bold tracking-wider rounded-xl shadow-sm hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:hover:scale-100"
                 >
                   <Save size="18" /> {{ isSaving ? 'SAVING...' : t('admin_save') }}
                 </button>
@@ -244,11 +244,11 @@ const createTemplate = () => {
                   <div 
                     v-for="variable in variables" 
                     :key="variable.name"
-                    class="group p-3 rounded border border-transparent hover:border-construct-red/20 hover:bg-construct-red/5 transition-all cursor-help"
+                    class="group p-3 rounded-lg transition-all cursor-help hover:bg-construct-red/5"
                   >
                     <code 
                       v-text="'{{ ' + variable.name + ' }}'"
-                      class="text-[10px] font-black text-construct-red px-1.5 py-0.5 bg-construct-red/5 rounded"
+                      class="text-[10px] font-black text-construct-red px-1.5 py-0.5 bg-construct-red/10 rounded"
                     ></code>
                     <p class="text-[10px] mt-1 opacity-50 font-medium" :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'">{{ variable.desc }}</p>
                   </div>
@@ -303,8 +303,8 @@ const createTemplate = () => {
                 type="text"
                 placeholder="e.g. order_confirmation"
                 :class="[
-                  'w-full px-4 py-3 rounded-xl border font-mono text-sm focus:border-construct-red focus:outline-none transition-all',
-                  isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500' : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400'
+                  'w-full px-4 py-3 rounded-xl font-mono text-sm focus:outline-none transition-all',
+                  isDarkMode ? 'bg-gray-700/50 border-b-2 border-gray-600 text-white placeholder-gray-500 focus:border-construct-red' : 'bg-gray-50 border-b-2 border-gray-300 text-gray-900 placeholder-gray-400 focus:border-construct-red'
                 ]"
               />
               <p class="text-[10px] mt-1.5 font-medium opacity-40">唯一标识符，使用小写字母 + 下划线，如 welcome_email</p>
@@ -320,8 +320,8 @@ const createTemplate = () => {
                 type="text"
                 placeholder="Enter email subject..."
                 :class="[
-                  'w-full px-4 py-3 rounded-xl border focus:border-construct-red focus:outline-none transition-all',
-                  isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500' : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400'
+                  'w-full px-4 py-3 rounded-xl focus:outline-none transition-all',
+                  isDarkMode ? 'bg-gray-700/50 border-b-2 border-gray-600 text-white placeholder-gray-500 focus:border-construct-red' : 'bg-gray-50 border-b-2 border-gray-300 text-gray-900 placeholder-gray-400 focus:border-construct-red'
                 ]"
               />
             </div>
@@ -334,8 +334,8 @@ const createTemplate = () => {
                 type="text"
                 placeholder="Brief description of this template..."
                 :class="[
-                  'w-full px-4 py-3 rounded-xl border focus:border-construct-red focus:outline-none transition-all',
-                  isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500' : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400'
+                  'w-full px-4 py-3 rounded-xl focus:outline-none transition-all',
+                  isDarkMode ? 'bg-gray-700/50 border-b-2 border-gray-600 text-white placeholder-gray-500 focus:border-construct-red' : 'bg-gray-50 border-b-2 border-gray-300 text-gray-900 placeholder-gray-400 focus:border-construct-red'
                 ]"
               />
             </div>
@@ -350,8 +350,8 @@ const createTemplate = () => {
                 rows="10"
                 placeholder="<h1>Hello {{ user_name }}!</h1><p>Your order has been confirmed.</p>"
                 :class="[
-                  'w-full px-4 py-3 rounded-xl border font-mono text-sm resize-none focus:border-construct-red focus:outline-none transition-all',
-                  isDarkMode ? 'bg-gray-700 border-gray-600 text-emerald-400 placeholder-gray-500' : 'bg-gray-50 border-gray-300 text-emerald-700 placeholder-gray-400'
+                  'w-full px-4 py-3 rounded-xl font-mono text-sm resize-none focus:outline-none transition-all',
+                  isDarkMode ? 'bg-gray-700/50 text-emerald-400 border border-gray-600 placeholder-gray-500' : 'bg-gray-50 text-emerald-700 border border-gray-300 placeholder-gray-400'
                 ]"
               ></textarea>
             </div>
@@ -361,14 +361,14 @@ const createTemplate = () => {
           <div class="flex items-center justify-end gap-3 p-6 pt-3 flex-shrink-0">
             <button
               @click="showAddModal = false"
-              :class="['px-6 py-3 font-bold text-sm tracking-wider uppercase rounded-xl border transition-colors', isDarkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-500 hover:bg-gray-100']"
+              :class="['px-6 py-3 font-bold text-sm tracking-wider uppercase rounded-xl transition-all hover:scale-105 active:scale-95', isDarkMode ? 'text-gray-400 hover:text-white hover:bg-gray-700' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100']"
             >
               {{ t('admin_cancel') }}
             </button>
             <button
               @click="createTemplate"
               :disabled="isCreating || !newTemplate.name || !newTemplate.subject || !newTemplate.content"
-              class="px-6 py-3 bg-construct-red text-white font-bold text-sm tracking-wider uppercase rounded-xl shadow-lg shadow-construct-red/20 hover:bg-red-700 transition-all disabled:opacity-50 disabled:shadow-none"
+              class="px-6 py-3 bg-construct-red text-white font-bold text-sm tracking-wider uppercase rounded-xl shadow-lg shadow-construct-red/20 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:hover:scale-100"
             >
               <Plus :size="16" class="inline mr-1.5" :style="{ color: '#ffffff' }" /> {{ isCreating ? 'CREATING...' : t('admin_add') }}
             </button>

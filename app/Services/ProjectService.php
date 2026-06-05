@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\Project;
+use App\Events\SeoFilesNeedRegenerate;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Collection;
@@ -78,6 +79,11 @@ class ProjectService
             if (!empty($tags)) {
                 $project->tags()->sync($this->tagService->resolveTagIds($tags));
             }
+
+            if ($project->status === 'completed') {
+                SeoFilesNeedRegenerate::dispatch();
+            }
+
             return $project;
         });
     }
@@ -89,13 +95,20 @@ class ProjectService
     public function updateProject(Project $project, array $data): Project
     {
         return DB::transaction(function () use ($project, $data) {
-            // 编辑时不自动生成 slug，保持原有值
+            $wasCompleted = $project->status === 'completed';
+            $nowCompleted = ($data['status'] ?? $project->status) === 'completed';
+
             $tags = $data['tags'] ?? [];
             unset($data['tags']);
             $project->update($data);
             if (!empty($tags)) {
                 $project->tags()->sync($this->tagService->resolveTagIds($tags));
             }
+
+            if ($wasCompleted || $nowCompleted) {
+                SeoFilesNeedRegenerate::dispatch();
+            }
+
             return $project;
         });
     }
@@ -107,8 +120,15 @@ class ProjectService
     public function deleteProject(Project $project): bool
     {
         return DB::transaction(function () use ($project) {
+            $wasCompleted = $project->status === 'completed';
             $project->tags()->detach();
-            return $project->delete();
+            $result = $project->delete();
+
+            if ($wasCompleted) {
+                SeoFilesNeedRegenerate::dispatch();
+            }
+
+            return $result;
         });
     }
 }

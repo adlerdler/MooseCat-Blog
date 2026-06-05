@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Models\User;
 use App\Models\UserLevel;
 use App\Models\UserPointsHistory;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -95,7 +96,19 @@ class UserService
                 }
             }
             
+            // 记录密码变更（Spatie 已排除 password 字段，需手动记录）
+            $passwordChanged = isset($data['password']);
+            
             $user->update($data);
+
+            if ($passwordChanged) {
+                activity()
+                    ->causedBy(Auth::user())
+                    ->performedOn($user)
+                    ->inLog('users')
+                    ->event('password_changed')
+                    ->log("修改了用户 {$user->name} 的密码");
+            }
             
             // 同步 author_profile
             if (!empty($profileData)) {
@@ -109,10 +122,21 @@ class UserService
                 );
             }
             
+            // 记录角色变更
+            $roleChanged = $roleId || isset($data['roles']);
             if ($roleId) {
                 $user->syncRoles([$roleId]);
             } elseif (isset($data['roles'])) {
                 $user->syncRoles($data['roles']);
+            }
+            if ($roleChanged) {
+                $newRoleNames = $user->roles->pluck('name')->implode(', ');
+                activity()
+                    ->causedBy(Auth::user())
+                    ->performedOn($user)
+                    ->inLog('users')
+                    ->event('roles_updated')
+                    ->log("为用户 {$user->name} 分配角色: {$newRoleNames}");
             }
             
             return $user;
@@ -152,7 +176,16 @@ class UserService
 
     public function changePassword(User $user, string $newPassword): bool
     {
-        return $user->update(['password' => Hash::make($newPassword)]);
+        $result = $user->update(['password' => Hash::make($newPassword)]);
+
+        activity()
+            ->causedBy(Auth::user())
+            ->performedOn($user)
+            ->inLog('users')
+            ->event('password_changed')
+            ->log("修改了用户 {$user->name} 的密码");
+
+        return $result;
     }
 
     public function verifyPassword(User $user, string $password): bool
@@ -173,6 +206,19 @@ class UserService
                 'description' => $description ?: '积分增加',
             ]);
 
+            activity()
+                ->causedBy(Auth::user())
+                ->performedOn($user)
+                ->inLog('users')
+                ->event('points_added')
+                ->withProperties([
+                    'original' => $originalPoints,
+                    'added'    => $points,
+                    'new'      => $originalPoints + $points,
+                    'reason'   => $description ?: '积分增加',
+                ])
+                ->log("用户 {$user->name} 增加 {$points} 积分 ({$originalPoints} → " . ($originalPoints + $points) . ")");
+
             $this->updateUserLevel($user);
         });
     }
@@ -180,6 +226,7 @@ class UserService
     public function deductPoints(User $user, int $points, string $description = ''): void
     {
         DB::transaction(function () use ($user, $points, $description) {
+            $originalPoints = $user->points ?? 0;
             $user->decrement('points', $points);
             
             UserPointsHistory::create([
@@ -188,6 +235,19 @@ class UserService
                 'type' => 'spending',
                 'description' => $description ?: '积分减少',
             ]);
+
+            activity()
+                ->causedBy(Auth::user())
+                ->performedOn($user)
+                ->inLog('users')
+                ->event('points_deducted')
+                ->withProperties([
+                    'original' => $originalPoints,
+                    'deducted' => $points,
+                    'new'      => $originalPoints - $points,
+                    'reason'   => $description ?: '积分减少',
+                ])
+                ->log("用户 {$user->name} 扣除 {$points} 积分 ({$originalPoints} → " . ($originalPoints - $points) . ")");
 
             $this->updateUserLevel($user);
         });
@@ -198,7 +258,20 @@ class UserService
         $level = UserLevel::getLevelForPoints($user->points ?? 0);
         
         if ($level && $user->level_id !== $level->id) {
+            $oldLevelId = $user->level_id;
             $user->update(['level_id' => $level->id]);
+
+            activity()
+                ->causedBy(Auth::user())
+                ->performedOn($user)
+                ->inLog('users')
+                ->event('level_updated')
+                ->withProperties([
+                    'old_level_id' => $oldLevelId,
+                    'new_level_id' => $level->id,
+                    'new_level_name' => $level->name ?? '',
+                ])
+                ->log("用户 {$user->name} 等级变更 (ID: {$oldLevelId} → {$level->id}, 积分: {$user->points})");
         }
     }
 

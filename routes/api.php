@@ -16,9 +16,11 @@ use App\Http\Controllers\Api\V1\VideoController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [AuthController::class, 'login']);
+
 Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
-    // 订阅管理
+    // 订阅管理（需登录）
     Route::post('/subscribe', [SubscribeController::class, 'subscribe']);
+    // 订阅管理（需要登录，用于取消订阅等操作）
     Route::post('/unsubscribe', [SubscribeController::class, 'unsubscribe']);
     
     // 作者信息

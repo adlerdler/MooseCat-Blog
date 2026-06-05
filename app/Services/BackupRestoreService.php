@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Backup;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
@@ -44,12 +45,38 @@ class BackupRestoreService
             // ③ 清缓存
             $this->clearCache();
 
+            // ④ 记录还原成功日志
+            activity()
+                ->causedBy(Auth::user())
+                ->performedOn($backup)
+                ->withProperties([
+                    'backup_type'   => $backup->type,
+                    'filename'      => $backup->filename,
+                    'snapshot_id'   => $snapshotId,
+                ])
+                ->inLog('restores')
+                ->event('restored')
+                ->log("数据还原成功: {$backup->filename} (快照 #{$snapshotId})");
+
             return [
                 'success'     => true,
                 'message'     => '恢复成功',
                 'snapshot_id' => $snapshotId,
             ];
         } catch (\Throwable $e) {
+            // ⑤ 记录还原失败日志
+            activity()
+                ->causedBy(Auth::user())
+                ->performedOn($backup)
+                ->withProperties([
+                    'backup_type' => $backup->type,
+                    'filename'    => $backup->filename,
+                    'error'       => $e->getMessage(),
+                ])
+                ->inLog('restores')
+                ->event('restore_failed')
+                ->log("数据还原失败: {$backup->filename} — {$e->getMessage()}");
+
             return ['success' => false, 'message' => '恢复失败：' . $e->getMessage()];
         }
     }

@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\SocialLinksController;
 use App\Http\Controllers\Admin\SeoController;
+use App\Http\Controllers\Api\V1\SubscribeController;
 use App\Http\Controllers\Admin\I18nController;
 use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\EmailTemplatesController;
@@ -37,6 +38,7 @@ use App\Http\Controllers\Web\CategoryController;
 use App\Http\Controllers\Web\LikeController;
 use App\Http\Controllers\Web\SitemapController;
 use App\Http\Controllers\Web\RobotsController;
+use App\Http\Controllers\Web\LlmTxtController;
 use App\Models\AuthorProfile;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
@@ -53,6 +55,7 @@ Route::get('/test', function () {
 // SEO 基础设施路由（始终可用，不受维护模式影响）
 Route::get('/sitemap.xml', [SitemapController::class, 'index']);
 Route::get('/robots.txt', [RobotsController::class, 'index']);
+Route::get('/llm.txt', [LlmTxtController::class, 'index']);
 
 // 前台公共路由（受维护模式控制）
 Route::middleware(['maintenance'])->group(function () {
@@ -88,6 +91,9 @@ Route::middleware(['maintenance'])->group(function () {
     // 文章相关路由
     Route::get('/posts', [PostController::class, 'index'])->name('posts.index');
     Route::get('/posts/{post:slug}', [PostController::class, 'show'])->name('posts.show');
+
+    // 订阅（网站公开，无需认证）
+    Route::post('/subscribe', [SubscribeController::class, 'subscribe'])->name('subscribe');
 
     // 点赞相关路由
     Route::post('/likes/toggle', [LikeController::class, 'toggle'])->name('likes.toggle');
@@ -201,12 +207,12 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::get('/email-templates/{id}/edit', [EmailTemplatesController::class, 'edit'])->name('admin.email-templates.edit');
     Route::put('/email-templates/{id}', [EmailTemplatesController::class, 'update'])->name('admin.email-templates.update');
     // 内容管理
-    Route::resource('posts', AdminPostController::class);
-    Route::resource('videos', AdminVideoController::class);
-    Route::resource('projects', AdminProjectController::class);
-    Route::resource('resources', AdminResourceController::class);
-    Route::resource('categories', AdminCategoryController::class);
-    Route::resource('tags', AdminTagController::class);
+    Route::resource('posts', AdminPostController::class)->names('admin.posts');
+    Route::resource('videos', AdminVideoController::class)->names('admin.videos');
+    Route::resource('projects', AdminProjectController::class)->names('admin.projects');
+    Route::resource('resources', AdminResourceController::class)->names('admin.resources');
+    Route::resource('categories', AdminCategoryController::class)->names('admin.categories');
+    Route::resource('tags', AdminTagController::class)->names('admin.tags');
     Route::resource('journals', JournalsController::class)->names([
         'index' => 'admin.journals.index',
         'store' => 'admin.journals.store',
@@ -272,6 +278,7 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::delete('/backup/{id}', [BackupController::class, 'destroy'])->name('admin.backup.destroy');
     Route::get('/restore', [RestoreController::class, 'index'])->name('admin.restore');
     Route::post('/restore/{id}', [RestoreController::class, 'restore'])->name('admin.restore.execute');
+    Route::get('/restore/{id}/preview', [RestoreController::class, 'preview'])->name('admin.restore.preview');
     Route::get('/about', [DashboardController::class, 'about'])->name('admin.about');
     
     // 其他管理

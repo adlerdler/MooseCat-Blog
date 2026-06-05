@@ -15,7 +15,10 @@ class NotificationService
      */
     private const TYPE_MAP = [
         'new_comment'                => 'info',
+        'comment_approval'           => 'warning',
         'new_user'                   => 'info',
+        'new_user_registered'        => 'info',
+        'new_subscriber'             => 'info',
         'level_up'                   => 'success',
         'system_info'                => 'info',
         'system_warning'             => 'warning',
@@ -143,8 +146,8 @@ class NotificationService
 
         return [
             'id'         => $notification->id,
-            'title'      => $data['title'] ?? $this->defaultTitle($rawType),
-            'message'    => $data['message'] ?? ($data['content'] ?? ''),
+            'title'      => $data['title'] ?? $this->defaultTitle($rawType, $data),
+            'message'    => $data['message'] ?? ($data['content'] ?? $this->defaultMessage($rawType, $data)),
             'type'       => self::TYPE_MAP[$rawType] ?? 'info',
             'link'       => $data['link'] ?? $this->defaultLink($data, $rawType),
             'read'       => $notification->read_at !== null,
@@ -169,28 +172,39 @@ class NotificationService
     /**
      * 根据类型生成默认标题
      */
-    private function defaultTitle(string $type): string
+    private function defaultTitle(string $type, array $data = []): string
     {
         return match ($type) {
-            'new_comment'  => '新评论通知',
-            'new_user'     => '新用户注册',
-            'system_info'  => '系统通知',
-            'system_warning' => '系统警告',
-            'system_error'  => '系统错误',
-            'system_success' => '操作成功',
-            default        => '系统通知',
+            'new_comment'           => '新评论通知',
+            'comment_approval'      => '新评论待审核',
+            'new_user', 'new_user_registered' => '新用户注册',
+            'new_subscriber'        => '新订阅者',
+            'system_info'           => '系统通知',
+            'system_warning'        => '系统警告',
+            'system_error'          => '系统错误',
+            'system_success'        => '操作成功',
+            default                 => '系统通知',
         };
     }
 
-    /**
-     * 根据 data 内容生成默认跳转链接
-     */
+    private function defaultMessage(string $type, array $data = []): string
+    {
+        return match ($type) {
+            'new_user', 'new_user_registered' => ($data['name'] ?? '新用户') . ' (' . ($data['email'] ?? '') . ') 注册了账号',
+            'new_subscriber'        => '新订阅者 ' . ($data['email'] ?? ''),
+            'new_comment'           => '你的文章收到了新评论',
+            'comment_approval'      => '有新评论需要审核',
+            default                 => '',
+        };
+    }
+
     private function defaultLink(array $data, string $type): ?string
     {
         return match ($type) {
-            'new_comment' => isset($data['post_id']) ? '/blog/' . $data['post_id'] : null,
-            'new_user'    => '/admin/users',
-            default       => null,
+            'new_comment'           => isset($data['post_id']) ? '/blog/' . $data['post_id'] : null,
+            'comment_approval'      => isset($data['comment_id']) ? '/admin/comments' : null,
+            'new_user', 'new_user_registered' => '/admin/users',
+            default                 => null,
         };
     }
 }

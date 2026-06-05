@@ -12,7 +12,8 @@
  * - GitHub API 获取用户信息和贡献数据
  */
 import { ref, onMounted, computed, watch } from 'vue';
-import { ArrowRight, Github, Twitter, Linkedin, Mail } from 'lucide-vue-next';
+import { ArrowRight, Github, Twitter, Linkedin, Mail, Send, CheckCircle, AlertCircle } from 'lucide-vue-next';
+import axios from 'axios';
 import { useI18n } from 'vue-i18n';
 import { CalendarHeatmap } from 'vue3-calendar-heatmap';
 import 'vue3-calendar-heatmap/dist/style.css';
@@ -41,7 +42,48 @@ const { SeoHead } = usePageSeo({
   title: pageSeo.title || '',
   description: pageSeo.description || '',
   keywords: pageSeo.keywords || '',
+  type: 'Person',
+  personName: computed(() => props.author?.display_name || ''),
+  jobTitle: computed(() => props.author?.role_title || props.author?.role_label || ''),
+  image: computed(() => props.author?.avatar ? `/storage/${props.author.avatar}` : ''),
+  url: computed(() => window.location.href),
+  email: computed(() => props.author?.email || ''),
+  sameAs: computed(() => {
+    return Object.entries(props.socialLinksObj || {})
+      .filter(([_, url]) => url)
+      .map(([_, url]) => url);
+  }),
+  knowsAbout: computed(() => {
+    return (props.skills || []).map(s => s.label);
+  }),
 })
+
+// 订阅表单
+const subscribeEmail = ref('')
+const subscribeLoading = ref(false)
+const subscribeMessage = ref('')
+const subscribeError = ref(false)
+
+const handleSubscribe = async () => {
+  if (!subscribeEmail.value.trim()) return
+  subscribeLoading.value = true
+  subscribeMessage.value = ''
+  subscribeError.value = false
+  try {
+    const { data } = await axios.post('/subscribe', { email: subscribeEmail.value })
+    subscribeMessage.value = data.message || t('subscribe_success')
+    subscribeEmail.value = ''
+  } catch (err) {
+    subscribeError.value = true
+    if (err.response?.status === 422) {
+      subscribeMessage.value = err.response.data.errors?.email?.[0] || t('subscribe_duplicate')
+    } else {
+      subscribeMessage.value = t('subscribe_error')
+    }
+  } finally {
+    subscribeLoading.value = false
+  }
+}
 
 const socialLinks = Object.entries(props.socialLinksObj).map(([platform, url], index) => {
   const iconMap = {
@@ -546,16 +588,31 @@ const generateMockCalendarData = () => {
           SYSTEM STATUS: INITIALIZING PROTOCOL...
         </p>
 
-        <div class="flex flex-col md:flex-row gap-3 md:gap-4 justify-center items-stretch max-w-lg md:max-w-2xl mx-auto">
+        <form @submit.prevent="handleSubscribe" class="flex flex-col md:flex-row gap-3 md:gap-4 justify-center items-stretch max-w-lg md:max-w-2xl mx-auto">
           <input
+            v-model="subscribeEmail"
             type="email"
             placeholder="YOUR-EMAIL@DOMAIN.COM"
+            required
             class="bg-transparent border-2 border-white px-5 py-3 md:px-6 md:py-4 text-sm tracking-widest focus:outline-none focus:bg-white focus:text-construct-black transition-all flex-1"
           />
-          <button class="bg-construct-red text-white font-bold px-8 md:px-12 py-3 md:py-4 text-sm tracking-widest hover:bg-white hover:text-construct-black transition-all uppercase">
-            {{ t('cta_submit') }}
+          <button
+            type="submit"
+            :disabled="subscribeLoading"
+            class="bg-construct-red text-white font-bold px-8 md:px-12 py-3 md:py-4 text-sm tracking-widest hover:bg-white hover:text-construct-black transition-all uppercase disabled:opacity-60 flex items-center justify-center gap-2"
+          >
+            <span v-if="subscribeLoading" class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            <template v-else>
+              {{ t('cta_submit') }}
+              <Send class="w-4 h-4" />
+            </template>
           </button>
-        </div>
+        </form>
+        <p v-if="subscribeMessage" :class="['mt-4 text-sm font-bold tracking-wider', subscribeError ? 'text-red-400' : 'text-green-400']">
+          <CheckCircle v-if="!subscribeError" class="w-4 h-4 inline mr-1" />
+          <AlertCircle v-else class="w-4 h-4 inline mr-1" />
+          {{ subscribeMessage }}
+        </p>
       </div>
     </section>
 

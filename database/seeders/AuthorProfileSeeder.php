@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\AuthorProfile;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class AuthorProfileSeeder extends Seeder
 {
@@ -16,7 +17,7 @@ class AuthorProfileSeeder extends Seeder
             AuthorProfile::updateOrCreate(
                 ['user_id' => $user->id],
                 [
-                    'slug' => $user->name,
+                    'slug' => Str::slug($user->name),
                     'display_name' => $user->name,
                     'bio' => '这是一段个人简介，分享技术与生活的点滴。',
                     'avatar' => '/images/avatars/default.png',

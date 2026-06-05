@@ -68,10 +68,16 @@ class MailService
                 $fromName ?? $mailConfig->from_name
             );
 
+            // 生成纯文本版本（简单去除 HTML 标签）
+            $textBody = strip_tags(preg_replace('/<br\s*\/?>|<p\s*\/?>/i', "\n", $htmlBody));
+            $textBody = preg_replace('/&nbsp;/i', ' ', $textBody);
+            $textBody = trim(preg_replace('/\s{3,}/', "\n\n", $textBody));
+
             $email = (new Email())
                 ->from($fromAddr)
                 ->subject($subject)
-                ->html($htmlBody);
+                ->html($htmlBody)
+                ->text($textBody);
 
             // 支持单个或多个收件人
             if (is_array($to)) {

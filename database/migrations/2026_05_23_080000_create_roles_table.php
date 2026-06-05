@@ -14,13 +14,14 @@ return new class extends Migration
         // 创建 roles 表（Spatie Permission 兼容 + 自定义字段）
         Schema::create('roles', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 125);
-            $table->string('guard_name', 125);
+            $table->string('name', 125)->comment('角色名称');
+            $table->string('guard_name', 125)->comment('守卫名称');
             $table->string('value')->nullable()->comment('角色值');
-            $table->string('label')->nullable()->comment('标签');
-            $table->string('color', 50)->nullable()->comment('颜色');
-            $table->text('description')->nullable()->comment('描述');
-            $table->timestamps();
+            $table->string('label')->nullable()->comment('角色标签');
+            $table->string('color', 50)->nullable()->comment('角色颜色');
+            $table->text('description')->nullable()->comment('角色描述');
+            $table->timestamp('created_at')->nullable();
+            $table->timestamp('updated_at')->nullable();
             $table->unique(['name', 'guard_name']);
         });
     }

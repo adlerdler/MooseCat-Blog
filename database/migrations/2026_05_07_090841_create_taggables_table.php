@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('taggables', function (Blueprint $table) {
             $table->foreignId('tag_id')->constrained()->cascadeOnDelete()->comment('标签ID');
-            $table->morphs('taggable'); // 创建 taggable_id 和 taggable_type 用于多态关联
+            $table->morphs('taggable')->comment('被标记对象（多态关联）');
             $table->primary(['tag_id', 'taggable_id', 'taggable_type']);
         });
     }

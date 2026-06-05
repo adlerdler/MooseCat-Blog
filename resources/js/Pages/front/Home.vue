@@ -1,7 +1,8 @@
 <script setup>
 import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 import { Link } from '@inertiajs/vue3'
-import { Search, ArrowRight, Send, Mail } from 'lucide-vue-next'
+import { Search, ArrowRight, Send, Mail, CheckCircle, AlertCircle } from 'lucide-vue-next'
+import axios from 'axios'
 import { Motion, AnimatePresence } from 'motion-v'
 import { useTheme } from '../../composables/useTheme'
 import { useI18n } from 'vue-i18n'
@@ -89,6 +90,38 @@ const markSplashShown = () => {
 const showSplash = ref(false)
 const showContent = ref(false)
 let splashTimer = null
+
+// 订阅表单
+const subscribeEmail = ref('')
+const subscribeLoading = ref(false)
+const subscribeMessage = ref('')
+const subscribeError = ref(false)
+
+const handleSubscribe = async () => {
+  if (!subscribeEmail.value.trim()) return
+  
+  subscribeLoading.value = true
+  subscribeMessage.value = ''
+  subscribeError.value = false
+  
+  try {
+    const { data } = await axios.post('/subscribe', {
+      email: subscribeEmail.value
+    })
+    subscribeMessage.value = data.message || t('subscribe_success')
+    subscribeError.value = false
+    subscribeEmail.value = ''
+  } catch (err) {
+    subscribeError.value = true
+    if (err.response?.status === 422) {
+      subscribeMessage.value = err.response.data.errors?.email?.[0] || t('subscribe_duplicate')
+    } else {
+      subscribeMessage.value = t('subscribe_error')
+    }
+  } finally {
+    subscribeLoading.value = false
+  }
+}
 
 const featuredPosts = computed(() => {
   // 随机打乱后取前 3 篇
@@ -404,10 +437,11 @@ onUnmounted(() => {
         <p class="text-lg font-medium opacity-60 mb-12 max-w-xl mx-auto">
           {{ t('subscribe_desc') }}
         </p>
-        <form class="max-w-2xl mx-auto relative flex flex-col sm:flex-row items-stretch shadow-[-8px_8px_0px_#000] bg-white focus-within:ring-4 focus-within:ring-construct-black transition-all duration-300 hover:scale-[1.02]">
+        <form @submit.prevent="handleSubscribe" class="max-w-2xl mx-auto relative flex flex-col sm:flex-row items-stretch shadow-[-8px_8px_0px_#000] bg-white focus-within:ring-4 focus-within:ring-construct-black transition-all duration-300 hover:scale-[1.02]">
           <div class="flex-1 bg-construct-black/5 flex items-center pl-6">
             <Mail class="w-5 h-5 text-construct-black/40 mr-4" />
             <input
+              v-model="subscribeEmail"
               type="email"
               :placeholder="t('home_email_placeholder')"
               class="w-full bg-transparent py-6 outline-none font-display font-medium text-lg uppercase tracking-widest placeholder:text-construct-black/20 text-construct-black"
@@ -416,12 +450,23 @@ onUnmounted(() => {
           </div>
           <button
             type="submit"
-            class="bg-construct-red text-white px-12 py-6 font-display font-black tracking-widest text-lg hover:bg-construct-black transition-colors duration-300 flex items-center justify-center gap-2"
+            :disabled="subscribeLoading"
+            class="bg-construct-red text-white px-12 py-6 font-display font-black tracking-widest text-lg hover:bg-construct-black transition-colors duration-300 flex items-center justify-center gap-2 disabled:opacity-60"
           >
-            {{ t('home_subscribe_btn') }}
-            <Send class="w-5 h-5" />
+            <span v-if="subscribeLoading" class="inline-block w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            <template v-else>
+              {{ t('home_subscribe_btn') }}
+              <Send class="w-5 h-5" />
+            </template>
           </button>
         </form>
+        <Transition name="fade">
+          <p v-if="subscribeMessage" :class="['mt-4 text-sm font-bold tracking-wider', subscribeError ? 'text-red-600' : 'text-green-600']">
+            <CheckCircle v-if="!subscribeError" class="w-4 h-4 inline mr-1" />
+            <AlertCircle v-else class="w-4 h-4 inline mr-1" />
+            {{ subscribeMessage }}
+          </p>
+        </Transition>
       </div>
     </section>
 
@@ -490,5 +535,15 @@ $spacing-2: 0.5rem;
 // 构造样式 - clip-path 由 Tailwind 处理
 .construct-diagonal {
   clip-path: polygon(15% 0, 100% 0, 100% 100%, 0% 100%);
+}
+
+// 订阅反馈消息淡入淡出
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>

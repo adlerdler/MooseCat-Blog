@@ -221,18 +221,18 @@ const handleFilterChange = ({ key, value }) => {
 </script>
 
 <template>
-  <div class="p-8">
+  <div class="notifications-page p-8" :class="isDarkMode ? 'is-dark' : 'is-light'">
     <!-- Page Header -->
     <div class="mb-10">
       <div class="flex items-center justify-between">
         <div>
           <div class="flex items-center gap-4 mb-2">
             <Bell class="text-construct-red" size="32" />
-            <h2 :class="['font-display text-4xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">{{ t('admin_notifications') }}</h2>
+            <h2 class="page-title" :class="isDarkMode ? 'page-title--dark' : 'page-title--light'">{{ t('admin_notifications') }}</h2>
           </div>
-          <p :class="['text-sm font-black tracking-[0.2em] uppercase opacity-50', isDarkMode ? 'text-gray-400' : 'text-gray-500']">Manage system notifications</p>
+          <p class="page-subtitle" :class="isDarkMode ? 'page-subtitle--dark' : 'page-subtitle--light'">Manage system notifications</p>
         </div>
-        <button @click="handleAdd" class="flex items-center gap-3 px-8 py-4 bg-construct-red text-white font-black text-xs uppercase tracking-[0.2em] transition-all hover:scale-105 active:scale-95 shadow-lg shadow-construct-red/20 rounded-xl">
+        <button @click="handleAdd" class="btn-primary">
           <Plus size="18" /> {{ t('admin_add_notification') }}
         </button>
       </div>
@@ -255,68 +255,59 @@ const handleFilterChange = ({ key, value }) => {
       @filter-change="handleFilterChange"
     />
 
-    <!-- Quick Actions -->
-    <div class="flex items-center gap-4 mb-6">
-      <button
-        @click="markAllAsRead"
-        class="text-xs font-bold tracking-widest text-construct-red hover:underline uppercase"
-      >
-        {{ t('admin_mark_all_read') }}
-      </button>
-      <span v-if="props.unreadCount > 0" :class="['text-xs font-bold', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
-        ({{ props.unreadCount }} {{ t('admin_pending').toLowerCase() }})
-      </span>
-    </div>
-
     <!-- Notification List -->
     <div class="space-y-4">
+      <!-- List Toolbar -->
+      <div v-if="props.unreadCount > 0" class="list-toolbar">
+        <div class="flex items-center gap-2">
+          <span class="list-toolbar-dot"></span>
+          <span class="list-toolbar-count">{{ props.unreadCount }} {{ t('admin_pending').toLowerCase() }}</span>
+        </div>
+        <button @click="markAllAsRead" class="list-toolbar-action">
+          <CheckCircle size="15" />
+          {{ t('admin_mark_all_read') }}
+        </button>
+      </div>
       <div
         v-for="notification in paginatedNotifications"
         :key="notification.id"
-        :class="[
-          'p-6 border transition-all hover:border-construct-red',
-          isDarkMode ? 'bg-gray-800/50 border-gray-700' : 'bg-white border-gray-200',
-          !notification.read && 'border-l-4 border-l-construct-red'
-        ]"
+        class="notification-card"
+        :class="{ 'notification-card--unread': !notification.read }"
       >
         <div class="flex items-start gap-4">
           <!-- Icon -->
-          <div :class="['p-3 rounded-full shrink-0', getTypeBgColor(notification.type)]">
-            <component
-              :is="getTypeIcon(notification.type)"
-              :class="['w-6 h-6', getTypeColor(notification.type)]"
-            />
+          <div class="notification-icon" :class="'notification-icon--' + notification.type">
+            <component :is="getTypeIcon(notification.type)" class="w-6 h-6" :class="getTypeColor(notification.type)" />
           </div>
 
           <!-- Content -->
           <div class="flex-1 min-w-0">
             <div class="flex items-center justify-between mb-2">
               <div class="flex items-center gap-3">
-                <span :class="['font-bold text-lg', isDarkMode ? 'text-white' : 'text-gray-900', !notification.read && 'text-construct-red']">
+                <span class="notification-title" :class="{ 'notification-title--unread': !notification.read }">
                   {{ notification.title }}
                 </span>
-                <span v-if="!notification.read" class="px-2 py-0.5 text-xs font-bold bg-construct-red text-white rounded">
-                  NEW
-                </span>
+                <span v-if="!notification.read" class="badge-new">NEW</span>
               </div>
               <div class="flex items-center gap-2">
-                <Clock :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'" size="16" />
-                <span :class="['text-sm', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ formatToShort(notification.created_at) }}</span>
+                <Clock size="16" class="notification-meta" style="margin-bottom: 0;" />
+                <span class="notification-meta" style="margin-bottom: 0;">{{ formatToShort(notification.created_at) }}</span>
               </div>
             </div>
 
-            <p :class="['mb-4', isDarkMode ? 'text-gray-300' : 'text-gray-700']">{{ notification.message }}</p>
+            <p class="notification-body">{{ notification.message }}</p>
 
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-4">
-                <span :class="['px-2 py-1 text-xs font-bold uppercase rounded', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600']">
+                <span class="type-badge" :class="'type-badge--' + notification.type">
                   {{ notification.type }}
                 </span>
                 <a
                   v-if="notification.link"
                   :href="notification.link"
                   target="_blank"
-                  :class="['flex items-center gap-1 text-xs', isDarkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-500']"
+                  class="flex items-center gap-1 text-xs font-medium transition-colors"
+                  :style="{ color: isDarkMode ? '#60a5fa' : '#2563eb' }"
                 >
                   <Link size="12" />
                   {{ t('admin_view_link') }}
@@ -327,21 +318,21 @@ const handleFilterChange = ({ key, value }) => {
                 <button
                   v-if="!notification.read"
                   @click="markAsRead(notification.id)"
-                  :class="['p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-gray-700 text-green-400' : 'hover:bg-gray-100 text-green-600']"
+                  class="action-btn action-btn--read"
                   :title="t('admin_mark_read')"
                 >
                   <CheckCircle size="16" />
                 </button>
                 <button
                   @click="handleView(notification)"
-                  :class="['p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500']"
+                  class="action-btn action-btn--view"
                   :title="t('admin_view')"
                 >
                   <Eye size="16" />
                 </button>
                 <button
                   @click="handleDelete(notification.id)"
-                  :class="['p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-red-500/20 text-red-400' : 'hover:bg-red-50 text-red-500']"
+                  class="action-btn action-btn--delete"
                   :title="t('admin_delete')"
                 >
                   <Trash2 size="16" />
@@ -353,11 +344,9 @@ const handleFilterChange = ({ key, value }) => {
       </div>
 
       <!-- Empty State -->
-      <div v-if="paginatedNotifications.length === 0" :class="['p-12 text-center border rounded-xl', isDarkMode ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-white']">
-        <Bell :size="48" :class="['mx-auto mb-4', isDarkMode ? 'text-gray-600' : 'text-gray-300']" />
-        <p :class="['text-sm font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
-          {{ t('admin_no_notifications') }}
-        </p>
+      <div v-if="paginatedNotifications.length === 0" class="empty-state">
+        <Bell :size="48" class="empty-state-icon" />
+        <p class="empty-state-text">{{ t('admin_no_notifications') }}</p>
       </div>
     </div>
 
@@ -374,27 +363,24 @@ const handleFilterChange = ({ key, value }) => {
     <Transition name="modal">
       <div
         v-if="isFormVisible"
-        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay"
         @click.self="isFormVisible = false"
       >
-        <div :class="['modal-content w-full max-w-lg flex flex-col max-h-[85vh] rounded-2xl shadow-2xl ring-1 overflow-hidden', isDarkMode ? 'bg-gray-800 ring-gray-700' : 'bg-white ring-gray-200/80']">
+        <div class="modal-box modal-box--ring w-full max-w-lg flex flex-col max-h-[85vh]">
           <!-- Header (sticky) -->
-          <div class="flex items-center justify-between p-6 pb-3 flex-shrink-0">
+          <div class="modal-header">
             <div class="flex items-center gap-4">
-              <div class="w-10 h-10 rounded-xl shadow-md bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center flex-shrink-0">
-                <Bell :size="18" :style="{ color: '#ffffff' }" />
+              <div class="modal-header-icon modal-header-icon--gradient-info">
+                <Bell :size="18" style="color: #ffffff;" />
               </div>
               <div>
-                <h2 :class="['font-display text-xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">
+                <h2 class="modal-title" :class="isDarkMode ? 'modal-title--dark' : 'modal-title--light'">
                   {{ t('admin_add_notification') }}
                 </h2>
-                <p :class="['text-xs font-medium mt-0.5', isDarkMode ? 'text-gray-400' : 'text-gray-500']">创建新的系统通知</p>
+                <p class="modal-subtitle">创建新的系统通知</p>
               </div>
             </div>
-            <button
-              @click="isFormVisible = false"
-              :class="['p-2 rounded-xl transition-colors flex-shrink-0', isDarkMode ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500']"
-            >
+            <button @click="isFormVisible = false" class="btn-close">
               <X :size="20" />
             </button>
           </div>
@@ -412,96 +398,72 @@ const handleFilterChange = ({ key, value }) => {
     <Transition name="modal">
       <div
         v-if="showDetailModal"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+        class="fixed inset-0 z-50 flex items-center justify-center modal-overlay"
         @click.self="showDetailModal = false"
       >
-        <div :class="['modal-content w-full max-w-xl mx-4 flex flex-col max-h-[85vh] rounded-2xl shadow-2xl ring-1 overflow-hidden', isDarkMode ? 'bg-gray-800 ring-gray-700 text-white' : 'bg-white ring-gray-200/80 text-gray-900']">
+        <div class="modal-box modal-box--ring w-full max-w-xl mx-4 flex flex-col max-h-[85vh]">
           <!-- Header (sticky) -->
-          <div class="flex items-center justify-between p-6 pb-3 flex-shrink-0">
+          <div class="modal-header">
             <div class="flex items-center gap-4">
-              <div :class="['w-10 h-10 rounded-xl shadow-md flex items-center justify-center flex-shrink-0', getTypeBgGradient(viewingNotification?.type)]">
-                <component :is="getTypeIcon(viewingNotification?.type)" :size="18" :style="{ color: '#ffffff' }" />
+              <div class="modal-header-icon" :class="'modal-header-icon--gradient-' + (viewingNotification?.type || 'info')">
+                <component :is="getTypeIcon(viewingNotification?.type)" :size="18" style="color: #ffffff;" />
               </div>
               <div>
-                <h3 :class="['font-display text-xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">
+                <h3 class="modal-title" :class="isDarkMode ? 'modal-title--dark' : 'modal-title--light'">
                   {{ viewingNotification?.title }}
                 </h3>
-                <p :class="['text-xs font-medium mt-0.5', isDarkMode ? 'text-gray-400' : 'text-gray-500']">通知详情</p>
+                <p class="modal-subtitle">通知详情</p>
               </div>
             </div>
-            <button
-              @click="showDetailModal = false"
-              :class="['p-2 rounded-xl transition-colors flex-shrink-0', isDarkMode ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500']"
-            >
+            <button @click="showDetailModal = false" class="btn-close">
               <X :size="20" />
             </button>
           </div>
 
           <!-- Body (scrollable) -->
-          <div :class="['px-6 py-2 space-y-5 overflow-y-auto flex-1 scroll-smooth', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
+          <div class="modal-body" :class="isDarkMode ? 'modal-body--dark' : 'modal-body--light'" style="display: flex; flex-direction: column; gap: 1.25rem;">
             <!-- Tags row -->
             <div class="flex items-center gap-2 flex-wrap">
-              <span :class="['px-3 py-1 text-[10px] font-bold tracking-widest uppercase rounded-lg', getTypeBadgeStyle(viewingNotification?.type)]">
+              <span class="detail-type-badge" :class="'detail-type-badge--' + (viewingNotification?.type || 'info')">
                 {{ viewingNotification?.type }}
               </span>
-              <span v-if="!viewingNotification?.read" class="px-3 py-1 text-[10px] font-bold tracking-widest uppercase bg-construct-red text-white rounded-lg">
-                UNREAD
-              </span>
+              <span v-if="!viewingNotification?.read" class="detail-unread-badge">UNREAD</span>
             </div>
 
             <!-- Message -->
             <div>
-              <label :class="['block text-xs font-bold tracking-widest uppercase mb-3', isDarkMode ? 'text-gray-400' : 'text-gray-500']">通知内容</label>
-              <div :class="['p-4 rounded-xl text-sm leading-relaxed', isDarkMode ? 'bg-gray-700/50' : 'bg-gray-50']">
-                {{ viewingNotification?.message }}
-              </div>
+              <label class="detail-label">通知内容</label>
+              <div class="detail-message-box">{{ viewingNotification?.message }}</div>
             </div>
 
             <!-- Link -->
             <div v-if="viewingNotification?.link">
-              <label :class="['block text-xs font-bold tracking-widest uppercase mb-3', isDarkMode ? 'text-gray-400' : 'text-gray-500']">关联链接</label>
-              <a
-                :href="viewingNotification?.link"
-                target="_blank"
-                :class="[
-                  'flex items-center gap-3 px-4 py-3 rounded-xl border text-sm font-medium transition-all group',
-                  isDarkMode
-                    ? 'bg-gray-700/50 border-gray-600 text-blue-400 hover:border-blue-500 hover:bg-gray-700'
-                    : 'bg-gray-50 border-gray-200 text-blue-600 hover:border-blue-400 hover:bg-blue-50/50'
-                ]"
-              >
-                <Link :size="16" class="flex-shrink-0" :class="isDarkMode ? 'text-gray-500' : 'text-gray-400'" />
+              <label class="detail-label">关联链接</label>
+              <a :href="viewingNotification?.link" target="_blank" class="detail-link-box group">
+                <Link :size="16" class="detail-link-icon--left" />
                 <span class="truncate flex-1">{{ viewingNotification?.link }}</span>
-                <ExternalLink :size="14" class="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" :class="isDarkMode ? 'text-gray-500' : 'text-gray-400'" />
+                <ExternalLink :size="14" class="detail-link-icon--right" />
               </a>
             </div>
 
             <!-- Time -->
-            <div class="flex items-center gap-2 text-sm" :class="isDarkMode ? 'text-gray-500' : 'text-gray-400'">
+            <div class="detail-time">
               <Clock :size="14" class="flex-shrink-0" />
               <span>{{ formatToShort(viewingNotification?.created_at) }}</span>
             </div>
           </div>
 
           <!-- Footer (sticky) -->
-          <div class="flex items-center justify-end gap-3 p-6 pt-3 flex-shrink-0">
-            <button
-              @click="showDetailModal = false"
-              :class="[
-                'px-6 py-3 font-bold tracking-wider uppercase text-sm rounded-xl border transition-colors',
-                isDarkMode
-                  ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
-                  : 'border-gray-300 text-gray-500 hover:bg-gray-100'
-              ]"
-            >
+          <div class="modal-footer">
+            <button @click="showDetailModal = false" class="btn-cancel">
               {{ t('admin_close') }}
             </button>
             <button
               v-if="!viewingNotification?.read"
               @click="markAsRead(viewingNotification.id); showDetailModal = false"
-              class="flex items-center gap-2 px-6 py-3 bg-green-600 text-white font-bold tracking-wider uppercase text-sm rounded-xl shadow-lg shadow-green-600/20 hover:bg-green-700 transition-all"
+              class="btn-mark-read"
             >
-              <CheckCircle :size="16" :style="{ color: '#ffffff' }" />
+              <CheckCircle :size="16" style="color: #ffffff;" />
               {{ t('admin_mark_read') }}
             </button>
           </div>
@@ -522,27 +484,489 @@ const handleFilterChange = ({ key, value }) => {
 </template>
 
 <style scoped>
+/* ========== Dark/Light Mode Context ========== */
+.notifications-page.is-dark {
+  --n-bg: #111827;
+  --n-surface: #1f2937;
+  --n-surface-hover: rgba(55, 65, 81, 0.5);
+  --n-surface-alt: rgba(55, 65, 81, 0.5);
+  --n-border: #374151;
+  --n-text: #d1d5db;
+  --n-text-secondary: #9ca3af;
+  --n-text-muted: #6b7280;
+  --n-card-bg: rgba(31, 41, 55, 0.5);
+  --n-card-hover-border: #CF202E;
+  --n-input-bg: #374151;
+  --n-input-border: #4b5563;
+  --n-input-text: #ffffff;
+  --n-input-placeholder: #6b7280;
+  --n-modal-bg: #1f2937;
+  --n-modal-ring: #374151;
+  --n-modal-overlay: rgba(0, 0, 0, 0.6);
+  --n-icon-bg-info: rgba(96, 165, 250, 0.2);
+  --n-icon-bg-warning: rgba(250, 204, 21, 0.2);
+  --n-icon-bg-error: rgba(248, 113, 113, 0.2);
+  --n-icon-bg-success: rgba(74, 222, 128, 0.2);
+  --n-type-color-inactive: #374151;
+  --n-type-text-inactive: #d1d5db;
+  --n-link-color: #60a5fa;
+  --n-link-hover: #93bbfd;
+  --n-action-hover: rgba(55, 65, 81, 0.7);
+  --n-empty-icon: #4b5563;
+  --n-unread-bar: #CF202E;
+  --n-divider: #374151;
+}
+
+.notifications-page.is-light {
+  --n-bg: #f9fafb;
+  --n-surface: #ffffff;
+  --n-surface-hover: #f3f4f6;
+  --n-surface-alt: #f9fafb;
+  --n-border: #e5e7eb;
+  --n-text: #374151;
+  --n-text-secondary: #6b7280;
+  --n-text-muted: #9ca3af;
+  --n-card-bg: #ffffff;
+  --n-card-hover-border: #CF202E;
+  --n-input-bg: #ffffff;
+  --n-input-border: #d1d5db;
+  --n-input-text: #111827;
+  --n-input-placeholder: #9ca3af;
+  --n-modal-bg: #ffffff;
+  --n-modal-ring: rgba(229, 231, 235, 0.8);
+  --n-modal-overlay: rgba(0, 0, 0, 0.6);
+  --n-icon-bg-info: #dbeafe;
+  --n-icon-bg-warning: #fef9c3;
+  --n-icon-bg-error: #fee2e2;
+  --n-icon-bg-success: #dcfce7;
+  --n-type-color-inactive: #f3f4f6;
+  --n-type-text-inactive: #4b5563;
+  --n-link-color: #2563eb;
+  --n-link-hover: #1d4ed8;
+  --n-action-hover: #f3f4f6;
+  --n-empty-icon: #d1d5db;
+  --n-unread-bar: #CF202E;
+  --n-divider: #e5e7eb;
+}
+
 .font-display {
   font-family: 'Outfit', sans-serif;
 }
 
+/* ========== Page Header ========== */
+.page-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 2.25rem;
+  letter-spacing: -0.05em;
+}
+.page-title--dark { color: #ffffff; }
+.page-title--light { color: #111827; }
+
+.page-subtitle {
+  font-size: 0.875rem;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+.page-subtitle--dark { color: rgba(156, 163, 175, 0.5); }
+.page-subtitle--light { color: rgba(107, 114, 128, 0.5); }
+
+/* ========== Buttons ========== */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 2rem;
+  background: var(--accent, #CF202E);
+  color: #ffffff;
+  font-weight: 900;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  transition: all 0.2s ease;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 16px rgba(207, 32, 46, 0.2);
+}
+.btn-primary:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 24px rgba(207, 32, 46, 0.3);
+}
+.btn-primary:active {
+  transform: scale(0.95);
+}
+
+/* ========== Notification Card ========== */
+.notification-card {
+  padding: 1.5rem;
+  background: var(--n-card-bg);
+  border: 1px solid var(--n-border);
+  border-radius: 1rem;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+.notification-card:hover {
+  border-color: var(--n-card-hover-border);
+}
+.notification-card--unread {
+  border-left: 4px solid var(--n-unread-bar);
+}
+
+.notification-icon {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.notification-icon--info    { background: var(--n-icon-bg-info); }
+.notification-icon--warning { background: var(--n-icon-bg-warning); }
+.notification-icon--error   { background: var(--n-icon-bg-error); }
+.notification-icon--success { background: var(--n-icon-bg-success); }
+
+.notification-title {
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: var(--n-text);
+}
+.notification-title--unread {
+  color: var(--accent, #CF202E);
+}
+
+.notification-body {
+  color: var(--n-text-secondary);
+  margin-bottom: 1rem;
+}
+
+.notification-meta {
+  color: var(--n-text-muted);
+  font-size: 0.875rem;
+}
+
+/* ========== Badges ========== */
+.badge-new {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: var(--accent, #CF202E);
+  color: #ffffff;
+  border-radius: 0.25rem;
+  text-transform: uppercase;
+}
+
+.type-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  border-radius: 0.25rem;
+  background: var(--n-type-color-inactive);
+  color: var(--n-type-text-inactive);
+}
+.type-badge--info    { background: var(--n-icon-bg-info);    color: #3b82f6; }
+.type-badge--warning { background: var(--n-icon-bg-warning); color: #eab308; }
+.type-badge--error   { background: var(--n-icon-bg-error);   color: #ef4444; }
+.type-badge--success { background: var(--n-icon-bg-success); color: #22c55e; }
+
+/* ========== Action Buttons ========== */
+.action-btn {
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.action-btn:hover {
+  background: var(--n-action-hover);
+}
+.action-btn--read   { color: #22c55e; }
+.action-btn--view   { color: var(--n-text-muted); }
+.action-btn--delete { color: #ef4444; }
+.action-btn--delete:hover { background: rgba(239, 68, 68, 0.1); }
+
+/* ========== List Toolbar ========== */
+.list-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.625rem 1rem;
+  background: var(--n-surface-alt);
+  border: 1px solid var(--n-border);
+  border-radius: 0.75rem;
+  margin-bottom: 0.25rem;
+}
+.list-toolbar-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--accent, #CF202E);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.list-toolbar-count {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--n-text-muted);
+}
+.list-toolbar-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.875rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #22c55e;
+  border-radius: 0.5rem;
+  background: transparent;
+  transition: all 0.15s ease;
+}
+.list-toolbar-action:hover {
+  background: rgba(34, 197, 94, 0.1);
+}
+
+/* ========== Empty State ========== */
+.empty-state {
+  padding: 3rem;
+  text-align: center;
+  border: 1px solid var(--n-border);
+  border-radius: 1rem;
+  background: var(--n-surface-alt);
+}
+.empty-state-icon {
+  color: var(--n-empty-icon);
+  margin: 0 auto 1rem;
+}
+.empty-state-text {
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--n-text-muted);
+}
+
+/* ========== Modal ========== */
+.modal-overlay {
+  background: var(--n-modal-overlay);
+  backdrop-filter: blur(4px);
+}
+.modal-box {
+  background: var(--n-modal-bg);
+  border-radius: 1rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+}
+.modal-box--ring {
+  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25), 0 0 0 1px var(--n-modal-ring);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 1.5rem 0.75rem;
+  flex-shrink: 0;
+}
+.modal-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.25rem;
+  letter-spacing: -0.025em;
+}
+.modal-title--dark  { color: #ffffff; }
+.modal-title--light { color: #111827; }
+.modal-subtitle {
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-top: 0.125rem;
+  color: var(--n-text-muted);
+}
+
+.modal-body {
+  padding: 0.5rem 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+  scroll-behavior: smooth;
+}
+.modal-body--dark  { color: #d1d5db; }
+.modal-body--light { color: #374151; }
+
+.modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 0.75rem 1.5rem 1.5rem;
+  flex-shrink: 0;
+}
+
+.btn-close {
+  padding: 0.5rem;
+  border-radius: 0.75rem;
+  transition: background 0.15s ease, color 0.15s ease;
+  flex-shrink: 0;
+  color: var(--n-text-muted);
+}
+.btn-close:hover {
+  background: var(--n-action-hover);
+}
+
+.btn-cancel {
+  padding: 0.75rem 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-size: 0.875rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--n-border);
+  color: var(--n-text-secondary);
+  background: transparent;
+  transition: all 0.15s ease;
+}
+.btn-cancel:hover {
+  background: var(--n-action-hover);
+}
+
+.btn-mark-read {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: #16a34a;
+  color: #ffffff;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-size: 0.875rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 16px rgba(22, 163, 74, 0.2);
+  transition: all 0.15s ease;
+}
+.btn-mark-read:hover {
+  background: #15803d;
+}
+
+/* ========== Detail Content ========== */
+.detail-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+  color: var(--n-text-muted);
+}
+.detail-message-box {
+  padding: 1rem;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.625;
+  background: var(--n-surface-alt);
+  color: var(--n-text-secondary);
+}
+.detail-link-box {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--n-border);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.15s ease;
+  text-decoration: none;
+  background: var(--n-surface-alt);
+  color: var(--n-link-color);
+}
+.detail-link-box:hover {
+  border-color: var(--n-link-color);
+  background: var(--n-action-hover);
+}
+.detail-link-icon--left {
+  flex-shrink: 0;
+  color: var(--n-text-muted);
+}
+.detail-link-icon--right {
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  color: var(--n-text-muted);
+}
+.detail-link-box:hover .detail-link-icon--right {
+  opacity: 1;
+}
+.detail-time {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--n-text-muted);
+}
+
+/* ========== Modal Header Icon ========== */
+.modal-header-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.modal-header-icon--gradient-info    { background: linear-gradient(135deg, #60a5fa, #4f46e5); }
+.modal-header-icon--gradient-warning { background: linear-gradient(135deg, #facc15, #d97706); }
+.modal-header-icon--gradient-error   { background: linear-gradient(135deg, #f87171, #e11d48); }
+.modal-header-icon--gradient-success { background: linear-gradient(135deg, #4ade80, #059669); }
+
+/* ========== Detail Badge ========== */
+.detail-type-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-radius: 0.5rem;
+}
+.detail-type-badge--info    { background: var(--n-icon-bg-info);    color: #3b82f6; }
+.detail-type-badge--warning { background: var(--n-icon-bg-warning); color: #eab308; }
+.detail-type-badge--error   { background: var(--n-icon-bg-error);   color: #ef4444; }
+.detail-type-badge--success { background: var(--n-icon-bg-success); color: #22c55e; }
+
+.detail-unread-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: var(--accent, #CF202E);
+  color: #ffffff;
+  border-radius: 0.5rem;
+}
+
+/* ========== Modal Transitions ========== */
 .modal-enter-active,
 .modal-leave-active {
   transition: opacity 0.3s ease;
 }
-
 .modal-enter-from,
 .modal-leave-to {
   opacity: 0;
 }
-
-.modal-enter-active .modal-content,
-.modal-leave-active .modal-content {
+.modal-enter-active .modal-box,
+.modal-leave-active .modal-box {
   transition: transform 0.35s ease, opacity 0.3s ease;
 }
-
-.modal-enter-from .modal-content,
-.modal-leave-to .modal-content {
+.modal-enter-from .modal-box,
+.modal-leave-to .modal-box {
   transform: scale(0.95) translateY(10px);
   opacity: 0;
 }

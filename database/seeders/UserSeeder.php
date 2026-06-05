@@ -16,6 +16,15 @@ class UserSeeder extends Seeder
                 'name' => 'Admin User',
                 'password' => Hash::make('Archyx_admin123'),
                 'level_id' => 1,
+                'status' => 'active',
+                'points' => 1000,
+                'notifications' => true,
+                'comment_approval_alert' => true,
+                'new_user_alert' => true,
+                'weekly_report' => true,
+                'digest_email' => true,
+                'digest_frequency' => 'weekly',
+                'last_login_at' => now(),
             ]
         );
         $admin->assignRole('Administrator');
@@ -26,6 +35,15 @@ class UserSeeder extends Seeder
                 'name' => 'Content Editor',
                 'password' => Hash::make('password'),
                 'level_id' => 2,
+                'status' => 'active',
+                'points' => 500,
+                'notifications' => true,
+                'comment_approval_alert' => true,
+                'new_user_alert' => false,
+                'weekly_report' => false,
+                'digest_email' => false,
+                'digest_frequency' => 'weekly',
+                'last_login_at' => now(),
             ]
         );
         $editor->assignRole('Editor');
@@ -36,6 +54,15 @@ class UserSeeder extends Seeder
                 'name' => 'Test Author',
                 'password' => Hash::make('password'),
                 'level_id' => 3,
+                'status' => 'active',
+                'points' => 300,
+                'notifications' => true,
+                'comment_approval_alert' => false,
+                'new_user_alert' => false,
+                'weekly_report' => false,
+                'digest_email' => false,
+                'digest_frequency' => 'weekly',
+                'last_login_at' => now(),
             ]
         );
         $author->assignRole('Author');
@@ -46,6 +73,15 @@ class UserSeeder extends Seeder
                 'name' => 'Test User',
                 'password' => Hash::make('password'),
                 'level_id' => 4,
+                'status' => 'active',
+                'points' => 100,
+                'notifications' => false,
+                'comment_approval_alert' => false,
+                'new_user_alert' => false,
+                'weekly_report' => false,
+                'digest_email' => false,
+                'digest_frequency' => 'weekly',
+                'last_login_at' => now(),
             ]
         );
         $user->assignRole('Subscriber');

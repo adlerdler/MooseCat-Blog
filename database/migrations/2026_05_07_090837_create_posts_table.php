@@ -16,7 +16,7 @@ return new class extends Migration
             $table->longText('content')->comment('内容');
             $table->string('cover_image')->nullable()->comment('封面图');
             $table->string('color', 50)->default('black')->comment('主题色');
-            $table->enum('status', ['draft', 'published', 'archived'])->default('draft')->comment('状态');
+            $table->string('status', 50)->default('draft')->comment('文章状态');
             $table->unsignedBigInteger('views_count')->default(0)->comment('浏览数');
             $table->unsignedBigInteger('likes_count')->default(0)->comment('点赞数');
             $table->string('meta_title')->nullable()->comment('SEO标题');
@@ -25,7 +25,8 @@ return new class extends Migration
             $table->foreignId('author_id')->constrained('users')->cascadeOnDelete()->comment('作者ID');
             $table->foreignId('category_id')->nullable()->constrained('categories')->nullOnDelete()->comment('分类ID');
             $table->timestamp('published_at')->nullable()->comment('发布时间');
-            $table->timestamps();
+            $table->timestamp('created_at')->nullable();
+            $table->timestamp('updated_at')->nullable();
         });
     }
 

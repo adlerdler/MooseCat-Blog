@@ -42,7 +42,15 @@ class ActivityLogMiddleware
 
         // 记录活动日志（仅在请求完成后）
         if ($this->shouldLog($request)) {
-            $this->logActivity($request, $response);
+            try {
+                $this->logActivity($request, $response);
+            } catch (\Throwable $e) {
+                // 日志记录失败不能影响正常响应
+                Log::warning('ActivityLogMiddleware: logActivity failed', [
+                    'error' => $e->getMessage(),
+                    'url'   => $request->fullUrl(),
+                ]);
+            }
         }
 
         return $response;
@@ -103,10 +111,16 @@ class ActivityLogMiddleware
         ];
 
         // 记录到日志文件
-        Log::channel('activity')->info('User activity', $logData);
+        Log::info('User activity', $logData);
 
         // 记录到 spatie activity_log 表
-        $this->saveToDatabase($logData);
+        try {
+            $this->saveToDatabase($logData);
+        } catch (\Throwable $e) {
+            Log::warning('ActivityLogMiddleware: saveToDatabase failed', [
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**

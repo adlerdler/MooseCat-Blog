@@ -6,6 +6,8 @@ namespace App\Services;
 
 use App\Models\Comment;
 use App\Models\Post;
+use App\Models\User;
+use App\Notifications\NewCommentForApprovalNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -49,6 +51,15 @@ class CommentService
                 'user_agent' => $data['user_agent'] ?? null,
                 'is_approved' => $isApproved,
             ]);
+
+            // 如果需要审核，发送通知给开启了评论审核通知的用户
+            if ($requiresApproval) {
+                $usersToNotify = User::where('comment_approval_alert', true)->get();
+
+                foreach ($usersToNotify as $user) {
+                    $user->notify(new NewCommentForApprovalNotification($comment));
+                }
+            }
 
             return $comment;
         });

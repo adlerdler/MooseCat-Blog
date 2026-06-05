@@ -10,9 +10,10 @@ return new class extends Migration
     {
         Schema::create('tags', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->unique()->comment('名称');
+            $table->string('name')->unique()->comment('标签名称');
             $table->string('slug')->unique()->comment('URL标识符');
-            $table->timestamps();
+            $table->timestamp('created_at')->nullable();
+            $table->timestamp('updated_at')->nullable();
         });
     }
 

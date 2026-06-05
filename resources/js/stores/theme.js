@@ -88,11 +88,7 @@ export const useThemeStore = defineStore('theme', () => {
     const savedTheme = safeGetItem('admin_theme');
     isDarkMode.value = savedTheme !== 'light';
 
-    if (isDarkMode.value) {
-      document.documentElement.classList.remove('light');
-    } else {
-      document.documentElement.classList.add('light');
-    }
+    document.documentElement.classList.toggle('dark', isDarkMode.value);
 
     initAccentTheme();
     initialized.value = true;
@@ -103,11 +99,11 @@ export const useThemeStore = defineStore('theme', () => {
 
     if (isDarkMode.value) {
       safeSetItem('admin_theme', 'dark');
-      document.documentElement.classList.remove('light');
     } else {
       safeSetItem('admin_theme', 'light');
-      document.documentElement.classList.add('light');
     }
+
+    document.documentElement.classList.toggle('dark', isDarkMode.value);
   }
 
   function setTheme(theme) {

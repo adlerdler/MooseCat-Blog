@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\Video;
+use App\Events\SeoFilesNeedRegenerate;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Collection;
@@ -82,6 +83,10 @@ class VideoService
                 $video->tags()->sync($this->tagService->resolveTagIds($tags));
             }
 
+            if ($video->status === 'published') {
+                SeoFilesNeedRegenerate::dispatch();
+            }
+
             return $video;
         });
     }
@@ -89,7 +94,8 @@ class VideoService
     public function updateVideo(Video $video, array $data): Video
     {
         return DB::transaction(function () use ($video, $data) {
-            // 编辑时不自动生成 slug，保持原有值
+            $wasPublished = $video->status === 'published';
+            $nowPublished = ($data['status'] ?? $video->status) === 'published';
 
             $tags = $data['tags'] ?? [];
             unset($data['tags']);
@@ -98,6 +104,10 @@ class VideoService
 
             if (!empty($tags)) {
                 $video->tags()->sync($this->tagService->resolveTagIds($tags));
+            }
+
+            if ($wasPublished || $nowPublished) {
+                SeoFilesNeedRegenerate::dispatch();
             }
 
             return $video;
@@ -111,8 +121,15 @@ class VideoService
     public function deleteVideo(Video $video): bool
     {
         return DB::transaction(function () use ($video) {
+            $wasPublished = $video->status === 'published';
             $video->tags()->detach();
-            return $video->delete();
+            $result = $video->delete();
+
+            if ($wasPublished) {
+                SeoFilesNeedRegenerate::dispatch();
+            }
+
+            return $result;
         });
     }
 

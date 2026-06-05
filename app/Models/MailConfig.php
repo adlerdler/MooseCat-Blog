@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class MailConfig extends Model
 {
+    use LogsActivity;
     protected $fillable = [
         'mailer',
         'host',
@@ -29,5 +32,15 @@ class MailConfig extends Model
     public static function getActiveConfig()
     {
         return static::where('is_active', true)->first();
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logAll()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('mail-config')
+            ->logExcept(['password']);
     }
 }

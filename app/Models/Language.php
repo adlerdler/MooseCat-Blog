@@ -4,9 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Language extends Model
 {
+    use LogsActivity;
     protected $fillable = [
         'code',
         'name',
@@ -47,5 +50,14 @@ class Language extends Model
     public static function getDefaultLanguage()
     {
         return static::where('is_default', true)->first();
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logAll()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('i18n');
     }
 }

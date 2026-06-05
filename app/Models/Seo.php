@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Seo extends Model
 {
+    use LogsActivity;
     protected $table = 'seo';
 
     protected $fillable = [
@@ -49,5 +52,14 @@ class Seo extends Model
             $seo = static::create($data);
         }
         return $seo;
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logAll()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('seo');
     }
 }

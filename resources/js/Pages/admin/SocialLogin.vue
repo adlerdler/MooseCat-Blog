@@ -1,7 +1,7 @@
 <script setup>
 /**
  * 社交登录管理页（后台）
- * 管理 Google / GitHub / Apple OAuth 配置
+ * 管理 Google / GitHub OAuth 配置
  * Tab 切换布局，与 I18nManager / SocialLinks 风格一致
  */
 import { ref, reactive, computed } from 'vue';
@@ -21,18 +21,16 @@ const props = defineProps({
 
 const activeTab = ref('google');
 
-const defaultProviders = ['google', 'github', 'apple'];
+const defaultProviders = ['google', 'github'];
 
 const providerLabels = {
   google: 'Google',
   github: 'GitHub',
-  apple: 'Apple',
 };
 
 const providerIcons = {
   google: 'M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.627 0-8.4-3.733-8.4-8.373 0-4.64 3.773-8.373 8.4-8.373 2.533 0 4.413 1.013 5.813 2.347l2.347-2.347C18.213 2.347 15.56 1 12.48 1 5.867 1 .52 6.08.52 12.36s5.347 11.36 11.96 11.36c3.52 0 6.187-1.28 8.267-3.693 2.133-2.133 2.8-5.12 2.8-7.507 0-.64-.053-1.253-.16-1.84H12.48v3.24z',
   github: 'M12 1C5.922 1 1 5.922 1 12c0 4.891 3.148 9.016 7.521 10.477.55.1.753-.239.753-.53 0-.26-.01-1.118-.015-2.02-3.06.665-3.706-1.299-3.706-1.299-.5-1.27-1.221-1.608-1.221-1.608-.999-.683.075-.669.075-.669 1.104.078 1.685 1.134 1.685 1.134.981 1.68 2.575 1.195 3.202.914.1-.71.384-1.195.698-1.47-2.442-.278-5.01-1.221-5.01-5.438 0-1.202.429-2.185 1.133-2.955-.114-.278-.492-1.398.108-2.913 0 0 .925-.295 3.03 1.129A10.56 10.56 0 0112 6.322a10.56 10.56 0 012.756.375c2.105-1.424 3.03-1.129 3.03-1.129.6 1.515.222 2.635.108 2.913.704.77 1.133 1.753 1.133 2.955 0 4.226-2.572 5.157-5.022 5.43.395.34.747 1.01.747 2.037 0 1.47-.014 2.657-.014 3.017 0 .294.2.637.756.53C19.854 21.013 23 16.89 23 12c0-6.078-4.922-11-11-11z',
-  apple: 'M14.94 5.19A4.38 4.38 0 0016 2.5a4.38 4.38 0 00-3.76-1.9c-1.24 0-2.48.84-3.26.84-.82 0-2.1-.8-3.42-.8A5.05 5.05 0 00.76 3.77c-2.04 3.5-.52 8.7 1.46 11.56.98 1.42 2.14 3.02 3.66 2.96 1.46-.06 2.02-.94 3.78-.94 1.78 0 2.28.94 3.82.92 1.58-.02 2.58-1.44 3.54-2.86 1.12-1.64 1.58-3.22 1.6-3.3-.04-.02-3.08-1.18-3.1-4.68-.02-2.94 2.42-4.26 2.54-4.34-1.44-2.08-3.66-2.32-4.44-2.34-.1-.02-.2-.02-.28-.02z',
 };
 
 // 从 configs 中提取已有的自定义 provider
@@ -258,9 +256,7 @@ const isCustomProvider = computed(() => configMap[activeTab.value]?.isCustom || 
     >
       <div class="p-6 space-y-5">
         <!-- 启用开关 + Provider 信息 -->
-        <div class="flex items-center justify-between pb-4 border-b"
-          :class="isDarkMode ? 'border-gray-700/50' : 'border-gray-200'"
-        >
+        <div class="flex items-center justify-between pb-4">
           <div class="flex items-center gap-3">
             <div :class="[
               'w-10 h-10 rounded-xl flex items-center justify-center shadow-md',
@@ -368,7 +364,7 @@ const isCustomProvider = computed(() => configMap[activeTab.value]?.isCustom || 
         </div>
 
         <!-- 操作按钮 -->
-        <div :class="['flex items-center gap-3 pt-4 border-t', isDarkMode ? 'border-gray-700/50' : 'border-gray-200']">
+        <div class="flex items-center gap-3 pt-4">
           <button
             @click="saveConfig"
             :disabled="configMap[activeTab].saving"

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\Post;
+use App\Models\Subscriber;
+use App\Events\SeoFilesNeedRegenerate;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -63,6 +65,12 @@ class PostService
                 $post->tags()->sync($this->tagService->resolveTagIds($tags));
             }
 
+            // 新文章直接发布，通知所有订阅者
+            if ($post->status === 'published') {
+                $this->notifySubscribers($post, 'new');
+                SeoFilesNeedRegenerate::dispatch();
+            }
+
             return $post;
         });
     }
@@ -74,9 +82,11 @@ class PostService
     public function updatePost(Post $post, array $data): Post
     {
         return DB::transaction(function () use ($post, $data) {
-            // 编辑时不自动生成 slug，保持原有值
+            $wasPublished = $post->status === 'published';
+            $nowPublished = ($data['status'] ?? $post->status) === 'published';
+
             // 当状态设为 published 且原文章无发布时间时，自动记录
-            if (($data['status'] ?? $post->status) === 'published' && !$post->published_at) {
+            if ($nowPublished && !$post->published_at) {
                 $data['published_at'] = $data['published_at'] ?? now();
             }
 
@@ -89,6 +99,16 @@ class PostService
                 $post->tags()->sync($this->tagService->resolveTagIds($tags));
             }
 
+            // 文章状态变更为发布时，通知所有订阅者
+            if (!$wasPublished && $nowPublished) {
+                $this->notifySubscribers($post, 'new');
+            }
+
+            // 已发布文章更新时，重新生成 SEO 文件
+            if ($wasPublished || $nowPublished) {
+                SeoFilesNeedRegenerate::dispatch();
+            }
+
             return $post;
         });
     }
@@ -99,10 +119,16 @@ class PostService
      */
     public function publishPost(Post $post): bool
     {
-        return $post->update([
+        $result = $post->update([
             'status' => 'published',
             'published_at' => now(),
         ]);
+
+        // 发布时通知所有订阅者
+        $this->notifySubscribers($post, 'new');
+        SeoFilesNeedRegenerate::dispatch();
+
+        return $result;
     }
 
     /**
@@ -112,5 +138,48 @@ class PostService
     public function incrementViews(Post $post): void
     {
         $post->increment('views_count');
+    }
+
+    /**
+     * 通知所有活跃订阅者文章已发布
+     * Notify all active subscribers about a published post.
+     */
+    private function notifySubscribers(Post $post, string $type = 'new'): void
+    {
+        $subscribers = Subscriber::where('is_active', true)->pluck('email');
+
+        if ($subscribers->isEmpty()) {
+            return;
+        }
+
+        // 确保 category 关系已加载
+        if (!$post->relationLoaded('category')) {
+            $post->load('category');
+        }
+
+        $postUrl = url('/posts/' . $post->slug);
+        $brandName = config('app.name', 'Archyx');
+        $timestamp = now()->format('Y-m-d H:i');
+
+        $subject = $type === 'new'
+            ? "新文章 | {$post->title}"
+            : "文章更新 | {$post->title}";
+
+        $htmlBody = view('emails.new-post', [
+            'title'      => $post->title,
+            'excerpt'    => $post->excerpt ?? mb_substr(strip_tags($post->content ?? ''), 0, 200),
+            'postUrl'    => $postUrl,
+            'actionText' => '阅读全文',
+            'brandName'  => $brandName,
+            'category'   => $post->category?->name ?? 'GENERAL',
+            'timestamp'  => $timestamp,
+        ])->render();
+
+        // 逐个发送给订阅者（afterResponse 模式，不阻塞请求）
+        foreach ($subscribers as $email) {
+            dispatch(function () use ($email, $subject, $htmlBody) {
+                app(MailService::class)->send($email, $subject, $htmlBody);
+            })->afterResponse();
+        }
     }
 }

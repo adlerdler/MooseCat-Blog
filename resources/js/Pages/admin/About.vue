@@ -124,7 +124,7 @@ const currentYear = new Date().getFullYear();
             <span :class="['text-sm font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">{{ systemInfo.releaseDate }}</span>
           </div>
 
-          <div class="pt-6 border-t" :class="isDarkMode ? 'border-gray-700/50' : 'border-gray-100'">
+          <div>
             <p :class="['text-base leading-relaxed font-medium', isDarkMode ? 'text-gray-400' : 'text-gray-600']">{{ systemInfo.description }}</p>
           </div>
         </div>

@@ -13,42 +13,37 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('level_id')->nullable()->constrained('user_levels')->nullOnDelete()->comment('用户等级ID');
+            $table->foreignId('level_id')->nullable()->constrained('user_levels')->nullOnDelete()->comment('用户等级ID，关联user_levels表');
             $table->string('name')->comment('用户名');
             $table->string('email')->unique()->comment('邮箱');
             $table->timestamp('email_verified_at')->nullable()->comment('邮箱验证时间');
             $table->string('password')->comment('密码');
-            $table->string('avatar')->nullable()->comment('头像URL');
-            $table->text('bio')->nullable()->comment('个人简介');
-            $table->string('github')->nullable()->comment('GitHub');
-            $table->string('twitter')->nullable()->comment('Twitter');
-            $table->string('linkedin')->nullable()->comment('LinkedIn');
-            $table->enum('status', ['active', 'inactive', 'suspended'])->default('active')->comment('状态');
+            $table->string('status')->default('active')->comment('状态：active活跃、inactive禁用、suspended封禁');
             $table->unsignedBigInteger('points')->default(0)->comment('积分');
-            $table->boolean('notifications')->default(true)->comment('邮件通知');
-            $table->boolean('comment_approval_alert')->default(true)->comment('评论提醒');
-            $table->boolean('new_user_alert')->default(true)->comment('新用户提醒');
-            $table->boolean('weekly_report')->default(false)->comment('周报');
-            $table->boolean('digest_email')->default(false)->comment('摘要邮件');
-            $table->enum('digest_frequency', ['daily', 'weekly', 'monthly'])->default('weekly')->comment('邮件频率');
-            $table->timestamp('last_login_at')->nullable()->comment('最后登录');
-            $table->rememberToken();
+            $table->boolean('notifications')->default(true)->comment('邮件通知开关');
+            $table->boolean('comment_approval_alert')->default(true)->comment('评论审核提醒');
+            $table->boolean('new_user_alert')->default(true)->comment('新用户注册提醒');
+            $table->boolean('weekly_report')->default(false)->comment('周报订阅');
+            $table->boolean('digest_email')->default(false)->comment('摘要邮件订阅');
+            $table->string('digest_frequency')->default('weekly')->comment('摘要频率：daily每天、weekly每周、monthly每月');
+            $table->timestamp('last_login_at')->nullable()->comment('最后登录时间');
+            $table->rememberToken()->comment('记住登录令牌');
             $table->timestamps();
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
-            $table->string('email')->primary();
-            $table->string('token');
+            $table->string('email')->primary()->comment('邮箱');
+            $table->string('token')->comment('重置令牌');
             $table->timestamp('created_at')->nullable();
         });
 
         Schema::create('sessions', function (Blueprint $table) {
             $table->string('id')->primary();
-            $table->foreignId('user_id')->nullable()->index();
-            $table->string('ip_address', 45)->nullable();
-            $table->text('user_agent')->nullable();
-            $table->longText('payload');
-            $table->integer('last_activity')->index();
+            $table->foreignId('user_id')->nullable()->index()->comment('用户ID');
+            $table->string('ip_address', 45)->nullable()->comment('IP地址');
+            $table->text('user_agent')->nullable()->comment('浏览器User-Agent');
+            $table->longText('payload')->comment('会话数据');
+            $table->integer('last_activity')->index()->comment('最后活动时间戳');
         });
     }
 

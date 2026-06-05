@@ -53,6 +53,13 @@ class UpdateSettingRequest extends FormRequest
             'sitemap'         => ['nullable'],
             'robots'          => ['nullable'],
             'llm_txt'         => ['nullable'],
+            // 用户通知设置
+            'email_notifications'     => ['nullable', 'boolean'],
+            'comment_approval_alert'  => ['nullable', 'boolean'],
+            'new_user_alert'          => ['nullable', 'boolean'],
+            'weekly_report'           => ['nullable', 'boolean'],
+            'digest_email'            => ['nullable', 'boolean'],
+            'digest_frequency'        => ['nullable', 'string', 'in:daily,weekly,monthly'],
         ];
     }
 }

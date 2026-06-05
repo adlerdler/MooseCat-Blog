@@ -10,11 +10,12 @@ return new class extends Migration
     {
         Schema::create('social_accounts', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
-            $table->string('provider', 20);
-            $table->string('provider_id');
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete()->comment('用户ID');
+            $table->string('provider', 20)->comment('第三方平台标识');
+            $table->string('provider_id')->comment('第三方平台用户ID');
             $table->json('provider_data')->nullable()->comment('OAuth返回的原始数据');
-            $table->timestamps();
+            $table->timestamp('created_at')->nullable();
+            $table->timestamp('updated_at')->nullable();
 
             $table->unique(['provider', 'provider_id']);
             $table->index(['provider', 'user_id']);

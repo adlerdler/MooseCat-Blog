@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Resource;
 use App\Models\Category;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class ResourceSeeder extends Seeder
@@ -11,6 +12,7 @@ class ResourceSeeder extends Seeder
     public function run(): void
     {
         $categories = Category::all();
+        $author = User::role('Administrator')->first();
 
         $resources = [
             [
@@ -39,6 +41,7 @@ class ResourceSeeder extends Seeder
 
         foreach ($resources as $r) {
             Resource::create(array_merge($r, [
+                'author_id' => $author->id,
                 'category_id' => $categories->random()->id,
             ]));
         }

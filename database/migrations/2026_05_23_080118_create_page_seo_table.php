@@ -10,12 +10,13 @@ return new class extends Migration
     {
         Schema::create('page_seo', function (Blueprint $table) {
             $table->id();
-            $table->string('page_key')->unique()->comment('页面键');
-            $table->string('title')->comment('标题');
-            $table->string('description', 500)->comment('描述');
-            $table->string('keywords', 500)->nullable()->comment('关键词');
-            $table->string('og_image')->nullable()->comment('OG图片');
-            $table->timestamps();
+            $table->string('page_key')->unique()->comment('页面唯一键');
+            $table->string('title')->comment('SEO标题');
+            $table->string('description', 500)->comment('SEO描述');
+            $table->string('keywords', 500)->nullable()->comment('SEO关键词');
+            $table->string('og_image')->nullable()->comment('OG图片URL');
+            $table->timestamp('created_at')->nullable();
+            $table->timestamp('updated_at')->nullable();
         });
     }
 

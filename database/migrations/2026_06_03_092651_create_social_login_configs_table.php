@@ -10,14 +10,15 @@ return new class extends Migration
     {
         Schema::create('social_login_configs', function (Blueprint $table) {
             $table->id();
-            $table->string('provider', 20)->unique();
-            $table->string('name', 50);
-            $table->string('client_id')->nullable();
-            $table->text('client_secret')->nullable()->comment('AES-256加密存储');
-            $table->string('redirect_uri')->nullable();
-            $table->boolean('enabled')->default(false);
-            $table->json('extra_config')->nullable()->comment('扩展配置如Apple team_id, key_id');
-            $table->timestamps();
+            $table->string('provider', 20)->unique()->comment('第三方平台标识');
+            $table->string('name', 50)->comment('平台名称');
+            $table->string('client_id')->nullable()->comment('客户端ID');
+            $table->text('client_secret')->nullable()->comment('客户端密钥（AES-256加密存储）');
+            $table->string('redirect_uri')->nullable()->comment('回调地址');
+            $table->boolean('enabled')->default(false)->comment('是否启用');
+            $table->json('extra_config')->nullable()->comment('扩展配置（如Apple team_id, key_id）');
+            $table->timestamp('created_at')->nullable();
+            $table->timestamp('updated_at')->nullable();
         });
     }
 

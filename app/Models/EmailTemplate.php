@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class EmailTemplate extends Model
 {
+    use LogsActivity;
     protected $fillable = [
         'name',
         'subject',
@@ -34,5 +37,14 @@ class EmailTemplate extends Model
     public static function getByName(string $name)
     {
         return static::where('name', $name)->where('is_active', true)->first();
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logAll()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('email-templates');
     }
 }

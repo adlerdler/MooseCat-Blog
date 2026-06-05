@@ -150,7 +150,7 @@ const handleDelete = (id) => {
 
 const confirmDelete = () => {
   if (deletingVideoId.value !== null) {
-    router.delete(route('videos.destroy', deletingVideoId.value), {
+    router.delete(route('admin.videos.destroy', deletingVideoId.value), {
       preserveState: true,
       onSuccess: () => {
         toastSuccess('Video deleted successfully');
@@ -202,13 +202,13 @@ const handleSave = (data) => {
   };
 
   if (editingVideo.value && editingVideo.value.id) {
-    router.put(route('videos.update', editingVideo.value.id), payload, {
+    router.put(route('admin.videos.update', editingVideo.value.id), payload, {
       preserveState: true,
       onError: (err) => toastError(err?.message || 'Failed to update video'),
       onSuccess: () => toastSuccess('Video updated successfully'),
     });
   } else {
-    router.post(route('videos.store'), payload, {
+    router.post(route('admin.videos.store'), payload, {
       preserveState: true,
       onError: (err) => toastError(err?.message || 'Failed to create video'),
       onSuccess: () => toastSuccess('Video created successfully'),

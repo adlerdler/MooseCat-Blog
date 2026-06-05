@@ -11,6 +11,7 @@
  */
 import { ref, computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { router } from '@inertiajs/vue3';
 import {
   Mail,
   Eye,
@@ -21,11 +22,12 @@ import {
   Plus,
   User,
   X,
-  Save
+  Save,
+  LayoutGrid,
+  List
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
 import { useToast } from '../../composables/useToast';
-import { findById, findIndexById } from '../../utils/typeConvert';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import SearchFilterModal from '../../components/admin/SearchFilterModal.vue';
 import Pagination from '../../components/admin/Pagination.vue';
@@ -63,6 +65,15 @@ const editingSubscriber = ref(null);
 const showDeleteConfirm = ref(false);
 const deletingSubscriberId = ref(null);
 
+// Load saved view mode from localStorage
+const savedViewMode = localStorage.getItem('admin_subscribers_view_mode');
+const viewMode = ref(savedViewMode || 'card'); // 'card' or 'table'
+
+// Save view mode when changed
+watch(viewMode, (newMode) => {
+  localStorage.setItem('admin_subscribers_view_mode', newMode);
+});
+
 const subscribers = ref([...props.subscribers]);
 
 watch(() => props.subscribers, (newSubscribers) => {
@@ -94,8 +105,15 @@ const paginatedSubscribers = computed(() => {
 });
 
 const toggleStatus = (subscriber) => {
-  subscriber.is_active = !subscriber.is_active;
-  toastSuccess(subscriber.is_active ? t('admin_subscriber_activated') || 'Subscriber activated' : t('admin_subscriber_deactivated') || 'Subscriber deactivated');
+  router.put(`/admin/subscribers/${subscriber.id}`, {
+    ...subscriber,
+    is_active: !subscriber.is_active,
+  }, {
+    preserveState: false,
+    onSuccess: () => {
+      toastSuccess(subscriber.is_active ? t('admin_subscriber_activated') || '已激活' : t('admin_subscriber_deactivated') || '已停用');
+    },
+  });
 };
 
 const handleView = (subscriber) => {
@@ -115,28 +133,30 @@ const handleAdd = () => {
 
 const handleSave = (data) => {
   if (data.action === 'edit') {
-    const index = findIndexById(subscribers.value, data.id);
-    if (index !== -1) {
-      subscribers.value[index] = { 
-        ...subscribers.value[index], 
-        ...data,
-        updated_at: new Date().toISOString().replace('T', ' ').substring(0, 19)
-      };
-    }
+    router.put(`/admin/subscribers/${data.id}`, data, {
+      preserveState: false,
+      onSuccess: () => {
+        isFormVisible.value = false;
+        editingSubscriber.value = null;
+        toastSuccess(t('admin_save_success') || '已更新');
+      },
+      onError: (errors) => {
+        toastError(errors?.email || t('admin_save_error') || '保存失败');
+      },
+    });
   } else if (data.action === 'add') {
-    const newId = Math.max(...subscribers.value.map(s => s.id), 0) + 1;
-    const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
-    subscribers.value.push({
-      id: newId,
-      ...data,
-      created_at: now,
-      updated_at: now
+    router.post('/admin/subscribers', data, {
+      preserveState: false,
+      onSuccess: () => {
+        isFormVisible.value = false;
+        editingSubscriber.value = null;
+        toastSuccess(t('admin_save_success') || '已添加');
+      },
+      onError: (errors) => {
+        toastError(errors?.email || t('admin_save_error') || '保存失败');
+      },
     });
   }
-  
-  isFormVisible.value = false;
-  editingSubscriber.value = null;
-  toastSuccess(data.action === 'edit' ? t('admin_save_success') || 'Updated' : t('admin_save_success') || 'Added');
 };
 
 const handleCancel = () => {
@@ -151,13 +171,19 @@ const handleDelete = (id) => {
 
 const confirmDelete = () => {
   if (deletingSubscriberId.value !== null) {
-    const index = findIndexById(subscribers.value, deletingSubscriberId.value);
-    if (index !== -1) {
-      subscribers.value.splice(index, 1);
-    }
-    showDeleteConfirm.value = false;
-    deletingSubscriberId.value = null;
-    toastSuccess(t('admin_delete_success') || 'Deleted');
+    router.delete(`/admin/subscribers/${deletingSubscriberId.value}`, {
+      preserveState: false,
+      onSuccess: () => {
+        showDeleteConfirm.value = false;
+        deletingSubscriberId.value = null;
+        toastSuccess(t('admin_delete_success') || '已删除');
+      },
+      onError: () => {
+        showDeleteConfirm.value = false;
+        deletingSubscriberId.value = null;
+        toastError(t('admin_delete_error') || '删除失败');
+      },
+    });
   }
 };
 
@@ -174,18 +200,18 @@ const handleFilterChange = ({ key, value }) => {
 <template>
   <div class="p-8">
     <!-- Page Header -->
-    <div class="mb-10">
+    <div class="mb-8">
       <div class="flex items-center justify-between">
-        <div>
-          <div class="flex items-center gap-4 mb-2">
-            <Mail class="text-construct-red" size="32" />
+        <div class="flex items-center gap-4">
+          <Mail class="text-construct-red" size="32" />
+          <div>
             <h2 :class="['font-display text-4xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">{{ t('admin_subscribers') }}</h2>
+            <p :class="['text-sm font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_subscribers_subtitle') }}</p>
           </div>
-          <p :class="['text-sm font-black tracking-[0.2em] uppercase opacity-50', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_subscribers_subtitle') }}</p>
         </div>
         <button
           @click="handleAdd"
-          class="flex items-center gap-3 px-8 py-4 bg-construct-red text-white font-black text-xs uppercase tracking-[0.2em] transition-all hover:scale-105 active:scale-95 shadow-lg shadow-construct-red/20 rounded-xl"
+          class="flex items-center gap-2 px-6 py-3 bg-construct-red text-white font-bold tracking-wider rounded-xl shadow-sm hover:scale-105 active:scale-95 transition-all"
         >
           <Plus size="18" />
           {{ t('admin_add_subscriber') }}
@@ -194,34 +220,118 @@ const handleFilterChange = ({ key, value }) => {
     </div>
 
     <!-- Search and Filter -->
-    <SearchFilterModal
-      v-model:search-query="searchQuery"
-      :search-placeholder="t('admin_search_subscribers')"
-      :filters="[
-        {
-          key: 'status',
-          options: [
-            { value: 'all', label: t('admin_all_status') },
-            { value: 'active', label: t('admin_active') },
-            { value: 'inactive', label: t('admin_inactive') }
-          ]
-        },
-        {
-          key: 'source',
-          options: [
-            { value: 'all', label: t('admin_all_sources') },
-            ...getSourceOptions().map(source => ({ value: source, label: getSourceLabel(source) }))
-          ]
-        }
-      ]"
-      :filter-values="{ status: statusFilter, source: sourceFilter }"
-      @filter-change="handleFilterChange"
-    />
+    <div class="flex items-center gap-4 mt-6">
+      <div class="flex-1">
+        <div class="-mb-10">
+          <SearchFilterModal
+            v-model:search-query="searchQuery"
+            :search-placeholder="t('admin_search_subscribers')"
+            :filters="[
+              {
+                key: 'status',
+                options: [
+                  { value: 'all', label: t('admin_all_status') },
+                  { value: 'active', label: t('admin_active') },
+                  { value: 'inactive', label: t('admin_inactive') }
+                ]
+              },
+              {
+                key: 'source',
+                options: [
+                  { value: 'all', label: t('admin_all_sources') },
+                  ...getSourceOptions().map(source => ({ value: source, label: getSourceLabel(source) }))
+                ]
+              }
+            ]"
+            :filter-values="{ status: statusFilter, source: sourceFilter }"
+            @filter-change="handleFilterChange"
+          />
+        </div>
+      </div>
+      <!-- View Toggle -->
+      <div class="flex items-center gap-1 p-1 rounded-xl flex-shrink-0 h-14" :class="isDarkMode ? 'bg-gray-800' : 'bg-gray-100'">
+        <button
+          @click="viewMode = 'card'"
+          :class="['p-3 rounded-lg transition-all h-full flex items-center justify-center', viewMode === 'card' ? 'bg-white dark:bg-gray-700 shadow-sm text-construct-red' : 'text-gray-400 hover:text-gray-600']"
+          title="Card View"
+        >
+          <LayoutGrid size="18" />
+        </button>
+        <button
+          @click="viewMode = 'table'"
+          :class="['p-3 rounded-lg transition-all h-full flex items-center justify-center', viewMode === 'table' ? 'bg-white dark:bg-gray-700 shadow-sm text-construct-red' : 'text-gray-400 hover:text-gray-600']"
+          title="Table View"
+        >
+          <List size="18" />
+        </button>
+      </div>
+    </div>
+
+    <!-- Subscribers Cards -->
+    <div v-if="viewMode === 'card'" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mt-6">
+      <div
+        v-for="subscriber in paginatedSubscribers"
+        :key="subscriber.id"
+        :class="['p-6 rounded-xl transition-all duration-200 hover:scale-[1.02]', isDarkMode ? 'bg-gray-800/80 hover:bg-gray-800' : 'bg-white hover:bg-gray-50']"
+      >
+        <!-- Subscriber Header -->
+        <div class="flex items-start justify-between mb-4">
+          <div class="flex items-center gap-3">
+            <div :class="['w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden shadow-md', isDarkMode ? 'bg-gray-700' : 'bg-gray-100']">
+              <User :class="isDarkMode ? 'text-gray-400' : 'text-gray-600'" size="20" />
+            </div>
+            <div>
+              <h4 :class="['font-bold text-lg', isDarkMode ? 'text-white' : 'text-gray-900']">{{ subscriber.name }}</h4>
+              <p :class="['text-xs', isDarkMode ? 'text-gray-500' : 'text-gray-400']">{{ formatToShort(subscriber.subscribed_at) }}</p>
+            </div>
+          </div>
+          <!-- Status Toggle -->
+          <button
+            @click="toggleStatus(subscriber)"
+            class="relative"
+          >
+            <div :class="['w-12 h-6 rounded-full relative transition-colors flex-shrink-0', subscriber.is_active ? 'bg-green-500' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-400')]">
+              <div :class="['absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform', subscriber.is_active ? 'translate-x-[1.625rem]' : 'translate-x-0.5']"></div>
+            </div>
+          </button>
+        </div>
+
+        <!-- Email -->
+        <div :class="['flex items-center gap-2 mb-4 text-sm', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
+          <Mail size="14" class="flex-shrink-0" />
+          <span class="truncate" :title="subscriber.email">{{ subscriber.email }}</span>
+        </div>
+
+        <!-- Source -->
+        <div class="mb-4">
+          <span :class="['inline-block px-3 py-1 rounded-full text-xs font-bold', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600']">{{ getSourceLabel(subscriber.source) }}</span>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex items-center gap-2">
+          <button @click="handleView(subscriber)" :class="['p-2 rounded-lg transition-all', isDarkMode ? 'hover:bg-gray-700 text-gray-400 hover:text-white' : 'hover:bg-gray-100 text-gray-500 hover:text-gray-700']">
+            <Eye size="16" />
+          </button>
+          <button @click="handleEdit(subscriber)" :class="['p-2 rounded-lg transition-all', isDarkMode ? 'hover:bg-gray-700 text-gray-400 hover:text-white' : 'hover:bg-gray-100 text-gray-500 hover:text-gray-700']">
+            <Edit3 size="16" />
+          </button>
+          <button @click="handleDelete(subscriber.id)" :class="['p-2 rounded-lg transition-all', isDarkMode ? 'hover:bg-red-500/20 text-gray-400 hover:text-red-400' : 'hover:bg-red-50 text-gray-500 hover:text-red-500']">
+            <Trash2 size="16" />
+          </button>
+          <span :class="['ml-auto text-xs font-bold', isDarkMode ? 'text-green-400' : 'text-green-600']" v-if="subscriber.is_active">
+            {{ t('admin_active') }}
+          </span>
+          <span :class="['ml-auto text-xs font-bold', isDarkMode ? 'text-gray-500' : 'text-gray-400']" v-else>
+            {{ t('admin_inactive') }}
+          </span>
+        </div>
+      </div>
+    </div>
 
     <!-- Subscribers Table -->
-    <div :class="['border overflow-hidden', isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200']">
+    <div v-if="viewMode === 'table'" :class="['mt-6 rounded-xl overflow-hidden', isDarkMode ? 'bg-gray-800/80' : 'bg-white']">
       <table class="w-full">
-        <thead :class="isDarkMode ? 'bg-gray-700' : 'bg-gray-100'">
+        <thead :class="isDarkMode ? 'bg-gray-700/50' : 'bg-gray-100/50'">
           <tr>
             <th :class="['px-6 py-4 text-left text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_table_email') }}</th>
             <th :class="['px-6 py-4 text-left text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_table_name') }}</th>
@@ -232,7 +342,7 @@ const handleFilterChange = ({ key, value }) => {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="subscriber in paginatedSubscribers" :key="subscriber.id" :class="['border-t transition-colors', isDarkMode ? 'border-gray-700 hover:bg-gray-700/50' : 'border-gray-200 hover:bg-gray-50']">
+          <tr v-for="subscriber in paginatedSubscribers" :key="subscriber.id" :class="['transition-colors', isDarkMode ? 'hover:bg-gray-700/50' : 'hover:bg-gray-50']">
             <td class="px-6 py-4">
               <div :class="['flex items-center gap-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
                 <Mail size="14" />
@@ -241,7 +351,7 @@ const handleFilterChange = ({ key, value }) => {
             </td>
             <td class="px-6 py-4">
               <div class="flex items-center gap-3">
-                <div :class="['w-10 h-10 rounded-full flex items-center justify-center', isDarkMode ? 'bg-gray-700' : 'bg-gray-100']">
+                <div :class="['w-10 h-10 rounded-xl flex items-center justify-center', isDarkMode ? 'bg-gray-700' : 'bg-gray-100']">
                   <User :class="isDarkMode ? 'text-gray-400' : 'text-gray-600'" size="18" />
                 </div>
                 <span :class="['font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">{{ subscriber.name }}</span>
@@ -250,12 +360,12 @@ const handleFilterChange = ({ key, value }) => {
             <td class="px-6 py-4">
               <button
                 @click="toggleStatus(subscriber)"
-                class="flex items-center gap-3 cursor-pointer"
+                class="flex items-center gap-2 cursor-pointer"
               >
                 <div :class="['w-12 h-6 rounded-full relative transition-colors', subscriber.is_active ? 'bg-green-500' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-400')]">
-                  <div :class="['absolute top-1 w-4 h-4 rounded-full bg-white transition-transform', subscriber.is_active ? 'left-7' : 'left-1']"></div>
+                  <div :class="['absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform', subscriber.is_active ? 'translate-x-[1.625rem]' : 'translate-x-0.5']"></div>
                 </div>
-                <span :class="['text-sm font-bold tracking-wider', subscriber.is_active ? (isDarkMode ? 'text-green-400' : 'text-green-600') : (isDarkMode ? 'text-gray-500' : 'text-gray-400')]">
+                <span :class="['text-sm font-bold', subscriber.is_active ? (isDarkMode ? 'text-green-400' : 'text-green-600') : (isDarkMode ? 'text-gray-500' : 'text-gray-400')]">
                   {{ subscriber.is_active ? t('admin_active') : t('admin_inactive') }}
                 </span>
               </button>
@@ -263,14 +373,14 @@ const handleFilterChange = ({ key, value }) => {
             <td :class="['px-6 py-4', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ getSourceLabel(subscriber.source) }}</td>
             <td :class="['px-6 py-4', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ formatToShort(subscriber.subscribed_at) }}</td>
             <td class="px-6 py-4">
-              <div class="flex items-center justify-center gap-2">
-                <button @click="handleView(subscriber)" :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:bg-gray-600' : 'text-gray-500 hover:bg-gray-100']">
+              <div class="flex items-center justify-center gap-1">
+                <button @click="handleView(subscriber)" :class="['p-2 rounded-lg transition-all', isDarkMode ? 'hover:bg-gray-700 text-gray-400 hover:text-white' : 'hover:bg-gray-100 text-gray-500 hover:text-gray-700']">
                   <Eye size="16" />
                 </button>
-                <button @click="handleEdit(subscriber)" :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:bg-gray-600' : 'text-gray-500 hover:bg-gray-100']">
+                <button @click="handleEdit(subscriber)" :class="['p-2 rounded-lg transition-all', isDarkMode ? 'hover:bg-gray-700 text-gray-400 hover:text-white' : 'hover:bg-gray-100 text-gray-500 hover:text-gray-700']">
                   <Edit3 size="16" />
                 </button>
-                <button @click="handleDelete(subscriber.id)" :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:bg-red-500/20' : 'text-gray-500 hover:bg-red-50']">
+                <button @click="handleDelete(subscriber.id)" :class="['p-2 rounded-lg transition-all', isDarkMode ? 'hover:bg-red-500/20 text-gray-400 hover:text-red-400' : 'hover:bg-red-50 text-gray-500 hover:text-red-500']">
                   <Trash2 size="16" />
                 </button>
               </div>

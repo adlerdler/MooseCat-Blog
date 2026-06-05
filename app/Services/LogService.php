@@ -27,6 +27,7 @@ class LogService
         'resources'       => '资源',
         'users'           => '用户',
         'roles'           => '角色',
+        'permissions'     => '权限',
         'comments'        => '评论',
         'advertisements'  => '广告',
         'journals'        => '日记',
@@ -44,6 +45,12 @@ class LogService
         'footer-links'    => '页脚链接',
         'notifications'   => '通知',
         'front-menu'      => '前台菜单',
+        'backups'         => '备份',
+        'restores'        => '还原',
+        'social-login'     => '社交登录',
+        'themes'           => '主题',
+        'ad-positions'     => '广告位',
+        'social-accounts'  => '社交账号',
         'http'            => '系统',
         'default'         => '系统',
     ];
@@ -53,11 +60,20 @@ class LogService
      * Event name Chinese label mapping.
      */
     private const EVENT_LABELS = [
-        'created'      => '创建',
-        'updated'      => '更新',
-        'deleted'      => '删除',
-        'restored'     => '恢复',
-        'forceDeleted' => '永久删除',
+        'created'          => '创建',
+        'updated'          => '更新',
+        'deleted'          => '删除',
+        'restored'         => '恢复',
+        'forceDeleted'     => '永久删除',
+        'downloaded'       => '下载',
+        'backup_completed' => '完成',
+        'backup_failed'    => '失败',
+        'restore_failed'   => '失败',
+        'password_changed' => '修改密码',
+        'roles_updated'    => '分配角色',
+        'points_added'     => '积分增加',
+        'points_deducted'  => '积分减少',
+        'level_updated'    => '等级变更',
     ];
 
     /**

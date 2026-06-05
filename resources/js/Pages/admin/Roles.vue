@@ -16,13 +16,9 @@ import { useTheme } from '../../composables/useTheme';
 import {
   Shield,
   Plus,
-  Search,
   Edit3,
   Trash2,
-  Check,
-  X,
   ShieldCheck,
-  Palette,
   useToast,
   RoleForm,
   ConfirmDialog,
@@ -37,7 +33,7 @@ const props = defineProps({
   rolePermissions: { type: Array, default: () => [] },
 });
 
-const { permissions: permData, getPermissionIdsByRoleId, getRoleGuardName, GUARD_LABELS, getRoleColorConfig } = useRolePermissions({
+const { permissions: permData, GUARD_LABELS } = useRolePermissions({
   roles: props.roles,
   permissions: props.permissions,
   rolePermissions: props.rolePermissions
@@ -52,20 +48,6 @@ const getRolePermissions = (role) => {
     const permission = permissions.value.find(p => p.id === id);
     return permission ? permission.label : 'Unknown';
   });
-};
-
-const getRolePermissionsByGuard = (roleId) => {
-  const permissionIds = getPermissionIdsByRoleId(roleId);
-  const grouped = { web: [], api: [], admin: [] };
-
-  permissionIds.forEach(id => {
-    const permission = permissions.find(p => p.id === id);
-    if (permission && grouped[permission.guard_name]) {
-      grouped[permission.guard_name].push(permission.label);
-    }
-  });
-
-  return grouped;
 };
 
 const { t } = useI18n();
@@ -171,14 +153,6 @@ const confirmDelete = () => {
     showDeleteConfirm.value = false;
   }
 };
-
-const getColorStyle = (role) => {
-  const config = getRoleColorConfig(role.name);
-  return {
-    backgroundColor: config.bg.replace('bg-', 'var(--color-'),
-    borderColor: config.border.replace('border-', 'var(--color-')
-  };
-};
 </script>
 
 <template>
@@ -210,73 +184,129 @@ const getColorStyle = (role) => {
         v-for="role in paginatedRoles"
         :key="role.id"
         :class="[
-          'border p-6 hover:border-construct-red transition-all hover:shadow-lg',
-          isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+          'rounded-2xl shadow-md ring-1 transition-all duration-300 hover:shadow-xl hover:ring-construct-red overflow-hidden',
+          isDarkMode ? 'bg-gray-800/80 ring-gray-700' : 'bg-white ring-gray-200/80'
         ]"
       >
-        <div class="flex items-start justify-between mb-4">
-          <div class="flex items-center gap-3">
+        <!-- Card Header: Gradient Icon + Title -->
+        <div class="flex items-start justify-between p-5 pb-3">
+          <div class="flex items-center gap-3.5">
             <div
               :class="[
-                'w-12 h-12 rounded-lg flex items-center justify-center',
-                role.color === 'yellow' ? 'bg-yellow-500 text-gray-900' : `bg-${role.color}-600 text-white`
+                'w-11 h-11 rounded-xl shadow-md flex items-center justify-center flex-shrink-0',
+                role.color === 'red' ? 'bg-gradient-to-br from-red-500 to-rose-600' :
+                role.color === 'blue' ? 'bg-gradient-to-br from-blue-500 to-indigo-600' :
+                role.color === 'green' ? 'bg-gradient-to-br from-emerald-500 to-green-600' :
+                role.color === 'purple' ? 'bg-gradient-to-br from-violet-500 to-purple-600' :
+                role.color === 'yellow' ? 'bg-gradient-to-br from-amber-400 to-yellow-500' :
+                role.color === 'cyan' ? 'bg-gradient-to-br from-cyan-500 to-teal-600' :
+                role.color === 'orange' ? 'bg-gradient-to-br from-orange-500 to-red-500' :
+                role.color === 'pink' ? 'bg-gradient-to-br from-pink-500 to-rose-500' :
+                'bg-gradient-to-br from-gray-500 to-gray-700'
               ]"
-              :style="{ backgroundColor: role.color === 'yellow' ? '#eab308' : role.color === 'red' ? '#dc2626' : role.color === 'blue' ? '#2563eb' : role.color === 'green' ? '#16a34a' : role.color === 'purple' ? '#9333ea' : role.color === 'gray' ? '#4b5563' : role.color === 'cyan' ? '#0891b2' : '#6b7280' }"
             >
-              <ShieldCheck class="size-6" />
+              <ShieldCheck size="20" class="text-white" />
             </div>
-            <div>
-              <h3 :class="['font-display text-xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">{{ role.name }}</h3>
-              <span :class="['text-xs font-bold uppercase tracking-wider', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
-                {{ role.label }}
-              </span>
+            <div class="min-w-0">
+              <h3 :class="['font-display text-lg tracking-tighter truncate', isDarkMode ? 'text-white' : 'text-gray-900']">
+                {{ role.name }}
+              </h3>
+              <p :class="['text-[11px] font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
+                {{ role.label || '—' }}
+              </p>
             </div>
           </div>
-          <div class="flex items-center gap-2">
-            <button @click="handleEdit(role)" :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-500 hover:bg-gray-100']">
-              <Edit3 size="16" />
+
+          <div class="flex items-center gap-1 flex-shrink-0">
+            <button
+              @click="handleEdit(role)"
+              :class="[
+                'p-2 rounded-xl transition-colors',
+                isDarkMode ? 'text-gray-400 hover:bg-gray-700 hover:text-white' : 'text-gray-400 hover:bg-gray-100 hover:text-gray-700'
+              ]"
+              title="Edit"
+            >
+              <Edit3 size="15" />
             </button>
-            <button @click="handleDelete(role.id)" :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:bg-red-500/20' : 'text-gray-500 hover:bg-red-50']">
-              <Trash2 size="16" />
+            <button
+              @click="handleDelete(role.id)"
+              :class="[
+                'p-2 rounded-xl transition-colors',
+                isDarkMode ? 'text-gray-400 hover:bg-red-500/20 hover:text-red-400' : 'text-gray-400 hover:bg-red-50 hover:text-red-600'
+              ]"
+              title="Delete"
+            >
+              <Trash2 size="15" />
             </button>
           </div>
         </div>
 
-        <div class="flex items-center gap-3 mb-3">
+        <!-- Badges: Color + Guard -->
+        <div class="flex items-center gap-2 px-5 mb-2 flex-wrap">
           <span
             :class="[
-              'px-2 py-1 text-xs font-bold rounded',
-              isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'
+              'inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-bold tracking-wider uppercase rounded-lg',
+              isDarkMode ? 'bg-gray-700/80 text-gray-300' : 'bg-gray-100 text-gray-600'
             ]"
           >
-            <Palette class="inline w-3 h-3 mr-1" />
+            <div
+              :class="[
+                'w-2.5 h-2.5 rounded-full',
+                role.color === 'red' ? 'bg-red-500' :
+                role.color === 'blue' ? 'bg-blue-500' :
+                role.color === 'green' ? 'bg-green-500' :
+                role.color === 'purple' ? 'bg-purple-500' :
+                role.color === 'yellow' ? 'bg-yellow-500' :
+                role.color === 'cyan' ? 'bg-cyan-500' :
+                role.color === 'orange' ? 'bg-orange-500' :
+                role.color === 'pink' ? 'bg-pink-500' :
+                'bg-gray-500'
+              ]"
+            />
             {{ role.color }}
           </span>
           <span
             :class="[
-              'px-2 py-1 text-xs font-bold rounded',
-              role.guard_name === 'api' ? (isDarkMode ? 'bg-yellow-500/20 text-yellow-400' : 'bg-yellow-100 text-yellow-700') :
-              role.guard_name === 'admin' ? (isDarkMode ? 'bg-purple-500/20 text-purple-400' : 'bg-purple-100 text-purple-700') :
-              (isDarkMode ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-700')
+              'px-2.5 py-1 text-[10px] font-bold tracking-wider uppercase rounded-lg border',
+              role.guard_name === 'admin'
+                ? (isDarkMode ? 'border-purple-500/40 text-purple-400 bg-purple-500/10' : 'border-purple-300 text-purple-700 bg-purple-50')
+                : (isDarkMode ? 'border-blue-500/40 text-blue-400 bg-blue-500/10' : 'border-blue-300 text-blue-700 bg-blue-50')
             ]"
           >
-            Guard: {{ GUARD_LABELS[role.guard_name] || role.guard_name }}
+            {{ GUARD_LABELS[role.guard_name] || role.guard_name }}
           </span>
         </div>
 
-        <p :class="['text-sm mb-4', isDarkMode ? 'text-gray-400' : 'text-gray-600']">{{ role.description }}</p>
+        <!-- Description -->
+        <p :class="['text-sm px-5 mb-3 leading-relaxed', isDarkMode ? 'text-gray-400' : 'text-gray-600']">
+          {{ role.description || '—' }}
+        </p>
 
-        <div :class="['pt-4 border-t', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
-          <div :class="['text-xs font-bold tracking-widest uppercase mb-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_permissions') }}</div>
-          <div class="flex flex-wrap gap-1">
-            <span
-              v-for="(permission, index) in getRolePermissions(role)"
-              :key="index"
-              :class="['px-2 py-0.5 text-xs rounded', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600']"
-            >
-              {{ permission }}
+        <!-- Permissions Section -->
+        <div class="px-5 pt-1 pb-4">
+          <p :class="['text-[10px] font-bold tracking-[0.15em] uppercase mb-2.5', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
+            {{ t('admin_permissions') }}
+            <span :class="['ml-1.5', isDarkMode ? 'text-gray-600' : 'text-gray-300']">
+              ({{ getRolePermissions(role).length }})
             </span>
-            <span v-if="getRolePermissions(role).length === 0" :class="['text-xs italic', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
+          </p>
+          <div class="flex flex-wrap gap-1.5">
+            <template v-if="getRolePermissions(role).length > 0">
+              <span
+                v-for="(permission, index) in getRolePermissions(role).slice(0, 4)"
+                :key="index"
+                :class="['px-2 py-0.5 text-[10px] font-medium rounded-md', isDarkMode ? 'bg-gray-700/70 text-gray-300' : 'bg-gray-100 text-gray-600']"
+              >
+                {{ permission }}
+              </span>
+              <span
+                v-if="getRolePermissions(role).length > 4"
+                :class="['px-2 py-0.5 text-[10px] font-medium rounded-md', isDarkMode ? 'bg-gray-700/40 text-gray-500' : 'bg-gray-50 text-gray-400']"
+              >
+                +{{ getRolePermissions(role).length - 4 }} more
+              </span>
+            </template>
+            <span v-else :class="['text-[10px] italic', isDarkMode ? 'text-gray-600' : 'text-gray-400']">
               No permissions
             </span>
           </div>

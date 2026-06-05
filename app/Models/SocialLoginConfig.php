@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class SocialLoginConfig extends Model
 {
+    use LogsActivity;
     protected $fillable = [
         'provider',
         'name',
@@ -21,4 +24,14 @@ class SocialLoginConfig extends Model
         'extra_config'  => 'array',
         'client_secret' => 'encrypted',
     ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logAll()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('social-login')
+            ->logExcept(['client_secret']);
+    }
 }

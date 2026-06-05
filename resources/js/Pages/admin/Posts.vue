@@ -199,7 +199,7 @@ const handleDelete = (id) => {
 
 const confirmDelete = () => {
   if (deletingPostId.value !== null) {
-    router.delete(route('posts.destroy', deletingPostId.value), {
+    router.delete(route('admin.posts.destroy', deletingPostId.value), {
       preserveState: true,
       onSuccess: () => {
         toastSuccess(t('admin_post_deleted_success', 'Post deleted successfully'));
@@ -229,13 +229,13 @@ const handleSave = (data) => {
   };
 
   if (editingPost.value && editingPost.value.id) {
-    router.put(route('posts.update', editingPost.value.id), payload, {
+    router.put(route('admin.posts.update', editingPost.value.id), payload, {
       preserveState: true,
       onError: (err) => toastError(err?.message || t('admin_post_update_error', 'Failed to update post')),
       onSuccess: () => toastSuccess(t('admin_post_updated_success', 'Post updated successfully')),
     });
   } else {
-    router.post(route('posts.store'), payload, {
+    router.post(route('admin.posts.store'), payload, {
       preserveState: true,
       onError: (err) => toastError(err?.message || t('admin_post_create_error', 'Failed to create post')),
       onSuccess: () => toastSuccess(t('admin_post_created_success', 'Post created successfully')),

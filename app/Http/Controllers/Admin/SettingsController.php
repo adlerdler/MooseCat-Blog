@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Events\SeoFilesNeedRegenerate;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdateSettingRequest;
 use App\Services\SettingService;
@@ -43,6 +44,7 @@ class SettingsController extends Controller
         $seoConfig = $this->settingService->getSeoConfig();
         $commentConfig = $this->settingService->getCommentConfig();
         $allSettings = $this->settingService->getAll();
+        $user = Auth::user();
         
         $mediaItems = SpatieMedia::where('collection_name', 'default')
             ->latest()
@@ -82,6 +84,14 @@ class SettingsController extends Controller
                 'max_upload_size' => (int) ($allSettings['max_upload_size'] ?? 10),
                 'file_types' => $allSettings['file_types'] ?? ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf', 'doc', 'docx'],
             ]),
+            'userNotifications' => $user ? [
+                'email_notifications' => (bool) $user->notifications,
+                'comment_approval_alert' => (bool) $user->comment_approval_alert,
+                'new_user_alert' => (bool) $user->new_user_alert,
+                'weekly_report' => (bool) $user->weekly_report,
+                'digest_email' => (bool) $user->digest_email,
+                'digest_frequency' => $user->digest_frequency ?? 'weekly',
+            ] : [],
             'seoConfig' => $seoConfig,
             'commentConfig' => $commentConfig,
             'themes' => \App\Models\Theme::orderBy('sort_order')->get(),
@@ -121,6 +131,10 @@ class SettingsController extends Controller
             'og_image', 'og_type', 'twitter_card',
         ];
         $seoBooleanFields = ['sitemap', 'robots', 'llm_txt'];
+        $userNotificationFields = [
+            'email_notifications', 'comment_approval_alert', 'new_user_alert',
+            'weekly_report', 'digest_email', 'digest_frequency'
+        ];
 
         foreach ($validated as $key => $value) {
             if ($value === null || $value === '') {
@@ -146,6 +160,29 @@ class SettingsController extends Controller
 
         if (!empty($seoToSave)) {
             \App\Models\Seo::updateGlobalSeo($seoToSave);
+        }
+
+        // 触发 SEO 文件重新生成事件
+        SeoFilesNeedRegenerate::dispatch();
+
+        // 保存用户级通知设置
+        $user = Auth::user();
+        if ($user) {
+            $userData = [];
+            foreach ($userNotificationFields as $field) {
+                if (isset($validated[$field])) {
+                    if ($field === 'digest_frequency') {
+                        $userData[$field] = $validated[$field];
+                    } elseif ($field === 'email_notifications') {
+                        $userData['notifications'] = filter_var($validated[$field], FILTER_VALIDATE_BOOLEAN);
+                    } else {
+                        $userData[$field] = filter_var($validated[$field], FILTER_VALIDATE_BOOLEAN);
+                    }
+                }
+            }
+            if (!empty($userData)) {
+                $user->update($userData);
+            }
         }
 
         return back()->with('success', '设置已更新');
