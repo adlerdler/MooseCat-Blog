@@ -238,9 +238,12 @@ const handleFilterChange = ({ key, value }) => {
     <template v-if="filteredComments.length > 0">
       <!-- Comments List -->
       <div class="space-y-6">
-        <div 
-          v-for="comment in paginatedComments" 
+        <Motion
+          v-for="(comment, index) in paginatedComments" 
           :key="comment.id"
+          :initial="{ opacity: 0, y: 30, scale: 0.95 }"
+          :animate="{ opacity: 1, y: 0, scale: 1 }"
+          :transition="{ duration: 0.3, delay: index * 0.08, ease: 'easeOut' }"
           :class="[
             'relative border p-6 transition-all duration-300 rounded-2xl group',
             isDarkMode 
@@ -249,19 +252,24 @@ const handleFilterChange = ({ key, value }) => {
           ]"
         >
           <!-- Status Indicator Strip -->
-          <div 
+          <Motion
             class="absolute left-0 top-6 bottom-6 w-1 rounded-r-full transition-all duration-300"
             :class="comment.is_approved ? 'bg-green-500' : 'bg-amber-500'"
-          ></div>
+            :while-hover="{ width: 4 }"
+            :transition="{ duration: 0.2 }"
+          />
 
           <div class="flex items-start justify-between mb-6 pl-2">
             <div class="flex items-center gap-4">
-              <div :class="[
-                'w-12 h-12 rounded-2xl flex items-center justify-center transition-transform duration-500 group-hover:scale-110 shadow-lg',
-                isDarkMode ? 'bg-gray-700 text-construct-red' : 'bg-gray-100 text-construct-red'
-              ]">
+              <Motion
+                :class="[
+                  'w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg cursor-pointer'
+                ]"
+                :while-hover="{ scale: 1.1, rotate: 5 }"
+                :transition="{ duration: 0.3, type: 'spring', stiffness: 300 }"
+              >
                 <User size="24" />
-              </div>
+              </Motion>
               <div>
                 <div :class="['font-display text-lg tracking-tight', isDarkMode ? 'text-white' : 'text-gray-900']">{{ comment.name }}</div>
                 <div :class="['text-xs font-medium opacity-60', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ comment.email }}</div>
@@ -332,12 +340,16 @@ const handleFilterChange = ({ key, value }) => {
                 :class="['flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black tracking-widest uppercase transition-all hover:scale-105 active:scale-95', replyingToId === comment.id ? 'bg-construct-red text-white shadow-lg shadow-construct-red/20' : (isDarkMode ? 'bg-gray-700 text-gray-300 border border-gray-600' : 'bg-gray-100 text-gray-700 border border-gray-200')]">
                 <Reply size="14" /> {{ t('admin_reply') }}
               </button>
-              <button 
+              <Motion
+                as="button"
                 @click="handleDeleteClick(comment)"
-                :class="['p-2 rounded-xl transition-all duration-300 hover:scale-110', isDarkMode ? 'text-gray-500 hover:bg-red-500/10 hover:text-red-400' : 'text-gray-400 hover:bg-red-50 hover:text-red-600']"
+                :class="['p-2 rounded-xl cursor-pointer', isDarkMode ? 'text-gray-500 hover:bg-red-500/10 hover:text-red-400' : 'text-gray-400 hover:bg-red-50 hover:text-red-600']"
+                :while-hover="{ scale: 1.2, rotate: 10 }"
+                :while-tap="{ scale: 0.8 }"
+                :transition="{ duration: 0.2, type: 'spring', stiffness: 400 }"
               >
                 <Trash2 size="18" />
-              </button>
+              </Motion>
             </div>
           </div>
 
@@ -379,11 +391,16 @@ const handleFilterChange = ({ key, value }) => {
               </div>
             </Motion>
           </AnimatePresence>
-        </div>
+        </Motion>
       </div>
 
       <!-- Pagination -->
-      <div class="mt-8">
+      <Motion
+        class="mt-8"
+        :initial="{ opacity: 0, y: 20 }"
+        :animate="{ opacity: 1, y: 0 }"
+        :transition="{ duration: 0.4, delay: 0.3 }"
+      >
         <Pagination
           :current-page="currentPage"
           :total-pages="totalPages"
@@ -391,17 +408,23 @@ const handleFilterChange = ({ key, value }) => {
           v-model:items-per-page="itemsPerPage"
           @update:current-page="currentPage = $event"
         />
-      </div>
+      </Motion>
     </template>
 
     <!-- Empty State -->
-    <div v-else class="mt-6">
+    <Motion
+      v-else
+      class="mt-6"
+      :initial="{ opacity: 0, scale: 0.9 }"
+      :animate="{ opacity: 1, scale: 1 }"
+      :transition="{ duration: 0.4, ease: 'easeOut' }"
+    >
       <EmptyState 
         :title="t('admin_no_comments_found') || 'No comments found'"
         :description="t('admin_no_comments_description') || 'Try adjusting your search or filters to find what you are looking for'"
         :icon="MessageSquare"
       />
-    </div>
+    </Motion>
 
     <!-- Delete Confirm Dialog -->
     <ConfirmDialog

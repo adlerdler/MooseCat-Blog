@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use Inertia\Middleware;
 use App\Services\CacheService;
 use App\Services\MenuService;
-use App\Services\MockDataService;
 use App\Services\NotificationService;
 use App\Services\SettingService;
 use App\Services\I18nService;
@@ -14,7 +13,6 @@ use App\Services\I18nService;
 class HandleInertiaRequests extends Middleware
 {
     protected $menuService;
-    protected $mockDataService;
     protected $notificationService;
     protected $settingService;
     protected $i18nService;
@@ -22,14 +20,12 @@ class HandleInertiaRequests extends Middleware
 
     public function __construct(
         MenuService $menuService,
-        MockDataService $mockDataService,
         NotificationService $notificationService,
         SettingService $settingService,
         I18nService $i18nService,
         CacheService $cacheService,
     ) {
         $this->menuService = $menuService;
-        $this->mockDataService = $mockDataService;
         $this->notificationService = $notificationService;
         $this->settingService = $settingService;
         $this->i18nService = $i18nService;
@@ -96,9 +92,9 @@ class HandleInertiaRequests extends Middleware
             // 从 page_seo 表读取真实 SEO 数据
             $pageSeo = \App\Models\PageSeo::orderBy('page_key')->get()->toArray();
         } catch (\Exception $e) {
-            // 降级到模拟数据
-            $menus = $this->mockDataService->getMenus();
-            $pageSeo = $this->mockDataService->getPageSeo();
+            // 降级到空数据
+            $menus = [];
+            $pageSeo = [];
         }
 
         $siteConfig = [];

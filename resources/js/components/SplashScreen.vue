@@ -1,33 +1,50 @@
 <script setup>
 /**
- * SplashScreen.vue - 启动画面组件（纯展示）
+ * SplashScreen.vue - 启动画面组件（含数据加载进度）
  * 
  * 功能说明：
  * - 网站首次访问的品牌展示动画
  * - 由父组件通过 v-if 控制挂载/卸载
  * - 2.5秒后自动触发 @complete 事件
+ * - 期间显示数据加载进度条
  * 
  * 控制逻辑由父组件（Home.vue）通过 localStorage 管理：
  * - localStorage key: 'archyx_splash_shown'
  * - 仅根路径 "/" 首次访问时显示，之后永久不再显示
  * 
  * 使用示例：
- * <SplashScreen v-if="showSplash" @complete="handleSplashComplete" />
+ * <SplashScreen v-if="showSplash" :progress="dataProgress" @complete="handleSplashComplete" />
  */
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { Hexagon, Sparkles } from 'lucide-vue-next';
+
+const props = defineProps({
+  progress: { type: Number, default: 0 }
+});
 
 const emit = defineEmits(['complete']);
 
 const isVisible = ref(true);
+const displayProgress = ref(0);
+
+// 同步父组件传入的进度
+watch(() => props.progress, (val) => {
+  displayProgress.value = val;
+}, { immediate: true });
 
 onMounted(() => {
     // 2.5秒后自动关闭并通知父组件
     setTimeout(() => {
-        isVisible.value = false;
+        // 如果进度还没到100%，强制到100%
+        if (displayProgress.value < 100) {
+            displayProgress.value = 100;
+        }
         setTimeout(() => {
-            emit('complete');
-        }, 500);
+            isVisible.value = false;
+            setTimeout(() => {
+                emit('complete');
+            }, 300);
+        }, 200);
     }, 2500);
 });
 </script>
@@ -65,6 +82,21 @@ onMounted(() => {
                             </span>
                         </div>
                     </div>
+                </div>
+
+                <!-- 加载进度条 -->
+                <div class="w-full h-1 bg-white/20 mt-2">
+                    <div
+                        class="h-full bg-white transition-all duration-300 ease-out"
+                        :style="{ width: `${displayProgress}%` }"
+                    />
+                </div>
+
+                <!-- 加载状态文字 -->
+                <div class="text-center mt-3">
+                    <span class="text-white/40 text-[10px] font-mono tracking-[0.3em] uppercase">
+                        INITIALIZING SYSTEM... {{ displayProgress }}%
+                    </span>
                 </div>
             </div>
 

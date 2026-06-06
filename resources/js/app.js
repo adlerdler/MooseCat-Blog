@@ -47,7 +47,7 @@ import { createPinia } from 'pinia';
 import { i18n, syncLocalesFromBackend, reapplyBrowserLocale } from './i18n';
 import { useThemeStore } from './stores/theme';
 import AdminLayout from './Pages/admin/Layout.vue';
-import ErrorPage from './components/ErrorPage.vue';
+import ErrorPage from './Pages/ErrorPage.vue';
 import ForbiddenPage from './components/Forbidden.vue';
 
 const pinia = createPinia();

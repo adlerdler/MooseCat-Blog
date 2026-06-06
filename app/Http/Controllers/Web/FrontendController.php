@@ -13,7 +13,6 @@ use App\Models\Resource;
 use App\Models\User;
 use App\Models\Video;
 use App\Services\CacheService;
-use App\Services\MockDataService;
 use App\Services\SettingService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -21,13 +20,11 @@ use Inertia\Response;
 
 class FrontendController extends Controller
 {
-    protected $mockDataService;
     protected $settingService;
     protected $cacheService;
 
-    public function __construct(MockDataService $mockDataService, SettingService $settingService, CacheService $cacheService)
+    public function __construct(SettingService $settingService, CacheService $cacheService)
     {
-        $this->mockDataService = $mockDataService;
         $this->settingService = $settingService;
         $this->cacheService = $cacheService;
     }

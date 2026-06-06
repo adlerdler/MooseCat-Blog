@@ -21,24 +21,42 @@ import { useI18n } from 'vue-i18n'
 const props = defineProps({
   errorCode: {
     type: Number,
-    default: 404
+    default: 0
   },
   errorPath: {
     type: String,
     default: ''
+  },
+  debug: {
+    type: Object,
+    default: null
   }
 })
 
 const { t } = useI18n()
 
+// 从 URL 参数获取错误信息
+const urlParams = new URLSearchParams(window.location.search)
+const urlCode = parseInt(urlParams.get('code')) || props.errorCode || 500
+const urlPath = urlParams.get('path') || props.errorPath || ''
+
+// 调试信息输出到控制台
+if (props.debug) {
+  console.group(`[Error ${urlCode}] ${props.debug.message}`)
+  console.error('File:', props.debug.file)
+  console.error('Line:', props.debug.line)
+  console.error('Trace:', props.debug.trace)
+  console.groupEnd()
+}
+
 const pathSegments = computed(() => {
-  const path = props.errorPath || window.location.pathname
+  const path = urlPath || props.errorPath || window.location.pathname
   return path.split('/').filter(segment => segment !== '')
 })
 
 const detectedError = computed(() => {
   const segments = pathSegments.value
-  const errorCode = props.errorCode
+  const errorCode = urlCode
 
   if (segments.length === 0) {
     return { type: 'unknown', title: 'Page Not Found', hint: '' }
@@ -140,7 +158,7 @@ const goBack = () => {
       <!-- Large Geometric Error Code -->
       <div class="relative mb-4">
         <div class="font-display text-[20vw] md:text-[16vw] lg:text-[14vw] leading-none tracking-tighter text-construct-black text-center select-none">
-          {{ errorInfo.errorCode || errorCode }}
+          {{ urlCode }}
         </div>
         <div class="absolute top-1/2 left-0 w-full h-3 bg-accent -translate-y-1/2 mix-blend-multiply" />
       </div>
@@ -156,7 +174,7 @@ const goBack = () => {
           </div>
 
           <h2 class="text-sm md:text-base lg:text-lg font-bold tracking-widest text-construct-black mb-3 uppercase">
-            {{ errorInfo.subtitle }} // {{ errorInfo.errorCode || errorCode }}
+            {{ errorInfo.subtitle }} // {{ urlCode }}
           </h2>
 
           <p v-if="errorInfo.desc" class="text-xs md:text-sm font-medium opacity-60 max-w-lg leading-relaxed mb-6 uppercase tracking-wide">

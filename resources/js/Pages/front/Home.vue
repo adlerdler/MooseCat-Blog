@@ -29,6 +29,17 @@ const props = defineProps({
 const marqueeText = 'ARCHYX VOL. 2026 // BUILDING SYSTEM // MINIMALISM //'
 const techStack = ['TYPESCRIPT', 'VUE', 'LARAVEL', 'TAILWIND', 'NODE.JS', 'POSTGRES']
 
+// 跑马灯动态复制
+const marqueeRef = ref(null)
+const marqueeCopies = ref(8)
+
+const updateMarqueeCopies = () => {
+  if (!marqueeRef.value) return
+  const containerWidth = marqueeRef.value.offsetWidth
+  const singleText = marqueeText.length * 8
+  marqueeCopies.value = Math.max(6, Math.ceil(containerWidth / singleText) * 2)
+}
+
 const { getSeoByPageKey } = usePageSeoData();
 const homeSeo = getSeoByPageKey('home') || {};
 
@@ -82,6 +93,35 @@ const showSplash = ref(false)
 const showContent = ref(false)
 let splashTimer = null
 
+// 首页数据异步加载（使用props数据，不请求API）
+const asyncPosts = ref([])
+const asyncProjects = ref([])
+const asyncVideos = ref([])
+const dataLoading = ref(false)
+const dataProgress = ref(0)
+
+// 使用异步加载的数据或 props 数据
+const posts = computed(() => asyncPosts.value.length ? asyncPosts.value : props.posts)
+const projects = computed(() => asyncProjects.value.length ? asyncProjects.value : props.projects)
+const videos = computed(() => asyncVideos.value.length ? asyncVideos.value : props.videos)
+
+/**
+ * 异步加载首页数据
+ * 在启动页动画期间使用props数据，不请求API
+ */
+const loadHomeData = async () => {
+  dataLoading.value = true
+  dataProgress.value = 0
+
+  // 直接使用props数据
+  asyncPosts.value = props.posts
+  asyncProjects.value = props.projects
+  asyncVideos.value = props.videos
+
+  dataProgress.value = 100
+  dataLoading.value = false
+}
+
 // 订阅表单
 const subscribeEmail = ref('')
 const subscribeLoading = ref(false)
@@ -116,7 +156,7 @@ const handleSubscribe = async () => {
 
 const featuredPosts = computed(() => {
   // 随机打乱后取前 3 篇
-  const shuffled = [...props.posts].sort(() => Math.random() - 0.5)
+  const shuffled = [...posts.value].sort(() => Math.random() - 0.5)
   return shuffled.slice(0, 3).map(post => ({
     id: post.id,
     title: post.title,
@@ -139,12 +179,17 @@ onMounted(() => {
     isFooterVisible.value = saved === 'true'
   }
 
-  // Cookie + localStorage 双重检查，任一存在就跳过启动页
+  // 跑马灯动态计算
+  updateMarqueeCopies()
+  window.addEventListener('resize', updateMarqueeCopies)
+
+  // Cookie + localStorage 双重检查，已有缓存则跳过启动页
   if (hasSplashShown()) {
     showContent.value = true
     showSplash.value = false
   } else {
     showSplash.value = true
+    loadHomeData()
   }
 })
 
@@ -188,6 +233,7 @@ onUnmounted(() => {
     <!-- Splash Screen -->
     <SplashScreen
       v-if="showSplash"
+      :progress="dataProgress"
       @complete="handleSplashComplete"
     />
 
@@ -280,10 +326,9 @@ onUnmounted(() => {
 
       <!-- Marquee -->
       <div class="absolute bottom-0 left-0 w-full overflow-hidden bg-construct-black text-white py-2">
-        <div class="marquee-container">
+        <div class="marquee-container" ref="marqueeRef">
           <div class="marquee-content">
-            <span class="marquee-text">{{ marqueeText }}</span>
-            <span class="marquee-text">{{ marqueeText }}</span>
+            <span v-for="i in marqueeCopies" :key="i" class="marquee-text">{{ marqueeText }}</span>
           </div>
         </div>
       </div>
@@ -494,7 +539,7 @@ $spacing-2: 0.5rem;
 
   &-content {
     display: flex;
-    animation: marquee $marquee-duration linear infinite;
+    animation: marquee 25s linear infinite;
   }
 
   &-text {
@@ -514,7 +559,7 @@ $spacing-2: 0.5rem;
     transform: translateX(0);
   }
   100% {
-    transform: translateX(-50%);
+    transform: translateX(calc(-100% / 2));
   }
 }
 

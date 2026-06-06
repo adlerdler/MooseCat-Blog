@@ -46,6 +46,23 @@ use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media as SpatieMedia;
 
+// 错误页面路由
+Route::get('/error/{code}', function ($code) {
+    $data = [
+        'errorCode' => (int) $code,
+        'errorPath' => request()->query('path', ''),
+    ];
+
+    if (config('app.debug')) {
+        $data['debug'] = session('error_debug');
+        session()->forget('error_debug');
+    }
+
+    return Inertia::render('ErrorPage', $data)
+        ->toResponse(request())
+        ->setStatusCode((int) $code);
+})->where('code', '404|403|500|503')->name('error');
+
 // 测试路由（不涉及数据库）
 Route::get('/test', function () {
     return Inertia::render('front/Test', [
