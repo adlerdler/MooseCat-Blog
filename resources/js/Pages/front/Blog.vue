@@ -323,21 +323,22 @@ watch(isFooterVisible, (newVal) => {
               </div>
 
               <!-- Bottom: Tags & Author -->
-              <div class="relative z-10 pt-6 md:pt-8 border-t-2 border-construct-black/10 group-hover:border-white/20 transition-colors duration-500 flex flex-col xl:flex-row justify-between items-start xl:items-end gap-4 md:gap-6">
+              <div class="relative z-10 flex flex-col xl:flex-row justify-between items-start xl:items-end gap-4 md:gap-6">
                 <div class="flex flex-wrap gap-2">
                   <span
                     v-for="tag in item.data.tags"
                     :key="tag"
-                    class="text-[8px] md:text-[9px] font-black tracking-widest px-3 py-1 border border-current uppercase group-hover:text-white"
+                    class="text-[8px] md:text-[9px] font-black tracking-widest px-3 py-1 bg-construct-black/5 group-hover:bg-white/10 transition-colors uppercase"
+                    :class="item.data.color === 'red' ? 'text-construct-red group-hover:text-white' : 'text-construct-black group-hover:text-white'"
                   >
                     #{{ tag }}
                   </span>
                 </div>
                 <div class="flex items-center gap-4 text-[10px] md:text-xs font-bold tracking-widest uppercase shrink-0">
                   <span class="opacity-60 group-hover:opacity-100 group-hover:text-white transition-opacity">
-                    AUTHOR: {{ getAuthorName(item.data.author_id) }}
+                    {{ getAuthorName(item.data.author_id) }}
                   </span>
-                  <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all duration-500 group-hover:rotate-45 shrink-0" :class="item.data.color === 'red' ? 'border-construct-black group-hover:border-white' : 'border-construct-black group-hover:border-white'">
+                  <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all duration-500 group-hover:rotate-45 shrink-0" :class="item.data.color === 'red' ? 'border-construct-red group-hover:border-white' : 'border-construct-black group-hover:border-white'">
                     <ArrowUpRight size="16" class="group-hover:text-white" />
                   </div>
                 </div>

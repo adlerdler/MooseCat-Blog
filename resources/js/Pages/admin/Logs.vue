@@ -25,7 +25,9 @@ import {
   X,
   Zap,
   Pagination,
+  EmptyState,
   SearchFilterModal,
+  Inbox,
   formatToShort
 } from '../../composables/useAdminImports';
 
@@ -210,69 +212,81 @@ const handleFilterChange = ({ key, value }) => {
       @filter-change="handleFilterChange"
     />
 
-    <!-- Logs List -->
-    <div class="space-y-4">
-      <div 
-        v-for="log in paginatedLogs" 
-        :key="log.id"
-        :class="[
-          'p-6 border rounded-xl transition-all hover:border-construct-red',
-          isDarkMode ? 'bg-gray-800/50 border-gray-700' : 'bg-white border-gray-200'
-        ]"
-      >
-        <div class="flex items-start gap-4">
-          <div :class="['p-3 rounded-full', isDarkMode ? 'bg-gray-700' : 'bg-gray-100']">
-            <component :is="getActionIcon(log.action)" :class="getActionColor(log.action)" size="24" />
-          </div>
-          <div class="flex-1 min-w-0">
-            <div class="flex items-center justify-between mb-2 gap-4">
-              <div class="flex items-center gap-3 flex-wrap">
-                <span :class="['font-bold text-lg', isDarkMode ? 'text-white' : 'text-gray-900']">{{ t(log.action) }}</span>
-                <span :class="['px-2 py-1 text-xs font-bold uppercase rounded', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600']">
-                  {{ log.user }}
-                </span>
-                <span :class="['px-2 py-0.5 rounded border text-[10px] font-bold uppercase', isDarkMode ? 'border-gray-700 text-gray-500' : 'border-gray-200 text-gray-400']">
-                  {{ log.module }}
-                </span>
-              </div>
-              <div class="flex items-center gap-2 flex-shrink-0">
-                <Clock :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'" size="16" />
-                <span :class="['text-sm', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ formatToShort(log.created_at) }}</span>
-              </div>
+    <!-- Content Area -->
+    <template v-if="filteredLogs.length > 0">
+      <!-- Logs List -->
+      <div class="space-y-4">
+        <div 
+          v-for="log in paginatedLogs" 
+          :key="log.id"
+          :class="[
+            'p-6 border rounded-xl transition-all hover:border-construct-red',
+            isDarkMode ? 'bg-gray-800/50 border-gray-700' : 'bg-white border-gray-200'
+          ]"
+        >
+          <div class="flex items-start gap-4">
+            <div :class="['p-3 rounded-full', isDarkMode ? 'bg-gray-700' : 'bg-gray-100']">
+              <component :is="getActionIcon(log.action)" :class="getActionColor(log.action)" size="24" />
             </div>
-            <p :class="['mb-3', isDarkMode ? 'text-gray-300' : 'text-gray-700']">{{ log.details }}</p>
-            <div class="flex items-center justify-between gap-4">
-              <div class="flex items-center gap-6 text-sm min-w-0">
-                <div class="flex items-center gap-2 flex-shrink-0">
-                  <Monitor :class="isDarkMode ? 'text-gray-500' : 'text-gray-400'" size="14" />
-                  <span :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'">{{ log.ip }}</span>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between mb-2 gap-4">
+                <div class="flex items-center gap-3 flex-wrap">
+                  <span :class="['font-bold text-lg', isDarkMode ? 'text-white' : 'text-gray-900']">{{ t(log.action) }}</span>
+                  <span :class="['px-2 py-1 text-xs font-bold uppercase rounded', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600']">
+                    {{ log.user }}
+                  </span>
+                  <span :class="['px-2 py-0.5 rounded border text-[10px] font-bold uppercase', isDarkMode ? 'border-gray-700 text-gray-500' : 'border-gray-200 text-gray-400']">
+                    {{ log.module }}
+                  </span>
                 </div>
-                <div :class="['hidden lg:flex items-center gap-2 flex-1 min-w-0', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
-                  <span class="truncate">{{ log.user_agent }}</span>
+                <div class="flex items-center gap-2 flex-shrink-0">
+                  <Clock :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'" size="16" />
+                  <span :class="['text-sm', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ formatToShort(log.created_at) }}</span>
                 </div>
               </div>
-              
-              <button
-                v-if="log.changes"
-                @click="openDetails(log)"
-                class="flex items-center gap-2 px-3 py-1 bg-construct-red text-white text-xs font-bold transition-colors hover:bg-red-700 rounded-lg flex-shrink-0"
-              >
-                <Eye size="14" /> {{ t('admin_view') }}
-              </button>
+              <p :class="['mb-3', isDarkMode ? 'text-gray-300' : 'text-gray-700']">{{ log.details }}</p>
+              <div class="flex items-center justify-between gap-4">
+                <div class="flex items-center gap-6 text-sm min-w-0">
+                  <div class="flex items-center gap-2 flex-shrink-0">
+                    <Monitor :class="isDarkMode ? 'text-gray-500' : 'text-gray-400'" size="14" />
+                    <span :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'">{{ log.ip }}</span>
+                  </div>
+                  <div :class="['hidden lg:flex items-center gap-2 flex-1 min-w-0', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
+                    <span class="truncate">{{ log.user_agent }}</span>
+                  </div>
+                </div>
+                
+                <button
+                  if="log.changes"
+                  @click="openDetails(log)"
+                  class="flex items-center gap-2 px-3 py-1 bg-construct-red text-white text-xs font-bold transition-colors hover:bg-red-700 rounded-lg flex-shrink-0"
+                >
+                  <Eye size="14" /> {{ t('admin_view') }}
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Pagination -->
-    <Pagination
-      :current-page="currentPage"
-      :total-pages="totalPages"
-      :total-items="filteredLogs.length"
-      v-model:items-per-page="itemsPerPage"
-      @update:current-page="currentPage = $event"
-    />
+      <!-- Pagination -->
+      <Pagination
+        :current-page="currentPage"
+        :total-pages="totalPages"
+        :total-items="filteredLogs.length"
+        v-model:items-per-page="itemsPerPage"
+        @update:current-page="currentPage = $event"
+      />
+    </template>
+
+    <!-- Empty State -->
+    <div v-else class="mt-6">
+      <EmptyState 
+        :title="t('admin_no_logs_found') || 'No logs found'"
+        :description="t('admin_no_logs_description') || 'Try adjusting your search or filters to find what you are looking for'"
+        :icon="FileText"
+      />
+    </div>
 
     <!-- Detail Modal -->
     <Teleport to="body">

@@ -55,4 +55,15 @@ class SocialLinksController extends Controller
 
         return redirect()->route('admin.social-links')->with('success', '链接已删除');
     }
+
+    public function reorder()
+    {
+        $items = request()->validate(['items' => 'required|array', 'items.*.id' => 'required|integer', 'items.*.sort_order' => 'required|integer']);
+
+        foreach ($items['items'] as $item) {
+            FooterLink::where('id', $item['id'])->update(['sort_order' => $item['sort_order']]);
+        }
+
+        return redirect()->route('admin.social-links')->with('success', '排序已更新');
+    }
 }

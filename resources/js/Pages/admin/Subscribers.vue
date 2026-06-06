@@ -31,6 +31,7 @@ import { useToast } from '../../composables/useToast';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import SearchFilterModal from '../../components/admin/SearchFilterModal.vue';
 import Pagination from '../../components/admin/Pagination.vue';
+import EmptyState from '../../components/admin/EmptyState.vue';
 import { formatToShort } from '../../utils/dateUtils';
 
 const props = defineProps({
@@ -267,143 +268,149 @@ const handleFilterChange = ({ key, value }) => {
       </div>
     </div>
 
-    <!-- Subscribers Cards -->
-    <div v-if="viewMode === 'card'" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mt-6">
-      <div
-        v-for="subscriber in paginatedSubscribers"
-        :key="subscriber.id"
-        :class="['p-6 rounded-xl transition-all duration-200 hover:scale-[1.02]', isDarkMode ? 'bg-gray-800/80 hover:bg-gray-800' : 'bg-white hover:bg-gray-50']"
-      >
-        <!-- Subscriber Header -->
-        <div class="flex items-start justify-between mb-4">
-          <div class="flex items-center gap-3">
-            <div :class="['w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden shadow-md', isDarkMode ? 'bg-gray-700' : 'bg-gray-100']">
-              <User :class="isDarkMode ? 'text-gray-400' : 'text-gray-600'" size="20" />
+    <!-- Content Area -->
+    <template v-if="filteredSubscribers.length > 0">
+      <!-- Subscribers Cards -->
+      <div v-if="viewMode === 'card'" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mt-6">
+        <div
+          v-for="subscriber in paginatedSubscribers"
+          :key="subscriber.id"
+          :class="['p-6 rounded-xl transition-all duration-200 hover:scale-[1.02]', isDarkMode ? 'bg-gray-800/80 hover:bg-gray-800' : 'bg-white hover:bg-gray-50']"
+        >
+          <!-- Subscriber Header -->
+          <div class="flex items-start justify-between mb-4">
+            <div class="flex items-center gap-3">
+              <div :class="['w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden shadow-md', isDarkMode ? 'bg-gray-700' : 'bg-gray-100']">
+                <User :class="isDarkMode ? 'text-gray-400' : 'text-gray-600'" size="20" />
+              </div>
+              <div>
+                <h4 :class="['font-bold text-lg', isDarkMode ? 'text-white' : 'text-gray-900']">{{ subscriber.name }}</h4>
+                <p :class="['text-xs', isDarkMode ? 'text-gray-500' : 'text-gray-400']">{{ formatToShort(subscriber.subscribed_at) }}</p>
+              </div>
             </div>
-            <div>
-              <h4 :class="['font-bold text-lg', isDarkMode ? 'text-white' : 'text-gray-900']">{{ subscriber.name }}</h4>
-              <p :class="['text-xs', isDarkMode ? 'text-gray-500' : 'text-gray-400']">{{ formatToShort(subscriber.subscribed_at) }}</p>
-            </div>
+            <!-- Status Toggle -->
+            <button
+              @click="toggleStatus(subscriber)"
+              class="relative"
+            >
+              <div :class="['w-12 h-6 rounded-full relative transition-colors flex-shrink-0', subscriber.is_active ? 'bg-green-500' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-400')]">
+                <div :class="['absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform', subscriber.is_active ? 'translate-x-[1.625rem]' : 'translate-x-0.5']"></div>
+              </div>
+            </button>
           </div>
-          <!-- Status Toggle -->
-          <button
-            @click="toggleStatus(subscriber)"
-            class="relative"
-          >
-            <div :class="['w-12 h-6 rounded-full relative transition-colors flex-shrink-0', subscriber.is_active ? 'bg-green-500' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-400')]">
-              <div :class="['absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform', subscriber.is_active ? 'translate-x-[1.625rem]' : 'translate-x-0.5']"></div>
-            </div>
-          </button>
-        </div>
 
-        <!-- Email -->
-        <div :class="['flex items-center gap-2 mb-4 text-sm', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
-          <Mail size="14" class="flex-shrink-0" />
-          <span class="truncate" :title="subscriber.email">{{ subscriber.email }}</span>
-        </div>
+          <!-- Email -->
+          <div :class="['flex items-center gap-2 mb-4 text-sm', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
+            <Mail size="14" class="flex-shrink-0" />
+            <span class="truncate" :title="subscriber.email">{{ subscriber.email }}</span>
+          </div>
 
-        <!-- Source -->
-        <div class="mb-4">
-          <span :class="['inline-block px-3 py-1 rounded-full text-xs font-bold', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600']">{{ getSourceLabel(subscriber.source) }}</span>
-        </div>
+          <!-- Source -->
+          <div class="mb-4">
+            <span :class="['inline-block px-3 py-1 rounded-full text-xs font-bold', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600']">{{ getSourceLabel(subscriber.source) }}</span>
+          </div>
 
-        <!-- Actions -->
-        <div class="flex items-center gap-2">
-          <button @click="handleView(subscriber)" :class="['p-2 rounded-lg transition-all', isDarkMode ? 'hover:bg-gray-700 text-gray-400 hover:text-white' : 'hover:bg-gray-100 text-gray-500 hover:text-gray-700']">
-            <Eye size="16" />
-          </button>
-          <button @click="handleEdit(subscriber)" :class="['p-2 rounded-lg transition-all', isDarkMode ? 'hover:bg-gray-700 text-gray-400 hover:text-white' : 'hover:bg-gray-100 text-gray-500 hover:text-gray-700']">
-            <Edit3 size="16" />
-          </button>
-          <button @click="handleDelete(subscriber.id)" :class="['p-2 rounded-lg transition-all', isDarkMode ? 'hover:bg-red-500/20 text-gray-400 hover:text-red-400' : 'hover:bg-red-50 text-gray-500 hover:text-red-500']">
-            <Trash2 size="16" />
-          </button>
-          <span :class="['ml-auto text-xs font-bold', isDarkMode ? 'text-green-400' : 'text-green-600']" v-if="subscriber.is_active">
-            {{ t('admin_active') }}
-          </span>
-          <span :class="['ml-auto text-xs font-bold', isDarkMode ? 'text-gray-500' : 'text-gray-400']" v-else>
-            {{ t('admin_inactive') }}
-          </span>
+          <!-- Actions -->
+          <div class="flex items-center gap-2">
+            <button @click="handleView(subscriber)" :class="['p-2 rounded-lg transition-all', isDarkMode ? 'hover:bg-gray-700 text-gray-400 hover:text-white' : 'hover:bg-gray-100 text-gray-500 hover:text-gray-700']">
+              <Eye size="16" />
+            </button>
+            <button @click="handleEdit(subscriber)" :class="['p-2 rounded-lg transition-all', isDarkMode ? 'hover:bg-gray-700 text-gray-400 hover:text-white' : 'hover:bg-gray-100 text-gray-500 hover:text-gray-700']">
+              <Edit3 size="16" />
+            </button>
+            <button @click="handleDelete(subscriber.id)" :class="['p-2 rounded-lg transition-all', isDarkMode ? 'hover:bg-red-500/20 text-gray-400 hover:text-red-400' : 'hover:bg-red-50 text-gray-500 hover:text-red-500']">
+              <Trash2 size="16" />
+            </button>
+            <span :class="['ml-auto text-xs font-bold', isDarkMode ? 'text-green-400' : 'text-green-600']" v-if="subscriber.is_active">
+              {{ t('admin_active') }}
+            </span>
+            <span :class="['ml-auto text-xs font-bold', isDarkMode ? 'text-gray-500' : 'text-gray-400']" v-else>
+              {{ t('admin_inactive') }}
+            </span>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Subscribers Table -->
-    <div v-if="viewMode === 'table'" :class="['mt-6 rounded-xl overflow-hidden', isDarkMode ? 'bg-gray-800/80' : 'bg-white']">
-      <table class="w-full">
-        <thead :class="isDarkMode ? 'bg-gray-700/50' : 'bg-gray-100/50'">
-          <tr>
-            <th :class="['px-6 py-4 text-left text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_table_email') }}</th>
-            <th :class="['px-6 py-4 text-left text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_table_name') }}</th>
-            <th :class="['px-6 py-4 text-left text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_table_status') }}</th>
-            <th :class="['px-6 py-4 text-left text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_table_source') }}</th>
-            <th :class="['px-6 py-4 text-left text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_table_subscribed_at') }}</th>
-            <th :class="['px-6 py-4 text-center text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_table_actions') }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="subscriber in paginatedSubscribers" :key="subscriber.id" :class="['transition-colors', isDarkMode ? 'hover:bg-gray-700/50' : 'hover:bg-gray-50']">
-            <td class="px-6 py-4">
-              <div :class="['flex items-center gap-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
-                <Mail size="14" />
-                <span>{{ subscriber.email }}</span>
-              </div>
-            </td>
-            <td class="px-6 py-4">
-              <div class="flex items-center gap-3">
-                <div :class="['w-10 h-10 rounded-xl flex items-center justify-center', isDarkMode ? 'bg-gray-700' : 'bg-gray-100']">
-                  <User :class="isDarkMode ? 'text-gray-400' : 'text-gray-600'" size="18" />
+      <!-- Subscribers Table -->
+      <div v-if="viewMode === 'table'" :class="['mt-6 rounded-xl overflow-hidden', isDarkMode ? 'bg-gray-800/80' : 'bg-white']">
+        <table class="w-full">
+          <thead :class="isDarkMode ? 'bg-gray-700/50' : 'bg-gray-100/50'">
+            <tr>
+              <th :class="['px-6 py-4 text-left text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_table_email') }}</th>
+              <th :class="['px-6 py-4 text-left text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_table_name') }}</th>
+              <th :class="['px-6 py-4 text-left text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_table_status') }}</th>
+              <th :class="['px-6 py-4 text-left text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_table_source') }}</th>
+              <th :class="['px-6 py-4 text-left text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_table_subscribed_at') }}</th>
+              <th :class="['px-6 py-4 text-center text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_table_actions') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="subscriber in paginatedSubscribers" :key="subscriber.id" :class="['transition-colors', isDarkMode ? 'hover:bg-gray-700/50' : 'hover:bg-gray-50']">
+              <td class="px-6 py-4">
+                <div :class="['flex items-center gap-2', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
+                  <Mail size="14" />
+                  <span>{{ subscriber.email }}</span>
                 </div>
-                <span :class="['font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">{{ subscriber.name }}</span>
-              </div>
-            </td>
-            <td class="px-6 py-4">
-              <button
-                @click="toggleStatus(subscriber)"
-                class="flex items-center gap-2 cursor-pointer"
-              >
-                <div :class="['w-12 h-6 rounded-full relative transition-colors', subscriber.is_active ? 'bg-green-500' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-400')]">
-                  <div :class="['absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform', subscriber.is_active ? 'translate-x-[1.625rem]' : 'translate-x-0.5']"></div>
+              </td>
+              <td class="px-6 py-4">
+                <div class="flex items-center gap-3">
+                  <div :class="['w-10 h-10 rounded-xl flex items-center justify-center', isDarkMode ? 'bg-gray-700' : 'bg-gray-100']">
+                    <User :class="isDarkMode ? 'text-gray-400' : 'text-gray-600'" size="18" />
+                  </div>
+                  <span :class="['font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">{{ subscriber.name }}</span>
                 </div>
-                <span :class="['text-sm font-bold', subscriber.is_active ? (isDarkMode ? 'text-green-400' : 'text-green-600') : (isDarkMode ? 'text-gray-500' : 'text-gray-400')]">
-                  {{ subscriber.is_active ? t('admin_active') : t('admin_inactive') }}
-                </span>
-              </button>
-            </td>
-            <td :class="['px-6 py-4', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ getSourceLabel(subscriber.source) }}</td>
-            <td :class="['px-6 py-4', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ formatToShort(subscriber.subscribed_at) }}</td>
-            <td class="px-6 py-4">
-              <div class="flex items-center justify-center gap-1">
-                <button @click="handleView(subscriber)" :class="['p-2 rounded-lg transition-all', isDarkMode ? 'hover:bg-gray-700 text-gray-400 hover:text-white' : 'hover:bg-gray-100 text-gray-500 hover:text-gray-700']">
-                  <Eye size="16" />
+              </td>
+              <td class="px-6 py-4">
+                <button
+                  @click="toggleStatus(subscriber)"
+                  class="flex items-center gap-2 cursor-pointer"
+                >
+                  <div :class="['w-12 h-6 rounded-full relative transition-colors', subscriber.is_active ? 'bg-green-500' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-400')]">
+                    <div :class="['absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform', subscriber.is_active ? 'translate-x-[1.625rem]' : 'translate-x-0.5']"></div>
+                  </div>
+                  <span :class="['text-sm font-bold', subscriber.is_active ? (isDarkMode ? 'text-green-400' : 'text-green-600') : (isDarkMode ? 'text-gray-500' : 'text-gray-400')]">
+                    {{ subscriber.is_active ? t('admin_active') : t('admin_inactive') }}
+                  </span>
                 </button>
-                <button @click="handleEdit(subscriber)" :class="['p-2 rounded-lg transition-all', isDarkMode ? 'hover:bg-gray-700 text-gray-400 hover:text-white' : 'hover:bg-gray-100 text-gray-500 hover:text-gray-700']">
-                  <Edit3 size="16" />
-                </button>
-                <button @click="handleDelete(subscriber.id)" :class="['p-2 rounded-lg transition-all', isDarkMode ? 'hover:bg-red-500/20 text-gray-400 hover:text-red-400' : 'hover:bg-red-50 text-gray-500 hover:text-red-500']">
-                  <Trash2 size="16" />
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+              </td>
+              <td :class="['px-6 py-4', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ getSourceLabel(subscriber.source) }}</td>
+              <td :class="['px-6 py-4', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ formatToShort(subscriber.subscribed_at) }}</td>
+              <td class="px-6 py-4">
+                <div class="flex items-center justify-center gap-1">
+                  <button @click="handleView(subscriber)" :class="['p-2 rounded-lg transition-all', isDarkMode ? 'hover:bg-gray-700 text-gray-400 hover:text-white' : 'hover:bg-gray-100 text-gray-500 hover:text-gray-700']">
+                    <Eye size="16" />
+                  </button>
+                  <button @click="handleEdit(subscriber)" :class="['p-2 rounded-lg transition-all', isDarkMode ? 'hover:bg-gray-700 text-gray-400 hover:text-white' : 'hover:bg-gray-100 text-gray-500 hover:text-gray-700']">
+                    <Edit3 size="16" />
+                  </button>
+                  <button @click="handleDelete(subscriber.id)" :class="['p-2 rounded-lg transition-all', isDarkMode ? 'hover:bg-red-500/20 text-gray-400 hover:text-red-400' : 'hover:bg-red-50 text-gray-500 hover:text-red-500']">
+                    <Trash2 size="16" />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <Pagination
+        :current-page="currentPage"
+        :total-pages="totalPages"
+        :total-items="filteredSubscribers.length"
+        :items-per-page="itemsPerPage"
+        @update:current-page="(page) => currentPage = page"
+      />
+    </template>
 
     <!-- Empty State -->
-    <div v-if="filteredSubscribers.length === 0" :class="['text-center py-16', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
-      <Mail size="64" class="mx-auto mb-4 opacity-50" />
-      <p class="text-xl">{{ t('admin_no_subscribers') }}</p>
+    <div v-else class="mt-6">
+      <EmptyState 
+        :title="t('admin_no_subscribers_found') || 'No subscribers found'"
+        :description="t('admin_no_subscribers_description') || 'Try adjusting your search or filters to find what you are looking for'"
+        :icon="Mail"
+      />
     </div>
-
-    <!-- Pagination -->
-    <Pagination
-      :current-page="currentPage"
-      :total-pages="totalPages"
-      :total-items="filteredSubscribers.length"
-      :items-per-page="itemsPerPage"
-      @update:current-page="(page) => currentPage = page"
-    />
 
     <!-- Add/Edit/View Form -->
     <Transition name="modal">

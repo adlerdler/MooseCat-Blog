@@ -188,7 +188,7 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::delete('/settings/themes/{id}', [SettingsController::class, 'deleteTheme'])->name('admin.settings.themes.destroy');
     Route::get('/social-links', [SocialLinksController::class, 'index'])->name('admin.social-links');
     Route::post('/social-links', [SocialLinksController::class, 'store'])->name('admin.social-links.store');
-    Route::put('/social-links', [SocialLinksController::class, 'update'])->name('admin.social-links.update');
+    Route::put('/social-links/reorder', [SocialLinksController::class, 'reorder'])->name('admin.social-links.reorder');
     Route::put('/social-links/{id}', [SocialLinksController::class, 'update'])->name('admin.social-links.update-item');
     Route::delete('/social-links/{id}', [SocialLinksController::class, 'destroy'])->name('admin.social-links.destroy');
     Route::get('/seo', [SeoController::class, 'index'])->name('admin.seo');
@@ -244,6 +244,7 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
         'update' => 'admin.user-levels.update',
         'destroy' => 'admin.user-levels.destroy',
     ]);
+    Route::post('user-levels/batch-update', [UserLevelsController::class, 'batchUpdate'])->name('admin.user-levels.batch-update');
     
     // 系统管理
     Route::resource('front-menu', FrontMenuController::class)->names([

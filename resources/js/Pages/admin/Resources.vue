@@ -24,7 +24,8 @@ import {
   FileText,
   Image,
   Video,
-  Archive
+  Archive,
+  Inbox
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
 import { useToast } from '../../composables/useToast';
@@ -32,6 +33,7 @@ import { formatToRelative } from '../../utils/dateUtils';
 import ResourceForm from '../../components/admin/ResourceForm.vue';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import Pagination from '../../components/admin/Pagination.vue';
+import EmptyState from '../../components/admin/EmptyState.vue';
 import SearchFilterModal from '../../components/admin/SearchFilterModal.vue';
 
 const props = defineProps({
@@ -257,110 +259,122 @@ const handleFilterChange = ({ key, value }) => {
       @filter-change="handleFilterChange"
     />
 
-    <!-- Resources Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div
-        v-for="resource in paginatedResources"
-        :key="resource.id"
-        :class="[
-          'flex flex-col rounded-lg shadow-md transition-shadow hover:shadow-lg',
-          isDarkMode ? 'bg-gray-800' : 'bg-white'
-        ]"
-      >
-        <!-- Resource Thumbnail / Icon -->
-        <div :class="['relative aspect-[4/3] box-border rounded-t-lg overflow-hidden', !resource.image ? 'border-2 border-b-0 border-dashed' : '', isDarkMode ? 'bg-gray-900' : 'bg-gray-100', !resource.image && !isDarkMode ? 'border-gray-300' : '', !resource.image && isDarkMode ? 'border-gray-600' : '']">
-          <img
-            v-if="resource.image"
-            :src="resource.image"
-            :alt="resource.title"
-            class="w-full h-full object-cover"
-          />
-          <div v-else class="w-full h-full flex items-center justify-center">
-            <component
-              :is="getTypeIcon(resource.format)"
-              :class="['w-14 h-14', 
-                resource.format === 'PDF' ? (isDarkMode ? 'text-red-400' : 'text-red-500') :
-                resource.format === 'Image' ? (isDarkMode ? 'text-purple-400' : 'text-purple-500') :
-                resource.format === 'Video' ? (isDarkMode ? 'text-blue-400' : 'text-blue-500') :
-                resource.format === 'Archive' ? (isDarkMode ? 'text-yellow-400' : 'text-yellow-500') : 
-                (isDarkMode ? 'text-gray-600' : 'text-gray-400')]"
+    <!-- Content Area -->
+    <template v-if="filteredResources.length > 0">
+      <!-- Resources Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div
+          v-for="resource in paginatedResources"
+          :key="resource.id"
+          :class="[
+            'flex flex-col rounded-lg shadow-md transition-shadow hover:shadow-lg',
+            isDarkMode ? 'bg-gray-800' : 'bg-white'
+          ]"
+        >
+          <!-- Resource Thumbnail / Icon -->
+          <div :class="['relative aspect-[4/3] box-border rounded-t-lg overflow-hidden', !resource.image ? 'border-2 border-b-0 border-dashed' : '', isDarkMode ? 'bg-gray-900' : 'bg-gray-100', !resource.image && !isDarkMode ? 'border-gray-300' : '', !resource.image && isDarkMode ? 'border-gray-600' : '']">
+            <img
+              v-if="resource.image"
+              :src="resource.image"
+              :alt="resource.title"
+              class="w-full h-full object-cover"
             />
-          </div>
-          <div class="absolute top-2 right-2">
-            <span
-              :class="['text-[10px] px-2 py-1 uppercase font-bold', getTypeColor(resource.format)]"
-            >
-              {{ resource.format }}
-            </span>
-          </div>
-        </div>
-        
-        <!-- Resource Info -->
-        <div class="p-4 flex flex-col flex-1">
-          <h3
-            :class="['font-bold mb-2 text-lg', isDarkMode ? 'text-white' : 'text-gray-900']"
-            style="display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1; line-clamp: 1; overflow: hidden;"
-          >{{ resource.title }}</h3>
-          
-          <p
-            v-if="resource.description"
-            :class="['text-sm mb-4', isDarkMode ? 'text-gray-400' : 'text-gray-600']"
-            style="display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; min-height: 2.5rem;"
-          >{{ resource.description }}</p>
-          
-          <div :class="['flex items-center justify-between text-xs mb-3', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
-            <span>{{ resource.file_size }}</span>
-            <span class="flex items-center gap-1">
-              <Download size="14" />
-              {{ resource.downloads_count }}
-            </span>
+            <div v-else class="w-full h-full flex items-center justify-center">
+              <component
+                :is="getTypeIcon(resource.format)"
+                :class="['w-14 h-14', 
+                  resource.format === 'PDF' ? (isDarkMode ? 'text-red-400' : 'text-red-500') :
+                  resource.format === 'Image' ? (isDarkMode ? 'text-purple-400' : 'text-purple-500') :
+                  resource.format === 'Video' ? (isDarkMode ? 'text-blue-400' : 'text-blue-500') :
+                  resource.format === 'Archive' ? (isDarkMode ? 'text-yellow-400' : 'text-yellow-500') : 
+                  (isDarkMode ? 'text-gray-600' : 'text-gray-400')]"
+              />
+            </div>
+            <div class="absolute top-2 right-2">
+              <span
+                :class="['text-[10px] px-2 py-1 uppercase font-bold', getTypeColor(resource.format)]"
+              >
+                {{ resource.format }}
+              </span>
+            </div>
           </div>
           
-          <div :class="['flex items-center justify-between pt-3 mt-auto']">
-            <div :class="['flex items-center gap-2 text-xs', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
-              <Clock size="14" />
-              {{ formatToRelative(resource.created_at) }}
-              <span class="ml-2">{{ getAuthorName(resource.author_id) }}</span>
+          <!-- Resource Info -->
+          <div class="p-4 flex flex-col flex-1">
+            <h3
+              :class="['font-bold mb-2 text-lg', isDarkMode ? 'text-white' : 'text-gray-900']"
+              style="display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1; line-clamp: 1; overflow: hidden;"
+            >{{ resource.title }}</h3>
+            
+            <p
+              v-if="resource.description"
+              :class="['text-sm mb-4', isDarkMode ? 'text-gray-400' : 'text-gray-600']"
+              style="display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; min-height: 2.5rem;"
+            >{{ resource.description }}</p>
+            
+            <div :class="['flex items-center justify-between text-xs mb-3', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
+              <span>{{ resource.file_size }}</span>
+              <span class="flex items-center gap-1">
+                <Download size="14" />
+                {{ resource.downloads_count }}
+              </span>
             </div>
             
-            <div class="flex gap-1">
-              <a
-                v-if="resource.direct_link"
-                :href="resource.direct_link"
-                download
-                :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:text-green-400 hover:bg-gray-700' : 'text-gray-500 hover:text-green-500 hover:bg-gray-100']"
-                :title="t('admin_download')"
-              >
-                <Download size="16" />
-              </a>
-              <button
-                @click="handleEdit(resource)"
-                :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:text-blue-400 hover:bg-gray-700' : 'text-gray-500 hover:text-blue-500 hover:bg-gray-100']"
-                :title="t('admin_edit')"
-              >
-                <Edit3 size="16" />
-              </button>
-              <button
-                @click="handleDelete(resource.id)"
-                :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:text-red-400 hover:bg-gray-700' : 'text-gray-500 hover:text-red-500 hover:bg-gray-100']"
-                :title="t('admin_delete')"
-              >
-                <Trash2 size="16" />
-              </button>
+            <div :class="['flex items-center justify-between pt-3 mt-auto']">
+              <div :class="['flex items-center gap-2 text-xs', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
+                <Clock size="14" />
+                {{ formatToRelative(resource.created_at) }}
+                <span class="ml-2">{{ getAuthorName(resource.author_id) }}</span>
+              </div>
+              
+              <div class="flex gap-1">
+                <a
+                  v-if="resource.direct_link"
+                  :href="resource.direct_link"
+                  download
+                  :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:text-green-400 hover:bg-gray-700' : 'text-gray-500 hover:text-green-500 hover:bg-gray-100']"
+                  :title="t('admin_download')"
+                >
+                  <Download size="16" />
+                </a>
+                <button
+                  @click="handleEdit(resource)"
+                  :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:text-blue-400 hover:bg-gray-700' : 'text-gray-500 hover:text-blue-500 hover:bg-gray-100']"
+                  :title="t('admin_edit')"
+                >
+                  <Edit3 size="16" />
+                </button>
+                <button
+                  @click="handleDelete(resource.id)"
+                  :class="['p-2 transition-colors', isDarkMode ? 'text-gray-400 hover:text-red-400 hover:bg-gray-700' : 'text-gray-500 hover:text-red-500 hover:bg-gray-100']"
+                  :title="t('admin_delete')"
+                >
+                  <Trash2 size="16" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Pagination -->
-    <Pagination
-      :current-page="currentPage"
-      :total-pages="totalPages"
-      :total-items="filteredResources.length"
-      v-model:items-per-page="itemsPerPage"
-      @update:current-page="currentPage = $event"
-    />
+      <!-- Pagination -->
+      <Pagination
+        :current-page="currentPage"
+        :total-pages="totalPages"
+        :total-items="filteredResources.length"
+        v-model:items-per-page="itemsPerPage"
+        @update:current-page="currentPage = $event"
+      />
+    </template>
+
+    <!-- Empty State -->
+    <div v-else>
+      <EmptyState 
+        :title="t('admin_no_resources_found') || 'No resources found'"
+        :description="t('admin_no_resources_description') || 'Try adjusting your search or filters to find what you are looking for'"
+        :icon="BookOpen"
+      />
+    </div>
 
     <!-- Content Form Modal -->
     <ResourceForm

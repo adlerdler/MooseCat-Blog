@@ -250,8 +250,8 @@ const isCustomProvider = computed(() => configMap[activeTab.value]?.isCustom || 
       :class="[
         'border rounded-xl overflow-hidden transition-all duration-300',
         isDarkMode
-          ? 'bg-gray-800/80 border-gray-700/50'
-          : 'bg-white border-gray-200'
+          ? 'bg-gray-500/5 border-gray-500/20'
+          : 'bg-gray-50 border-gray-200'
       ]"
     >
       <div class="p-6 space-y-5">
@@ -302,10 +302,10 @@ const isCustomProvider = computed(() => configMap[activeTab.value]?.isCustom || 
             v-model="configMap[activeTab].client_id"
             type="text"
             :class="[
-              'w-full px-3 py-2.5 border rounded-xl text-sm transition-colors',
+              'w-full px-4 py-3 border rounded-xl text-sm transition-all',
               isDarkMode
-                ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500 focus:border-construct-red'
-                : 'border-gray-300 text-gray-900 placeholder-gray-400 focus:border-construct-red'
+                ? 'bg-gray-500/5 border-gray-500/20 text-white placeholder-gray-500 focus:border-construct-red focus:bg-gray-500/10'
+                : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400 focus:border-construct-red focus:bg-gray-100'
             ]"
             :placeholder="t('admin.enter_client_id')"
           />
@@ -320,10 +320,10 @@ const isCustomProvider = computed(() => configMap[activeTab.value]?.isCustom || 
             v-model="configMap[activeTab].client_secret"
             type="password"
             :class="[
-              'w-full px-3 py-2.5 border rounded-xl text-sm transition-colors',
+              'w-full px-4 py-3 border rounded-xl text-sm transition-all',
               isDarkMode
-                ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500 focus:border-construct-red'
-                : 'border-gray-300 text-gray-900 placeholder-gray-400 focus:border-construct-red'
+                ? 'bg-gray-500/5 border-gray-500/20 text-white placeholder-gray-500 focus:border-construct-red focus:bg-gray-500/10'
+                : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400 focus:border-construct-red focus:bg-gray-100'
             ]"
             :placeholder="configMap[activeTab].client_id ? t('admin.reenter_to_change') : t('admin.enter_client_secret')"
           />
@@ -342,10 +342,10 @@ const isCustomProvider = computed(() => configMap[activeTab.value]?.isCustom || 
               v-model="configMap[activeTab].redirect_uri"
               type="text"
               :class="[
-                'flex-1 px-3 py-2.5 border rounded-xl text-sm transition-colors',
+                'flex-1 px-4 py-3 border rounded-xl text-sm transition-all backdrop-blur-md',
                 isDarkMode
-                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500 focus:border-construct-red'
-                  : 'border-gray-300 text-gray-900 placeholder-gray-400 focus:border-construct-red'
+                  ? 'bg-white/5 border-white/10 text-white placeholder-gray-500 focus:border-construct-red focus:bg-white/10'
+                  : 'bg-white/60 border-white/40 text-gray-900 placeholder-gray-400 focus:border-construct-red focus:bg-white/80'
               ]"
             />
             <button
@@ -462,7 +462,7 @@ const isCustomProvider = computed(() => configMap[activeTab.value]?.isCustom || 
               <input
                 v-model="newProviderName"
                 type="text"
-                :class="['w-full px-3 py-2.5 border rounded-xl text-sm', isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500 focus:border-construct-red' : 'border-gray-300 text-gray-900 placeholder-gray-400 focus:border-construct-red']"
+                :class="['w-full px-3 py-2.5 border rounded-xl text-sm backdrop-blur-sm', isDarkMode ? 'bg-gray-800/50 border-gray-600/30 text-white placeholder-gray-500 focus:border-construct-red' : 'bg-white/50 border-white/30 text-gray-900 placeholder-gray-400 focus:border-construct-red']"
                 placeholder="例如：微信、Twitter、LinkedIn..."
                 @keyup.enter="addCustomProvider"
               />

@@ -15,8 +15,7 @@ import {
   Plus,
   Edit3,
   Trash2,
-  ChevronUp,
-  ChevronDown,
+  GripVertical,
   Github,
   Twitter,
   Linkedin,
@@ -29,13 +28,13 @@ import {
   Link as LinkIcon,
   Navigation,
   Database,
-  Save,
   X
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
 import { useToast } from '../../composables/useToast';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import Pagination from '../../components/admin/Pagination.vue';
+import EmptyState from '../../components/admin/EmptyState.vue';
 
 const props = defineProps({
   socialLinks: { type: Array, default: () => [] },
@@ -59,8 +58,6 @@ const showDeleteConfirm = ref(false);
 const deletingItemId = ref(null);
 const deletingItemType = ref('');
 
-const showSaveConfirm = ref(false);
-
 const showAddLinkModal = ref(false);
 const newLinkPlatform = ref('');
 const newLinkUrl = ref('');
@@ -70,6 +67,11 @@ const detectedPlatform = ref('');
 const showEditModal = ref(false);
 const editingLink = ref(null);
 const editForm = ref({});
+
+// Drag & Drop state
+const draggedItem = ref(null);
+const draggedOverItem = ref(null);
+const dragList = ref(null);
 
 const detectPlatformFromUrl = (url) => {
   if (!url) return '';
@@ -257,40 +259,63 @@ const confirmDelete = () => {
   }
 };
 
-const moveUp = (link, list) => {
-  const index = list.findIndex(l => l.id === link.id);
-  if (index > 0) {
-    [list[index], list[index - 1]] = [list[index - 1], list[index]];
-    list[index].sort_order = index + 1;
-    list[index - 1].sort_order = index;
-  }
+// Drag & Drop handlers
+const onDragStart = (link, list) => {
+  draggedItem.value = link;
+  dragList.value = list;
 };
 
-const moveDown = (link, list) => {
-  const index = list.findIndex(l => l.id === link.id);
-  if (index < list.length - 1) {
-    [list[index], list[index + 1]] = [list[index + 1], list[index]];
-    list[index].sort_order = index + 1;
-    list[index + 1].sort_order = index + 2;
-  }
+const onDragOver = (e, link) => {
+  e.preventDefault();
+  draggedOverItem.value = link;
 };
 
-const handleSaveAll = () => {
-  showSaveConfirm.value = true;
+const onDragLeave = () => {
+  draggedOverItem.value = null;
 };
 
-const confirmSave = () => {
-  showSaveConfirm.value = false;
+const onDrop = (targetLink) => {
+  if (!draggedItem.value || !dragList.value) return;
   
-  const data = {
-    social_links: socialLinksList.value,
-    nav_links: {
-      categories: categoryLinksList.value,
-      data: dataLinksList.value,
-    }
-  };
+  const list = dragList.value;
+  const dragIndex = list.findIndex(l => l.id === draggedItem.value.id);
+  const dropIndex = list.findIndex(l => l.id === targetLink.id);
   
-  router.put('/admin/social-links', data, {
+  if (dragIndex === -1 || dropIndex === -1 || dragIndex === dropIndex) {
+    resetDragState();
+    return;
+  }
+  
+  // Reorder the array
+  const [movedItem] = list.splice(dragIndex, 1);
+  list.splice(dropIndex, 0, movedItem);
+  
+  // Update sort_order
+  list.forEach((item, idx) => {
+    item.sort_order = idx + 1;
+  });
+  
+  saveSortOrder(list);
+  resetDragState();
+};
+
+const onDragEnd = () => {
+  resetDragState();
+};
+
+const resetDragState = () => {
+  draggedItem.value = null;
+  draggedOverItem.value = null;
+  dragList.value = null;
+};
+
+const saveSortOrder = (list) => {
+  const items = list.map((item, idx) => ({
+    id: item.id,
+    sort_order: idx + 1,
+  }));
+  
+  router.put('/admin/social-links/reorder', { items }, {
     preserveState: true,
     preserveScroll: true,
   });
@@ -424,87 +449,97 @@ const getPlatformGradient = (platform) => {
       </button>
     </div>
 
-    <!-- Links Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div
-        v-for="link in paginatedLinks"
-        :key="link.id"
-        :class="[
-          'group border transition-all duration-300 rounded-xl overflow-hidden',
-          isDarkMode
-            ? 'bg-gray-800/80 border-gray-700/50 hover:border-construct-red/50 hover:shadow-xl hover:shadow-construct-red/5 hover:-translate-y-1.5'
-            : 'bg-white border-gray-200 hover:border-construct-red/30 hover:shadow-xl hover:shadow-construct-red/10 hover:-translate-y-1.5'
-        ]"
-      >
-        <div class="p-6">
-          <div class="flex items-start justify-between mb-4">
-            <div :class="[
-              'w-12 h-12 rounded-xl flex items-center justify-center shadow-md transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg',
-              activeTab === 'social' ? getPlatformGradient(link.platform) : (isDarkMode ? 'bg-gradient-to-br from-amber-900 to-amber-800 text-amber-200' : 'bg-gradient-to-br from-amber-50 to-amber-100 text-amber-600')
-            ]">
-              <component
-                v-if="activeTab === 'social'"
-                :is="getLinkIcon(link.platform)"
-                size="24"
-              />
-              <component v-else-if="activeTab === 'categories'" :is="Navigation" size="24" />
-              <component v-else :is="Database" size="24" />
+    <!-- Content Area -->
+    <template v-if="paginatedLinks.length > 0">
+      <!-- Links Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div
+          v-for="link in paginatedLinks"
+          :key="link.id"
+          draggable="true"
+          @dragstart="onDragStart(link, activeTab === 'social' ? socialLinksList : activeTab === 'categories' ? categoryLinksList : dataLinksList)"
+          @dragover="onDragOver($event, link)"
+          @dragleave="onDragLeave"
+          @drop="onDrop(link)"
+          @dragend="onDragEnd"
+          :class="[
+            'group border transition-all duration-300 rounded-xl overflow-hidden cursor-grab active:cursor-grabbing',
+            draggedItem?.id === link.id ? 'opacity-40 scale-95' : '',
+            draggedOverItem?.id === link.id ? (isDarkMode ? 'ring-2 ring-construct-red bg-construct-red/5' : 'ring-2 ring-construct-red bg-construct-red/5') : '',
+            isDarkMode
+              ? 'bg-gray-800/80 border-gray-700/50 hover:border-construct-red/50 hover:shadow-xl hover:shadow-construct-red/5 hover:-translate-y-1.5'
+              : 'bg-white border-gray-200 hover:border-construct-red/30 hover:shadow-xl hover:shadow-construct-red/10 hover:-translate-y-1.5'
+          ]"
+        >
+          <div class="p-6">
+            <div class="flex items-start justify-between mb-4">
+              <div :class="[
+                'w-12 h-12 rounded-xl flex items-center justify-center shadow-md transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg',
+                activeTab === 'social' ? getPlatformGradient(link.platform) : (isDarkMode ? 'bg-gradient-to-br from-amber-900 to-amber-800 text-amber-200' : 'bg-gradient-to-br from-amber-50 to-amber-100 text-amber-600')
+              ]">
+                <component
+                  v-if="activeTab === 'social'"
+                  :is="getLinkIcon(link.platform)"
+                  size="24"
+                />
+                <component v-else-if="activeTab === 'categories'" :is="Navigation" size="24" />
+                <component v-else :is="Database" size="24" />
+              </div>
+              <div class="cursor-grab active:cursor-grabbing p-2 rounded-lg transition-colors opacity-0 group-hover:opacity-100" :class="isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'">
+                <GripVertical size="16" :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'" />
+              </div>
             </div>
-            <div class="flex items-center gap-1">
-              <button
-                @click="moveUp(link, activeTab === 'social' ? socialLinksList : activeTab === 'categories' ? categoryLinksList : dataLinksList)"
-                :class="['p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100']"
-              >
-                <ChevronUp size="14" :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'" />
-              </button>
-              <button
-                @click="moveDown(link, activeTab === 'social' ? socialLinksList : activeTab === 'categories' ? categoryLinksList : dataLinksList)"
-                :class="['p-2 rounded-lg transition-colors', isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100']"
-              >
-                <ChevronDown size="14" :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'" />
-              </button>
-            </div>
-          </div>
 
-          <h4 :class="['font-bold text-lg mb-2', isDarkMode ? 'text-white' : 'text-gray-900']">
-            {{ link.label || link.label_default }}
-          </h4>
-          <p :class="['text-xs font-bold uppercase tracking-wider mb-1', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
-            {{ activeTab === 'social' ? link.platform : (link.route || link.url || '') }}
-          </p>
-          <p :class="['text-sm truncate', isDarkMode ? 'text-gray-500' : 'text-gray-600']">
-            {{ link.url || link.route }}
-          </p>
+            <h4 :class="['font-bold text-lg mb-2', isDarkMode ? 'text-white' : 'text-gray-900']">
+              {{ link.label || link.label_default }}
+            </h4>
+            <p :class="['text-xs font-bold uppercase tracking-wider mb-1', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
+              {{ activeTab === 'social' ? link.platform : (link.route || link.url || '') }}
+            </p>
+            <p :class="['text-sm truncate', isDarkMode ? 'text-gray-500' : 'text-gray-600']">
+              {{ link.url || link.route }}
+            </p>
 
-          <div :class="['flex items-center justify-between mt-4 pt-3', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
-            <span :class="['text-xs font-mono font-bold', isDarkMode ? 'text-gray-600' : 'text-gray-400']">
-              #{{ link.sort_order }}
-            </span>
-            <div class="flex items-center gap-2">
-              <button
-                @click="openEditModal(link)"
-                :class="['p-2 rounded-lg transition-colors', isDarkMode ? 'text-gray-400 hover:bg-gray-700 hover:text-construct-red' : 'text-gray-400 hover:bg-gray-100 hover:text-construct-red']"
-              >
-                <Edit3 size="14" />
-              </button>
-              <button
-                @click="handleDelete(link.id, activeTab)"
-                :class="['p-2 rounded-lg transition-colors', isDarkMode ? 'text-gray-400 hover:bg-gray-700 hover:text-red-400' : 'text-gray-400 hover:bg-gray-100 hover:text-red-500']"
-              >
-                <Trash2 size="14" />
-              </button>
+            <div :class="['flex items-center justify-between mt-4 pt-3', isDarkMode ? 'border-gray-700' : 'border-gray-200']">
+              <span :class="['text-xs font-mono font-bold', isDarkMode ? 'text-gray-600' : 'text-gray-400']">
+                #{{ link.sort_order }}
+              </span>
+              <div class="flex items-center gap-2">
+                <button
+                  @click="openEditModal(link)"
+                  :class="['p-2 rounded-lg transition-colors', isDarkMode ? 'text-gray-400 hover:bg-gray-700 hover:text-construct-red' : 'text-gray-400 hover:bg-gray-100 hover:text-construct-red']"
+                >
+                  <Edit3 size="14" />
+                </button>
+                <button
+                  @click="handleDelete(link.id, activeTab)"
+                  :class="['p-2 rounded-lg transition-colors', isDarkMode ? 'text-gray-400 hover:bg-gray-700 hover:text-red-400' : 'text-gray-400 hover:bg-gray-100 hover:text-red-500']"
+                >
+                  <Trash2 size="14" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Pagination -->
-    <Pagination
-      v-model:current-page="currentPage"
-      :total-items="filteredList.length"
-      :items-per-page="itemsPerPage"
-    />
+      <div class="mt-8">
+        <Pagination
+          v-model:current-page="currentPage"
+          :total-items="filteredList.length"
+          :items-per-page="itemsPerPage"
+        />
+      </div>
+    </template>
+
+    <!-- Empty State -->
+    <div v-else>
+      <EmptyState 
+        :title="t('admin_no_links_found') || 'No links found'"
+        :description="t('admin_no_links_description') || 'Click the add button to create your first link'"
+        :icon="LinkIcon"
+      />
+    </div>
 
     <!-- Add Link Modal -->
     <Transition name="modal">
@@ -633,18 +668,6 @@ const getPlatformGradient = (platform) => {
       :content="t('admin_delete_warning')"
       @confirm="confirmDelete"
       @cancel="showDeleteConfirm = false"
-    />
-
-    <!-- Save Confirmation Dialog -->
-    <ConfirmDialog
-      v-model:visible="showSaveConfirm"
-      :title="t('admin_save_confirm_title')"
-      :content="t('admin_save_confirm_content')"
-      :confirm-text="t('admin_save')"
-      :cancel-text="t('admin_cancel')"
-      confirm-variant="primary"
-      @confirm="confirmSave"
-      @cancel="showSaveConfirm = false"
     />
   </div>
 </template>

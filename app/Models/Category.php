@@ -60,4 +60,10 @@ class Category extends Model
             ->dontSubmitEmptyLogs()
             ->useLogName('categories');
     }
+
+    protected static function booted(): void
+    {
+        static::saved(fn(Category $category) => app(\App\Services\CacheService::class)->clearCategoryCache($category));
+        static::deleted(fn(Category $category) => app(\App\Services\CacheService::class)->clearCategoryCache($category));
+    }
 }

@@ -14,7 +14,8 @@ import {
   FolderKanban,
   Plus,
   ExternalLink,
-  Github
+  Github,
+  Inbox
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
 import { useToast } from '../../composables/useToast';
@@ -22,6 +23,7 @@ import { formatToShort } from '../../utils/dateUtils';
 import ProjectForm from '../../components/admin/ProjectForm.vue';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import Pagination from '../../components/admin/Pagination.vue';
+import EmptyState from '../../components/admin/EmptyState.vue';
 import SearchFilterModal from '../../components/admin/SearchFilterModal.vue';
 import SeoForm from '../../components/admin/SeoForm.vue';
 import ContentCard from '../../components/admin/ContentCard.vue';
@@ -262,59 +264,71 @@ const handleFilterChange = ({ key, value }) => {
       @filter-change="handleFilterChange"
     />
 
-    <!-- Projects Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <ContentCard
-        v-for="project in paginatedProjects"
-        :key="project.id"
-        :item="project"
-        :cover-image="project.image"
-        :title="project.title"
-        :description="project.description"
-        :tags="project.tags"
-        :date="formatToShort(project.created_at || project.date)"
-        :author="getAuthorName(project.author_id)"
-        :placeholder-icon="FolderKanban"
-        @edit="handleEdit"
-        @seo-edit="handleSeoEdit"
-        @delete="handleDelete"
-      >
-        <template #top-right-badge>
-          <span :class="['text-[10px] px-2 py-1 uppercase font-bold rounded', getStatusColor(project.status)]">
-            {{ project.status }}
-          </span>
-        </template>
-        <template #actions-before>
-          <a
-            v-if="project.github_url"
-            :href="project.github_url"
-            target="_blank"
-            rel="noopener noreferrer"
-            :class="['p-2 transition-colors rounded', isDarkMode ? 'text-gray-400 hover:text-white hover:bg-gray-700' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100']"
-          >
-            <Github size="16" />
-          </a>
-          <a
-            v-if="project.url"
-            :href="project.url"
-            target="_blank"
-            rel="noopener noreferrer"
-            :class="['p-2 transition-colors rounded', isDarkMode ? 'text-gray-400 hover:text-white hover:bg-gray-700' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100']"
-          >
-            <ExternalLink size="16" />
-          </a>
-        </template>
-      </ContentCard>
-    </div>
+    <!-- Content Area -->
+    <template v-if="filteredProjects.length > 0">
+      <!-- Projects Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <ContentCard
+          v-for="project in paginatedProjects"
+          :key="project.id"
+          :item="project"
+          :cover-image="project.image"
+          :title="project.title"
+          :description="project.description"
+          :tags="project.tags"
+          :date="formatToShort(project.created_at || project.date)"
+          :author="getAuthorName(project.author_id)"
+          :placeholder-icon="FolderKanban"
+          @edit="handleEdit"
+          @seo-edit="handleSeoEdit"
+          @delete="handleDelete"
+        >
+          <template #top-right-badge>
+            <span :class="['text-[10px] px-2 py-1 uppercase font-bold rounded', getStatusColor(project.status)]">
+              {{ project.status }}
+            </span>
+          </template>
+          <template #actions-before>
+            <a
+              v-if="project.github_url"
+              :href="project.github_url"
+              target="_blank"
+              rel="noopener noreferrer"
+              :class="['p-2 transition-colors rounded', isDarkMode ? 'text-gray-400 hover:text-white hover:bg-gray-700' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100']"
+            >
+              <Github size="16" />
+            </a>
+            <a
+              v-if="project.url"
+              :href="project.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              :class="['p-2 transition-colors rounded', isDarkMode ? 'text-gray-400 hover:text-white hover:bg-gray-700' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100']"
+            >
+              <ExternalLink size="16" />
+            </a>
+          </template>
+        </ContentCard>
+      </div>
 
-    <!-- Pagination -->
-    <Pagination
-      :current-page="currentPage"
-      :total-pages="totalPages"
-      :total-items="filteredProjects.length"
-      v-model:items-per-page="itemsPerPage"
-      @update:current-page="currentPage = $event"
-    />
+      <!-- Pagination -->
+      <Pagination
+        :current-page="currentPage"
+        :total-pages="totalPages"
+        :total-items="filteredProjects.length"
+        v-model:items-per-page="itemsPerPage"
+        @update:current-page="currentPage = $event"
+      />
+    </template>
+
+    <!-- Empty State -->
+    <div v-else>
+      <EmptyState 
+        :title="t('admin_no_projects_found') || 'No projects found'"
+        :description="t('admin_no_projects_description') || 'Try adjusting your search or filters to find what you are looking for'"
+        :icon="FolderKanban"
+      />
+    </div>
 
     <!-- Content Form Modal -->
     <ProjectForm

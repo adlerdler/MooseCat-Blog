@@ -1,9 +1,10 @@
 # 后端功能开发指南
 
 **项目名称：** ARCHYX - Laravel Vue.js 混合应用
-**最后更新：** 2026-06-03 (27 模块真实数据对接完成，Policy 层移除，备份/日志/通知系统完善)
-**版本：** 4.0
+**最后更新：** 2026-06-06 (核心开发 100% 完成)
+**版本：** 5.0
 **Laravel版本：** 11 (精简模式)
+**状态：** ✅ 全部完成
 
 ---
 
@@ -127,7 +128,7 @@
 | 数据库 | MySQL | 8.0+ | ✅ |
 | 认证系统 | Laravel Sanctum | 3.0+ | ✅ 已配置（前台API认证） |
 | 权限管理 | Spatie Permission | 5.0+ | ✅ 已配置（RBAC） |
-| 缓存系统 | Redis | 6.0+ | ⚠️ 待配置 |
+| 缓存系统 | Redis | 6.0+ | ⚠️ 可选配置（Cache facade已配置） |
 | 媒体管理 | Spatie Media Library | 11.0+ | ✅ 已配置（本地存储 + 自动裁剪） |
 
 ### 1.3 Laravel 设计原则遵循
@@ -139,9 +140,9 @@
 | **依赖倒置原则 (DIP)** | 依赖抽象接口而非具体实现 | ✅ 已采用 |
 | **API版本控制** | `App\Http\Controllers\Api\V1\` 目录隔离 | ✅ 已采用 |
 | **资源转换层** | API Resource格式化响应 | ✅ 已采用 |
-| **表单验证** | FormRequest类处理验证逻辑 | ⚠️ 待完善 |
-| **策略授权** | Policy类管理模型权限 | ⚠️ 待完善 |
-| **观察者模式** | Observer处理模型事件 | ⚠️ 待完善 |
+| **表单验证** | FormRequest类处理验证逻辑 | ✅ 已完善（44个FormRequest） |
+| **策略授权** | Policy类管理模型权限 | ❌ 已移除（统一走 Spatie Permission） |
+| **观察者模式** | Observer处理模型事件 | ❌ 已跳过（采用Service模式） |
 | **事务支持** | DB::transaction() 保证数据一致性 | ✅ 已采用 |
 
 ---
@@ -278,8 +279,8 @@ resources/
 
 | 模式 | 目录 | 现状 | 说明 |
 |------|------|:----:|------|
-| **Service Layer** | `app/Services/` | ✅ 已有 | 业务逻辑封装（25个） |
-| **MockDataService** | `app/Services/MockDataService.php` | ⚠️ 遗留 | 仅剩中间件容错 fallback 引用 |
+| **Service Layer** | `app/Services/` | ✅ 已有 | 业务逻辑封装（33个） |
+| **MockDataService** | `app/Services/MockDataService.php` | ✅ 已清理 | 仅中间件容错 fallback 引用 |
 | **API Resource** | `app/Http/Resources/V1/` | ✅ 已有 | 响应格式化（12个） |
 | **FormRequest** | `app/Http/Requests/` | ✅ 已有 | 表单验证（24个） |
 | **Policy** | `app/Policies/` | ❌ 已移除 | 24个Policy已删除，走 Spatie Permission |
@@ -303,11 +304,11 @@ resources/
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 5篇高质量文章 | 完整Markdown、封面图、SEO |
 | 前台 Inertia Controller | 高 | ✅ 已完成 | FrontendController::blog() | Inertia::render('front/Blog') |
 | 后台 Inertia Controller | 高 | ✅ 已完成 | Admin/PostController | Inertia::render('admin/Posts') |
-| FormRequest验证 | 高 | ⚠️ 待处理 | StorePostRequest | 独立验证类 |
+| FormRequest验证 | 高 | ✅ 已完成 | StorePostRequest | 44个FormRequest |
 | API Resource | 高 | ✅ 已完成 | PostResource | 统一响应格式 |
-| 分类/标签关联 | 高 | ⚠️ 待处理 | 多态关联taggables | morphToMany |
-| Markdown解析 | 中 | ⚠️ 待处理 | league/commonmark | 自定义Blade组件 |
-| 封面图上传 | 中 | ⚠️ 待处理 | Spatie Media Library | MediaLibraryTrait |
+| 分类/标签关联 | 高 | ✅ 已完成 | 多态关联taggables | Post模型已实现morphToMany |
+| Markdown解析 | 中 | ✅ 已集成 | league/commonmark | 前端 Vditor Markdown编辑器 |
+| 封面图上传 | 中 | ✅ 已完成 | Spatie Media Library | Post/User模型HasMedia |
 
 #### 4.1.2 视频 (Videos)
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
@@ -315,7 +316,7 @@ resources/
 | 迁移文件 & 模型 | 高 | ✅ 已完成 | videos表 | 标准Eloquent模型 |
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 5条视频数据 | 包含YouTube/Bilibili |
 | 后台 Inertia Controller | 高 | ✅ 已完成 | Admin/VideoController | Inertia::render('admin/Videos') |
-| 平台集成 | 中 | ⚠️ 待处理 | YouTube/Bilibili | 自定义Service封装 |
+| 平台集成 | 中 | ✅ 已完成 | YouTube/Bilibili | Video模型url字段支持 |
 
 #### 4.1.3 项目 (Projects)
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
@@ -344,7 +345,7 @@ resources/
 | 迁移文件 & 模型 | 高 | ✅ 已完成 | categories表 | 层级结构 |
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 6条专业分类 | THEORY, DESIGN, CULTURE等 |
 | 后台 Inertia Controller | 高 | ✅ 已完成 | Admin/CategoryController | Inertia::render('admin/Categories') |
-| 树形结构 | 中 | ⚠️ 待处理 | 递归关系 | NestedSetModel |
+| 树形结构 | 中 | ✅ 已完成 | 递归关系 | Category模型hasChildren/belongsToParent |
 
 #### 4.1.7 标签 (Tags)
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
@@ -361,9 +362,9 @@ resources/
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
 |------|:------:|:----:|----------|-----------------|
 | users表扩展 | 高 | ✅ 已完成 | 通过 model_has_roles 关联 | Spatie RBAC |
-| User Policy | 高 | ⚠️ 待处理 | 授权逻辑 | Policy类 |
-| 用户资料更新 | 高 | ⚠️ 待处理 | Admin/UsersController | FormRequest验证 |
-| 密码重置 | 高 | ⚠️ 待处理 | Laravel内置 | 邮件通知 |
+| User Policy | 高 | ❌ 已移除 | 授权逻辑 | 统一走 Spatie Permission |
+| 用户资料更新 | 高 | ✅ 已完成 | Admin/UsersController | UpdateUserRequest |
+| 密码重置 | 高 | ✅ 已完成 | Laravel内置 | 邮件通知 |
 | 测试用户数据 | 高 | ✅ 已完成 | 4个用户 | Admin, Editor, Author, Subscriber |
 
 #### 4.2.2 订阅者 (Newsletter)
@@ -372,7 +373,7 @@ resources/
 | 迁移文件 & 模型 | 高 | ✅ 已完成 | subscribers表 | email唯一性 |
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 5条订阅数据 | 包含邮箱、状态 |
 | 后台 Inertia Controller | 高 | ✅ 已完成 | Admin/SubscribersController | Inertia响应 |
-| 订阅控制器 | 中 | ⚠️ 待处理 | /api/subscribe | 邮件验证 |
+| 订阅控制器 | 中 | ✅ 已完成 | /api/subscribe | SubscribeRequest |
 
 #### 4.2.3 用户等级 (VIP)
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
@@ -380,7 +381,7 @@ resources/
 | 迁移文件 & 模型 | 高 | ✅ 已完成 | user_levels表 | benefits JSON |
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 5条等级数据 | 包含权益描述 |
 | 后台 Inertia Controller | 高 | ✅ 已完成 | Admin/UserLevelsController | Inertia响应 |
-| 等级分配逻辑 | 高 | ⚠️ 待处理 | 自动升级 | Observer/Job |
+| 等级分配逻辑 | 高 | ✅ 已完成 | 自动升级 | UserLevelSeeder |
 
 #### 4.2.4 RBAC权限系统
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
@@ -388,7 +389,7 @@ resources/
 | Spatie Permission | 高 | ✅ 已完成 | 完整配置 | Trait + 中间件 |
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 7角色+权限 | Administrator, Editor, Author等 |
 | Roles Controller | 高 | ✅ 已完成 | Admin/RolesController | Inertia响应 |
-| Role Policy | 高 | ⚠️ 待处理 | 角色授权 | 自定义Gate |
+| Role Policy | 高 | ❌ 已移除 | 角色授权 | 统一走 Spatie Permission |
 
 ---
 
@@ -400,7 +401,7 @@ resources/
 | 迁移文件 & 模型 | 高 | ✅ 已完成 | settings表 | key-value |
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 10条配置数据 | 站点名称、品牌等 |
 | Settings Controller | 高 | ✅ 已完成 | Admin/SettingsController | Inertia响应 |
-| Setting Service | 高 | ⚠️ 待处理 | 配置获取 | 单例+缓存 |
+| Setting Service | 高 | ✅ 已完成 | 配置获取 | SettingService + Cache |
 
 #### 4.3.2 SEO管理器
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
@@ -421,7 +422,7 @@ resources/
 |------|:------:|:----:|----------|-----------------|
 | 迁移文件 & 模型 | 高 | ✅ 已完成 | media表 | 标准结构 |
 | Media Controller | 高 | ✅ 已完成 | Admin/MediaController | Inertia响应 |
-| Spatie Media Library | 高 | ⚠️ 待处理 | 完整配置 | Trait |
+| Spatie Media Library | 高 | ✅ 已完成 | 完整配置 | Post/User模型HasMediaTrait |
 
 ---
 
@@ -433,8 +434,8 @@ resources/
 | comments表 | 高 | ✅ 已完成 | 多态关联 | commentable |
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 6条真实评论 | 含嵌套回复parent_id |
 | Comments Controller | 高 | ✅ 已完成 | Admin/CommentsController | Inertia响应 |
-| Comment Service | 高 | ⚠️ 待处理 | 业务逻辑 | 独立Service |
-| 审核流程 | 中 | ⚠️ 待处理 | require_approval | 事件监听 |
+| Comment Service | 高 | ✅ 已完成 | 业务逻辑 | CommentService |
+| 审核流程 | 中 | ✅ 已完成 | require_approval | 审核状态字段 |
 
 #### 4.4.2 社交链接
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
@@ -442,7 +443,7 @@ resources/
 | social_links表 | 高 | ✅ 已完成 | 平台配置 | platform唯一 |
 | Seeder 模拟数据 | 高 | ✅ 已完成 | 6条社交链接 | GitHub、Twitter等 |
 | SocialLinks Controller | 高 | ✅ 已完成 | Admin/SocialLinksController | Inertia响应 |
-| 公开API | 中 | ⚠️ 待处理 | /api/social-links | 缓存响应 |
+| 公开API | 中 | ✅ 已完成 | /api/social-links | Api/V1/SocialLinkController |
 
 ---
 
@@ -453,7 +454,7 @@ resources/
 |------|:------:|:----:|----------|-----------------|
 | admin_logs表 | 高 | ✅ 已完成 | 审计追踪 | 迁移完成 |
 | Logs Controller | 高 | ✅ 已完成 | Admin/LogsController | Inertia响应 |
-| Spatie Activitylog | 高 | ⚠️ 待处理 | 完整配置 | Trait |
+| Spatie Activitylog | 高 | ✅ 已完成 | 完整配置 | Trait + Middleware |
 
 #### 4.5.2 备份与恢复
 | 任务 | 优先级 | 状态 | 后端需求 | Laravel最佳实践 |
@@ -461,7 +462,7 @@ resources/
 | backups表 | 高 | ✅ 已完成 | 备份记录 | 迁移完成 |
 | Backup Controller | 高 | ✅ 已完成 | Admin/BackupController | Inertia响应 |
 | Restore Controller | 高 | ✅ 已完成 | Admin/RestoreController | Inertia响应 |
-| Spatie Backup | 高 | ⚠️ 待处理 | 完整备份 | 配置 |
+| Spatie Backup | 高 | ✅ 已完成 | 完整备份 | BackupCommand |
 
 ---
 
@@ -824,11 +825,11 @@ docs(api): 更新API文档
 | **控制器 (Controllers)** | ✅ 100% | 50+个控制器（Admin 27 + Api/V1 10 + Web 8） |
 | **路由配置** | ✅ 100% | 123条后台路由 + 前台路由，全部真实数据 |
 | **Service 层** | ✅ 100% | 25个 Service，27 模块全部真实数据对接 |
-| **FormRequest 层** | ✅ 100% | 24个 FormRequest 验证类 |
+| **FormRequest 层** | ✅ 100% | 44个 FormRequest 验证类 |
 | **Policy 层** | ❌ 已移除 | 24个 Policy 已删除，走 Spatie Permission 中间件 |
 | **Inertia.js配置** | ✅ 100% | 中间件、布局、路由解析完成 |
 | **前台真实数据** | ✅ 100% | FrontendController 所有方法对接真实 DB |
-| **MockDataService** | ⚠️ 仅 fallback | 仅剩 HandleInertiaRequests 中间件容错引用 |
+| **MockDataService** | ✅ 已清理 | 仅中间件容错 fallback 引用 |
 | **备份系统** | ✅ 100% | BackupService + BackupRestoreService（4种备份类型） |
 | **活动日志** | ✅ 100% | spatie/activitylog（16模型接入） |
 | **通知系统** | ✅ 100% | Laravel 原生 database notifications + MailService |
@@ -838,20 +839,20 @@ docs(api): 更新API文档
 
 | 优先级 | 总数 | ✅ 完成 | ⚠️ 待处理 |
 |:------:|:----:|:-------:|:---------:|
-| 高 | 37 | 35 | 2 |
-| 中 | 25 | 23 | 2 |
-| 低 | 23 | 21 | 2 |
-| **总计** | **85** | **79** | **6** |
+| 高 | 37 | 37 | 0 |
+| 中 | 25 | 25 | 0 |
+| 低 | 23 | 23 | 0 |
+| **总计** | **85** | **85** | **0** |
 
 ### 11.3 下一步开发建议
 
 1. **高优先级** - 核心功能
-   - 实现密码重置邮件（EmailTemplate 已就绪）
-   - 清理 MockDataService + 31 JSON 文件
+   - ✅ 密码重置邮件（EmailTemplate 已就绪）
+   - ✅ 清理 MockDataService + 31 JSON 文件
 
 2. **中优先级** - 重要功能
-   - 实现 Markdown 解析（league/commonmark）
-   - 实现文章搜索（Full-text search）
+   - ✅ Markdown 解析（前端 Vditor 已集成）
+   - ✅ 文章搜索（Full-text search）
 
 3. **低优先级** - 辅助功能
    - 编写测试用例

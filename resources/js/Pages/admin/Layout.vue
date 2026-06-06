@@ -25,33 +25,41 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronDown,
+  ChevronUp,
   ExternalLink,
-  LayoutDashboard,
-  FileText,
-  Play,
-  FolderKanban,
-  BookOpen,
-  Users,
-  Settings,
-  Folder,
-  Tag,
-  MessageSquare,
-  Shield,
-  HardDrive,
-  Info,
-  Archive,
-  SlidersHorizontal,
-  Book,
-  BookText,
-  RotateCcw,
-  Image,
-  Zap,
-  Link,
-  Crown,
-  Mail,
-  LayoutPanelLeft,
-  Languages,
-  Bell
+  // 通用图标
+  LayoutDashboard, Home, Search, Bell, Settings, HelpCircle, Info,
+  // 文件与文档
+  FileText, File, FileImage, FileCode, FileJson, Book, BookOpen, BookText,
+  Archive, Folder, FolderOpen, FolderKanban,
+  // 用户与权限
+  Users, UserPlus, UserMinus, Shield, ShieldCheck, Lock, Key,
+  // 内容管理
+  Play, Image, Video, Music, Camera, Bookmark, Tag,
+  // 数据与图表
+  BarChart3, PieChart, Activity, Database, Server, HardDrive,
+  // 导航与链接
+  Link, Navigation, Compass, MapPin, Globe,
+  // 媒体与通信
+  MessageSquare, MessageCircle, Mail, Phone, Send,
+  // 系统工具
+  SlidersHorizontal, RotateCcw, RefreshCw, Download, Upload, Share2,
+  // 状态与反馈
+  CheckCircle2, XCircle, AlertCircle, AlertTriangle, Check,
+  // 界面元素
+  Grid3X3, List, Layers,
+  // 动作与操作
+  Plus, Trash2, Edit3, Eye, EyeOff, Star, Heart,
+  // 商业与财务
+  Briefcase, Wallet, CreditCard, DollarSign, Receipt,
+  // 时间与日期
+  Calendar, CalendarDays, Clock, Timer, History,
+  // 社交与互动
+  ThumbsUp,
+  // 其他
+  Zap, Lightbulb, Award, Trophy, Gift, Package, ShoppingCart,
+  // 额外
+  LayoutPanelLeft, Languages, Crown
 } from 'lucide-vue-next';
 import ThemeToggle from '../../components/ThemeToggle.vue';
 import ToastContainer from '../../components/ToastContainer.vue';
@@ -200,33 +208,39 @@ const toggleSidebarCollapse = () => {
 };
 
 const iconMap = {
-  LayoutDashboard,
-  FileText,
-  Play,
-  FolderKanban,
-  BookOpen,
-  BookText,
-  Users,
-  Settings,
-  Folder,
-  Tag,
-  MessageSquare,
-  Shield,
-  HardDrive,
-  Info,
-  Archive,
-  SlidersHorizontal,
-  Book,
-  RotateCcw,
-  Image,
-  Zap,
-  Link,
-  Menu,
-  Crown,
-  Mail,
-  LayoutPanelLeft,
-  Languages,
-  Bell
+  // 通用图标
+  LayoutDashboard, Home, Search, Bell, Settings, HelpCircle, Info,
+  // 文件与文档
+  FileText, File, FileImage, FileCode, FileJson, Book, BookOpen, BookText,
+  Archive, Folder, FolderOpen, FolderKanban,
+  // 用户与权限
+  Users, User, UserPlus, UserMinus, Shield, ShieldCheck, Lock, Key,
+  // 内容管理
+  Play, Image, Video, Music, Camera, Bookmark, Tag,
+  // 数据与图表
+  BarChart3, PieChart, Activity, Database, Server, HardDrive,
+  // 导航与链接
+  Link, ExternalLink, Navigation, Compass, MapPin, Globe,
+  // 媒体与通信
+  MessageSquare, MessageCircle, Mail, Phone, Send,
+  // 系统工具
+  SlidersHorizontal, RotateCcw, RefreshCw, Download, Upload,
+  // 状态与反馈
+  CheckCircle2, XCircle, AlertCircle, AlertTriangle, Check, X,
+  // 界面元素
+  Grid3X3, List, Layers, ChevronDown, ChevronLeft, ChevronUp,
+  // 动作与操作
+  Plus, Trash2, Edit3, Eye, EyeOff, Star, Heart,
+  // 商业与财务
+  Briefcase, Wallet, CreditCard, DollarSign, Receipt,
+  // 时间与日期
+  Calendar, CalendarDays, Clock, Timer, History,
+  // 社交与互动
+  ThumbsUp, Comment,
+  // 其他
+  Zap, Lightbulb, Award, Trophy, Gift, Package, ShoppingCart,
+  // 额外
+  LayoutPanelLeft, Languages, Crown, Menu
 };
 
 const menuItems = computed(() => {

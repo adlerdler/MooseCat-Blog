@@ -17,9 +17,9 @@ import { useI18n } from 'vue-i18n';
 import { Motion, AnimatePresence } from 'motion-v';
 import VuePdfEmbed from 'vue-pdf-embed';
 import { renderAsync as renderDocx } from 'docx-preview';
-import VueOfficeExcel from '@vue-office/excel';
-import VueOfficePptx from '@vue-office/pptx';
-import '@vue-office/excel/lib/index.css';
+import VueOfficeExcel from '@vue-office/excel/lib/v3';
+import VueOfficePptx from '@vue-office/pptx/lib/v3';
+import '@vue-office/excel/lib/v3/index.css';
 import ConfirmDialog from './ConfirmDialog.vue';
 import { ref, watch, computed, nextTick } from 'vue';
 

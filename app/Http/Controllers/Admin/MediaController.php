@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\MediaRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -51,12 +52,8 @@ class MediaController extends Controller
     /**
      * 上传文件（挂载到当前用户下，Spatie 原生处理）
      */
-    public function store(Request $request): JsonResponse
+    public function store(MediaRequest $request): JsonResponse
     {
-        $request->validate([
-            'file' => 'required|file|max:102400',
-        ]);
-
         $user = auth()->user();
 
         $addedMedia = $user->addMedia($request->file('file'))

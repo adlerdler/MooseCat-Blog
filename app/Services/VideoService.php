@@ -32,8 +32,15 @@ class VideoService
     {
         return Video::query()
             ->with(['category', 'tags'])
-            ->when($filters['category'] ?? null, fn($q, $slug) => $q->whereHas('category', fn($q) => $q->where('slug', $slug)))
+            ->when($filters['search'] ?? null, function ($q, $search) {
+                $q->where(function ($q) use ($search) {
+                    $q->where('title', 'like', "%{$search}%")
+                      ->orWhere('description', 'like', "%{$search}%");
+                });
+            })
+            ->when($filters['category_id'] ?? null, fn($q, $id) => $q->where('category_id', $id))
             ->when($filters['status'] ?? null, fn($q, $status) => $q->where('status', $status))
+            ->when($filters['platform'] ?? null, fn($q, $platform) => $q->where('platform', $platform))
             ->latest('published_at')
             ->paginate($perPage);
     }

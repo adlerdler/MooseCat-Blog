@@ -343,7 +343,7 @@ onUnmounted(() => {
                   <h3 class="font-display text-3xl sm:text-4xl tracking-tighter leading-[0.9] mb-6">
                     {{ post.title }}
                   </h3>
-                  <p class="text-sm opacity-60 line-clamp-3 mb-12 font-medium leading-relaxed">
+                  <p class="text-sm opacity-60 line-clamp-2 mb-12 font-medium leading-relaxed">
                     {{ post.excerpt }}
                   </p>
                 </div>

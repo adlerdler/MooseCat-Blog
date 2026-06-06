@@ -29,6 +29,7 @@ import {
   UserLevelForm,
   ConfirmDialog,
   Pagination,
+  EmptyState,
   SearchFilterModal
 } from '../../composables/useAdminImports';
 import { router, useForm } from '@inertiajs/vue3';
@@ -65,9 +66,13 @@ watch(viewMode, (newMode) => {
 
 // Use drag sort composable
 const { handleDragStart, handleDragOver, handleDragEnd } = useDragSort({
-  updateUrl: (id) => route('admin.user-levels.update', id),
+  batchUpdateUrl: route('admin.user-levels.batch-update'),
   onUpdateSuccess: () => toastSuccess('Sort order updated'),
-  onUpdateError: (err) => toastError(err?.message || 'Failed to update sort order')
+  onUpdateError: (err) => toastError(err?.message || 'Failed to update sort order'),
+  debounceDelay: 800,
+  itemKey: 'id',
+  sortField: 'sort_order',
+  dataKey: 'levels'
 });
 
 const levels = ref([...props.levels]);
@@ -216,157 +221,170 @@ const handleFilterChange = ({ key, value }) => {
     </div>
 
     <!-- Levels Cards -->
-    <div v-if="viewMode === 'card'" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mt-6">
-      <div
-        v-for="level in paginatedLevels"
-        :key="level.id"
-        :class="[
-          'p-6 rounded-xl transition-all duration-200 hover:scale-[1.02] cursor-move',
-          isDarkMode ? 'bg-gray-800/80 hover:bg-gray-800' : 'bg-white hover:bg-gray-50'
-        ]"
-        draggable="true"
-        @dragstart="handleDragStart($event, level)"
-        @dragover="(e) => handleDragOver(e, level, levels)"
-        @dragend="() => handleDragEnd(levels)"
-      >
-        <!-- Level Header -->
-        <div class="flex items-start justify-between mb-4">
-          <div class="flex items-center gap-3">
-            <div :class="['w-12 h-12 rounded-xl flex items-center justify-center shadow-md']" :style="{ backgroundColor: level.color }">
-              <span class="font-bold text-white text-lg">{{ level.level }}</span>
+    <template v-if="filteredLevels.length > 0">
+      <div v-if="viewMode === 'card'" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mt-6">
+        <div
+          v-for="level in paginatedLevels"
+          :key="level.id"
+          :class="[
+            'p-6 rounded-xl transition-all duration-200 hover:scale-[1.02] cursor-move',
+            isDarkMode ? 'bg-gray-800/80 hover:bg-gray-800' : 'bg-white hover:bg-gray-50'
+          ]"
+          draggable="true"
+          @dragstart="handleDragStart($event, level)"
+          @dragover="(e) => handleDragOver(e, level, levels)"
+          @dragend="() => handleDragEnd(levels)"
+        >
+          <!-- Level Header -->
+          <div class="flex items-start justify-between mb-4">
+            <div class="flex items-center gap-3">
+              <div :class="['w-12 h-12 rounded-xl flex items-center justify-center shadow-md']" :style="{ backgroundColor: level.color }">
+                <span class="font-bold text-white text-lg">{{ level.level }}</span>
+              </div>
+              <div>
+                <h4 :class="['font-bold text-lg', isDarkMode ? 'text-white' : 'text-gray-900']">{{ level.name }}</h4>
+                <p :class="['text-xs', isDarkMode ? 'text-gray-500' : 'text-gray-400']">{{ level.description }}</p>
+              </div>
             </div>
-            <div>
-              <h4 :class="['font-bold text-lg', isDarkMode ? 'text-white' : 'text-gray-900']">{{ level.name }}</h4>
-              <p :class="['text-xs', isDarkMode ? 'text-gray-500' : 'text-gray-400']">{{ level.description }}</p>
-            </div>
+            <GripVertical :class="isDarkMode ? 'text-gray-500' : 'text-gray-400'" size="20" />
           </div>
-          <GripVertical :class="isDarkMode ? 'text-gray-500' : 'text-gray-400'" size="20" />
-        </div>
 
-        <!-- Discount -->
-        <div class="mb-4">
-          <span v-if="level.discount > 0" :class="['px-3 py-1 rounded-full text-xs font-bold', isDarkMode ? 'bg-green-500/20 text-green-400' : 'bg-green-50 text-green-600']">
-            {{ level.discount }}% {{ t('admin_discount') }}
-          </span>
-          <span v-else :class="['text-sm', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
-            {{ t('admin_no_discount') }}
-          </span>
-        </div>
+          <!-- Discount -->
+          <div class="mb-4">
+            <span v-if="level.discount > 0" :class="['px-3 py-1 rounded-full text-xs font-bold', isDarkMode ? 'bg-green-500/20 text-green-400' : 'bg-green-50 text-green-600']">
+              {{ level.discount }}% {{ t('admin_discount') }}
+            </span>
+            <span v-else :class="['text-sm', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
+              {{ t('admin_no_discount') }}
+            </span>
+          </div>
 
-        <!-- Status -->
-        <div class="flex items-center justify-between">
-          <span
-            :class="[
-              'px-3 py-1 rounded-full text-xs font-bold',
-              level.is_active
-                ? (isDarkMode ? 'bg-green-500/20 text-green-400' : 'bg-green-50 text-green-600')
-                : (isDarkMode ? 'bg-red-500/20 text-red-400' : 'bg-red-50 text-red-600')
-            ]"
-          >
-            {{ level.is_active ? t('admin_active') : t('admin_inactive') }}
-          </span>
-          <div class="flex items-center gap-1">
-            <button @click="handleEdit(level)" :class="['p-2 rounded-lg transition-all', isDarkMode ? 'hover:bg-gray-700 text-gray-400 hover:text-white' : 'hover:bg-gray-100 text-gray-500 hover:text-gray-700']">
-              <Edit3 size="16" />
-            </button>
-            <button @click="handleDelete(level.id)" :class="['p-2 rounded-lg transition-all', isDarkMode ? 'hover:bg-red-500/20 text-gray-400 hover:text-red-400' : 'hover:bg-red-50 text-gray-500 hover:text-red-500']">
-              <Trash2 size="16" />
-            </button>
+          <!-- Status -->
+          <div class="flex items-center justify-between">
+            <span
+              :class="[
+                'px-3 py-1 rounded-full text-xs font-bold',
+                level.is_active
+                  ? (isDarkMode ? 'bg-green-500/20 text-green-400' : 'bg-green-50 text-green-600')
+                  : (isDarkMode ? 'bg-red-500/20 text-red-400' : 'bg-red-50 text-red-600')
+              ]"
+            >
+              {{ level.is_active ? t('admin_active') : t('admin_inactive') }}
+            </span>
+            <div class="flex items-center gap-1">
+              <button @click="handleEdit(level)" :class="['p-2 rounded-lg transition-all', isDarkMode ? 'hover:bg-gray-700 text-gray-400 hover:text-white' : 'hover:bg-gray-100 text-gray-500 hover:text-gray-700']">
+                <Edit3 size="16" />
+              </button>
+              <button @click="handleDelete(level.id)" :class="['p-2 rounded-lg transition-all', isDarkMode ? 'hover:bg-red-500/20 text-gray-400 hover:text-red-400' : 'hover:bg-red-50 text-gray-500 hover:text-red-500']">
+                <Trash2 size="16" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Levels Table -->
-    <div v-if="viewMode === 'table'" :class="['mt-6 rounded-xl overflow-hidden', isDarkMode ? 'bg-gray-800/80' : 'bg-white']">
-      <table class="w-full">
-        <thead :class="isDarkMode ? 'bg-gray-700/50' : 'bg-gray-100/50'">
-          <tr>
-            <th :class="['px-6 py-4 text-left text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_table_order') }}</th>
-            <th :class="['px-6 py-4 text-left text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_table_level') }}</th>
-            <th :class="['px-6 py-4 text-left text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_table_name') }}</th>
-            <th :class="['px-6 py-4 text-left text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_table_discount') }}</th>
-            <th :class="['px-6 py-4 text-left text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_table_color') }}</th>
-            <th :class="['px-6 py-4 text-left text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_table_status') }}</th>
-            <th :class="['px-6 py-4 text-center text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_table_actions') }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            v-for="level in paginatedLevels"
-            :key="level.id"
-            :class="['transition-colors cursor-move', isDarkMode ? 'hover:bg-gray-700/50' : 'hover:bg-gray-50']"
-            draggable="true"
-            @dragstart="handleDragStart($event, level)"
-            @dragover="(e) => handleDragOver(e, level, levels)"
-            @dragend="() => handleDragEnd(levels)"
-          >
-            <td class="px-6 py-4">
-              <div class="flex items-center gap-2">
-                <GripVertical :class="isDarkMode ? 'text-gray-500' : 'text-gray-400'" size="16" />
-                <span class="text-xs font-bold">{{ level.sort_order }}</span>
-              </div>
-            </td>
-            <td class="px-6 py-4">
-              <div :class="['w-10 h-10 rounded-lg flex items-center justify-center font-bold text-white']" :style="{ backgroundColor: level.color }">
-                {{ level.level }}
-              </div>
-            </td>
-            <td class="px-6 py-4">
-              <div>
-                <span :class="['font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">{{ level.name }}</span>
-                <p :class="['text-sm', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ level.description }}</p>
-              </div>
-            </td>
-            <td class="px-6 py-4">
-              <span v-if="level.discount > 0" :class="['px-3 py-1 rounded-full text-xs font-bold', isDarkMode ? 'bg-green-500/20 text-green-400' : 'bg-green-50 text-green-600']">
-                {{ level.discount }}% {{ t('admin_discount') }}
-              </span>
-              <span v-else :class="['text-sm', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
-                {{ t('admin_no_discount') }}
-              </span>
-            </td>
-            <td class="px-6 py-4">
-              <div class="flex items-center gap-2">
-                <div class="w-6 h-6 rounded-full border-2" :style="{ borderColor: level.color, backgroundColor: level.color + '40' }" />
-                <span :class="['text-xs font-mono', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ level.color }}</span>
-              </div>
-            </td>
-            <td class="px-6 py-4">
-              <span
-                :class="[
-                  'px-3 py-1 rounded-full text-xs font-bold',
-                  level.is_active
-                    ? (isDarkMode ? 'bg-green-500/20 text-green-400' : 'bg-green-50 text-green-600')
-                    : (isDarkMode ? 'bg-red-500/20 text-red-400' : 'bg-red-50 text-red-600')
-                ]"
-              >
-                {{ level.is_active ? t('admin_active') : t('admin_inactive') }}
-              </span>
-            </td>
-            <td class="px-6 py-4">
-              <div class="flex items-center justify-center gap-1">
-                <button @click="handleEdit(level)" :class="['p-2 rounded-lg transition-all', isDarkMode ? 'hover:bg-gray-700 text-gray-400 hover:text-white' : 'hover:bg-gray-100 text-gray-500 hover:text-gray-700']">
-                  <Edit3 size="16" />
-                </button>
-                <button @click="handleDelete(level.id)" :class="['p-2 rounded-lg transition-all', isDarkMode ? 'hover:bg-red-500/20 text-gray-400 hover:text-red-400' : 'hover:bg-red-50 text-gray-500 hover:text-red-500']">
-                  <Trash2 size="16" />
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+      <!-- Levels Table -->
+      <div v-if="viewMode === 'table'" :class="['mt-6 rounded-xl overflow-hidden', isDarkMode ? 'bg-gray-800/80' : 'bg-white']">
+        <table class="w-full">
+          <thead :class="isDarkMode ? 'bg-gray-700/50' : 'bg-gray-100/50'">
+            <tr>
+              <th :class="['px-6 py-4 text-left text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_table_order') }}</th>
+              <th :class="['px-6 py-4 text-left text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_table_level') }}</th>
+              <th :class="['px-6 py-4 text-left text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_table_name') }}</th>
+              <th :class="['px-6 py-4 text-left text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_table_discount') }}</th>
+              <th :class="['px-6 py-4 text-left text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_table_color') }}</th>
+              <th :class="['px-6 py-4 text-left text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_table_status') }}</th>
+              <th :class="['px-6 py-4 text-center text-xs font-bold tracking-widest uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_table_actions') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="level in paginatedLevels"
+              :key="level.id"
+              :class="['transition-colors cursor-move', isDarkMode ? 'hover:bg-gray-700/50' : 'hover:bg-gray-50']"
+              draggable="true"
+              @dragstart="handleDragStart($event, level)"
+              @dragover="(e) => handleDragOver(e, level, levels)"
+              @dragend="() => handleDragEnd(levels)"
+            >
+              <td class="px-6 py-4">
+                <div class="flex items-center gap-2">
+                  <GripVertical :class="isDarkMode ? 'text-gray-500' : 'text-gray-400'" size="16" />
+                  <span class="text-xs font-bold">{{ level.sort_order }}</span>
+                </div>
+              </td>
+              <td class="px-6 py-4">
+                <div :class="['w-10 h-10 rounded-lg flex items-center justify-center font-bold text-white']" :style="{ backgroundColor: level.color }">
+                  {{ level.level }}
+                </div>
+              </td>
+              <td class="px-6 py-4">
+                <div>
+                  <span :class="['font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">{{ level.name }}</span>
+                  <p :class="['text-sm', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ level.description }}</p>
+                </div>
+              </td>
+              <td class="px-6 py-4">
+                <span v-if="level.discount > 0" :class="['px-3 py-1 rounded-full text-xs font-bold', isDarkMode ? 'bg-green-500/20 text-green-400' : 'bg-green-50 text-green-600']">
+                  {{ level.discount }}% {{ t('admin_discount') }}
+                </span>
+                <span v-else :class="['text-sm', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
+                  {{ t('admin_no_discount') }}
+                </span>
+              </td>
+              <td class="px-6 py-4">
+                <div class="flex items-center gap-2">
+                  <div class="w-6 h-6 rounded-full border-2" :style="{ borderColor: level.color, backgroundColor: level.color + '40' }" />
+                  <span :class="['text-xs font-mono', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ level.color }}</span>
+                </div>
+              </td>
+              <td class="px-6 py-4">
+                <span
+                  :class="[
+                    'px-3 py-1 rounded-full text-xs font-bold',
+                    level.is_active
+                      ? (isDarkMode ? 'bg-green-500/20 text-green-400' : 'bg-green-50 text-green-600')
+                      : (isDarkMode ? 'bg-red-500/20 text-red-400' : 'bg-red-50 text-red-600')
+                  ]"
+                >
+                  {{ level.is_active ? t('admin_active') : t('admin_inactive') }}
+                </span>
+              </td>
+              <td class="px-6 py-4">
+                <div class="flex items-center justify-center gap-1">
+                  <button @click="handleEdit(level)" :class="['p-2 rounded-lg transition-all', isDarkMode ? 'hover:bg-gray-700 text-gray-400 hover:text-white' : 'hover:bg-gray-100 text-gray-500 hover:text-gray-700']">
+                    <Edit3 size="16" />
+                  </button>
+                  <button @click="handleDelete(level.id)" :class="['p-2 rounded-lg transition-all', isDarkMode ? 'hover:bg-red-500/20 text-gray-400 hover:text-red-400' : 'hover:bg-red-50 text-gray-500 hover:text-red-500']">
+                    <Trash2 size="16" />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-    <!-- Pagination -->
-    <Pagination
-      :current-page="currentPage"
-      :total-pages="totalPages"
-      :total-items="filteredLevels.length"
-      :items-per-page="itemsPerPage"
-      @update:current-page="(page) => currentPage = page"
-    />
+      <!-- Pagination -->
+      <Pagination
+        :current-page="currentPage"
+        :total-pages="totalPages"
+        :total-items="filteredLevels.length"
+        :items-per-page="itemsPerPage"
+        @update:current-page="(page) => currentPage = page"
+      />
+    </template>
+
+    <!-- Empty State -->
+    <template v-else>
+      <div class="mt-8">
+        <EmptyState
+          :title="t('admin_no_user_levels_found')"
+          :description="t('admin_no_user_levels_description')"
+          :icon="Crown"
+        />
+      </div>
+    </template>
 
     <!-- User Level Form -->
     <UserLevelForm

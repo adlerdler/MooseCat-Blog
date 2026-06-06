@@ -77,4 +77,10 @@ class Video extends Model
             ->dontSubmitEmptyLogs()
             ->useLogName('videos');
     }
+
+    protected static function booted(): void
+    {
+        static::saved(fn(Video $video) => app(\App\Services\CacheService::class)->clearVideoCache($video));
+        static::deleted(fn(Video $video) => app(\App\Services\CacheService::class)->clearVideoCache($video));
+    }
 }

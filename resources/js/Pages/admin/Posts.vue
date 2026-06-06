@@ -19,7 +19,9 @@ import {
   ConfirmDialog,
   PostForm,
   Pagination,
+  EmptyState,
   SearchFilterModal,
+  Inbox,
   router
 } from '../../composables/useAdminImports';
 import SeoForm from '../../components/admin/SeoForm.vue';
@@ -314,43 +316,55 @@ watch(() => props.post, (newPost) => {
       @filter-change="handleFilterChange"
     />
 
-    <!-- Posts Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <ContentCard
-        v-for="post in paginatedPosts"
-        :key="post.id"
-        :item="post"
-        :cover-image="post.cover_image"
-        :title="post.title"
-        :description="post.excerpt"
-        :tags="post.tags"
-        :date="formatToSmartDate(post.published_at || post.created_at)"
-        :author="getAuthorName(post.author_id)"
-        :placeholder-icon="FileText"
-        @edit="handleEdit"
-        @seo-edit="handleSeoEdit"
-        @delete="handleDelete"
-      >
-        <template #top-left-badges>
-          <span class="px-2 py-1 text-xs font-bold uppercase rounded" :class="getStatusBadge(post.status)">
-            {{ getStatusLabel(post.status) }}
-          </span>
-          <span class="px-2 py-1 text-xs font-bold uppercase rounded" :class="getCategoryColor(getCategoryNameById(categories, post.category_id))">
-            {{ getCategoryNameById(categories, post.category_id) }}
-          </span>
-        </template>
-      </ContentCard>
-    </div>
+    <!-- Content Area -->
+    <template v-if="filteredPosts.length > 0">
+      <!-- Posts Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <ContentCard
+          v-for="post in paginatedPosts"
+          :key="post.id"
+          :item="post"
+          :cover-image="post.cover_image"
+          :title="post.title"
+          :description="post.excerpt"
+          :tags="post.tags"
+          :date="formatToSmartDate(post.published_at || post.created_at)"
+          :author="getAuthorName(post.author_id)"
+          :placeholder-icon="FileText"
+          @edit="handleEdit"
+          @seo-edit="handleSeoEdit"
+          @delete="handleDelete"
+        >
+          <template #top-left-badges>
+            <span class="px-2 py-1 text-xs font-bold uppercase rounded" :class="getStatusBadge(post.status)">
+              {{ getStatusLabel(post.status) }}
+            </span>
+            <span class="px-2 py-1 text-xs font-bold uppercase rounded" :class="getCategoryColor(getCategoryNameById(categories, post.category_id))">
+              {{ getCategoryNameById(categories, post.category_id) }}
+            </span>
+          </template>
+        </ContentCard>
+      </div>
 
-    <!-- Pagination -->
-    <Pagination
-      :current-page="currentPage"
-      :total-pages="totalPages"
-      :total-items="filteredPosts.length"
-      :items-per-page="itemsPerPage"
-      @update:current-page="(page) => currentPage.value = page"
-      @update:items-per-page="(size) => { itemsPerPage.value = size; currentPage.value = 1; }"
-    />
+      <!-- Pagination -->
+      <Pagination
+        :current-page="currentPage"
+        :total-pages="totalPages"
+        :total-items="filteredPosts.length"
+        :items-per-page="itemsPerPage"
+        @update:current-page="(page) => currentPage = page"
+        @update:items-per-page="(size) => { itemsPerPage = size; currentPage = 1; }"
+      />
+    </template>
+
+    <!-- Empty State -->
+    <div v-else>
+      <EmptyState 
+        :title="t('admin_no_posts_found') || 'No posts found'"
+        :description="t('admin_no_posts_description') || 'Try adjusting your search or filters to find what you are looking for'"
+        :icon="FileText"
+      />
+    </div>
 
     <!-- Content Form Modal -->
     <PostForm

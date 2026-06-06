@@ -23,8 +23,10 @@ import { useToast } from '../../composables/useToast';
 import { formatToShort } from '../../utils/dateUtils';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import Pagination from '../../components/admin/Pagination.vue';
+import EmptyState from '../../components/admin/EmptyState.vue';
 import SearchFilterModal from '../../components/admin/SearchFilterModal.vue';
 import { router, useForm } from '@inertiajs/vue3';
+import { Inbox } from 'lucide-vue-next';
 
 const props = defineProps({
   backups: { type: Array, default: () => [] },
@@ -220,86 +222,88 @@ const handleFilterChange = ({ key, value }) => {
       @filter-change="handleFilterChange"
     />
 
-    <!-- Backup List -->
-    <div class="space-y-4">
-      <div 
-        v-for="backup in paginatedBackups" 
-        :key="backup.id"
-        :class="[
-          'p-6 border rounded-xl transition-all hover:border-construct-red',
-          isDarkMode ? 'bg-gray-800/50 border-gray-700' : 'bg-white border-gray-200'
-        ]"
-      >
-        <div class="flex items-start gap-4">
-          <div :class="['p-3 rounded-full', isDarkMode ? 'bg-gray-700' : 'bg-gray-100']">
-            <component :is="getTypeIcon(backup.type)" :class="getTypeColor(backup.type)" size="24" />
-          </div>
-          <div class="flex-1 min-w-0">
-            <div class="flex items-center justify-between mb-2 gap-4">
-              <div class="flex items-center gap-3 flex-wrap">
-                <span :class="['font-bold text-lg', isDarkMode ? 'text-white' : 'text-gray-900']">{{ backup.name }}</span>
-                <span :class="['px-2 py-1 text-xs font-bold uppercase rounded', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600']">
-                  {{ t('admin_backup_' + backup.type) }}
-                </span>
-                <span :class="['flex items-center gap-1 text-sm', getStatusColor(backup.status)]">
-                  <component :is="getStatusIcon(backup.status)" size="16" :class="{ 'animate-spin': backup.status === 'in_progress' }" />
-                  {{ t('admin_backup_status_' + backup.status) }}
-                </span>
-              </div>
-              <div class="flex items-center gap-4 flex-shrink-0">
-                <span :class="['text-sm', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ backup.size }}</span>
-              </div>
+    <!-- Content Area -->
+    <template v-if="filteredBackups.length > 0">
+      <!-- Backups Table/List (Simplified) -->
+      <div class="mt-8 space-y-4">
+        <div 
+          v-for="backup in paginatedBackups" 
+          :key="backup.id"
+          :class="[
+            'p-6 border rounded-xl transition-all hover:border-construct-red',
+            isDarkMode ? 'bg-gray-800/50 border-gray-700' : 'bg-white border-gray-200 shadow-sm'
+          ]"
+        >
+          <div class="flex items-start gap-4">
+            <div :class="['p-3 rounded-full', isDarkMode ? 'bg-gray-700' : 'bg-gray-100']">
+              <component :is="getTypeIcon(backup.type)" :class="getTypeColor(backup.type)" size="24" />
             </div>
-            <p :class="['mb-3', isDarkMode ? 'text-gray-300' : 'text-gray-700']">{{ backup.note }}</p>
-            <div class="flex items-center justify-between gap-4">
-              <div class="flex items-center gap-2 text-sm flex-shrink-0">
-                <Clock :class="isDarkMode ? 'text-gray-500' : 'text-gray-400'" size="14" />
-                <span :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'">
-                  {{ t('admin_created') }}: {{ formatToShort(backup.createdAt) }}
-                </span>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between mb-2 gap-4">
+                <div class="flex items-center gap-3 flex-wrap">
+                  <span :class="['font-bold text-lg', isDarkMode ? 'text-white' : 'text-gray-900']">{{ backup.name }}</span>
+                  <span :class="['px-2 py-1 text-[10px] font-bold uppercase rounded border', isDarkMode ? 'bg-gray-700 border-gray-600 text-gray-300' : 'bg-gray-100 border-gray-200 text-gray-600']">
+                    {{ t('admin_backup_' + backup.type) }}
+                  </span>
+                </div>
+                <div class="flex items-center gap-4 flex-shrink-0">
+                  <span :class="['text-sm', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ backup.size }}</span>
+                </div>
               </div>
-              <div class="flex items-center gap-2 flex-shrink-0">
-                <button
-                  @click="handleDownload(backup)"
-                  :class="[
-                    'p-2 rounded-lg transition-colors',
-                    isDarkMode ? 'hover:bg-gray-700 text-gray-400 hover:text-white' : 'hover:bg-gray-100 text-gray-500 hover:text-gray-900'
-                  ]"
-                  :title="t('admin_download')"
-                >
-                  <Download size="18" />
-                </button>
-                <button
-                  @click="handleDelete(backup)"
-                  :class="[
-                    'p-2 rounded-lg transition-colors',
-                    isDarkMode ? 'hover:bg-gray-700 text-gray-400 hover:text-red-400' : 'hover:bg-gray-100 text-gray-500 hover:text-red-600'
-                  ]"
-                  :title="t('admin_delete')"
-                >
-                  <Trash2 size="18" />
-                </button>
+              <p :class="['mb-3', isDarkMode ? 'text-gray-300' : 'text-gray-700']">{{ backup.note }}</p>
+              <div class="flex items-center justify-between gap-4">
+                <div class="flex items-center gap-2 text-sm flex-shrink-0">
+                  <Clock :class="isDarkMode ? 'text-gray-500' : 'text-gray-400'" size="14" />
+                  <span :class="isDarkMode ? 'text-gray-400' : 'text-gray-500'">
+                    {{ t('admin_created') }}: {{ formatToShort(backup.createdAt) }}
+                  </span>
+                </div>
+                <div class="flex items-center gap-2 flex-shrink-0">
+                  <button
+                    @click="handleDownload(backup)"
+                    :class="[
+                      'p-2 rounded-lg transition-colors',
+                      isDarkMode ? 'hover:bg-gray-700 text-gray-400 hover:text-white' : 'hover:bg-gray-100 text-gray-500 hover:text-gray-900'
+                    ]"
+                    :title="t('admin_download')"
+                  >
+                    <Download size="18" />
+                  </button>
+                  <button
+                    @click="handleDelete(backup)"
+                    :class="[
+                      'p-2 rounded-lg transition-colors',
+                      isDarkMode ? 'hover:bg-gray-700 text-gray-400 hover:text-red-400' : 'hover:bg-gray-100 text-gray-500 hover:text-red-600'
+                    ]"
+                    :title="t('admin_delete')"
+                  >
+                    <Trash2 size="18" />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+
+      <!-- Pagination -->
+      <Pagination
+        :current-page="currentPage"
+        :total-pages="totalPages"
+        :total-items="filteredBackups.length"
+        v-model:items-per-page="itemsPerPage"
+        @update:current-page="currentPage = $event"
+      />
+    </template>
 
     <!-- Empty State -->
-    <div v-if="filteredBackups.length === 0" :class="['text-center py-12', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
-      <Archive :class="['mx-auto mb-4 opacity-50', isDarkMode ? 'text-gray-600' : 'text-gray-400']" size="48" />
-      <p>{{ t('admin_no_backups') }}</p>
+    <div v-else class="mt-8">
+      <EmptyState 
+        :title="t('admin_no_backups_found') || 'No backups found'"
+        :description="t('admin_no_backups_description') || 'Try adjusting your search or filters to find what you are looking for'"
+        :icon="Database"
+      />
     </div>
-
-    <!-- Pagination -->
-    <Pagination
-      :current-page="currentPage"
-      :total-pages="totalPages"
-      :total-items="filteredBackups.length"
-      v-model:items-per-page="itemsPerPage"
-      @update:current-page="currentPage = $event"
-    />
 
     <!-- Create Backup Modal -->
     <Teleport to="body">

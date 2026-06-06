@@ -2,6 +2,9 @@
 
 本文档是 `laravel-vue-app` 项目的权威数据库设计指南。它整合了 `OPTIMIZATION.md` 中的安全与一致性建议，以及 `INTEGRATION_GUIDE.md` 中的全栈对接规划。
 
+**最后更新：** 2026-06-06
+**状态：** ✅ 数据库设计已完成
+
 ---
 
 ## 一、 用户与权限 (User & RBAC)

@@ -368,7 +368,7 @@ const resetSettings = () => {
     </div>
 
     <!-- Settings Content -->
-    <div :class="['rounded-xl border p-8 backdrop-blur-xl', isDarkMode ? 'bg-gray-900/40 border-gray-700/30' : 'bg-white/40 border-white/20 shadow-sm']">
+    <div :class="['rounded-xl border p-8', isDarkMode ? 'bg-gray-500/5 border-gray-500/20' : 'bg-gray-50 border-gray-200']">
       <fieldset class="border-none p-0 m-0">
         <!-- Site Settings -->
         <div v-if="activeTab === 'site'">

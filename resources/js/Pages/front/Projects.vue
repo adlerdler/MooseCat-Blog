@@ -23,6 +23,7 @@ import { useAdSlot } from '../../composables/useAdSlot';
 import SidebarMenu from '@/components/SidebarMenu.vue';
 import Footer from '@/components/Footer.vue';
 import AdSlot from '@/components/front/AdSlot.vue';
+import LazyImage from '@/components/LazyImage.vue';
 
 const props = defineProps({
   projects: { type: Array, default: () => [] },
@@ -156,7 +157,7 @@ const getAdSpanClass = () => {
             >
               <a :href="item.data.link_url" target="_blank" rel="noopener noreferrer" class="block relative h-full flex flex-col flex-1">
                 <div class="aspect-video relative overflow-hidden">
-                  <img
+                  <LazyImage
                     :src="item.data.image_url"
                     :alt="item.data.title"
                     class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
@@ -196,7 +197,7 @@ const getAdSpanClass = () => {
                 <!-- Special layout for second card (idx 1) -->
                 <div v-if="item.originalIndex === 1" class="relative overflow-hidden w-full h-full">
                   <!-- Background Image with Grayscale & Scale Transitions -->
-                  <img
+                  <LazyImage
                     :src="item.data.image"
                     :alt="item.data.title"
                     class="absolute inset-0 w-full h-full object-cover grayscale mix-blend-luminosity opacity-40 group-hover:grayscale-0 group-hover:mix-blend-normal group-hover:opacity-60 group-hover:scale-110 transition-all duration-700 ease-out"
@@ -263,7 +264,7 @@ const getAdSpanClass = () => {
                 <!-- Normal layout for other cards -->
                 <div v-else class="relative w-full h-full min-h-[500px]">
                   <!-- Background Image -->
-                  <img
+                  <LazyImage
                     v-if="item.data.image"
                     :src="item.data.image"
                     :alt="item.data.title"

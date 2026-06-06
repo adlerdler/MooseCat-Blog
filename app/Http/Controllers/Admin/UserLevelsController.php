@@ -89,4 +89,27 @@ class UserLevelsController extends Controller
 
         return back()->with('success', '用户等级已删除');
     }
+
+    public function batchUpdate(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'levels' => 'required|array',
+            'levels.*.id' => 'nullable|integer',
+            'levels.*.name' => 'required|string|max:100',
+            'levels.*.level' => 'required|integer',
+            'levels.*.sort_order' => 'nullable|integer',
+            'levels.*.is_active' => 'boolean',
+        ]);
+
+        foreach ($validated['levels'] as $levelData) {
+            if (!empty($levelData['id'])) {
+                $level = UserLevel::find($levelData['id']);
+                if ($level) {
+                    $level->update($levelData);
+                }
+            }
+        }
+
+        return back()->with('success', '排序已更新');
+    }
 }

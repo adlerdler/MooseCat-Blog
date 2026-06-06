@@ -33,6 +33,7 @@ import {
 import { useToast } from '../../composables/useToast';
 import { formatToShort } from '../../utils/dateUtils';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
+import EmptyState from '../../components/admin/EmptyState.vue';
 import NotificationForm from '../../components/admin/NotificationForm.vue';
 
 const props = defineProps({
@@ -258,7 +259,7 @@ const handleFilterChange = ({ key, value }) => {
     <!-- Notification List -->
     <div class="space-y-4">
       <!-- List Toolbar -->
-      <div v-if="props.unreadCount > 0" class="list-toolbar">
+      <div v-if="props.unreadCount > 0 && filteredNotifications.length > 0" class="list-toolbar">
         <div class="flex items-center gap-2">
           <span class="list-toolbar-dot"></span>
           <span class="list-toolbar-count">{{ props.unreadCount }} {{ t('admin_pending').toLowerCase() }}</span>
@@ -268,96 +269,104 @@ const handleFilterChange = ({ key, value }) => {
           {{ t('admin_mark_all_read') }}
         </button>
       </div>
-      <div
-        v-for="notification in paginatedNotifications"
-        :key="notification.id"
-        class="notification-card"
-        :class="{ 'notification-card--unread': !notification.read }"
-      >
-        <div class="flex items-start gap-4">
-          <!-- Icon -->
-          <div class="notification-icon" :class="'notification-icon--' + notification.type">
-            <component :is="getTypeIcon(notification.type)" class="w-6 h-6" :class="getTypeColor(notification.type)" />
-          </div>
 
-          <!-- Content -->
-          <div class="flex-1 min-w-0">
-            <div class="flex items-center justify-between mb-2">
-              <div class="flex items-center gap-3">
-                <span class="notification-title" :class="{ 'notification-title--unread': !notification.read }">
-                  {{ notification.title }}
-                </span>
-                <span v-if="!notification.read" class="badge-new">NEW</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <Clock size="16" class="notification-meta" style="margin-bottom: 0;" />
-                <span class="notification-meta" style="margin-bottom: 0;">{{ formatToShort(notification.created_at) }}</span>
-              </div>
+      <template v-if="filteredNotifications.length > 0">
+        <div
+          v-for="notification in paginatedNotifications"
+          :key="notification.id"
+          class="notification-card"
+          :class="{ 'notification-card--unread': !notification.read }"
+        >
+          <div class="flex items-start gap-4">
+            <!-- Icon -->
+            <div class="notification-icon" :class="'notification-icon--' + notification.type">
+              <component :is="getTypeIcon(notification.type)" class="w-6 h-6" :class="getTypeColor(notification.type)" />
             </div>
 
-            <p class="notification-body">{{ notification.message }}</p>
-
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-4">
-                <span class="type-badge" :class="'type-badge--' + notification.type">
-                  {{ notification.type }}
-                </span>
-                <a
-                  v-if="notification.link"
-                  :href="notification.link"
-                  target="_blank"
-                  class="flex items-center gap-1 text-xs font-medium transition-colors"
-                  :style="{ color: isDarkMode ? '#60a5fa' : '#2563eb' }"
-                >
-                  <Link size="12" />
-                  {{ t('admin_view_link') }}
-                </a>
+            <!-- Content -->
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-3">
+                  <span class="notification-title" :class="{ 'notification-title--unread': !notification.read }">
+                    {{ notification.title }}
+                  </span>
+                  <span v-if="!notification.read" class="badge-new">NEW</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <Clock size="16" class="notification-meta" style="margin-bottom: 0;" />
+                  <span class="notification-meta" style="margin-bottom: 0;">{{ formatToShort(notification.created_at) }}</span>
+                </div>
               </div>
 
-              <div class="flex items-center gap-2">
-                <button
-                  v-if="!notification.read"
-                  @click="markAsRead(notification.id)"
-                  class="action-btn action-btn--read"
-                  :title="t('admin_mark_read')"
-                >
-                  <CheckCircle size="16" />
-                </button>
-                <button
-                  @click="handleView(notification)"
-                  class="action-btn action-btn--view"
-                  :title="t('admin_view')"
-                >
-                  <Eye size="16" />
-                </button>
-                <button
-                  @click="handleDelete(notification.id)"
-                  class="action-btn action-btn--delete"
-                  :title="t('admin_delete')"
-                >
-                  <Trash2 size="16" />
-                </button>
+              <p class="notification-body">{{ notification.message }}</p>
+
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                  <span class="type-badge" :class="'type-badge--' + notification.type">
+                    {{ notification.type }}
+                  </span>
+                  <a
+                    v-if="notification.link"
+                    :href="notification.link"
+                    target="_blank"
+                    class="flex items-center gap-1 text-xs font-medium transition-colors"
+                    :style="{ color: isDarkMode ? '#60a5fa' : '#2563eb' }"
+                  >
+                    <Link size="12" />
+                    {{ t('admin_view_link') }}
+                  </a>
+                </div>
+
+                <div class="flex items-center gap-2">
+                  <button
+                    v-if="!notification.read"
+                    @click="markAsRead(notification.id)"
+                    class="action-btn action-btn--read"
+                    :title="t('admin_mark_read')"
+                  >
+                    <CheckCircle size="16" />
+                  </button>
+                  <button
+                    @click="handleView(notification)"
+                    class="action-btn action-btn--view"
+                    :title="t('admin_view')"
+                  >
+                    <Eye size="16" />
+                  </button>
+                  <button
+                    @click="handleDelete(notification.id)"
+                    class="action-btn action-btn--delete"
+                    :title="t('admin_delete')"
+                  >
+                    <Trash2 size="16" />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+
+        <!-- Pagination -->
+        <Pagination
+          :current-page="currentPage"
+          :total-pages="totalPages"
+          :total-items="filteredNotifications.length"
+          v-model:items-per-page="itemsPerPage"
+          @update:current-page="currentPage = $event"
+        />
+      </template>
 
       <!-- Empty State -->
-      <div v-if="paginatedNotifications.length === 0" class="empty-state">
-        <Bell :size="48" class="empty-state-icon" />
-        <p class="empty-state-text">{{ t('admin_no_notifications') }}</p>
-      </div>
+      <template v-else>
+        <div class="mt-8">
+          <EmptyState
+            :title="t('admin_no_notifications_found')"
+            :description="t('admin_no_notifications_description')"
+            :icon="Bell"
+          />
+        </div>
+      </template>
     </div>
-
-    <!-- Pagination -->
-    <Pagination
-      :current-page="currentPage"
-      :total-pages="totalPages"
-      :total-items="filteredNotifications.length"
-      v-model:items-per-page="itemsPerPage"
-      @update:current-page="currentPage = $event"
-    />
 
     <!-- Notification Form Modal -->
     <Transition name="modal">

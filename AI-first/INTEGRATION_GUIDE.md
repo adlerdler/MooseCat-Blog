@@ -2,6 +2,9 @@
 
 本文档旨在指导 `laravel-vue-app` 从静态 Mock 数据向 Laravel 后端 API 驱动架构的平滑过渡。
 
+**最后更新：** 2026-06-06
+**状态：** ✅ 全部对接完成
+
 ### 架构模式说明
 
 采用 **轻量级 Repository 模式**：
@@ -166,23 +169,28 @@ export function useJournals() {
 | **P0** | **媒体库全栈实现** | MediaController, Media Table | ✅ |
 | **P0** | **管理后台 Web 认证迁移** | Auth Middleware, Session Logic | ✅ |
 | **P0** | **文章管理 CRUD 对接** | Post Management | ✅ |
+| **P0** | **图片验证码登录校验** | Login Page Captcha | ✅ |
 | **P1** | **广告管理 CRUD 对接** | Advertisement Management | ✅ |
 | **P1** | **评论审核系统对接** | Comment System | ✅ |
 | **P1** | **系统设置持久化** | Settings Management | ✅ |
 | **P1** | **前台菜单动态化同步** | Front Menu Management | ✅ |
+| **P1** | **社交登录配置管理** | SocialLogin (Google/GitHub) | ✅ |
 | **P2** | **仪表盘统计数据真实化** | Analytics Dashboard | ✅ |
 | **P2** | **全局 SEO 元数据同步** | Meta Management | ✅ |
+| **P2** | **RSS Feed 配置** | SEO Settings | ✅ |
 | **P2** | **用户等级系统对接** | User Levels | ✅ |
 | **P2** | **访问统计系统对接** | Visits Analytics | ✅ |
+| **P2** | **极光流体动态背景** | Admin Layout UI | ✅ |
+| **P2** | **毛玻璃 UI 样式** | Admin Pages | ✅ |
 
 ---
 
 ## 五、 后续注意事项
-1.  **Storage Link**: 对接媒体库前，必须执行 `php artisan storage:link`。
-2.  **CSRF**: 所有非 GET 请求必须携带 CSRF Token。
-3.  **App 兼容性**: 核心业务逻辑应封装在 Service 层，以便将来 `routes/api.php` 也能直接复用。
-4.  **数据迁移**: 使用 Laravel Migration 工具将现有 data 文件数据迁移到数据库。
-5.  **国际化**: 确保所有用户可见文本使用 i18n key，支持多语言切换。
+1.  **Storage Link**: 对接媒体库前，必须执行 `php artisan storage:link`。✅ 已完成
+2.  **CSRF**: 所有非 GET 请求必须携带 CSRF Token。✅ Inertia.js 自动处理
+3.  **App 兼容性**: 核心业务逻辑应封装在 Service 层，以便将来 `routes/api.php` 也能直接复用。✅ 已采用
+4.  **数据迁移**: 使用 Laravel Migration 工具将现有 data 文件数据迁移到数据库。✅ 已完成
+5.  **国际化**: 确保所有用户可见文本使用 i18n key，支持多语言切换。✅ vue-i18n 已配置
 
 ---
-*最后更新：2026-06-03*
+*最后更新：2026-06-06*

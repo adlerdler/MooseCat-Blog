@@ -14,6 +14,7 @@ use App\Models\Project;
 use App\Models\Resource;
 use App\Models\User;
 use App\Models\Video;
+use App\Services\CacheService;
 use App\Services\MockDataService;
 use App\Services\SettingService;
 use Illuminate\Http\Request;
@@ -24,11 +25,13 @@ class FrontendController extends Controller
 {
     protected $mockDataService;
     protected $settingService;
+    protected $cacheService;
 
-    public function __construct(MockDataService $mockDataService, SettingService $settingService)
+    public function __construct(MockDataService $mockDataService, SettingService $settingService, CacheService $cacheService)
     {
         $this->mockDataService = $mockDataService;
         $this->settingService = $settingService;
+        $this->cacheService = $cacheService;
     }
 
     private function getFooterConfig(): array
@@ -85,60 +88,66 @@ class FrontendController extends Controller
 
     public function home(): Response
     {
-        $posts = Post::with(['author', 'category', 'tags'])
-            ->where('status', 'published')
-            ->inRandomOrder()
-            ->limit(3)
-            ->get()
-            ->map(fn($p) => [
-                'id' => $p->id,
-                'slug' => $p->slug,
-                'title' => $p->title,
-                'excerpt' => $p->excerpt,
-                'color' => $p->color,
-                'published_at' => $p->published_at?->toISOString(),
-                'category_id' => $p->category_id,
-                'author_id' => $p->author_id,
-                'tags' => $p->tags->pluck('name')->toArray(),
-            ]);
+        $posts = $this->cacheService->remember('home_posts_random', function () {
+            return Post::with(['author', 'category', 'tags'])
+                ->where('status', 'published')
+                ->inRandomOrder()
+                ->limit(3)
+                ->get()
+                ->map(fn($p) => [
+                    'id' => $p->id,
+                    'slug' => $p->slug,
+                    'title' => $p->title,
+                    'excerpt' => $p->excerpt,
+                    'color' => $p->color,
+                    'published_at' => $p->published_at?->toISOString(),
+                    'category_id' => $p->category_id,
+                    'author_id' => $p->author_id,
+                    'tags' => $p->tags->pluck('name')->toArray(),
+                ]);
+        });
 
-        $projects = Project::query()
-            ->where('status', 'completed')
-            ->orderBy('sort_order', 'asc')
-            ->orderBy('year', 'desc')
-            ->limit(3)
-            ->get()
-            ->map(fn($p) => [
-                'id' => $p->id,
-                'slug' => $p->slug,
-                'title' => $p->title,
-                'description' => $p->description,
-                'image' => $p->image,
-                'url' => $p->url,
-                'github_url' => $p->github_url,
-                'technologies' => $p->technologies ?? [],
-                'status' => $p->status,
-                'year' => $p->year,
-            ]);
+        $projects = $this->cacheService->remember('home_projects', function () {
+            return Project::query()
+                ->where('status', 'completed')
+                ->orderBy('sort_order', 'asc')
+                ->orderBy('year', 'desc')
+                ->limit(3)
+                ->get()
+                ->map(fn($p) => [
+                    'id' => $p->id,
+                    'slug' => $p->slug,
+                    'title' => $p->title,
+                    'description' => $p->description,
+                    'image' => $p->image,
+                    'url' => $p->url,
+                    'github_url' => $p->github_url,
+                    'technologies' => $p->technologies ?? [],
+                    'status' => $p->status,
+                    'year' => $p->year,
+                ]);
+        });
 
-        $videos = Video::with('category')
-            ->where('status', 'published')
-            ->latest('published_at')
-            ->limit(3)
-            ->get()
-            ->map(fn($v) => [
-                'id' => $v->id,
-                'slug' => $v->slug,
-                'title' => $v->title,
-                'description' => $v->description,
-                'video_id' => $v->video_id,
-                'platform' => $v->platform,
-                'thumbnail' => $v->thumbnail,
-                'duration' => $v->duration,
-                'views_count' => $v->views_count,
-                'likes_count' => $v->likes_count,
-                'published_at' => $v->published_at?->toISOString(),
-            ]);
+        $videos = $this->cacheService->remember('home_videos_latest', function () {
+            return Video::with('category')
+                ->where('status', 'published')
+                ->latest('published_at')
+                ->limit(3)
+                ->get()
+                ->map(fn($v) => [
+                    'id' => $v->id,
+                    'slug' => $v->slug,
+                    'title' => $v->title,
+                    'description' => $v->description,
+                    'video_id' => $v->video_id,
+                    'platform' => $v->platform,
+                    'thumbnail' => $v->thumbnail,
+                    'duration' => $v->duration,
+                    'views_count' => $v->views_count,
+                    'likes_count' => $v->likes_count,
+                    'published_at' => $v->published_at?->toISOString(),
+                ]);
+        });
         $menu = $this->getMenuData();
         $siteConfig = $this->settingService->getSiteConfig();
         $footerConfig = $this->getFooterConfig();
@@ -216,10 +225,12 @@ class FrontendController extends Controller
 
     public function blog(): Response
     {
-        $paginator = Post::with(['author', 'category', 'tags'])
-            ->where('status', 'published')
-            ->latest('published_at')
-            ->paginate(14);
+        $paginator = $this->cacheService->remember('blog_posts_page_1', function () {
+            return Post::with(['author', 'category', 'tags'])
+                ->where('status', 'published')
+                ->latest('published_at')
+                ->paginate(14);
+        });
 
         $paginator->getCollection()->transform(fn($p) => [
             'id' => $p->id,
@@ -233,17 +244,21 @@ class FrontendController extends Controller
             'tags' => $p->tags->pluck('name')->toArray(),
         ]);
 
-        $categories = Category::where('status', 'active')->get()->map(fn($c) => [
-            'id' => $c->id,
-            'name' => $c->name,
-        ])->toArray();
+        $categories = $this->cacheService->remember('categories_list', function () {
+            return Category::where('status', 'active')->get()->map(fn($c) => [
+                'id' => $c->id,
+                'name' => $c->name,
+            ])->toArray();
+        });
 
-        $authors = User::with('authorProfile')->get()->map(fn($u) => [
-            'id' => $u->id,
-            'name' => $u->name,
-            'penName' => $u->authorProfile?->display_name ?? $u->name,
-            'slug' => $u->authorProfile?->slug ?? null,
-        ])->toArray();
+        $authors = $this->cacheService->remember('authors_list', function () {
+            return User::with('authorProfile')->get()->map(fn($u) => [
+                'id' => $u->id,
+                'name' => $u->name,
+                'penName' => $u->authorProfile?->display_name ?? $u->name,
+                'slug' => $u->authorProfile?->slug ?? null,
+            ])->toArray();
+        });
 
         return Inertia::render('front/Blog', [
             'posts' => $paginator,
@@ -255,26 +270,28 @@ class FrontendController extends Controller
 
     public function projects(): Response
     {
-        $projects = Project::query()
-            ->orderBy('sort_order', 'asc')
-            ->orderBy('year', 'desc')
-            ->get()
-            ->map(fn($p) => [
-                'id' => $p->id,
-                'slug' => $p->slug,
-                'title' => $p->title,
-                'description' => $p->description,
-                'long_description' => $p->long_description,
-                'image' => $p->image,
-                'url' => $p->url,
-                'github_url' => $p->github_url,
-                'technologies' => $p->technologies ?? [],
-                'status' => $p->status,
-                'year' => $p->year,
-                'client' => $p->client,
-                'role' => $p->role,
-                'views_count' => $p->views_count,
-            ]);
+        $projects = $this->cacheService->remember('projects_list', function () {
+            return Project::query()
+                ->orderBy('sort_order', 'asc')
+                ->orderBy('year', 'desc')
+                ->get()
+                ->map(fn($p) => [
+                    'id' => $p->id,
+                    'slug' => $p->slug,
+                    'title' => $p->title,
+                    'description' => $p->description,
+                    'long_description' => $p->long_description,
+                    'image' => $p->image,
+                    'url' => $p->url,
+                    'github_url' => $p->github_url,
+                    'technologies' => $p->technologies ?? [],
+                    'status' => $p->status,
+                    'year' => $p->year,
+                    'client' => $p->client,
+                    'role' => $p->role,
+                    'views_count' => $p->views_count,
+                ]);
+        });
 
         return Inertia::render('front/Projects', [
             'projects' => $projects,
@@ -312,29 +329,33 @@ class FrontendController extends Controller
 
     public function videos(): Response
     {
-        $videos = Video::with('category')
-            ->where('status', 'published')
-            ->latest('published_at')
-            ->get()
-            ->map(fn($v) => [
-                'id' => $v->id,
-                'slug' => $v->slug,
-                'title' => $v->title,
-                'description' => $v->description,
-                'video_id' => $v->video_id,
-                'platform' => $v->platform,
-                'thumbnail' => $v->thumbnail ?? $v->cover_image,
-                'duration' => $v->duration,
-                'views_count' => $v->views_count,
-                'likes_count' => $v->likes_count,
-                'category_id' => $v->category_id,
-                'created_at' => $v->created_at?->format('Y-m-d'),
-            ]);
+        $videos = $this->cacheService->remember('videos_list', function () {
+            return Video::with('category')
+                ->where('status', 'published')
+                ->latest('published_at')
+                ->get()
+                ->map(fn($v) => [
+                    'id' => $v->id,
+                    'slug' => $v->slug,
+                    'title' => $v->title,
+                    'description' => $v->description,
+                    'video_id' => $v->video_id,
+                    'platform' => $v->platform,
+                    'thumbnail' => $v->thumbnail ?? $v->cover_image,
+                    'duration' => $v->duration,
+                    'views_count' => $v->views_count,
+                    'likes_count' => $v->likes_count,
+                    'category_id' => $v->category_id,
+                    'created_at' => $v->created_at?->format('Y-m-d'),
+                ]);
+        });
 
-        $categories = Category::where('status', 'active')->get()->map(fn($c) => [
-            'id' => $c->id,
-            'name' => $c->name,
-        ])->toArray();
+        $categories = $this->cacheService->remember('categories_list', function () {
+            return Category::where('status', 'active')->get()->map(fn($c) => [
+                'id' => $c->id,
+                'name' => $c->name,
+            ])->toArray();
+        });
         
         return Inertia::render('front/Videos', [
             'videos' => $videos,

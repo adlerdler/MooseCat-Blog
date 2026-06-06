@@ -35,8 +35,10 @@ import {
   TrendingUp,
   BarChart3,
   Check,
+  Inbox,
   ConfirmDialog,
   Pagination,
+  EmptyState,
   SearchFilterModal
 } from '../../composables/useAdminImports';
 import { Motion, AnimatePresence } from 'motion-v';
@@ -294,159 +296,165 @@ const handleFilterChange = ({ key, value }) => {
       @filter-change="handleFilterChange"
     />
 
-    <!-- Ads Grid -->
-    <div class="space-y-6">
-      <AnimatePresence>
-        <Motion
-          v-for="ad in paginatedAds" 
-          :key="ad.id"
-          :initial="{ opacity: 0, y: 20 }"
-          :animate="{ opacity: 1, y: 0 }"
-          :exit="{ opacity: 0, scale: 0.95 }"
-          :class="[
-            'relative overflow-hidden group border p-6 transition-all duration-500 rounded-3xl',
-            isDarkMode 
-              ? 'bg-gray-800/40 border-gray-700/50 hover:border-construct-red/30 backdrop-blur-xl' 
-              : 'bg-white border-gray-200 hover:border-construct-red/20 shadow-sm hover:shadow-xl'
-          ]"
-        >
-          <!-- Active Status Bar -->
-          <div 
-            class="absolute left-0 top-6 bottom-6 w-1 rounded-r-full transition-all duration-500"
-            :class="ad.is_active ? 'bg-green-500' : 'bg-red-500'"
-          ></div>
+    <!-- Content Area -->
+    <template v-if="filteredAds.length > 0">
+      <!-- Ads Grid -->
+      <div class="space-y-6">
+        <AnimatePresence>
+          <Motion
+            v-for="ad in paginatedAds" 
+            :key="ad.id"
+            :initial="{ opacity: 0, y: 20 }"
+            :animate="{ opacity: 1, y: 0 }"
+            :exit="{ opacity: 0, scale: 0.95 }"
+            :class="[
+              'relative overflow-hidden group border p-6 transition-all duration-500 rounded-3xl',
+              isDarkMode 
+                ? 'bg-gray-800/40 border-gray-700/50 hover:border-construct-red/30 backdrop-blur-xl' 
+                : 'bg-white border-gray-200 hover:border-construct-red/20 shadow-sm hover:shadow-xl'
+            ]"
+          >
+            <!-- Active Status Bar -->
+            <div 
+              class="absolute left-0 top-6 bottom-6 w-1 rounded-r-full transition-all duration-500"
+              :class="ad.is_active ? 'bg-green-500' : 'bg-red-500'"
+            ></div>
 
-          <div class="flex flex-col lg:flex-row items-start gap-8">
-            <!-- Image Preview -->
-            <div class="relative w-full lg:w-48 aspect-[4/3] lg:aspect-square rounded-2xl overflow-hidden flex-shrink-0 group/img shadow-lg">
-              <img :src="ad.image_url" :alt="ad.title" class="w-full h-full object-cover transition-transform duration-700 group-hover/img:scale-110" />
-              <div class="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
-                <ExternalLink class="text-white" size="24" />
+            <div class="flex flex-col lg:flex-row items-start gap-8">
+              <!-- Image Preview -->
+              <div class="relative w-full lg:w-48 aspect-[4/3] lg:aspect-square rounded-2xl overflow-hidden flex-shrink-0 group/img shadow-lg">
+                <img :src="ad.image_url" :alt="ad.title" class="w-full h-full object-cover transition-transform duration-700 group-hover/img:scale-110" />
+                <div class="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
+                  <ExternalLink class="text-white" size="24" />
+                </div>
               </div>
-            </div>
 
-            <!-- Content -->
-            <div class="flex-1 min-w-0">
-              <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-4">
-                <div class="space-y-1">
-                  <div class="flex items-center gap-3">
-                    <h3 :class="['font-display text-2xl tracking-tight truncate', isDarkMode ? 'text-white' : 'text-gray-900']">{{ ad.title }}</h3>
-                    <div :class="[
-                      'px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase border flex items-center gap-1.5',
-                      ad.is_active 
-                        ? 'bg-green-500/10 text-green-500 border-green-500/20' 
-                        : 'bg-red-500/10 text-red-500 border-red-500/20'
-                    ]">
-                      <div class="w-1.5 h-1.5 rounded-full" :class="ad.is_active ? 'bg-green-500 animate-pulse' : 'bg-red-500'"></div>
-                      {{ ad.is_active ? t('admin_active') : t('admin_inactive') }}
+              <!-- Content -->
+              <div class="flex-1 min-w-0">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-4">
+                  <div class="space-y-1">
+                    <div class="flex items-center gap-3">
+                      <h3 :class="['font-display text-2xl tracking-tight truncate', isDarkMode ? 'text-white' : 'text-gray-900']">{{ ad.title }}</h3>
+                      <div :class="[
+                        'px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase border flex items-center gap-1.5',
+                        ad.is_active 
+                          ? 'bg-green-500/10 text-green-500 border-green-500/20' 
+                          : 'bg-red-500/10 text-red-500 border-red-500/20'
+                      ]">
+                        <div class="w-1.5 h-1.5 rounded-full" :class="ad.is_active ? 'bg-green-500 animate-pulse' : 'bg-red-500'"></div>
+                        {{ ad.is_active ? t('admin_active') : t('admin_inactive') }}
+                      </div>
+                    </div>
+                    <div :class="['flex items-center gap-2 text-xs font-bold uppercase tracking-wider', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
+                      <component :is="getPositionIcon(ad.position_id)" size="14" class="text-construct-red" />
+                      {{ getPositionLabel(ad.position_id) }}
                     </div>
                   </div>
-                  <div :class="['flex items-center gap-2 text-xs font-bold uppercase tracking-wider', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
-                    <component :is="getPositionIcon(ad.position_id)" size="14" class="text-construct-red" />
-                    {{ getPositionLabel(ad.position_id) }}
+
+                  <div class="flex items-center gap-2">
+                    <button
+                      @click="toggleStatus(ad)"
+                      :class="[
+                        'p-3 rounded-xl transition-all duration-300 hover:scale-110',
+                        isDarkMode ? 'hover:bg-gray-700 text-gray-500 hover:text-white' : 'hover:bg-gray-100 text-gray-400 hover:text-gray-900'
+                      ]"
+                    >
+                      <MousePointer size="18" />
+                    </button>
+                    <button
+                      @click="handleEdit(ad)"
+                      :class="[
+                        'p-3 rounded-xl transition-all duration-300 hover:scale-110',
+                        isDarkMode ? 'hover:bg-gray-700 text-gray-500 hover:text-white' : 'hover:bg-gray-100 text-gray-400 hover:text-gray-900'
+                      ]"
+                    >
+                      <Edit3 size="18" />
+                    </button>
+                    <button
+                      @click="handleDelete(ad.id)"
+                      :class="[
+                        'p-3 rounded-xl transition-all duration-300 hover:scale-110',
+                        isDarkMode ? 'hover:bg-red-500/10 text-gray-500 hover:text-red-400' : 'hover:bg-red-50 text-gray-400 hover:text-red-600'
+                      ]"
+                    >
+                      <Trash2 size="18" />
+                    </button>
                   </div>
                 </div>
 
-                <div class="flex items-center gap-2">
-                  <button
-                    @click="toggleStatus(ad)"
+                <!-- Link -->
+                <div class="mb-6">
+                  <a 
+                    :href="ad.link_url" 
+                    target="_blank" 
                     :class="[
-                      'p-3 rounded-xl transition-all duration-300 hover:scale-110',
-                      isDarkMode ? 'hover:bg-gray-700 text-gray-500 hover:text-white' : 'hover:bg-gray-100 text-gray-400 hover:text-gray-900'
+                      'inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium border transition-all truncate max-w-full',
+                      isDarkMode ? 'bg-blue-500/5 border-blue-500/10 text-blue-400 hover:bg-blue-500/10' : 'bg-blue-50 border-blue-100 text-blue-600 hover:bg-blue-100'
                     ]"
                   >
-                    <MousePointer size="18" />
-                  </button>
-                  <button
-                    @click="handleEdit(ad)"
-                    :class="[
-                      'p-3 rounded-xl transition-all duration-300 hover:scale-110',
-                      isDarkMode ? 'hover:bg-gray-700 text-gray-500 hover:text-white' : 'hover:bg-gray-100 text-gray-400 hover:text-gray-900'
-                    ]"
-                  >
-                    <Edit3 size="18" />
-                  </button>
-                  <button
-                    @click="handleDelete(ad.id)"
-                    :class="[
-                      'p-3 rounded-xl transition-all duration-300 hover:scale-110',
-                      isDarkMode ? 'hover:bg-red-500/10 text-gray-500 hover:text-red-400' : 'hover:bg-red-50 text-gray-400 hover:text-red-600'
-                    ]"
-                  >
-                    <Trash2 size="18" />
-                  </button>
+                    <LinkIcon size="14" />
+                    {{ ad.link_url }}
+                  </a>
                 </div>
-              </div>
 
-              <!-- Link -->
-              <div class="mb-6">
-                <a 
-                  :href="ad.link_url" 
-                  target="_blank" 
-                  :class="[
-                    'inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium border transition-all truncate max-w-full',
-                    isDarkMode ? 'bg-blue-500/5 border-blue-500/10 text-blue-400 hover:bg-blue-500/10' : 'bg-blue-50 border-blue-100 text-blue-600 hover:bg-blue-100'
-                  ]"
-                >
-                  <LinkIcon size="14" />
-                  {{ ad.link_url }}
-                </a>
-              </div>
-
-              <!-- Stats & Info Grid -->
-              <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div :class="['p-4 rounded-2xl border', isDarkMode ? 'bg-gray-900/30 border-gray-700/50' : 'bg-gray-50 border-gray-100']">
-                  <div class="flex items-center gap-2 mb-1 opacity-50">
-                    <Eye size="12" />
-                    <span class="text-[10px] font-black uppercase tracking-widest">{{ t('admin_views') }}</span>
+                <!-- Stats & Info Grid -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div :class="['p-4 rounded-2xl border', isDarkMode ? 'bg-gray-900/30 border-gray-700/50' : 'bg-gray-50 border-gray-100']">
+                    <div class="flex items-center gap-2 mb-1 opacity-50">
+                      <Eye size="12" />
+                      <span class="text-[10px] font-black uppercase tracking-widest">{{ t('admin_views') }}</span>
+                    </div>
+                    <div :class="['font-display text-lg font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">{{ ad.views_count.toLocaleString() }}</div>
                   </div>
-                  <div :class="['font-display text-lg font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">{{ ad.views_count.toLocaleString() }}</div>
-                </div>
-                <div :class="['p-4 rounded-2xl border', isDarkMode ? 'bg-gray-900/30 border-gray-700/50' : 'bg-gray-50 border-gray-100']">
-                  <div class="flex items-center gap-2 mb-1 opacity-50">
-                    <MousePointer size="12" />
-                    <span class="text-[10px] font-black uppercase tracking-widest">{{ t('admin_clicks') }}</span>
+                  <div :class="['p-4 rounded-2xl border', isDarkMode ? 'bg-gray-900/30 border-gray-700/50' : 'bg-gray-50 border-gray-100']">
+                    <div class="flex items-center gap-2 mb-1 opacity-50">
+                      <MousePointer size="12" />
+                      <span class="text-[10px] font-black uppercase tracking-widest">{{ t('admin_clicks') }}</span>
+                    </div>
+                    <div :class="['font-display text-lg font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">{{ ad.clicks_count.toLocaleString() }}</div>
                   </div>
-                  <div :class="['font-display text-lg font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">{{ ad.clicks_count.toLocaleString() }}</div>
-                </div>
-                <div :class="['p-4 rounded-2xl border', isDarkMode ? 'bg-gray-900/30 border-gray-700/50' : 'bg-gray-50 border-gray-100']">
-                  <div class="flex items-center gap-2 mb-1 opacity-50">
-                    <TrendingUp size="12" />
-                    <span class="text-[10px] font-black uppercase tracking-widest">CTR</span>
+                  <div :class="['p-4 rounded-2xl border', isDarkMode ? 'bg-gray-900/30 border-gray-700/50' : 'bg-gray-50 border-gray-100']">
+                    <div class="flex items-center gap-2 mb-1 opacity-50">
+                      <TrendingUp size="12" />
+                      <span class="text-[10px] font-black uppercase tracking-widest">CTR</span>
+                    </div>
+                    <div :class="['font-display text-lg font-bold text-construct-red']">{{ getCtr(ad) }}</div>
                   </div>
-                  <div :class="['font-display text-lg font-bold text-construct-red']">{{ getCtr(ad) }}</div>
-                </div>
-                <div :class="['p-4 rounded-2xl border', isDarkMode ? 'bg-gray-900/30 border-gray-700/50' : 'bg-gray-50 border-gray-100']">
-                  <div class="flex items-center gap-2 mb-1 opacity-50">
-                    <Calendar size="12" />
-                    <span class="text-[10px] font-black uppercase tracking-widest">{{ t('admin_table_date') }}</span>
-                  </div>
-                  <div :class="['text-[11px] font-bold leading-tight', isDarkMode ? 'text-white/60' : 'text-gray-600']">
-                    {{ ad.start_date }} <br/>
-                    <span class="opacity-30">{{ ad.end_date || 'Ongoing' }}</span>
+                  <div :class="['p-4 rounded-2xl border', isDarkMode ? 'bg-gray-900/30 border-gray-700/50' : 'bg-gray-50 border-gray-100']">
+                    <div class="flex items-center gap-2 mb-1 opacity-50">
+                      <Calendar size="12" />
+                      <span class="text-[10px] font-black uppercase tracking-widest">{{ t('admin_table_date') }}</span>
+                    </div>
+                    <div :class="['text-[11px] font-bold leading-tight', isDarkMode ? 'text-white/60' : 'text-gray-600']">
+                      {{ ad.start_date }} <br/>
+                      <span class="opacity-30">{{ ad.end_date || 'Ongoing' }}</span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        </Motion>
-      </AnimatePresence>
-    </div>
+          </Motion>
+        </AnimatePresence>
+      </div>
+
+      <!-- Pagination -->
+      <div class="mt-10">
+        <Pagination
+          :current-page="currentPage"
+          :total-pages="totalPages"
+          :total-items="filteredAds.length"
+          v-model:items-per-page="itemsPerPage"
+          @update:current-page="currentPage = $event"
+        />
+      </div>
+    </template>
 
     <!-- Empty State -->
-    <div v-if="filteredAds.length === 0" :class="['text-center py-24 rounded-3xl border-2 border-dashed', isDarkMode ? 'border-gray-700 text-gray-500' : 'border-gray-100 text-gray-400']">
-      <ImageIcon class="mx-auto mb-4 opacity-20" size="64" stroke-width="1" />
-      <p class="font-display text-xl">{{ t('admin_no_ads') }}</p>
-    </div>
-
-    <!-- Pagination -->
-    <div class="mt-10">
-      <Pagination
-        :current-page="currentPage"
-        :total-pages="totalPages"
-        :total-items="filteredAds.length"
-        v-model:items-per-page="itemsPerPage"
-        @update:current-page="currentPage = $event"
+    <div v-else class="mt-6">
+      <EmptyState 
+        :title="t('admin_no_ads_found') || 'No advertisements found'"
+        :description="t('admin_no_ads_description') || 'Try adjusting your search or filters to find what you are looking for'"
+        :icon="ImageIcon"
       />
     </div>
 

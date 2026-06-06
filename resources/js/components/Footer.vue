@@ -120,7 +120,7 @@ const getLinkStyle = (index) => {
         </a>
       </div>
     </div>
-    <div>
+    <div v-if="categoryLinks.length > 0">
       <h4 class="font-display mb-3 tracking-widest text-sm uppercase bg-black text-white inline-block px-3 py-1">
         {{ t('footer_categories') }}
       </h4>
@@ -132,7 +132,7 @@ const getLinkStyle = (index) => {
         </li>
       </ul>
     </div>
-    <div>
+    <div v-if="dataLinks.length > 0">
       <h4 class="font-display mb-3 tracking-widest text-sm uppercase bg-black text-white inline-block px-3 py-1">
         {{ t('footer_data') }}
       </h4>

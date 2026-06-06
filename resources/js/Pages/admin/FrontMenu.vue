@@ -22,6 +22,7 @@ import {
   RotateCcw,
   Pagination,
   ConfirmDialog,
+  EmptyState,
   Info,
   useToast,
   Monitor,
@@ -44,7 +45,9 @@ const props = defineProps({
   allMenus: { type: Array, default: () => [] },
 });
 
-const { frontMenuItems, adminMenuItems } = useMenuItems({ menus: props.allMenus });
+// 获取所有菜单（包括非活跃的）用于管理
+const { frontMenuItems: frontMenuItemsAll } = useMenuItems({ menus: props.allMenus, includeInactive: true });
+const { adminMenuItems: adminMenuItemsAll } = useMenuItems({ menus: props.allMenus, includeInactive: true });
 
 const { t: originalT } = useI18n();
 const t = (key, fallback = '') => {
@@ -58,17 +61,15 @@ const t = (key, fallback = '') => {
 const { isDarkMode } = useTheme();
 const { success, error } = useToast();
 
-const currentTab = ref('front'); // 'front' or 'admin'
-const frontMenuList = ref([...frontMenuItems]);
-const adminMenuList = ref([...adminMenuItems]);
-const searchQuery = ref('');
-const showInactive = ref(true);
+// 辅助函数：生成临时 ID
+const generateTempId = () => `temp_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
 
-watch(() => props.allMenus, (newMenus) => {
-  const { frontMenuItems: newFront, adminMenuItems: newAdmin } = useMenuItems({ menus: newMenus });
-  frontMenuList.value = [...newFront];
-  adminMenuList.value = [...newAdmin];
-}, { deep: true });
+// 辅助函数：转换菜单项以便保存
+const mapMenuId = (item) => ({
+  ...item,
+  id: (typeof item.id === 'string' && item.id.startsWith('temp_')) ? null : item.id,
+  parent_id: (typeof item.parent_id === 'string' && item.parent_id.startsWith('temp_')) ? null : item.parent_id
+});
 
 // 将树形菜单展平为列表
 const flattenAdminMenu = (menuTree) => {
@@ -85,8 +86,27 @@ const flattenAdminMenu = (menuTree) => {
   return result;
 };
 
+const currentTab = ref('front'); // 'front' or 'admin'
+const frontMenuList = ref([...frontMenuItemsAll]);
+const adminMenuList = ref([...adminMenuItemsAll]);
+const searchQuery = ref('');
+const showInactive = ref(true);
+
+// 用于拖拽的扁平化 admin 菜单列表 - 初始化时就计算
+const flattenedAdminMenuList = ref(flattenAdminMenu([...adminMenuItemsAll]));
+
+watch(() => props.allMenus, (newMenus) => {
+  // 使用 includeInactive 获取所有菜单，包括非活跃的
+  const { frontMenuItems: newFrontAll } = useMenuItems({ menus: newMenus, includeInactive: true });
+  const { adminMenuItems: newAdminAll } = useMenuItems({ menus: newMenus, includeInactive: true });
+  frontMenuList.value = [...newFrontAll];
+  adminMenuList.value = [...newAdminAll];
+  // 同步扁平化列表
+  flattenedAdminMenuList.value = flattenAdminMenu(newAdminAll);
+}, { deep: true });
+
 const flattenedAdminMenu = computed(() => {
-  let items = flattenAdminMenu(adminMenuList.value);
+  let items = [...flattenedAdminMenuList.value];
   
   // 搜索过滤
   if (searchQuery.value) {
@@ -132,31 +152,29 @@ const showSaveConfirm = ref(false);
 const deleteConfirm = ref({ visible: false, item: null });
 
 const handleAdd = () => {
-  const targetList = currentTab.value === 'front' ? frontMenuList : adminMenuList;
-  const currentItems = currentTab.value === 'front' ? frontMenuItems : adminMenuItems;
-  const newId = Math.max(...currentItems.map(i => i.id || 0), ...targetList.value.map(i => i.id || 0), 0) + 1;
+  const newId = generateTempId();
   
   if (currentTab.value === 'front') {
-    targetList.value.push({
+    frontMenuList.value.push({
       id: newId,
       type: 'front',
       parent_id: null,
       label_key: 'nav_new_item',
       path: '/new',
-      sort_order: targetList.value.length + 1,
+      sort_order: frontMenuList.value.length + 1,
       is_active: true
     });
   } else {
-    targetList.value.push({
+    flattenedAdminMenuList.value.push({
       id: newId,
       type: 'admin',
       parent_id: null,
       label_key: 'admin_new_item',
       icon_name: 'FileText',
       path: '/admin/new',
-      sort_order: targetList.value.length + 1,
+      sort_order: flattenedAdminMenuList.value.length + 1,
       is_active: true,
-      children: []
+      _level: 0
     });
   }
 };
@@ -167,26 +185,27 @@ const handleDelete = (item) => {
 
 const confirmDelete = () => {
   const item = deleteConfirm.value.item;
-  router.delete(route('admin.front-menu.destroy', item.id), {
-    preserveState: true,
-    onSuccess: () => {
-      if (currentTab.value === 'front') {
-        frontMenuList.value = frontMenuList.value.filter(l => l.id !== item.id);
-      } else {
-        const removeFromTree = (items) => {
-          return items.filter(i => {
-            if (i.id === item.id) return false;
-            if (i.children) {
-              i.children = removeFromTree(i.children);
-            }
-            return true;
-          });
-        };
-        adminMenuList.value = removeFromTree(adminMenuList.value);
-      }
-      success(t('admin_delete') + ' ' + t('confirm'));
+  
+  const performLocalDelete = () => {
+    if (currentTab.value === 'front') {
+      frontMenuList.value = frontMenuList.value.filter(l => l.id !== item.id);
+    } else {
+      flattenedAdminMenuList.value = flattenedAdminMenuList.value.filter(l => l.id !== item.id);
     }
-  });
+  };
+
+  if (typeof item.id === 'string' && item.id.startsWith('temp_')) {
+    performLocalDelete();
+    success(t('admin_delete') + ' ' + t('confirm'));
+  } else {
+    router.delete(route('admin.front-menu.destroy', item.id), {
+      preserveState: true,
+      onSuccess: () => {
+        performLocalDelete();
+        success(t('admin_delete') + ' ' + t('confirm'));
+      }
+    });
+  }
   deleteConfirm.value = { visible: false, item: null };
 };
 
@@ -198,8 +217,14 @@ const confirmSave = () => {
   showSaveConfirm.value = false;
   isSaving.value = true;
   
-  const targetList = currentTab.value === 'front' ? frontMenuList.value : flattenedAdminMenu.value;
-  const invalidItems = targetList.filter(item => {
+  // 收集所有修改（包括前台和后台），避免保存一个 tab 丢失另一个 tab 的未保存更改
+  const allData = [
+    ...frontMenuList.value.map(item => ({ ...mapMenuId(item), type: 'front' })),
+    ...flattenedAdminMenuList.value.map(item => ({ ...mapMenuId(item), type: 'admin' }))
+  ];
+
+  // 验证必填项
+  const invalidItems = allData.filter(item => {
     const hasLabel = item.label_key?.trim();
     const hasPath = item.path?.trim();
     const isParentMenu = !item.parent_id;
@@ -208,24 +233,11 @@ const confirmSave = () => {
   
   if (invalidItems.length > 0) {
     isSaving.value = false;
-    console.log('Invalid items detail:', invalidItems.map(i => ({ id: i.id, label_key: i.label_key, path: i.path })));
     error(t('admin_error_empty_fields') || '请填写所有必填字段');
     return;
   }
   
-  const menusData = targetList.map(item => ({
-    id: props.allMenus.some(m => m.id === item.id) ? item.id : null,
-    type: currentTab.value === 'front' ? 'front' : 'admin',
-    label_key: item.label_key,
-    path: item.path || null,
-    icon_name: item.icon_name || null,
-    component_name: item.component_name || null,
-    parent_id: item.parent_id || null,
-    sort_order: item.sort_order || 1,
-    is_active: item.is_active !== false,
-  }));
-  
-  router.post(route('admin.front-menu.batch-update'), { menus: menusData }, {
+  router.post(route('admin.front-menu.batch-update'), { menus: allData }, {
     preserveState: true,
     preserveScroll: true,
     onSuccess: () => {
@@ -242,17 +254,19 @@ const confirmSave = () => {
 
 const handleReset = () => {
   if (currentTab.value === 'front') {
-    frontMenuList.value = [...frontMenuItems];
+    frontMenuList.value = [...frontMenuItemsAll];
   } else {
-    adminMenuList.value = [...adminMenuItems];
+    adminMenuList.value = [...adminMenuItemsAll];
   }
 };
 
 // Use drag sort composable
 const { handleDragStart, handleDragOver, handleDragEnd } = useDragSort({
-  updateUrl: (id) => route('admin.front-menu.update', id),
+  batchUpdateUrl: route('admin.front-menu.batch-update'),
   onUpdateSuccess: () => success(t('admin_save') + ' ' + t('confirm')),
-  onUpdateError: (err) => error(err?.message || 'Failed to update sort order')
+  onUpdateError: (err) => error(err?.message || 'Failed to update sort order'),
+  debounceDelay: 800,
+  mapItem: mapMenuId
 });
 
 // 切换禁用状态
@@ -260,34 +274,65 @@ const toggleActive = (item) => {
   item.is_active = !item.is_active;
 };
 
-// 获取可用图标列表
+// 获取可用图标列表（与 Layout.vue 中的 iconMap 保持同步）
 const availableIcons = [
-  'LayoutDashboard', 'FileText', 'Play', 'FolderKanban', 'BookOpen', 'Users', 
-  'Settings', 'Folder', 'Tag', 'MessageSquare', 'Shield', 'HardDrive', 
-  'Info', 'Archive', 'SlidersHorizontal', 'Book', 'RotateCcw', 'Image', 
-  'Zap', 'Link', 'Menu', 'ExternalLink', 'Plus', 'Trash2'
+  // 通用图标
+  'LayoutDashboard', 'Home', 'Search', 'Bell', 'Settings', 'HelpCircle', 'Info',
+  
+  // 文件与文档
+  'FileText', 'File', 'FileImage', 'FileCode', 'FileJson', 'Book', 'BookOpen', 
+  'Archive', 'Folder', 'FolderOpen', 'FolderKanban',
+  
+  // 用户与权限
+  'Users', 'User', 'UserPlus', 'UserMinus', 'Shield', 'ShieldCheck', 'Lock', 'Key',
+  
+  // 内容管理
+  'Play', 'Image', 'Video', 'Music', 'Camera', 'Bookmark', 'Tag',
+  
+  // 数据与图表
+  'BarChart3', 'PieChart', 'Activity', 'Database', 'Server', 'HardDrive',
+  
+  // 导航与链接
+  'Link', 'ExternalLink', 'Navigation', 'Compass', 'MapPin', 'Globe',
+  
+  // 媒体与通信
+  'MessageSquare', 'MessageCircle', 'Mail', 'Phone', 'Send',
+  
+  // 系统工具
+  'SlidersHorizontal', 'RotateCcw', 'RefreshCw', 'Download', 'Upload',
+  
+  // 状态与反馈
+  'CheckCircle2', 'XCircle', 'AlertCircle', 'AlertTriangle', 'Check', 'X',
+  
+  // 界面元素
+  'Menu', 'Grid3X3', 'List', 'Layers', 'ChevronDown', 'ChevronLeft', 'ChevronUp',
+  
+  // 动作与操作
+  'Plus', 'Trash2', 'Edit3', 'Eye', 'EyeOff', 'Star', 'Heart',
+  
+  // 商业与财务
+  'Briefcase', 'Wallet', 'CreditCard', 'DollarSign', 'Receipt',
+  
+  // 时间与日期
+  'Calendar', 'CalendarDays', 'Clock', 'Timer', 'History',
+  
+  // 社交与互动
+  'ThumbsUp', 'Comment',
+  
+  // 其他
+  'Zap', 'Lightbulb', 'Award', 'Trophy', 'Gift', 'Package', 'ShoppingCart'
 ];
 
 // 获取父级菜单选项（用于二级菜单）
 const parentMenuOptions = computed(() => {
   if (currentTab.value !== 'admin') return [];
   
-  const parents = [];
-  const collectParents = (items) => {
-    items.forEach(item => {
-      if (!item.parent_id) {
-        parents.push({ 
-          id: item.id, 
-          label: (item.label_key ? t(item.label_key) : item.label_key) || String(item.id)
-        });
-      }
-      if (item.children) {
-        collectParents(item.children);
-      }
-    });
-  };
-  collectParents(adminMenuList.value);
-  return parents;
+  return flattenedAdminMenuList.value
+    .filter(item => !item.parent_id)
+    .map(item => ({
+      id: item.id,
+      label: (item.label_key ? t(item.label_key) : item.label_key) || String(item.id)
+    }));
 });
 
 const handleFilterChange = ({ key, value }) => {
@@ -501,8 +546,8 @@ const handleFilterChange = ({ key, value }) => {
               ]"
               draggable="true"
               @dragstart="handleDragStart($event, item)"
-              @dragover="(e) => handleDragOver(e, item, adminMenuList)"
-              @dragend="() => handleDragEnd(adminMenuList)"
+              @dragover="(e) => handleDragOver(e, item, flattenedAdminMenuList)"
+              @dragend="() => handleDragEnd(flattenedAdminMenuList)"
             >
               <td class="px-4 py-3">
                 <div class="flex items-center justify-center gap-2">
@@ -596,16 +641,12 @@ const handleFilterChange = ({ key, value }) => {
       </table>
       
       <!-- Empty State -->
-      <div v-if="(currentTab === 'front' ? filteredFrontMenu : flattenedAdminMenu).length === 0" :class="['p-12 text-center', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
-        <div class="text-6xl mb-4">
-          <Folder :size="64" />
-        </div>
-        <p class="font-bold uppercase tracking-widest text-sm">
-          {{ t('admin_no_menu_items') || 'No menu items found' }}
-        </p>
-        <p class="text-sm mt-2 opacity-70">
-          {{ t('admin_click_add') || 'Click add to create a new menu item' }}
-        </p>
+      <div v-if="(currentTab === 'front' ? frontMenuList : flattenedAdminMenuList).length === 0" class="mt-6">
+        <EmptyState 
+          :title="t('admin_no_menu_items') || 'No menu items found'"
+          :description="t('admin_click_add') || 'Click add to create a new menu item'"
+          :icon="Folder"
+        />
       </div>
 
       <!-- Add Row -->

@@ -24,6 +24,7 @@ import {
   MetaForm,
   ConfirmDialog,
   Pagination,
+  EmptyState,
   SearchFilterModal
 } from '../../composables/useAdminImports';
 import { Motion } from 'motion-v';
@@ -180,96 +181,110 @@ const handleFilterChange = ({ key, value }) => {
       @filter-change="handleFilterChange"
     />
 
-    <!-- Tags Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-      <Motion
-        v-for="(tag, index) in paginatedTags" 
-        :key="tag.id"
-        :initial="{ opacity: 0, y: 24 }"
-        :animate="{ opacity: 1, y: 0 }"
-        :transition="{ duration: 0.35, delay: index * 0.06, ease: 'easeOut' }"
-        :whileHover="{ scale: 1.02, y: -3, boxShadow: '0 16px 40px rgba(0,0,0,0.14)' }"
-        :whileTap="{ scale: 0.98 }"
-        :class="[
-          'group relative flex flex-col rounded-xl overflow-hidden cursor-default',
-          isDarkMode 
-            ? 'bg-gray-800/60 border border-gray-700/50 shadow-[0_4px_20px_rgba(0,0,0,0.2)]'
-            : 'bg-white border border-gray-200/60 shadow-[0_4px_20px_rgba(0,0,0,0.04)]'
-        ]"
-      >
-        <!-- Card Background Accent -->
-        <div class="absolute top-0 right-0 p-8 opacity-0 group-hover:opacity-10 transition-opacity duration-500 pointer-events-none">
-          <Tag size="80" class="rotate-12" />
-        </div>
-
-        <!-- Card Body -->
-        <div class="p-5 pb-3 flex flex-col flex-1">
-          <!-- Tag Icon -->
-          <div :class="[
-            'w-12 h-12 rounded-xl flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6',
+    <!-- Content Area -->
+    <template v-if="filteredTags.length > 0">
+      <!-- Tags Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <Motion
+          v-for="(tag, index) in paginatedTags" 
+          :key="tag.id"
+          :initial="{ opacity: 0, y: 24 }"
+          :animate="{ opacity: 1, y: 0 }"
+          :transition="{ duration: 0.35, delay: index * 0.06, ease: 'easeOut' }"
+          :whileHover="{ scale: 1.02, y: -3, boxShadow: '0 16px 40px rgba(0,0,0,0.14)' }"
+          :whileTap="{ scale: 0.98 }"
+          :class="[
+            'group relative flex flex-col rounded-xl overflow-hidden cursor-default',
             isDarkMode 
-              ? 'bg-gradient-to-br from-construct-red/20 to-construct-red/10 text-construct-red' 
-              : 'bg-gradient-to-br from-construct-red/10 to-construct-red/5 text-construct-red'
-          ]">
-            <Tag size="24" />
+              ? 'bg-gray-800/60 border border-gray-700/50 shadow-[0_4px_20px_rgba(0,0,0,0.2)]'
+              : 'bg-white border border-gray-200/60 shadow-[0_4px_20px_rgba(0,0,0,0.04)]'
+          ]"
+        >
+          <!-- Card Background Accent -->
+          <div class="absolute top-0 right-0 p-8 opacity-0 group-hover:opacity-10 transition-opacity duration-500 pointer-events-none">
+            <Tag size="80" class="rotate-12" />
           </div>
 
-          <!-- Name with hash -->
-          <h3 :class="[
-            'font-bold text-lg mb-1.5 truncate transition-colors duration-300',
-            isDarkMode ? 'text-white group-hover:text-construct-red' : 'text-gray-900 group-hover:text-construct-red'
-          ]">
-            <span class="text-construct-red">#</span>{{ tag.name }}
-          </h3>
+          <!-- Card Body -->
+          <div class="p-5 pb-3 flex flex-col flex-1">
+            <!-- Tag Icon -->
+            <div :class="[
+              'w-12 h-12 rounded-xl flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6',
+              isDarkMode 
+                ? 'bg-gradient-to-br from-construct-red/20 to-construct-red/10 text-construct-red' 
+                : 'bg-gradient-to-br from-construct-red/10 to-construct-red/5 text-construct-red'
+            ]">
+              <Tag size="24" />
+            </div>
 
-          <!-- Slug -->
-          <p :class="['text-xs mb-2 truncate', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
-            {{ tag.slug }}
-          </p>
-        </div>
+            <!-- Name with hash -->
+            <h3 :class="[
+              'font-bold text-lg mb-1.5 truncate transition-colors duration-300',
+              isDarkMode ? 'text-white group-hover:text-construct-red' : 'text-gray-900 group-hover:text-construct-red'
+            ]">
+              <span class="text-construct-red">#</span>{{ tag.name }}
+            </h3>
 
-        <!-- Bottom Bar: Badges + Actions -->
-        <div class="flex items-center justify-between px-5 py-3 mt-auto">
-          <div class="flex gap-1.5 text-[11px] font-bold">
-            <span :class="['px-2 py-0.5 rounded-md', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-200/70 text-gray-500']" v-if="tag.posts_count">
-              📝 {{ tag.posts_count }}
-            </span>
-            <span :class="['px-2 py-0.5 rounded-md', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-200/70 text-gray-500']" v-if="tag.videos_count">
-              🎬 {{ tag.videos_count }}
-            </span>
-            <span :class="['px-2 py-0.5 rounded-md', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-200/70 text-gray-500']" v-if="tag.projects_count">
-              📁 {{ tag.projects_count }}
-            </span>
-            <span :class="['px-2 py-0.5 rounded-md', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-200/70 text-gray-500']" v-if="tag.resources_count">
-              📦 {{ tag.resources_count }}
-            </span>
+            <!-- Slug -->
+            <p :class="['text-xs mb-2 truncate', isDarkMode ? 'text-gray-500' : 'text-gray-400']">
+              {{ tag.slug }}
+            </p>
           </div>
-          <div class="flex gap-0.5">
-            <button 
-              @click="handleEdit(tag)" 
-              :class="['p-2 rounded-lg transition-all duration-200 hover:scale-110', isDarkMode ? 'text-gray-400 hover:text-blue-400 hover:bg-gray-700' : 'text-gray-400 hover:text-blue-500 hover:bg-gray-200']"
-            >
-              <Edit3 size="14" />
-            </button>
-            <button 
-              @click="handleDelete(tag.id)" 
-              :class="['p-2 rounded-lg transition-all duration-200 hover:scale-110', isDarkMode ? 'text-gray-400 hover:text-red-400 hover:bg-gray-700/50' : 'text-gray-400 hover:text-red-500 hover:bg-red-50']"
-            >
-              <Trash2 size="14" />
-            </button>
-          </div>
-        </div>
-      </Motion>
-    </div>
 
-    <!-- Pagination -->
-    <Pagination
-      :current-page="currentPage"
-      :total-pages="totalPages"
-      :total-items="filteredTags.length"
-      v-model:items-per-page="itemsPerPage"
-      @update:current-page="currentPage = $event"
-    />
+          <!-- Bottom Bar: Badges + Actions -->
+          <div class="flex items-center justify-between px-5 py-3 mt-auto">
+            <div class="flex gap-1.5 text-[11px] font-bold">
+              <span :class="['px-2 py-0.5 rounded-md', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-200/70 text-gray-500']" v-if="tag.posts_count">
+                📝 {{ tag.posts_count }}
+              </span>
+              <span :class="['px-2 py-0.5 rounded-md', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-200/70 text-gray-500']" v-if="tag.videos_count">
+                🎬 {{ tag.videos_count }}
+              </span>
+              <span :class="['px-2 py-0.5 rounded-md', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-200/70 text-gray-500']" v-if="tag.projects_count">
+                📁 {{ tag.projects_count }}
+              </span>
+              <span :class="['px-2 py-0.5 rounded-md', isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-200/70 text-gray-500']" v-if="tag.resources_count">
+                📦 {{ tag.resources_count }}
+              </span>
+            </div>
+            <div class="flex gap-0.5">
+              <button 
+                @click="handleEdit(tag)" 
+                :class="['p-2 rounded-lg transition-all duration-200 hover:scale-110', isDarkMode ? 'text-gray-400 hover:text-blue-400 hover:bg-gray-700' : 'text-gray-400 hover:text-blue-500 hover:bg-gray-200']"
+              >
+                <Edit3 size="14" />
+              </button>
+              <button 
+                @click="handleDelete(tag.id)" 
+                :class="['p-2 rounded-lg transition-all duration-200 hover:scale-110', isDarkMode ? 'text-gray-400 hover:text-red-400 hover:bg-gray-700/50' : 'text-gray-400 hover:text-red-500 hover:bg-red-50']"
+              >
+                <Trash2 size="14" />
+              </button>
+            </div>
+          </div>
+        </Motion>
+      </div>
+
+      <!-- Pagination -->
+      <Pagination
+        :current-page="currentPage"
+        :total-pages="totalPages"
+        :total-items="filteredTags.length"
+        v-model:items-per-page="itemsPerPage"
+        @update:current-page="currentPage = $event"
+      />
+    </template>
+
+    <!-- Empty State -->
+    <template v-else>
+      <div class="mt-8">
+        <EmptyState
+          :title="t('admin_no_tags_found')"
+          :description="t('admin_no_tags_description')"
+          :icon="Tag"
+        />
+      </div>
+    </template>
 
     <!-- Meta Form Modal -->
     <MetaForm

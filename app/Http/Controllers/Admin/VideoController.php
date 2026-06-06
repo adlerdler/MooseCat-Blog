@@ -23,7 +23,7 @@ class VideoController extends Controller
 
     public function index(): Response
     {
-        $videosData = $this->videoService->getPaginatedVideos(100, request()->only('category', 'status'));
+        $videosData = $this->videoService->getPaginatedVideos(100, request()->only('category_id', 'status', 'platform', 'search'));
         $videos = collect($videosData->items())->map(function ($video) {
             return [
                 'id' => $video->id,
@@ -32,6 +32,7 @@ class VideoController extends Controller
                 'description' => $video->description,
                 'video_url' => $video->video_url,
                 'video_id' => $video->video_id,
+                'platform' => $video->platform,
                 'cover_image' => $video->cover_image,
                 'duration' => $video->duration,
                 'status' => $video->status,

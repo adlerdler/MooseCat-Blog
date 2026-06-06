@@ -12,7 +12,8 @@ import { useI18n } from 'vue-i18n';
 import { router, usePage } from '@inertiajs/vue3';
 import {
   Play,
-  Plus
+  Plus,
+  Inbox
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
 import { useToast } from '../../composables/useToast';
@@ -20,6 +21,7 @@ import { formatToSmartDate } from '../../utils/dateUtils';
 import VideoForm from '../../components/admin/VideoForm.vue';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.vue';
 import Pagination from '../../components/admin/Pagination.vue';
+import EmptyState from '../../components/admin/EmptyState.vue';
 import SearchFilterModal from '../../components/admin/SearchFilterModal.vue';
 import SeoForm from '../../components/admin/SeoForm.vue';
 import ContentCard from '../../components/admin/ContentCard.vue';
@@ -72,6 +74,8 @@ const searchQuery = ref('');
 const currentPage = ref(1);
 const itemsPerPage = ref(6);
 const selectedPlatform = ref('all');
+const selectedCategory = ref('all');
+const selectedStatus = ref('all');
 const isFormVisible = ref(false);
 const editingVideo = ref(null);
 const showDeleteConfirm = ref(false);
@@ -105,7 +109,7 @@ watch(() => props.video, (newVideo) => {
   }
 }, { immediate: true });
 
-const platforms = ['all', 'YouTube', 'Vimeo', 'Bilibili'];
+const platforms = ['all', 'YouTube', 'Vimeo', 'Bilibili', 'Local'];
 
 const getStatusBadgeClass = (status) => {
   const dark = isDarkMode.value;
@@ -119,14 +123,22 @@ const filteredVideos = computed(() => {
   let result = [...localVideos.value];
   
   if (selectedPlatform.value !== 'all') {
-    result = result.filter(video => video.platform === selectedPlatform.value);
+    result = result.filter(video => (video.platform || '').toLowerCase() === selectedPlatform.value.toLowerCase());
+  }
+
+  if (selectedCategory.value !== 'all') {
+    result = result.filter(video => video.category_id === selectedCategory.value);
+  }
+
+  if (selectedStatus.value !== 'all') {
+    result = result.filter(video => video.status === selectedStatus.value);
   }
   
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase();
     result = result.filter(video =>
-      video.title.toLowerCase().includes(query) ||
-      video.description.toLowerCase().includes(query)
+      (video.title || '').toLowerCase().includes(query) ||
+      (video.description || '').toLowerCase().includes(query)
     );
   }
   
@@ -236,6 +248,10 @@ const handleSeoEdit = (video) => {
 const handleFilterChange = ({ key, value }) => {
   if (key === 'platform') {
     selectedPlatform.value = value;
+  } else if (key === 'category_id') {
+    selectedCategory.value = value;
+  } else if (key === 'status') {
+    selectedStatus.value = value;
   }
   currentPage.value = 1;
 };
@@ -274,45 +290,76 @@ const handleFilterChange = ({ key, value }) => {
             value: p,
             label: p === 'all' ? t('admin_all') : p
           }))
+        },
+        {
+          key: 'category_id',
+          options: [
+            { value: 'all', label: t('admin_all_categories') || '所有分类' },
+            ...categories.map(c => ({ value: c.id, label: c.name }))
+          ]
+        },
+        {
+          key: 'status',
+          options: [
+            { value: 'all', label: t('admin_all_status') || '所有状态' },
+            { value: 'published', label: t('admin_post_status_published') || '已发布' },
+            { value: 'draft', label: t('admin_post_status_draft') || '草稿' }
+          ]
         }
       ]"
-      :filter-values="{ platform: selectedPlatform }"
+      :filter-values="{ 
+        platform: selectedPlatform, 
+        category_id: selectedCategory,
+        status: selectedStatus
+      }"
       @filter-change="handleFilterChange"
     />
 
-    <!-- Videos Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <ContentCard
-        v-for="video in paginatedVideos"
-        :key="video.id"
-        :item="video"
-        :cover-image="video.cover_image"
-        :title="video.title"
-        :description="video.description"
-        :tags="video.tags"
-        :date="formatToSmartDate(video.published_at || video.created_at)"
-        :author="getAuthorName(video.author_id)"
-        :placeholder-icon="Play"
-        @edit="handleEdit"
-        @seo-edit="handleSeoEdit"
-        @delete="handleDelete"
-      >
-        <template #bottom-right-badge>
-          <span :class="getStatusBadgeClass(video.status)">
-            {{ video.status }}
-          </span>
-        </template>
-      </ContentCard>
-    </div>
+    <!-- Content Area -->
+    <template v-if="filteredVideos.length > 0">
+      <!-- Videos Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <ContentCard
+          v-for="video in paginatedVideos"
+          :key="video.id"
+          :item="video"
+          :cover-image="video.cover_image"
+          :title="video.title"
+          :description="video.description"
+          :tags="video.tags"
+          :date="formatToSmartDate(video.published_at || video.created_at)"
+          :author="getAuthorName(video.author_id)"
+          :placeholder-icon="Play"
+          @edit="handleEdit"
+          @seo-edit="handleSeoEdit"
+          @delete="handleDelete"
+        >
+          <template #bottom-right-badge>
+            <span :class="getStatusBadgeClass(video.status)">
+              {{ video.status }}
+            </span>
+          </template>
+        </ContentCard>
+      </div>
 
-    <!-- Pagination -->
-    <Pagination
-      :current-page="currentPage"
-      :total-pages="totalPages"
-      :total-items="filteredVideos.length"
-      v-model:items-per-page="itemsPerPage"
-      @update:current-page="currentPage = $event"
-    />
+      <!-- Pagination -->
+      <Pagination
+        :current-page="currentPage"
+        :total-pages="totalPages"
+        :total-items="filteredVideos.length"
+        v-model:items-per-page="itemsPerPage"
+        @update:current-page="currentPage = $event"
+      />
+    </template>
+
+    <!-- Empty State -->
+    <div v-else>
+      <EmptyState 
+        :title="t('admin_no_videos_found') || 'No videos found'"
+        :description="t('admin_no_videos_description') || 'Try adjusting your search or filters to find what you are looking for'"
+        :icon="Play"
+      />
+    </div>
 
     <!-- Content Form Modal -->
     <VideoForm

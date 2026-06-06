@@ -2,9 +2,9 @@
 
 **重要说明：** 此文档为主要真实来源！其他文档请以此为准！
 
-**最后更新：** 2026-06-03 (27 模块全部真实数据对接完成)
+**最后更新：** 2026-06-06 (核心开发 100% 完成)
 **Laravel版本：** 11 (精简模式)
-**版本：** 3.0
+**版本：** 4.0
 **状态说明：** ✅ 已完成 | 🔄 进行中 | ⚠️ 待处理 | ❌ 已移除/跳过
 
 ---
@@ -28,7 +28,7 @@
 
 | 模式 | 目录 | 现状 | 说明 |
 |------|------|:----:|------|
-| **Service Layer** | `app/Services/` | ✅ 已有 | 业务逻辑封装（25个Service） |
+| **Service Layer** | `app/Services/` | ✅ 已有 | 业务逻辑封装（33个Service） |
 | **Repository Layer** | `app/Repositories/` | ✅ 已有 | 数据访问层（轻量级模式，7个Repository） |
 | **API Resource** | `app/Http/Resources/V1/` | ✅ 已有 | 响应格式化（12个） |
 | **FormRequest** | `app/Http/Requests/` | ✅ 已有 | 表单验证（24个FormRequest） |
@@ -38,7 +38,7 @@
 | **Notification** | `app/Notifications/` | ✅ 已完成 | 通知系统（NewCommentNotification, NewSubscriberNotification, SystemNotification） |
 | **Middleware** | `app/Http/Middleware/` | ✅ 已有 | 中间件（HandleInertiaRequests, SeoMiddleware, LanguageMiddleware, AdminMiddleware, ActivityLogMiddleware, CheckMaintenanceMode, PageVisitMiddleware） |
 | **Command** | `app/Console/Commands/` | ✅ 已有 | Artisan命令（BackupCommand） |
-| **Factory** | `database/factories/` | ⚠️ 待创建 | 测试数据 |
+| **Factory** | `database/factories/` | ⚠️ 待创建 | 测试数据（Seeder已替代） |
 | **Seeder** | `database/seeders/` | ✅ 已完成 | 25个Seeder，约200条高质量模拟数据（2026-05-25优化） |
 
 ---
@@ -161,10 +161,10 @@
 | CONT-17 | 创建 PostResource | Resource | ✅ 已完成 | CONT-16 | API响应 |
 | CONT-18 | 创建 StorePostRequest | FormRequest | ✅ 已完成 | CONT-16 | 验证规则 |
 | CONT-18-2 | 创建 UpdatePostRequest | FormRequest | ✅ 已完成 | CONT-16 | 验证规则 |
-| CONT-19 | 创建 PostPolicy | Policy | ✅ 已完成 | CONT-14 | 授权逻辑 |
+| CONT-19 | 创建 PostPolicy | Policy | ❌ 已移除 | CONT-14 | 统一走 Spatie Permission |
 | CONT-20 | 创建 PostObserver | Observer | ❌ 已跳过 | CONT-14 | 采用Service模式 |
 | CONT-20-1 | 创建 PostRepository | Repository | ✅ 已完成 | CONT-14 | 数据访问层 |
-| CONT-21 | 安装 league/commonmark | Package | ⚠️ 待处理 | - | Markdown解析 |
+| CONT-21 | Markdown解析 | Package | ✅ 已集成 | - | 前端 Vditor Markdown编辑器 |
 
 ### 4. 内容管理 - 扩展
 

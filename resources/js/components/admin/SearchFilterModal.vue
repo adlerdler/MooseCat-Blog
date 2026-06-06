@@ -107,80 +107,105 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="flex flex-col md:flex-row gap-4 mb-10">
-    <!-- Search Input -->
-    <div class="flex-1 relative">
-      <Search :class="['absolute left-4 top-1/2 -translate-y-1/2 transition-colors', isDarkMode ? 'text-gray-500' : 'text-gray-400']" size="20" />
+  <div class="flex flex-col md:flex-row items-stretch md:items-center gap-4 mb-10 h-14">
+    <!-- Search Input Container -->
+    <div class="flex-1 relative group h-full">
+      <Search :class="[
+        'absolute left-5 top-1/2 -translate-y-1/2 transition-all duration-300 group-focus-within:text-construct-red z-10', 
+        isDarkMode ? 'text-gray-500' : 'text-gray-400'
+      ]" size="20" />
       <input
         :value="searchQuery"
         @input="handleSearchInput"
         type="text"
         :placeholder="searchPlaceholder"
         :class="[
-          'w-full pl-12 pr-4 py-4 border focus:border-construct-red focus:outline-none transition-all rounded-2xl font-bold',
-          isDarkMode ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 shadow-inner' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 shadow-sm'
+          'w-full h-full pl-14 pr-6 py-2 border-2 focus:outline-none transition-all duration-300 rounded-2xl font-bold tracking-tight backdrop-blur-xl',
+          isDarkMode 
+            ? 'bg-gray-900/40 border-gray-800/50 text-white placeholder-gray-600 focus:border-construct-red/50 focus:bg-gray-900/60 focus:ring-4 focus:ring-construct-red/10' 
+            : 'bg-white/40 border-white text-gray-900 placeholder-gray-400 shadow-xl shadow-gray-200/20 focus:border-construct-red/30 focus:ring-4 focus:ring-construct-red/5'
         ]"
       />
     </div>
 
-    <!-- Filters -->
-    <div v-if="filters.length > 0" class="flex items-center gap-4 flex-wrap">
+    <!-- Filter Icon (Between Search and Filters) -->
+    <div v-if="filters.length > 0" :class="[
+      'w-14 h-full rounded-2xl border-2 transition-all duration-300 hidden md:flex items-center justify-center shrink-0 backdrop-blur-xl',
+      isDarkMode 
+        ? 'bg-gray-900/40 border-gray-800/50 text-gray-500' 
+        : 'bg-white/40 border-white text-gray-400 shadow-xl shadow-gray-200/20'
+    ]">
+      <Filter size="20" />
+    </div>
+
+    <!-- Filters List -->
+    <div v-if="filters.length > 0" class="flex items-center gap-3 flex-wrap h-full">
       <template v-for="filter in filters" :key="filter.key">
         <template v-if="filter">
         <!-- Checkbox type filter -->
-        <div v-if="filter.type === 'checkbox'" class="flex items-center gap-2">
-          <label :class="['flex items-center gap-2 px-4 py-3 rounded-lg cursor-pointer transition-colors', isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100']">
+        <div v-if="filter.type === 'checkbox'" class="h-full">
+          <label :class="[
+            'flex items-center h-full gap-2.5 px-4 rounded-xl border-2 cursor-pointer transition-all duration-300 select-none group backdrop-blur-xl',
+            filterValues[filter.key]
+              ? (isDarkMode ? 'border-construct-red/50 bg-construct-red/20 text-construct-red' : 'border-construct-red/30 bg-construct-red/10 text-construct-red')
+              : (isDarkMode ? 'border-gray-800/50 bg-gray-900/40 hover:border-gray-700 text-gray-500 hover:text-gray-300' : 'border-white bg-white/40 hover:bg-white/60 text-gray-500 hover:text-gray-700 shadow-xl shadow-gray-200/20')
+          ]">
+            <div :class="[
+              'w-4 h-4 rounded-md border-2 flex items-center justify-center transition-all duration-300 group-hover:scale-110',
+              filterValues[filter.key] ? 'bg-construct-red border-construct-red' : (isDarkMode ? 'border-gray-700' : 'border-gray-300')
+            ]">
+              <Check v-if="filterValues[filter.key]" size="12" class="text-white font-bold" />
+            </div>
             <input
               :checked="filterValues[filter.key]"
               @change="handleCheckboxChange(filter.key, filterValues[filter.key])"
               type="checkbox"
-              :class="['w-4 h-4 rounded border-gray-300 text-construct-red focus:ring-construct-red']"
+              class="hidden"
             />
-            <span :class="['text-sm font-bold tracking-wider uppercase', isDarkMode ? 'text-gray-400' : 'text-gray-600']">
+            <span class="text-[10px] font-black tracking-widest uppercase">
               {{ getOptionLabel(filter) }}
             </span>
           </label>
         </div>
         <!-- Dropdown type filter -->
-        <div v-else :data-dropdown="filter.key" class="relative">
-          <Filter :class="['absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none transition-colors z-10', isDarkMode ? 'text-gray-500' : 'text-gray-400']" size="18" />
+        <div v-else :data-dropdown="filter.key" class="relative h-full">
           <button
             @click.stop="toggleDropdown(filter.key)"
             :class="[
-              'pl-12 pr-4 py-4 border focus:border-construct-red focus:outline-none transition-all rounded-2xl font-bold text-sm min-w-[160px] cursor-pointer flex items-center gap-2',
-              isDarkMode
-                ? 'bg-gray-800 border-gray-700 text-white shadow-inner hover:border-gray-600'
-                : 'bg-white border-gray-200 text-gray-900 shadow-sm hover:border-gray-300'
+              'px-4 h-full border-2 focus:outline-none transition-all duration-300 rounded-xl font-bold text-sm min-w-[120px] cursor-pointer flex items-center gap-2 backdrop-blur-xl',
+              openDropdowns[filter.key]
+                ? (isDarkMode ? 'border-construct-red/50 bg-construct-red/20 text-construct-red' : 'border-construct-red/30 bg-construct-red/10 text-construct-red')
+                : (isDarkMode ? 'border-gray-800/50 bg-gray-900/40 hover:border-gray-700 text-gray-400' : 'border-white bg-white/40 hover:bg-white/60 text-gray-600 shadow-xl shadow-gray-200/20')
             ]"
           >
-            <span class="truncate flex-1">{{ getOptionLabel(filter) }}</span>
-            <ChevronDown :class="['transition-transform flex-shrink-0', openDropdowns[filter.key] ? 'rotate-180' : '', isDarkMode ? 'text-gray-500' : 'text-gray-400']" size="16" />
+            <span class="truncate flex-1 text-[10px] font-black tracking-widest uppercase">{{ getOptionLabel(filter) }}</span>
+            <ChevronDown :class="['transition-transform duration-300 flex-shrink-0', openDropdowns[filter.key] ? 'rotate-180 text-construct-red' : 'opacity-40']" size="14" />
           </button>
 
           <!-- Dropdown Menu -->
           <div
             v-show="openDropdowns[filter.key]"
             :class="[
-              'absolute z-50 mt-2 w-full overflow-hidden rounded-2xl border shadow-xl',
+              'absolute z-50 mt-2 w-full min-w-[140px] overflow-hidden rounded-xl border-2 shadow-2xl backdrop-blur-2xl transition-all duration-300',
               isDarkMode
-                ? 'bg-gray-800 border-gray-700 shadow-black/30'
-                : 'bg-white border-gray-200 shadow-gray-200/50'
+                ? 'bg-gray-900/90 border-gray-800 shadow-black/50'
+                : 'bg-white/90 border-white shadow-gray-200/50'
             ]"
           >
-            <div class="py-2">
+            <div class="py-1">
               <button
                 v-for="option in filter.options"
                 :key="option.value"
                 @click.stop="handleFilterChange(filter.key, option.value)"
                 :class="[
-                  'w-full px-4 py-3 text-left text-sm font-bold flex items-center justify-between gap-2 transition-colors',
+                  'w-full px-4 py-2 text-left text-[10px] font-black tracking-widest uppercase flex items-center justify-between gap-2 transition-colors',
                   filterValues[filter.key] === option.value
                     ? (isDarkMode ? 'text-construct-red bg-construct-red/10' : 'text-construct-red bg-construct-red/5')
                     : (isDarkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-50')
                 ]"
               >
                 <span class="truncate">{{ option.label }}</span>
-                <Check v-if="filterValues[filter.key] === option.value" size="16" class="text-construct-red flex-shrink-0" />
+                <Check v-if="filterValues[filter.key] === option.value" size="12" class="text-construct-red flex-shrink-0" />
               </button>
             </div>
           </div>

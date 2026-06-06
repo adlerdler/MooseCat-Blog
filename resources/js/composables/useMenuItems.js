@@ -12,13 +12,17 @@
  */
 export const useMenuItems = (options = {}) => {
   const menus = options.menus || [];
+  const includeInactive = options.includeInactive || false;
 
-  const getMenusByType = (type) => {
+  const getMenusByType = (type, includeInactiveOpt = includeInactive) => {
+    if (includeInactiveOpt) {
+      return menus.filter(menu => menu.type === type);
+    }
     return menus.filter(menu => menu.type === type && menu.is_active);
   };
 
-  const buildMenuTree = (type) => {
-    const flatMenus = getMenusByType(type);
+  const buildMenuTree = (type, includeInactiveOpt = includeInactive) => {
+    const flatMenus = getMenusByType(type, includeInactiveOpt);
     const menuMap = {};
     const tree = [];
 
@@ -42,8 +46,8 @@ export const useMenuItems = (options = {}) => {
     return tree;
   };
 
-  const frontMenuItems = getMenusByType('front');
-  const adminMenuItems = buildMenuTree('admin');
+  const frontMenuItems = getMenusByType('front', includeInactive);
+  const adminMenuItems = buildMenuTree('admin', includeInactive);
 
   return {
     menus,

@@ -112,4 +112,10 @@ class Post extends Model implements HasMedia
             ->dontSubmitEmptyLogs()
             ->useLogName('posts');
     }
+
+    protected static function booted(): void
+    {
+        static::saved(fn(Post $post) => app(\App\Services\CacheService::class)->clearPostCache($post));
+        static::deleted(fn(Post $post) => app(\App\Services\CacheService::class)->clearPostCache($post));
+    }
 }

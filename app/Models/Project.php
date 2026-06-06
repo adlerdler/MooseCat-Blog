@@ -67,4 +67,10 @@ class Project extends Model
             ->dontSubmitEmptyLogs()
             ->useLogName('projects');
     }
+
+    protected static function booted(): void
+    {
+        static::saved(fn(Project $project) => app(\App\Services\CacheService::class)->clearProjectCache($project));
+        static::deleted(fn(Project $project) => app(\App\Services\CacheService::class)->clearProjectCache($project));
+    }
 }

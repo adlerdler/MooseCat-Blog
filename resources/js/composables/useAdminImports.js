@@ -97,7 +97,7 @@ export {
   Maximize,
   Sidebar,
   SkipForward,
-
+  Inbox,
   // 用户等级管理新增
   Crown,
 
@@ -151,6 +151,7 @@ export { default as MetaForm } from '../components/admin/MetaForm.vue';
 export { default as TagInput } from '../components/admin/TagInput.vue';
 export { default as SearchFilterModal } from '../components/admin/SearchFilterModal.vue';
 export { default as Pagination } from '../components/admin/Pagination.vue';
+export { default as EmptyState } from '../components/admin/EmptyState.vue';
 export { default as MediaPreviewModal } from '../components/admin/MediaPreviewModal.vue';
 export { default as MediaUploadModal } from '../components/admin/MediaUploadModal.vue';
 export { default as MediaPickerModal } from '../components/admin/MediaPickerModal.vue';

@@ -24,6 +24,7 @@ import { useAdSlot } from '../../composables/useAdSlot';
 import SidebarMenu from '@/components/SidebarMenu.vue';
 import Footer from '@/components/Footer.vue';
 import AdSlot from '@/components/front/AdSlot.vue';
+import LazyImage from '@/components/LazyImage.vue';
 
 const props = defineProps({
   videos: { type: Array, default: () => [] },
@@ -161,7 +162,7 @@ watch(isFooterVisible, (newVal) => {
             >
               <a :href="item.data.link_url" target="_blank" rel="noopener noreferrer">
                 <div class="aspect-video bg-construct-black relative overflow-hidden">
-                  <img
+                  <LazyImage
                     :src="item.data.image_url"
                     :alt="item.data.title"
                     class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
@@ -193,7 +194,7 @@ watch(isFooterVisible, (newVal) => {
               >
                 <!-- Thumbnail -->
                 <div class="relative aspect-video bg-construct-black overflow-hidden">
-                  <img
+                  <LazyImage
                     v-if="item.data.thumbnail"
                     :src="item.data.thumbnail"
                     :alt="item.data.title"
