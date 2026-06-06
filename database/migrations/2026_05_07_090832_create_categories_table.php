@@ -18,6 +18,9 @@ return new class extends Migration
             $table->integer('sort_order')->default(0)->comment('排序序号');
             $table->timestamp('created_at')->nullable();
             $table->timestamp('updated_at')->nullable();
+
+            // 业务索引
+            $table->index(['status', 'sort_order']); // 分类列表
         });
     }
 

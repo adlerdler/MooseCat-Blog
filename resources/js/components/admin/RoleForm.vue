@@ -97,7 +97,7 @@ const colorOptions = [
   { value: 'pink', label: 'Pink', class: 'bg-pink-600 border-pink-500' }
 ];
 
-const guardOptions = ['web', 'admin'];
+const guardOptions = ['web', 'api', 'admin'];
 
 const initFormData = () => {
   formData.value = {

@@ -239,10 +239,6 @@ const togglePasswordVisibility = () => {
               />
               <img v-if="captchaImg" :src="captchaImg" alt="Captcha" class="h-full w-auto border-2 border-construct-black cursor-pointer" @click="loadCaptcha" />
               <div v-else class="border-2 border-construct-black bg-gray-100 flex items-center justify-center px-3 text-xs text-gray-400 shrink-0">CAPTCHA</div>
-              <button type="button" @click="loadCaptcha" tabindex="-1"
-                class="px-2.5 border-2 border-construct-black hover:bg-construct-black hover:text-white transition-colors shrink-0">
-                <RefreshCw class="w-4 h-4" />
-              </button>
             </div>
           </div>
 

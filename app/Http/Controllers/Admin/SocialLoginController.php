@@ -15,6 +15,7 @@ class SocialLoginController extends Controller
 
     public function __construct(SocialLoginService $socialLoginService)
     {
+        $this->middleware('permission:manage_social_login');
         $this->socialLoginService = $socialLoginService;
     }
 

@@ -6,9 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AuthorProfile;
 use App\Models\Category;
 use App\Models\Comment;
-use App\Models\FooterLink;
 use App\Models\Interaction;
-use App\Models\Menu;
 use App\Models\Post;
 use App\Models\Project;
 use App\Models\Resource;
@@ -34,65 +32,20 @@ class FrontendController extends Controller
         $this->cacheService = $cacheService;
     }
 
-    private function getFooterConfig(): array
-    {
-        $socialLinks = FooterLink::socialLinks()
-            ->active()
-            ->get()
-            ->map(function ($link) {
-                return [
-                    'id' => $link->id,
-                    'platform' => $link->platform,
-                    'url' => $link->url,
-                    'icon_name' => $link->icon_name ?? $link->icon,
-                    'label' => $link->label,
-                    'sort_order' => $link->sort_order,
-                    'is_active' => $link->is_active,
-                ];
-            });
-
-        $categoryLinks = FooterLink::categoryLinks()
-            ->active()
-            ->get()
-            ->map(function ($link) {
-                return [
-                    'id' => $link->id,
-                    'label' => $link->label,
-                    'url' => $link->url,
-                    'sort_order' => $link->sort_order,
-                    'is_active' => $link->is_active,
-                ];
-            });
-
-        $dataLinks = FooterLink::dataLinks()
-            ->active()
-            ->get()
-            ->map(function ($link) {
-                return [
-                    'id' => $link->id,
-                    'label' => $link->label,
-                    'url' => $link->url,
-                    'sort_order' => $link->sort_order,
-                    'is_active' => $link->is_active,
-                ];
-            });
-
-        return [
-            'social_links' => $socialLinks,
-            'nav_links' => [
-                'categories' => $categoryLinks,
-                'data' => $dataLinks,
-            ],
-        ];
-    }
-
     public function home(): Response
     {
         $posts = $this->cacheService->remember('home_posts_random', function () {
+            $count = Post::where('status', 'published')->count();
+            if ($count === 0) {
+                return collect();
+            }
+
+            // 获取所有已发布文章 ID，随机选取 3 个
+            $allIds = Post::where('status', 'published')->pluck('id')->toArray();
+            $randomIds = collect($allIds)->random(min(3, count($allIds)))->toArray();
+
             return Post::with(['author', 'category', 'tags'])
-                ->where('status', 'published')
-                ->inRandomOrder()
-                ->limit(3)
+                ->whereIn('id', $randomIds)
                 ->get()
                 ->map(fn($p) => [
                     'id' => $p->id,
@@ -148,79 +101,11 @@ class FrontendController extends Controller
                     'published_at' => $v->published_at?->toISOString(),
                 ]);
         });
-        $menu = $this->getMenuData();
-        $siteConfig = $this->settingService->getSiteConfig();
-        $footerConfig = $this->getFooterConfig();
-        $themes = \App\Models\Theme::where('is_active', true)
-            ->orderBy('sort_order')
-            ->get()
-            ->map(fn($t) => [
-                'id' => $t->id,
-                'name' => $t->name,
-                'label' => $t->label,
-                'color' => $t->color,
-                'sort_order' => $t->sort_order,
-                'is_active' => $t->is_active,
-                'is_default' => $t->is_default,
-                'preview_image' => $t->preview_image,
-            ]);
-
         return Inertia::render('front/Home', [
             'posts' => $posts,
             'projects' => $projects,
             'videos' => $videos,
-            'menus' => $menu,
-            'siteConfig' => $siteConfig,
-            'footerConfig' => $footerConfig,
-            'themes' => $themes,
         ]);
-    }
-
-    /**
-     * 获取扁平菜单数据（匹配前端 useMenuItems.js 的格式要求）
-     * 前端通过 type 字段过滤 front/admin，通过 parent_id 自建树
-     */
-    private function getMenuData(): array
-    {
-        return Menu::where('is_active', true)
-            ->orderBy('sort_order')
-            ->get()
-            ->map(fn($menu) => [
-                'id' => $menu->id,
-                'type' => $menu->type,
-                'parent_id' => $menu->parent_id,
-                'label_key' => $menu->label_key,
-                'icon_name' => $menu->icon_name,
-                'path' => $menu->path,
-                'component_name' => $menu->component_name,
-                'sort_order' => $menu->sort_order,
-                'is_active' => $menu->is_active,
-            ])
-            ->toArray();
-    }
-
-    private function getConfigData(): array
-    {
-        $themes = \App\Models\Theme::where('is_active', true)
-            ->orderBy('sort_order')
-            ->get()
-            ->map(fn($t) => [
-                'id' => $t->id,
-                'name' => $t->name,
-                'label' => $t->label,
-                'color' => $t->color,
-                'sort_order' => $t->sort_order,
-                'is_active' => $t->is_active,
-                'is_default' => $t->is_default,
-                'preview_image' => $t->preview_image,
-            ]);
-
-        return [
-            'menus' => $this->getMenuData(),
-            'siteConfig' => $this->settingService->getSiteConfig(),
-            'footerConfig' => $this->getFooterConfig(),
-            'themes' => $themes,
-        ];
     }
 
     public function blog(): Response
@@ -264,7 +149,6 @@ class FrontendController extends Controller
             'posts' => $paginator,
             'categories' => $categories,
             'authors' => $authors,
-            ...$this->getConfigData(),
         ]);
     }
 
@@ -295,7 +179,6 @@ class FrontendController extends Controller
 
         return Inertia::render('front/Projects', [
             'projects' => $projects,
-            ...$this->getConfigData(),
         ]);
     }
 
@@ -323,7 +206,6 @@ class FrontendController extends Controller
         return Inertia::render('front/Resources', [
             'resources' => $resources,
             'categories' => $categories,
-            ...$this->getConfigData(),
         ]);
     }
 
@@ -360,7 +242,6 @@ class FrontendController extends Controller
         return Inertia::render('front/Videos', [
             'videos' => $videos,
             'categories' => $categories,
-            ...$this->getConfigData(),
         ]);
     }
 
@@ -445,7 +326,6 @@ class FrontendController extends Controller
             'authors' => $authors,
             'comments' => $comments,
             'interactions' => $interactions,
-            ...$this->getConfigData(),
         ]);
     }
 
@@ -474,7 +354,6 @@ class FrontendController extends Controller
 
         return Inertia::render('front/ProjectDetail', [
             'project' => $projectData,
-            ...$this->getConfigData(),
         ]);
     }
 
@@ -502,7 +381,6 @@ class FrontendController extends Controller
 
         return Inertia::render('front/VideoDetail', [
             'video' => $videoData,
-            ...$this->getConfigData(),
         ]);
     }
 
@@ -574,7 +452,6 @@ class FrontendController extends Controller
             'manifestos' => $author['manifestos'],
             'socialLinksObj' => (object)($author['social_links']),
             'projects' => $projects,
-            ...$this->getConfigData(),
         ]);
     }
 }

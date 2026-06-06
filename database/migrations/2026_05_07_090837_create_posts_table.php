@@ -27,6 +27,10 @@ return new class extends Migration
             $table->timestamp('published_at')->nullable()->comment('发布时间');
             $table->timestamp('created_at')->nullable();
             $table->timestamp('updated_at')->nullable();
+
+            // 业务索引
+            $table->index(['status', 'published_at']); // 首页、列表页频繁使用
+            $table->index(['category_id', 'status']);  // 分类列表页
         });
     }
 

@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 /**
  * RoleService - 角色管理服务类
@@ -20,24 +21,55 @@ class RoleService
 
     /**
      * 获取所有角色（含关联权限）
-     * Get all roles with associated permissions.
      */
     public function getAllRoles(): array
     {
         return Role::with('permissions')
             ->orderBy('name')
             ->get()
-            ->map(fn($r) => [
-                'id'               => $r->id,
-                'name'             => $r->name,
-                'label'            => $r->label ?? $r->name,
-                'color'            => $r->color ?? 'gray',
-                'description'      => $r->description ?? '',
-                'guard_name'       => $r->guard_name,
-                'permissions'      => $r->permissions->pluck('id')->toArray(),
-                'permissions_count' => $r->permissions->count(),
-                'created_at'       => $r->created_at?->format('Y-m-d'),
-            ])->toArray();
+            ->map(function($r) {
+                // 获取该角色对应 guard 的权限 ID
+                $permissionIds = $r->permissions->pluck('id')->toArray();
+                
+                // 如果没有权限，或者权限的 guard 与角色不一致
+                // 我们尝试查找相同名称的 web guard 权限用于显示
+                if (empty($permissionIds)) {
+                    return [
+                        'id'               => $r->id,
+                        'name'             => $r->name,
+                        'label'            => $r->label ?? $r->name,
+                        'color'            => $r->color ?? 'gray',
+                        'description'      => $r->description ?? '',
+                        'guard_name'       => $r->guard_name,
+                        'permissions'      => [],
+                        'permissions_count' => 0,
+                        'created_at'       => $r->created_at?->format('Y-m-d'),
+                    ];
+                }
+
+                // 为了前端显示，我们需要将 guard 特定的权限映射到 web guard 的权限 ID
+                $webPermissionIds = [];
+                foreach ($r->permissions as $perm) {
+                    $webPerm = Permission::where('name', $perm->name)
+                        ->where('guard_name', 'web')
+                        ->first();
+                    if ($webPerm) {
+                        $webPermissionIds[] = $webPerm->id;
+                    }
+                }
+
+                return [
+                    'id'               => $r->id,
+                    'name'             => $r->name,
+                    'label'            => $r->label ?? $r->name,
+                    'color'            => $r->color ?? 'gray',
+                    'description'      => $r->description ?? '',
+                    'guard_name'       => $r->guard_name,
+                    'permissions'      => !empty($webPermissionIds) ? $webPermissionIds : $permissionIds,
+                    'permissions_count' => $r->permissions->count(),
+                    'created_at'       => $r->created_at?->format('Y-m-d'),
+                ];
+            })->toArray();
     }
 
     /**
@@ -46,22 +78,60 @@ class RoleService
      */
     public function getAllPermissions(): Collection
     {
-        return Permission::orderBy('program_id')
+        // 获取所有权限，按 name 去重，保留 web guard 的版本
+        $permissions = Permission::orderBy('program_id')
             ->orderBy('name')
-            ->get()
-            ->map(fn($p) => [
-                'id'          => $p->id,
-                'name'        => $p->name,
-                'label'       => $p->label ?? $p->name,
-                'description' => $p->description ?? '',
-                'program_id'  => $p->program_id ?? 'general',
-                'guard_name'  => $p->guard_name,
-            ]);
+            ->get();
+
+        // 按 name 分组，每个 name 只保留一个
+        $uniquePermissions = $permissions->unique('name');
+
+        return $uniquePermissions->map(fn($p) => [
+            'id'          => $p->id,
+            'name'        => $p->name,
+            'label'       => $p->label ?? $p->name,
+            'description' => $p->description ?? '',
+            'program_id'  => $p->program_id ?? 'general',
+            'guard_name'  => $p->guard_name,
+        ])->values();
+    }
+
+    /**
+     * 确保权限在指定 guard 中存在
+     */
+    protected function ensurePermissionsExistInGuard(array $permissionIds, string $guardName): array
+    {
+        $mappedIds = [];
+
+        foreach ($permissionIds as $permissionId) {
+            $permission = Permission::find($permissionId);
+
+            if ($permission) {
+                // 查找或创建该 guard 对应的权限
+                $guardPermission = Permission::where('name', $permission->name)
+                    ->where('guard_name', $guardName)
+                    ->first();
+
+                if (!$guardPermission) {
+                    // 在目标 guard 中创建权限
+                    $guardPermission = Permission::create([
+                        'name'        => $permission->name,
+                        'label'       => $permission->label,
+                        'description' => $permission->description,
+                        'program_id'  => $permission->program_id,
+                        'guard_name'  => $guardName,
+                    ]);
+                }
+
+                $mappedIds[] = $guardPermission->id;
+            }
+        }
+
+        return $mappedIds;
     }
 
     /**
      * 创建角色并同步权限
-     * Create a role and sync permissions.
      */
     public function create(array $data): Role
     {
@@ -73,8 +143,9 @@ class RoleService
             'guard_name'  => $data['guard_name'],
         ]);
 
-        if (isset($data['permissions'])) {
-            $role->syncPermissions($data['permissions']);
+        if (isset($data['permissions']) && !empty($data['permissions'])) {
+            $mappedPermissionIds = $this->ensurePermissionsExistInGuard($data['permissions'], $data['guard_name']);
+            $role->syncPermissions($mappedPermissionIds);
         }
 
         return $role;
@@ -82,7 +153,6 @@ class RoleService
 
     /**
      * 更新角色并同步权限
-     * Update a role and sync permissions.
      */
     public function update(Role $role, array $data): Role
     {
@@ -94,8 +164,9 @@ class RoleService
             'guard_name'  => $data['guard_name'],
         ]);
 
-        if (isset($data['permissions'])) {
-            $role->syncPermissions($data['permissions']);
+        if (isset($data['permissions']) && !empty($data['permissions'])) {
+            $mappedPermissionIds = $this->ensurePermissionsExistInGuard($data['permissions'], $data['guard_name']);
+            $role->syncPermissions($mappedPermissionIds);
         }
 
         return $role;
@@ -103,7 +174,6 @@ class RoleService
 
     /**
      * 删除角色
-     * Delete a role.
      */
     public function delete(Role $role): void
     {

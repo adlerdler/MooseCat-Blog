@@ -36,6 +36,7 @@ class PermissionSeeder extends Seeder
             ['name' => 'manage_user_levels', 'label' => '用户等级', 'description' => '用户等级管理权限', 'program_id' => 'user'],
             ['name' => 'manage_roles', 'label' => '角色权限', 'description' => '角色管理权限', 'program_id' => 'system'],
             ['name' => 'manage_settings', 'label' => '基本设置', 'description' => '系统设置权限', 'program_id' => 'system'],
+            ['name' => 'manage_social_login', 'label' => '社交登录', 'description' => '社交登录配置权限', 'program_id' => 'system'],
             ['name' => 'manage_social_links', 'label' => '社交链接', 'description' => '社交链接管理权限', 'program_id' => 'system'],
             ['name' => 'manage_seo', 'label' => 'SEO管理', 'description' => 'SEO管理权限', 'program_id' => 'system'],
             ['name' => 'manage_i18n', 'label' => '国际化', 'description' => '国际化配置权限', 'program_id' => 'system'],
@@ -61,7 +62,7 @@ class PermissionSeeder extends Seeder
         }
 
         $rolePermissions = [
-            // Administrator (role_id: 1) - 所有 26 个权限
+            // Administrator (role_id: 1) - 所有 27 个权限
             ['role_id' => 1, 'permission_id' => 1], ['role_id' => 1, 'permission_id' => 2],
             ['role_id' => 1, 'permission_id' => 3], ['role_id' => 1, 'permission_id' => 4],
             ['role_id' => 1, 'permission_id' => 5], ['role_id' => 1, 'permission_id' => 6],
@@ -75,6 +76,7 @@ class PermissionSeeder extends Seeder
             ['role_id' => 1, 'permission_id' => 21], ['role_id' => 1, 'permission_id' => 22],
             ['role_id' => 1, 'permission_id' => 23], ['role_id' => 1, 'permission_id' => 24],
             ['role_id' => 1, 'permission_id' => 25], ['role_id' => 1, 'permission_id' => 26],
+            ['role_id' => 1, 'permission_id' => 27],
             // Editor (role_id: 2)
             ['role_id' => 2, 'permission_id' => 1], ['role_id' => 2, 'permission_id' => 5],
             ['role_id' => 2, 'permission_id' => 7], ['role_id' => 2, 'permission_id' => 8],

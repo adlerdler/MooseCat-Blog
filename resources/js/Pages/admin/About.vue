@@ -7,7 +7,7 @@
  * - 开源地址和项目信息
  * - 版权信息
  */
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import {
   Info,
@@ -29,22 +29,57 @@ import {
 import { Motion, AnimatePresence } from 'motion-v';
 import { useTheme } from '../../composables/useTheme';
 
-const { t } = useI18n();
+const { locale } = useI18n();
 const { isDarkMode } = useTheme();
 
-const systemInfo = ref({
+const isZh = computed(() => locale.value === 'zh' || locale.value === 'zh-CN' || locale.value === 'zh-TW');
+
+const texts = computed(() => ({
+  pageTitle: isZh.value ? '关于系统' : 'About',
+  pageSubtitle: isZh.value ? 'ABOUT ARCHYX' : 'ABOUT ARCHYX',
+  version: isZh.value ? '版本' : 'Version',
+  releaseDate: isZh.value ? '发布日期' : 'Release Date',
+  features: isZh.value ? '系统特性' : 'Features',
+  techStack: isZh.value ? '技术栈' : 'Tech Stack',
+  frontend: isZh.value ? '前端' : 'Frontend',
+  backend: isZh.value ? '后端' : 'Backend',
+  infrastructure: isZh.value ? '基础设施' : 'Infrastructure',
+  openSource: isZh.value ? '开源项目' : 'Open Source',
+  sourceCode: isZh.value ? '源代码' : 'Source Code',
+  docsFeedback: isZh.value ? '文档与反馈' : 'Docs & Feedback',
+  developer: isZh.value ? '开发团队' : 'Developer',
+  teamName: isZh.value ? '团队名称' : 'Team',
+  website: isZh.value ? '官网' : 'Website',
+  email: isZh.value ? '邮箱' : 'Email',
+  madeWith: isZh.value ? 'MADE WITH PASSION' : 'MADE WITH PASSION',
+  allRights: isZh.value ? 'ALL RIGHTS RESERVED.' : 'ALL RIGHTS RESERVED.',
+  copyright: isZh.value ? 'ARCHYX BLOG SYSTEM' : 'ARCHYX BLOG SYSTEM'
+}));
+
+const systemInfo = computed(() => ({
   name: 'Archyx Blog',
   version: '2.0.0',
   releaseDate: '2026-05-14',
-  description: '基于 Laravel + Vue.js 构建的现代化博客系统',
-  features: [
-    '前后端分离架构',
-    '响应式设计 & 适配移动端',
-    '支持深色/浅色/系统跟随模式',
-    '基于 RBAC 的精细化权限管理',
-    '高度集成的多媒体资源管理库',
-    '智能 SEO 优化 & SSR 友好'
-  ],
+  description: isZh.value 
+    ? '基于 Laravel + Vue.js 构建的现代化博客系统' 
+    : 'A modern blog system built with Laravel + Vue.js',
+  features: isZh.value
+    ? [
+        '前后端分离架构',
+        '响应式设计 & 适配移动端',
+        '支持深色/浅色/系统跟随模式',
+        '基于 RBAC 的精细化权限管理',
+        '高度集成的多媒体资源管理库',
+        '智能 SEO 优化 & SSR 友好'
+      ]
+    : [
+        'Separate frontend and backend architecture',
+        'Responsive design & mobile-friendly',
+        'Dark/light/system theme support',
+        'Fine-grained RBAC-based permission management',
+        'Highly integrated media resource library',
+        'Smart SEO optimization & SSR-friendly'
+      ],
   techStack: {
     frontend: ['Vue.js 3', 'Vite', 'Tailwind CSS', 'Motion-V', 'Pinia'],
     backend: ['Laravel 11', 'PHP 8.2', 'MySQL 8', 'Redis'],
@@ -60,7 +95,7 @@ const systemInfo = ref({
     website: 'https://www.archyx.com',
     email: 'admin@archyx.com'
   }
-});
+}));
 
 const currentYear = new Date().getFullYear();
 </script>
@@ -78,8 +113,8 @@ const currentYear = new Date().getFullYear();
           <Info class="text-white" size="32" />
         </div>
         <div>
-          <h2 :class="['font-display text-5xl tracking-tighter mb-2', isDarkMode ? 'text-white' : 'text-gray-900']">{{ t('admin_about') }}</h2>
-          <p :class="['text-xs font-black tracking-[0.3em] uppercase opacity-50', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_about_subtitle') }}</p>
+          <h2 :class="['font-display text-5xl tracking-tighter mb-2', isDarkMode ? 'text-white' : 'text-gray-900']">{{ texts.pageTitle }}</h2>
+          <p :class="['text-xs font-black tracking-[0.3em] uppercase opacity-50', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ texts.pageSubtitle }}</p>
         </div>
       </div>
     </Motion>
@@ -111,7 +146,7 @@ const currentYear = new Date().getFullYear();
 
         <div class="space-y-6 relative z-10">
           <div class="flex items-center justify-between">
-            <span :class="['text-[10px] font-black tracking-widest uppercase opacity-50', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_version') }}</span>
+            <span :class="['text-[10px] font-black tracking-widest uppercase opacity-50', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ texts.version }}</span>
             <div class="flex items-center gap-2">
               <span :class="['px-4 py-1 text-xs font-black rounded-full border', isDarkMode ? 'bg-construct-red/10 text-construct-red border-construct-red/20' : 'bg-red-50 text-construct-red border-red-100']">
                 VERSION {{ systemInfo.version }}
@@ -120,7 +155,7 @@ const currentYear = new Date().getFullYear();
           </div>
 
           <div class="flex items-center justify-between">
-            <span :class="['text-[10px] font-black tracking-widest uppercase opacity-50', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_release_date') }}</span>
+            <span :class="['text-[10px] font-black tracking-widest uppercase opacity-50', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ texts.releaseDate }}</span>
             <span :class="['text-sm font-bold', isDarkMode ? 'text-white' : 'text-gray-900']">{{ systemInfo.releaseDate }}</span>
           </div>
 
@@ -146,7 +181,7 @@ const currentYear = new Date().getFullYear();
           <div :class="['p-3 rounded-xl', isDarkMode ? 'bg-construct-red/10' : 'bg-construct-red/5']">
             <Star size="24" class="text-construct-red" />
           </div>
-          <h3 :class="['font-display text-2xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">{{ t('admin_features') }}</h3>
+          <h3 :class="['font-display text-2xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">{{ texts.features }}</h3>
         </div>
 
         <ul class="space-y-4">
@@ -178,7 +213,7 @@ const currentYear = new Date().getFullYear();
         <div :class="['p-3 rounded-xl', isDarkMode ? 'bg-construct-red/10' : 'bg-construct-red/5']">
           <Code size="24" class="text-construct-red" />
         </div>
-        <h3 :class="['font-display text-3xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">{{ t('admin_tech_stack') }}</h3>
+        <h3 :class="['font-display text-3xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">{{ texts.techStack }}</h3>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
@@ -186,7 +221,7 @@ const currentYear = new Date().getFullYear();
         <div class="space-y-4">
           <div class="flex items-center gap-2 mb-2">
             <Terminal size="14" class="text-blue-500" />
-            <h4 :class="['text-[10px] font-black tracking-widest uppercase opacity-50', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_frontend') }}</h4>
+            <h4 :class="['text-[10px] font-black tracking-widest uppercase opacity-50', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ texts.frontend }}</h4>
           </div>
           <div class="flex flex-wrap gap-2">
             <span
@@ -206,7 +241,7 @@ const currentYear = new Date().getFullYear();
         <div class="space-y-4">
           <div class="flex items-center gap-2 mb-2">
             <Cpu size="14" class="text-red-500" />
-            <h4 :class="['text-[10px] font-black tracking-widest uppercase opacity-50', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_backend') }}</h4>
+            <h4 :class="['text-[10px] font-black tracking-widest uppercase opacity-50', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ texts.backend }}</h4>
           </div>
           <div class="flex flex-wrap gap-2">
             <span
@@ -226,7 +261,7 @@ const currentYear = new Date().getFullYear();
         <div class="space-y-4">
           <div class="flex items-center gap-2 mb-2">
             <Globe size="14" class="text-green-500" />
-            <h4 :class="['text-[10px] font-black tracking-widest uppercase opacity-50', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_infrastructure') }}</h4>
+            <h4 :class="['text-[10px] font-black tracking-widest uppercase opacity-50', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ texts.infrastructure }}</h4>
           </div>
           <div class="flex flex-wrap gap-2">
             <span
@@ -262,14 +297,14 @@ const currentYear = new Date().getFullYear();
           <div :class="['p-3 rounded-xl', isDarkMode ? 'bg-construct-red/10' : 'bg-construct-red/5']">
             <Github size="24" class="text-construct-red" />
           </div>
-          <h3 :class="['font-display text-2xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">{{ t('admin_open_source') }}</h3>
+          <h3 :class="['font-display text-2xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">{{ texts.openSource }}</h3>
         </div>
 
         <div class="space-y-4">
           <a
             v-for="(link, key) in [
-              { label: t('admin_source_code'), url: systemInfo.openSource.github, icon: Github },
-              { label: t('admin_docs_feedback'), url: systemInfo.openSource.issues, icon: BookOpen }
+              { label: texts.sourceCode, url: systemInfo.openSource.github, icon: Github },
+              { label: texts.docsFeedback, url: systemInfo.openSource.issues, icon: BookOpen }
             ]"
             :key="key"
             :href="link.url"
@@ -304,17 +339,17 @@ const currentYear = new Date().getFullYear();
           <div :class="['p-3 rounded-xl', isDarkMode ? 'bg-construct-red/10' : 'bg-construct-red/5']">
             <Heart size="24" class="text-construct-red" />
           </div>
-          <h3 :class="['font-display text-2xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">{{ t('admin_developer') }}</h3>
+          <h3 :class="['font-display text-2xl tracking-tighter', isDarkMode ? 'text-white' : 'text-gray-900']">{{ texts.developer }}</h3>
         </div>
 
         <div class="space-y-6">
           <div class="flex items-center justify-between group/line">
-            <span :class="['text-[10px] font-black tracking-widest uppercase opacity-50', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_team') }}</span>
+            <span :class="['text-[10px] font-black tracking-widest uppercase opacity-50', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ texts.teamName }}</span>
             <span :class="['text-sm font-bold group-hover/line:text-construct-red transition-colors', isDarkMode ? 'text-white' : 'text-gray-900']">{{ systemInfo.developer.name }}</span>
           </div>
 
           <div class="flex items-center justify-between group/line">
-            <span :class="['text-[10px] font-black tracking-widest uppercase opacity-50', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_website') }}</span>
+            <span :class="['text-[10px] font-black tracking-widest uppercase opacity-50', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ texts.website }}</span>
             <a
               :href="systemInfo.developer.website"
               target="_blank"
@@ -325,7 +360,7 @@ const currentYear = new Date().getFullYear();
           </div>
 
           <div class="flex items-center justify-between group/line">
-            <span :class="['text-[10px] font-black tracking-widest uppercase opacity-50', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ t('admin_email') }}</span>
+            <span :class="['text-[10px] font-black tracking-widest uppercase opacity-50', isDarkMode ? 'text-gray-400' : 'text-gray-500']">{{ texts.email }}</span>
             <a
               :href="'mailto:' + systemInfo.developer.email"
               :class="['text-sm font-bold text-construct-red hover:underline decoration-2 underline-offset-4']"
@@ -352,18 +387,18 @@ const currentYear = new Date().getFullYear();
       <div class="flex items-center justify-center gap-3 mb-6">
         <Coffee size="24" class="text-construct-red animate-bounce" />
         <span :class="['text-xs font-black uppercase tracking-[0.4em] opacity-40', isDarkMode ? 'text-gray-400' : 'text-gray-500']">
-          {{ t('admin_made_with_passion') }}
+          {{ texts.madeWith }}
         </span>
       </div>
 
       <p :class="['text-sm font-black uppercase tracking-widest mb-3', isDarkMode ? 'text-gray-300' : 'text-gray-600']">
         © {{ currentYear }} <span class="text-construct-red tracking-tighter">{{ systemInfo.developer.name }}</span>.
-        <span class="opacity-40 ml-2">{{ t('admin_all_rights_reserved') }}.</span>
+        <span class="opacity-40 ml-2">{{ texts.allRights }}</span>
       </p>
 
       <div class="flex items-center justify-center gap-4 text-[10px] font-bold uppercase tracking-widest opacity-30 group">
         <ShieldCheck size="12" class="text-construct-red" />
-        <span>{{ t('admin_copyright_notice') }}</span>
+        <span>{{ texts.copyright }}</span>
       </div>
     </Motion>
   </div>

@@ -139,6 +139,7 @@ class DashboardController extends Controller
      */
     public function about(): Response
     {
+        $this->requirePermission('view_analytics');
         return Inertia::render('admin/About');
     }
 

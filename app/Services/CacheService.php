@@ -107,4 +107,39 @@ class CacheService
         $this->forget('home_projects');
         $this->forget('projects_list');
     }
+
+    /**
+     * 清除菜单缓存
+     */
+    public function clearMenuCache(): void
+    {
+        $this->forget('menus_data');
+    }
+
+    /**
+     * 清除 Footer 缓存
+     */
+    public function clearFooterCache(): void
+    {
+        $this->forget('footer_config');
+    }
+
+    /**
+     * 清除主题缓存
+     */
+    public function clearThemeCache(): void
+    {
+        $this->forget('themes_list');
+    }
+
+    /**
+     * 清除所有静态配置缓存
+     */
+    public function clearStaticConfigCache(): void
+    {
+        $this->clearMenuCache();
+        $this->clearFooterCache();
+        $this->clearThemeCache();
+        $this->settingService->refreshCache();
+    }
 }

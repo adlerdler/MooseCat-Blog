@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreMenuRequest;
 use App\Http\Requests\UpdateMenuRequest;
 use App\Models\Menu;
+use App\Services\CacheService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -13,9 +14,12 @@ use Inertia\Response;
 
 class FrontMenuController extends Controller
 {
-    public function __construct()
+    protected CacheService $cacheService;
+
+    public function __construct(CacheService $cacheService)
     {
         $this->middleware('permission:manage_menu');
+        $this->cacheService = $cacheService;
     }
     public function index(): Response
     {
@@ -42,6 +46,7 @@ class FrontMenuController extends Controller
     public function store(StoreMenuRequest $request): RedirectResponse
     {
         Menu::create($request->validated());
+        $this->cacheService->clearMenuCache();
 
         return back()->with('success', '菜单已创建');
     }
@@ -49,6 +54,7 @@ class FrontMenuController extends Controller
     public function update(UpdateMenuRequest $request, Menu $menu): RedirectResponse
     {
         $menu->update($request->validated());
+        $this->cacheService->clearMenuCache();
 
         return back()->with('success', '菜单已更新');
     }
@@ -56,6 +62,7 @@ class FrontMenuController extends Controller
     public function destroy(Menu $menu): RedirectResponse
     {
         $menu->delete();
+        $this->cacheService->clearMenuCache();
 
         return back()->with('success', '菜单已删除');
     }
@@ -85,6 +92,8 @@ class FrontMenuController extends Controller
                 Menu::create($menuData);
             }
         }
+
+        $this->cacheService->clearMenuCache();
 
         return back()->with('success', '菜单已保存');
     }

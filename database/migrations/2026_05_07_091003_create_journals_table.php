@@ -20,6 +20,9 @@ return new class extends Migration
             $table->unsignedBigInteger('likes_count')->default(0)->comment('点赞数');
             $table->timestamp('created_at')->nullable();
             $table->timestamp('updated_at')->nullable();
+
+            // 业务索引
+            $table->index(['is_public', 'date']); // 公开日记列表
         });
     }
 

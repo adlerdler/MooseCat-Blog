@@ -29,6 +29,9 @@ return new class extends Migration
             $table->string('meta_description', 500)->nullable()->comment('SEO描述');
             $table->string('meta_keywords', 500)->nullable()->comment('SEO关键词');
             $table->timestamps();
+
+            // 业务索引
+            $table->index(['status', 'published_at']); // 视频列表页
         });
     }
 

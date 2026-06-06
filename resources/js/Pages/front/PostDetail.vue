@@ -414,7 +414,7 @@ onUnmounted(() => {
           v-if="showComments"
           :post-id="post.id"
           :comments="postComments"
-          :interactions="localInteractions"
+          :interactions="interactions"
           :current-user-id="1" 
           @comment-submitted="handleCommentSubmitted" 
         />

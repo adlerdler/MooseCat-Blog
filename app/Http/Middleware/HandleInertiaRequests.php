@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use App\Services\CacheService;
 use App\Services\MenuService;
 use App\Services\MockDataService;
 use App\Services\NotificationService;
@@ -17,6 +18,7 @@ class HandleInertiaRequests extends Middleware
     protected $notificationService;
     protected $settingService;
     protected $i18nService;
+    protected CacheService $cacheService;
 
     public function __construct(
         MenuService $menuService,
@@ -24,12 +26,14 @@ class HandleInertiaRequests extends Middleware
         NotificationService $notificationService,
         SettingService $settingService,
         I18nService $i18nService,
+        CacheService $cacheService,
     ) {
         $this->menuService = $menuService;
         $this->mockDataService = $mockDataService;
         $this->notificationService = $notificationService;
         $this->settingService = $settingService;
         $this->i18nService = $i18nService;
+        $this->cacheService = $cacheService;
     }
 
     /**
@@ -102,6 +106,90 @@ class HandleInertiaRequests extends Middleware
             $siteConfig = $this->settingService->getSiteConfig();
         } catch (\Exception $e) {
             // 降级：空配置
+        }
+
+        // 全局共享配置（所有页面）
+        $footerConfig = [];
+        $themes = [];
+        try {
+            $footerConfig = $this->cacheService->remember('footer_config', function () {
+                $allLinks = \App\Models\FooterLink::active()
+                    ->whereIn('type', ['social_link', 'nav_link'])
+                    ->get();
+
+                $socialLinks = $allLinks
+                    ->where('type', 'social_link')
+                    ->map(function ($link) {
+                        return [
+                            'id' => $link->id,
+                            'platform' => $link->platform,
+                            'url' => $link->url,
+                            'icon_name' => $link->icon_name ?? $link->icon,
+                            'label' => $link->label,
+                            'sort_order' => $link->sort_order,
+                            'is_active' => $link->is_active,
+                        ];
+                    })
+                    ->values()
+                    ->toArray();
+
+                $categoryLinks = $allLinks
+                    ->where('type', 'nav_link')
+                    ->where('platform', 'categories')
+                    ->map(function ($link) {
+                        return [
+                            'id' => $link->id,
+                            'label' => $link->label,
+                            'url' => $link->url,
+                            'sort_order' => $link->sort_order,
+                            'is_active' => $link->is_active,
+                        ];
+                    })
+                    ->values()
+                    ->toArray();
+
+                $dataLinks = $allLinks
+                    ->where('type', 'nav_link')
+                    ->where('platform', 'data')
+                    ->map(function ($link) {
+                        return [
+                            'id' => $link->id,
+                            'label' => $link->label,
+                            'url' => $link->url,
+                            'sort_order' => $link->sort_order,
+                            'is_active' => $link->is_active,
+                        ];
+                    })
+                    ->values()
+                    ->toArray();
+
+                return [
+                    'social_links' => $socialLinks,
+                    'nav_links' => [
+                        'categories' => $categoryLinks,
+                        'data' => $dataLinks,
+                    ],
+                ];
+            });
+
+            $themes = $this->cacheService->remember('themes_list', function () {
+                return \App\Models\Theme::where('is_active', true)
+                    ->orderBy('sort_order')
+                    ->get()
+                    ->map(fn($t) => [
+                        'id' => $t->id,
+                        'name' => $t->name,
+                        'label' => $t->label,
+                        'color' => $t->color,
+                        'sort_order' => $t->sort_order,
+                        'is_active' => $t->is_active,
+                        'is_default' => $t->is_default,
+                        'preview_image' => $t->preview_image,
+                    ])
+                    ->toArray();
+            });
+        } catch (\Exception $e) {
+            // 降级：空数组
         }
 
         // 通知铃铛数据：仅对已登录用户共享
@@ -190,6 +278,8 @@ class HandleInertiaRequests extends Middleware
             'menus' => $menus,
             'pageSeo' => $pageSeo,
             'siteConfig' => $siteConfig,
+            'footerConfig' => $footerConfig,
+            'themes' => $themes,
             'languages' => $languages,
             'notifications' => $notifications,
             'unreadCount' => $unreadCount,

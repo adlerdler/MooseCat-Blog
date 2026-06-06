@@ -170,6 +170,11 @@ class MenuService
             return $menus;
         }
 
+        // 如果用户没有任何权限，返回空数组
+        if ($user->getAllPermissions()->isEmpty()) {
+            return [];
+        }
+
         $filteredMenus = [];
 
         foreach ($menus as $menu) {
@@ -188,9 +193,8 @@ class MenuService
             if (!empty($menu['path'])) {
                 $permission = $this->derivePermissionFromPath($menu['path']);
                 
-                // 如果没有对应的权限规则，默认允许访问
+                // 如果没有对应的权限规则，跳过此菜单（不再默认允许）
                 if ($permission === null) {
-                    $filteredMenus[] = $menu;
                     continue;
                 }
 
@@ -199,8 +203,15 @@ class MenuService
                     $filteredMenus[] = $menu;
                 }
             } else {
-                // 没有 path 的菜单项（如分组标题），默认显示
-                $filteredMenus[] = $menu;
+                // 没有 path 的菜单项（如分组标题），只有在有子菜单时才显示
+                if (isset($menu['children']) && !empty($menu['children'])) {
+                    $filteredChildren = $this->filterMenusByPermissions($menu['children'], $user);
+                    if (!empty($filteredChildren)) {
+                        $filteredMenu = $menu;
+                        $filteredMenu['children'] = $filteredChildren;
+                        $filteredMenus[] = $filteredMenu;
+                    }
+                }
             }
         }
 

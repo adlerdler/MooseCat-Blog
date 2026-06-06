@@ -30,6 +30,9 @@ return new class extends Migration
             $table->unsignedBigInteger('likes_count')->default(0)->comment('点赞次数');
             $table->foreignId('author_id')->nullable()->constrained()->nullOnDelete()->comment('作者ID，关联users表');
             $table->timestamps();
+
+            // 业务索引
+            $table->index(['status', 'sort_order', 'year']); // 项目列表页
         });
     }
 

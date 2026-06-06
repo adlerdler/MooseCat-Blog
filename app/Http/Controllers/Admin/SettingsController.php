@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Events\SeoFilesNeedRegenerate;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdateSettingRequest;
+use App\Services\CacheService;
 use App\Services\SettingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -21,16 +22,19 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media as SpatieMedia;
 class SettingsController extends Controller
 {
     protected $settingService;
+    protected CacheService $cacheService;
 
     /**
      * Constructor
      * 
      * @param SettingService $settingService
+     * @param CacheService $cacheService
      */
-    public function __construct(SettingService $settingService)
+    public function __construct(SettingService $settingService, CacheService $cacheService)
     {
         $this->middleware('permission:manage_settings');
         $this->settingService = $settingService;
+        $this->cacheService = $cacheService;
     }
 
     /**
@@ -165,6 +169,9 @@ class SettingsController extends Controller
         // 触发 SEO 文件重新生成事件
         SeoFilesNeedRegenerate::dispatch();
 
+        // 清除静态配置缓存
+        $this->cacheService->clearStaticConfigCache();
+
         // 保存用户级通知设置
         $user = Auth::user();
         if ($user) {
@@ -205,6 +212,7 @@ class SettingsController extends Controller
         }
 
         $theme = \App\Models\Theme::create($validated);
+        $this->cacheService->clearThemeCache();
 
         return back()->with('success', '主题已添加');
     }
@@ -228,6 +236,7 @@ class SettingsController extends Controller
         }
 
         $theme->update($validated);
+        $this->cacheService->clearThemeCache();
 
         return back()->with('success', '主题已更新');
     }
@@ -236,6 +245,7 @@ class SettingsController extends Controller
     {
         $theme = \App\Models\Theme::findOrFail($id);
         $theme->delete();
+        $this->cacheService->clearThemeCache();
 
         return back()->with('success', '主题已删除');
     }

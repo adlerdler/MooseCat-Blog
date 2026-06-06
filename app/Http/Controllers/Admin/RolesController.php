@@ -33,7 +33,7 @@ class RolesController extends Controller
             'label' => 'nullable|string|max:255',
             'color' => 'nullable|string|max:50',
             'description' => 'nullable|string',
-            'guard_name' => 'required|string|in:web,admin',
+            'guard_name' => 'required|string|in:web,api,admin',
             'permissions' => 'array',
             'permissions.*' => 'exists:permissions,id',
         ]);
@@ -50,7 +50,7 @@ class RolesController extends Controller
             'label' => 'nullable|string|max:255',
             'color' => 'nullable|string|max:50',
             'description' => 'nullable|string',
-            'guard_name' => 'required|string|in:web,admin',
+            'guard_name' => 'required|string|in:web,api,admin',
             'permissions' => 'array',
             'permissions.*' => 'exists:permissions,id',
         ]);

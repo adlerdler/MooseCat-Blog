@@ -50,6 +50,14 @@ const isDashboardAccessible = computed(() => {
   return path === '/admin' || path === '/admin/index' || path === '/'
 })
 
+/**
+ * 检查用户是否有任何后台权限
+ */
+const hasAnyAdminPermission = computed(() => {
+  const permissions = page.props.auth?.user?.permissions || []
+  return permissions.length > 0
+})
+
 const goBack = () => {
   const currentPath = window.location.pathname
   // 已在目标页，不做跳转
@@ -58,6 +66,9 @@ const goBack = () => {
   }
   if (firstAccessibleRoute.value) {
     router.visit(firstAccessibleRoute.value)
+  } else {
+    // 没有任何可访问页面，跳转到前台首页
+    router.visit('/')
   }
 }
 
@@ -113,13 +124,14 @@ const goHistoryBack = () => {
           <span v-if="isDashboardAccessible">回到仪表盘</span>
           <span v-else>前往可用页面</span>
         </button>
-        <span
+        <button
           v-else
-          class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 font-medium text-sm border border-gray-200 dark:border-gray-700 cursor-not-allowed"
+          @click="router.visit('/')"
+          class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 font-medium text-sm transition-colors border border-gray-200 dark:border-gray-700"
         >
-          <LayoutDashboard class="w-4 h-4" />
-          无可访问页面
-        </span>
+          <Home class="w-4 h-4" />
+          返回首页
+        </button>
         <button
           @click="goHistoryBack"
           class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 font-medium text-sm transition-colors"

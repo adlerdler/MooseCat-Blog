@@ -22,6 +22,9 @@ return new class extends Migration
             $table->unsignedBigInteger('downloads_count')->default(0)->comment('下载次数');
             $table->unsignedBigInteger('likes_count')->default(0)->comment('点赞次数');
             $table->timestamps();
+
+            // 业务索引
+            $table->index('created_at'); // 资源列表按时间排序
         });
     }
 
