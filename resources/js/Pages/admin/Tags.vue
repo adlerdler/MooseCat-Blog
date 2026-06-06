@@ -93,21 +93,27 @@ const handleSave = (data) => {
     router.put(`/admin/tags/${editingTag.value.id}`, data, {
       preserveState: true,
       onSuccess: () => {
-        toastSuccess('Tag updated successfully');
+        toastSuccess(t('toast.update_success'));
         isFormVisible.value = false;
         editingTag.value = null;
       },
-      onError: (err) => toastError(err?.message || 'Failed to update tag'),
+      onError: (err) => {
+        console.error('Tag update error:', err);
+        toastError(t('toast.update_error'));
+      },
     });
   } else {
     router.post('/admin/tags', data, {
       preserveState: true,
       onSuccess: () => {
-        toastSuccess('Tag created successfully');
+        toastSuccess(t('toast.create_success'));
         isFormVisible.value = false;
         editingTag.value = null;
       },
-      onError: (err) => toastError(err?.message || 'Failed to create tag'),
+      onError: (err) => {
+        console.error('Tag create error:', err);
+        toastError(t('toast.create_error'));
+      },
     });
   }
 };
@@ -127,11 +133,14 @@ const confirmDelete = () => {
     router.delete(`/admin/tags/${deletingTagId.value}`, {
       preserveState: true,
       onSuccess: () => {
-        toastSuccess('Tag deleted successfully');
+        toastSuccess(t('toast.delete_success'));
         localTags.value = localTags.value.filter(t => t.id !== deletingTagId.value);
         deletingTagId.value = null;
       },
-      onError: (err) => toastError(err?.message || 'Failed to delete tag'),
+      onError: (err) => {
+        console.error('Tag delete error:', err);
+        toastError(t('toast.delete_error'));
+      },
     });
   }
   showDeleteConfirm.value = false;

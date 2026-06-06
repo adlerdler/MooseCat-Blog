@@ -204,11 +204,12 @@ const confirmDelete = () => {
     router.delete(route('admin.posts.destroy', deletingPostId.value), {
       preserveState: true,
       onSuccess: () => {
-        toastSuccess(t('admin_post_deleted_success', 'Post deleted successfully'));
+        toastSuccess(t('toast.delete_success'));
         deletingPostId.value = null;
       },
       onError: (err) => {
-        toastError(err?.message || t('admin_post_delete_error', 'Failed to delete post'));
+        console.error('Post delete error:', err);
+        toastError(t('toast.delete_error'));
       }
     });
   }
@@ -233,14 +234,20 @@ const handleSave = (data) => {
   if (editingPost.value && editingPost.value.id) {
     router.put(route('admin.posts.update', editingPost.value.id), payload, {
       preserveState: true,
-      onError: (err) => toastError(err?.message || t('admin_post_update_error', 'Failed to update post')),
-      onSuccess: () => toastSuccess(t('admin_post_updated_success', 'Post updated successfully')),
+      onError: (err) => {
+        console.error('Post update error:', err);
+        toastError(t('toast.update_error'));
+      },
+      onSuccess: () => toastSuccess(t('toast.update_success')),
     });
   } else {
     router.post(route('admin.posts.store'), payload, {
       preserveState: true,
-      onError: (err) => toastError(err?.message || t('admin_post_create_error', 'Failed to create post')),
-      onSuccess: () => toastSuccess(t('admin_post_created_success', 'Post created successfully')),
+      onError: (err) => {
+        console.error('Post create error:', err);
+        toastError(t('toast.create_error'));
+      },
+      onSuccess: () => toastSuccess(t('toast.create_success')),
     });
   }
   isFormVisible.value = false;

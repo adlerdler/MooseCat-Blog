@@ -264,7 +264,10 @@ const handleReset = () => {
 const { handleDragStart, handleDragOver, handleDragEnd } = useDragSort({
   batchUpdateUrl: route('admin.front-menu.batch-update'),
   onUpdateSuccess: () => success(t('admin_save') + ' ' + t('confirm')),
-  onUpdateError: (err) => error(err?.message || 'Failed to update sort order'),
+  onUpdateError: (err) => {
+    console.error('FrontMenu sort update error:', err);
+    error('Failed to update sort order');
+  },
   debounceDelay: 800,
   mapItem: mapMenuId
 });

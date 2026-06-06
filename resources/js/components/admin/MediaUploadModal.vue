@@ -137,7 +137,6 @@ const uploadFile = (item) => {
     });
     
     xhr.addEventListener('load', () => {
-      console.log('Upload response:', xhr.status, xhr.responseText);
       if (xhr.status >= 200 && xhr.status < 300) {
         try {
           resolve(JSON.parse(xhr.responseText));
@@ -161,7 +160,6 @@ const uploadFile = (item) => {
     });
     
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-    console.log('CSRF Token:', csrfToken);
     
     xhr.open('POST', '/admin/media');
     xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken || '');

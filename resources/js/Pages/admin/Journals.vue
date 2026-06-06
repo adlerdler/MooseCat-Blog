@@ -130,13 +130,13 @@ const handleSave = (data) => {
     form.put(route('admin.journals.update', data.id), {
       preserveState: true,
       onSuccess: () => {
-        toastSuccess('Journal updated successfully');
+        toastSuccess(t('toast.update_success'));
         isFormVisible.value = false;
         editingJournal.value = null;
       },
       onError: (errors) => {
-        const msg = Object.values(errors || {}).flat().join(', ') || 'Failed to update journal';
-        toastError(msg);
+        console.error('Journal update error:', errors);
+        toastError(t('toast.update_error'));
       }
     });
   } else if (data.action === 'add') {
@@ -144,13 +144,13 @@ const handleSave = (data) => {
     form.post(route('admin.journals.store'), {
       preserveState: true,
       onSuccess: () => {
-        toastSuccess('Journal created successfully');
+        toastSuccess(t('toast.create_success'));
         isFormVisible.value = false;
         editingJournal.value = null;
       },
       onError: (errors) => {
-        const msg = Object.values(errors || {}).flat().join(', ') || 'Failed to create journal';
-        toastError(msg);
+        console.error('Journal create error:', errors);
+        toastError(t('toast.create_error'));
       }
     });
   }
@@ -172,13 +172,13 @@ const confirmDelete = () => {
     form.delete(route('admin.journals.destroy', deletingJournalId.value), {
       preserveState: true,
       onSuccess: () => {
-        toastSuccess('Journal deleted successfully');
+        toastSuccess(t('toast.delete_success'));
         showDeleteConfirm.value = false;
         deletingJournalId.value = null;
       },
       onError: (errors) => {
-        const msg = Object.values(errors || {}).flat().join(', ') || 'Failed to delete journal';
-        toastError(msg);
+        console.error('Journal delete error:', errors);
+        toastError(t('toast.delete_error'));
         showDeleteConfirm.value = false;
         deletingJournalId.value = null;
       }

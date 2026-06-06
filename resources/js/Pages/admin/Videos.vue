@@ -165,11 +165,14 @@ const confirmDelete = () => {
     router.delete(route('admin.videos.destroy', deletingVideoId.value), {
       preserveState: true,
       onSuccess: () => {
-        toastSuccess('Video deleted successfully');
+        toastSuccess(t('toast.delete_success'));
         showDeleteConfirm.value = false;
         deletingVideoId.value = null;
       },
-      onError: (err) => toastError(err?.message || 'Failed to delete video'),
+      onError: (err) => {
+        console.error('Video delete error:', err);
+        toastError(t('toast.delete_error'));
+      },
     });
   }
 };
@@ -216,14 +219,20 @@ const handleSave = (data) => {
   if (editingVideo.value && editingVideo.value.id) {
     router.put(route('admin.videos.update', editingVideo.value.id), payload, {
       preserveState: true,
-      onError: (err) => toastError(err?.message || 'Failed to update video'),
-      onSuccess: () => toastSuccess('Video updated successfully'),
+      onError: (err) => {
+        console.error('Video update error:', err);
+        toastError(t('toast.update_error'));
+      },
+      onSuccess: () => toastSuccess(t('toast.update_success')),
     });
   } else {
     router.post(route('admin.videos.store'), payload, {
       preserveState: true,
-      onError: (err) => toastError(err?.message || 'Failed to create video'),
-      onSuccess: () => toastSuccess('Video created successfully'),
+      onError: (err) => {
+        console.error('Video create error:', err);
+        toastError(t('toast.create_error'));
+      },
+      onSuccess: () => toastSuccess(t('toast.create_success')),
     });
   }
   isFormVisible.value = false;

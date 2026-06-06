@@ -138,8 +138,9 @@ const handleCreateBackup = () => {
       toastSuccess(t('admin_backup_created') || 'Backup created');
     },
     onError: (errors) => {
-      createError.value = Object.values(errors).flat().join('；');
-      toastError(Object.values(errors).flat()[0] || t('admin_backup_failed') || 'Backup failed');
+      console.error('Backup create error:', errors);
+      createError.value = t('toast.create_error');
+      toastError(t('toast.create_error'));
     },
   });
 };

@@ -98,13 +98,13 @@ const handleSave = (data) => {
     form.put(route('admin.roles.update', editingRole.value.id), {
       preserveState: true,
       onSuccess: () => {
-        toastSuccess('Role updated successfully');
+        toastSuccess(t('toast.update_success'));
         isFormVisible.value = false;
         editingRole.value = null;
       },
       onError: (errors) => {
-        const msg = Object.values(errors || {}).flat().join(', ') || 'Failed to update role';
-        toastError(msg);
+        console.error('Role update error:', errors);
+        toastError(t('toast.update_error'));
       }
     });
   } else {
@@ -112,13 +112,13 @@ const handleSave = (data) => {
     form.post(route('admin.roles.store'), {
       preserveState: true,
       onSuccess: () => {
-        toastSuccess('Role created successfully');
+        toastSuccess(t('toast.create_success'));
         isFormVisible.value = false;
         editingRole.value = null;
       },
       onError: (errors) => {
-        const msg = Object.values(errors || {}).flat().join(', ') || 'Failed to create role';
-        toastError(msg);
+        console.error('Role create error:', errors);
+        toastError(t('toast.create_error'));
       }
     });
   }
@@ -140,13 +140,13 @@ const confirmDelete = () => {
     form.delete(route('admin.roles.destroy', deletingRoleId.value), {
       preserveState: true,
       onSuccess: () => {
-        toastSuccess('Role deleted successfully');
+        toastSuccess(t('toast.delete_success'));
         showDeleteConfirm.value = false;
         deletingRoleId.value = null;
       },
       onError: (errors) => {
-        const msg = Object.values(errors || {}).flat().join(', ') || 'Failed to delete role';
-        toastError(msg);
+        console.error('Role delete error:', errors);
+        toastError(t('toast.delete_error'));
         showDeleteConfirm.value = false;
         deletingRoleId.value = null;
       }

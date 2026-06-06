@@ -153,11 +153,14 @@ const confirmDelete = () => {
     router.delete(`/admin/resources/${deletingResourceId.value}`, {
       preserveState: true,
       onSuccess: () => {
-        toastSuccess('Resource deleted successfully');
+        toastSuccess(t('toast.delete_success'));
         localResources.value = localResources.value.filter(r => r.id !== deletingResourceId.value);
         deletingResourceId.value = null;
       },
-      onError: (err) => toastError(err?.message || 'Failed to delete resource'),
+      onError: (err) => {
+        console.error('Resource delete error:', err);
+        toastError(t('toast.delete_error'));
+      },
     });
   }
   showDeleteConfirm.value = false;
@@ -188,21 +191,27 @@ const handleSave = (data) => {
     router.put(`/admin/resources/${editingResource.value.id}`, data, {
       preserveState: true,
       onSuccess: () => {
-        toastSuccess('Resource updated successfully');
+        toastSuccess(t('toast.update_success'));
         isFormVisible.value = false;
         editingResource.value = null;
       },
-      onError: (err) => toastError(err?.message || 'Failed to update resource'),
+      onError: (err) => {
+        console.error('Resource update error:', err);
+        toastError(t('toast.update_error'));
+      },
     });
   } else {
     router.post('/admin/resources', data, {
       preserveState: true,
       onSuccess: () => {
-        toastSuccess('Resource created successfully');
+        toastSuccess(t('toast.create_success'));
         isFormVisible.value = false;
         editingResource.value = null;
       },
-      onError: (err) => toastError(err?.message || 'Failed to create resource'),
+      onError: (err) => {
+        console.error('Resource create error:', err);
+        toastError(t('toast.create_error'));
+      },
     });
   }
 };

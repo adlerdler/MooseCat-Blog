@@ -168,7 +168,7 @@ const handleSave = (data) => {
   const form = useForm(payload);
   form.put(route('admin.users.update', props.user.id), {
     onSuccess: () => {
-      toastSuccess('Profile saved successfully');
+      toastSuccess(t('toast.save_success'));
       isFormVisible.value = false;
       showSuccessMessage.value = true;
       setTimeout(() => {

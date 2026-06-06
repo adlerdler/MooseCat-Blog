@@ -28,7 +28,8 @@ import {
   Link as LinkIcon,
   Navigation,
   Database,
-  X
+  X,
+  Save
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
 import { useToast } from '../../composables/useToast';
@@ -526,6 +527,7 @@ const getPlatformGradient = (platform) => {
       <div class="mt-8">
         <Pagination
           v-model:current-page="currentPage"
+          :total-pages="Math.ceil(filteredList.length / itemsPerPage) || 1"
           :total-items="filteredList.length"
           :items-per-page="itemsPerPage"
         />

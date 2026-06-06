@@ -169,7 +169,8 @@ const submitReply = (comment) => {
       router.reload({ only: ['comments'], preserveState: true, preserveScroll: true });
     },
     onError: (errors) => {
-      toastError(Object.values(errors).flat()[0] || t('admin_reply_failed') || 'Reply failed');
+      console.error('Comment reply error:', errors);
+      toastError(t('toast.create_error'));
     },
   });
 };

@@ -9,7 +9,7 @@
  * - 通知类型区分（info/warning/error/success）
  */
 import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { usePage, router } from '@inertiajs/vue3';
+import { usePage, router, Link } from '@inertiajs/vue3';
 import { Bell, Trash2, Info, AlertTriangle, AlertCircle, CheckCircle } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
 import { useTheme } from '../composables/useTheme';
@@ -196,13 +196,13 @@ const formatTime = (dateStr) => {
         <!-- Footer -->
         <div class="px-4 py-3 border-t"
           :class="isDarkMode ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'">
-          <router-link
-            to="/admin/notifications"
+          <Link
+            href="/admin/notifications"
             @click="isOpen = false"
             class="text-xs font-bold tracking-widest text-construct-red hover:underline uppercase text-center block"
           >
             {{ t('admin_view_all_notifications') }}
-          </router-link>
+          </Link>
         </div>
       </div>
     </Transition>

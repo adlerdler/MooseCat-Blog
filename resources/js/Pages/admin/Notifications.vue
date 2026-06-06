@@ -156,7 +156,8 @@ const handleSave = (data) => {
       toastSuccess(t('admin_notification_created') || 'Notification created');
     },
     onError: (errors) => {
-      toastError(Object.values(errors).flat()[0] || t('admin_create_failed') || 'Create failed');
+      console.error('Notification create error:', errors);
+      toastError(t('toast.create_error'));
     },
   });
 };
@@ -177,7 +178,8 @@ const confirmDelete = () => {
         toastSuccess(t('admin_notification_deleted') || 'Notification deleted');
       },
       onError: (errors) => {
-        toastError(Object.values(errors).flat()[0] || t('admin_delete_failed') || 'Delete failed');
+        console.error('Notification delete error:', errors);
+        toastError(t('toast.delete_error'));
         showDeleteConfirm.value = false;
         deletingNotificationId.value = null;
       },

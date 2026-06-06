@@ -10,6 +10,35 @@
 import './bootstrap';
 import '../css/app.css';
 
+// ============================================================
+// Console Welcome Message
+// ============================================================
+console.log(
+    '%c\n' +
+    '  ╔══════════════════════════════════════════════════╗\n' +
+    '  ║                                                  ║\n' +
+    '  ║          🚀  Archyx Blog System                 ║\n' +
+    '  ║                                                  ║\n' +
+    '  ║     A modern, AI-driven content platform        ║\n' +
+    '  ║     for developers.                             ║\n' +
+    '  ║                                                  ║\n' +
+    '  ║     Laravel 11  •  Vue 3  •  Inertia.js         ║\n' +
+    '  ║                                                  ║\n' +
+    '  ║     📦  github.com/adlerdler/                   ║\n' +
+    '  ║         Archyx-Blog-System                      ║\n' +
+    '  ║                                                  ║\n' +
+    '  ║     © 2026 Archyx  |  Open Source               ║\n' +
+    '  ║                                                  ║\n' +
+    '  ╚══════════════════════════════════════════════════╝\n',
+    'color: #e2e8f0; background: #1e293b; font-size: 12px; font-family: "Courier New", monospace; padding: 12px; border-radius: 8px; line-height: 1.6;'
+);
+
+console.log(
+    '%c🔗 Click to visit: %chttps://github.com/adlerdler/Archyx-Blog-System',
+    'color: #94a3b8; font-size: 11px; font-family: monospace;',
+    'color: #60a5fa; font-size: 11px; font-weight: bold; font-family: monospace; text-decoration: underline; cursor: pointer;'
+);
+
 import { createApp, h } from 'vue';
 import { createInertiaApp, router } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
@@ -110,7 +139,6 @@ document.addEventListener('visibilitychange', () => {
 createInertiaApp({
     title: (title) => title || 'Archyx Blog',
     resolve: (name) => {
-        console.log('[DEBUG] Inertia resolving page:', name);
 
         // components/ 中的独立组件直接返回，不需要 Pages/ 包装器
         if (name === 'ErrorPage') {
@@ -133,7 +161,6 @@ createInertiaApp({
                 }
             });
             
-            console.log('[DEBUG] Inertia resolved page:', page);
             return page;
         } catch (error) {
             console.error('[ERROR] Failed to resolve page:', name, error);
@@ -141,8 +168,6 @@ createInertiaApp({
         }
     },
     setup({ el, App, props, plugin }) {
-        console.log('[DEBUG] Inertia setup, props:', props);
-        console.log('[DEBUG] Inertia setup, el:', el);
         try {
             // 初始加载时设置 favicon
             if (props.initialPage?.props) {

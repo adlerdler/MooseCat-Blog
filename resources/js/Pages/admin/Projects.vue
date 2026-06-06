@@ -134,11 +134,14 @@ const confirmDelete = () => {
     router.delete(`/admin/projects/${deletingProjectId.value}`, {
       preserveState: true,
       onSuccess: () => {
-        toastSuccess('Project deleted successfully');
+        toastSuccess(t('toast.delete_success'));
         localProjects.value = localProjects.value.filter(p => p.id !== deletingProjectId.value);
         deletingProjectId.value = null;
       },
-      onError: (err) => toastError(err?.message || 'Failed to delete project'),
+      onError: (err) => {
+        console.error('Project delete error:', err);
+        toastError(t('toast.delete_error'));
+      },
     });
   }
   showDeleteConfirm.value = false;
@@ -183,21 +186,27 @@ const handleSave = (data) => {
     router.put(`/admin/projects/${editingProject.value.id}`, data, {
       preserveState: true,
       onSuccess: () => {
-        toastSuccess('Project updated successfully');
+        toastSuccess(t('toast.update_success'));
         isFormVisible.value = false;
         editingProject.value = null;
       },
-      onError: (err) => toastError(err?.message || 'Failed to update project'),
+      onError: (err) => {
+        console.error('Project update error:', err);
+        toastError(t('toast.update_error'));
+      },
     });
   } else {
     router.post('/admin/projects', data, {
       preserveState: true,
       onSuccess: () => {
-        toastSuccess('Project created successfully');
+        toastSuccess(t('toast.create_success'));
         isFormVisible.value = false;
         editingProject.value = null;
       },
-      onError: (err) => toastError(err?.message || 'Failed to create project'),
+      onError: (err) => {
+        console.error('Project create error:', err);
+        toastError(t('toast.create_error'));
+      },
     });
   }
 };

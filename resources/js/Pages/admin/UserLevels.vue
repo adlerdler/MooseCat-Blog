@@ -67,8 +67,11 @@ watch(viewMode, (newMode) => {
 // Use drag sort composable
 const { handleDragStart, handleDragOver, handleDragEnd } = useDragSort({
   batchUpdateUrl: route('admin.user-levels.batch-update'),
-  onUpdateSuccess: () => toastSuccess('Sort order updated'),
-  onUpdateError: (err) => toastError(err?.message || 'Failed to update sort order'),
+  onUpdateSuccess: () => toastSuccess(t('toast.sort_updated')),
+  onUpdateError: (err) => {
+    console.error('UserLevels sort update error:', err);
+    toastError(t('toast.sort_update_error'));
+  },
   debounceDelay: 800,
   itemKey: 'id',
   sortField: 'sort_order',
@@ -113,14 +116,20 @@ const handleSave = (data) => {
   if (editingLevel.value) {
     router.put(route('admin.user-levels.update', editingLevel.value.id), data, {
       preserveState: true,
-      onSuccess: () => toastSuccess('Level updated successfully'),
-      onError: (err) => toastError(err?.message || 'Failed to update level'),
+      onSuccess: () => toastSuccess(t('toast.update_success')),
+      onError: (err) => {
+        console.error('UserLevel update error:', err);
+        toastError(t('toast.update_error'));
+      },
     });
   } else {
     router.post(route('admin.user-levels.store'), data, {
       preserveState: true,
-      onSuccess: () => toastSuccess('Level created successfully'),
-      onError: (err) => toastError(err?.message || 'Failed to create level'),
+      onSuccess: () => toastSuccess(t('toast.create_success')),
+      onError: (err) => {
+        console.error('UserLevel create error:', err);
+        toastError(t('toast.create_error'));
+      },
     });
   }
   isFormVisible.value = false;
@@ -141,8 +150,11 @@ const confirmDelete = () => {
   if (deletingLevelId.value !== null) {
     router.delete(route('admin.user-levels.destroy', deletingLevelId.value), {
       preserveState: true,
-      onSuccess: () => toastSuccess('Level deleted successfully'),
-      onError: (err) => toastError(err?.message || 'Failed to delete level'),
+      onSuccess: () => toastSuccess(t('toast.delete_success')),
+      onError: (err) => {
+        console.error('UserLevel delete error:', err);
+        toastError(t('toast.delete_error'));
+      },
     });
     deletingLevelId.value = null;
   }

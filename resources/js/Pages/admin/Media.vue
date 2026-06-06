@@ -44,7 +44,7 @@ import axios from 'axios';
 import { router } from '@inertiajs/vue3';
 
 const props = defineProps({
-  media: { type: Array, default: () => [] },
+  media: { type: [Array, Object], default: () => [] },
 });
 
 const { t } = useI18n();

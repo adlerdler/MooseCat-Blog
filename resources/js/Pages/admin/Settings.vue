@@ -27,8 +27,9 @@ import {
   useToast,
   ConfirmDialog
 } from '../../composables/useAdminImports';
-import { Plus, Edit2, Trash2 } from 'lucide-vue-next';
+import { Plus, Edit2, Trash2, X } from 'lucide-vue-next';
 import { router } from '@inertiajs/vue3';
+import MediaPickerModal from '../../components/admin/MediaPickerModal.vue';
 
 const props = defineProps({
   siteConfig: { type: Object, default: () => ({}) },
@@ -321,7 +322,6 @@ const confirmSave = () => {
 };
 
 const resetSettings = () => {
-  console.log('Resetting settings');
 };
 </script>
 

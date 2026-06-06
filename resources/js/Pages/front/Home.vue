@@ -26,15 +26,6 @@ const props = defineProps({
   themes: { type: Array, default: () => [] }
 })
 
-console.log('[DEBUG] Home.vue props received:', {
-  posts: props.posts,
-  postsCount: props.posts?.length || 0,
-  projects: props.projects,
-  projectsCount: props.projects?.length || 0,
-  videos: props.videos,
-  videosCount: props.videos?.length || 0
-})
-
 const marqueeText = 'ARCHYX VOL. 2026 // BUILDING SYSTEM // MINIMALISM //'
 const techStack = ['TYPESCRIPT', 'VUE', 'LARAVEL', 'TAILWIND', 'NODE.JS', 'POSTGRES']
 
@@ -137,10 +128,7 @@ const featuredPosts = computed(() => {
   }))
 })
 
-console.log('[DEBUG] Home.vue script setup completed')
-
 onMounted(() => {
-  console.log('[DEBUG] Home.vue onMounted, props.posts:', props.posts)
   initAccentTheme()
 
   // 前台页面不受后台主题设置影响，移除 light class
@@ -158,7 +146,6 @@ onMounted(() => {
   } else {
     showSplash.value = true
   }
-  console.log('[DEBUG] Home.vue onMounted complete, showSplash:', showSplash.value, 'showContent:', showContent.value)
 })
 
 watch(isFooterVisible, (newVal) => {
@@ -166,7 +153,6 @@ watch(isFooterVisible, (newVal) => {
 })
 
 watch(() => props.posts, (newPosts) => {
-  console.log('[DEBUG] posts prop changed:', newPosts)
 }, { immediate: true })
 
 const handleSplashComplete = () => {

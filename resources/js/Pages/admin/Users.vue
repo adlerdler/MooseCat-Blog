@@ -95,7 +95,7 @@ const toggleStatus = (user) => {
   form.patch(route('admin.users.toggle-status', user.id), {
     preserveState: true,
     onSuccess: () => {
-      toastSuccess(`User ${newStatus === 'active' ? 'activated' : 'deactivated'} successfully`);
+      toastSuccess(newStatus === 'active' ? t('toast.activated_success') : t('toast.deactivated_success'));
       user.status = newStatus;
     },
     onError: (errors) => {
@@ -122,7 +122,7 @@ const handleSave = (data) => {
     form.put(route('admin.users.update', editingUser.value.id), {
       preserveState: true,
       onSuccess: () => {
-        toastSuccess('User updated successfully');
+        toastSuccess(t('toast.update_success'));
         isFormVisible.value = false;
         editingUser.value = null;
         serverErrors.value = {};
@@ -136,7 +136,7 @@ const handleSave = (data) => {
     form.post(route('admin.users.store'), {
       preserveState: true,
       onSuccess: () => {
-        toastSuccess('User created successfully');
+        toastSuccess(t('toast.create_success'));
         isFormVisible.value = false;
         editingUser.value = null;
         serverErrors.value = {};
@@ -165,13 +165,13 @@ const confirmDelete = () => {
     form.delete(route('admin.users.destroy', deletingUserId.value), {
       preserveState: true,
       onSuccess: () => {
-        toastSuccess('User deleted successfully');
+        toastSuccess(t('toast.delete_success'));
         showDeleteConfirm.value = false;
         deletingUserId.value = null;
       },
       onError: (errors) => {
-        const msg = Object.values(errors || {}).flat().join(', ') || 'Failed to delete user';
-        toastError(msg);
+        console.error('User delete error:', errors);
+        toastError(t('toast.delete_error'));
         showDeleteConfirm.value = false;
         deletingUserId.value = null;
       }

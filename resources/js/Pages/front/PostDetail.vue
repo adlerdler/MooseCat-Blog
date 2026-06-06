@@ -182,7 +182,7 @@ if (typeof window !== 'undefined') {
 const handleCommentSubmitted = (comment) => {
   // 评论已通过 Inertia router.post() 提交到真实 API
   if (comment) {
-    console.log(`Comment #${comment.id} submitted. Approved: ${comment.is_approved}`);
+    // Comment submitted successfully
   }
 };
 

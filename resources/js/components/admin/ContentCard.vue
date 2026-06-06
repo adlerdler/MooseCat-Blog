@@ -32,7 +32,7 @@ const props = defineProps({
   /** 作者名称 */
   author: { type: String, default: '' },
   /** 无图片时的占位图标组件 */
-  placeholderIcon: { type: Object, default: null },
+  placeholderIcon: { type: [Object, Function], default: null },
 });
 
 const emit = defineEmits(['edit', 'seo-edit', 'delete']);
