@@ -3,12 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Services\CaptchaService;
+use App\Http\Requests\Auth\LoginRequest;
 use App\Services\DashboardService;
 use App\Services\MenuService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -59,26 +58,10 @@ class DashboardController extends Controller
 
     /**
      * Handle login request
-     *
-     * @param Request $request
-     * @param CaptchaService $captchaService
-     * @return \Illuminate\Http\RedirectResponse
      */
-    public function handleLogin(Request $request, CaptchaService $captchaService)
+    public function handleLogin(LoginRequest $request)
     {
-        // 校验图片验证码
-        if (! $captchaService->check($request->captcha)) {
-            throw ValidationException::withMessages([
-                'captcha' => '验证码错误',
-            ]);
-        }
-
-        $credentials = $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
-
-        if (Auth::attempt($credentials, $request->filled('remember'))) {
+        if (Auth::attempt($request->credentials(), $request->boolean('remember'))) {
             $request->session()->regenerate();
 
             $user = Auth::user();
@@ -95,7 +78,7 @@ class DashboardController extends Controller
             }
 
             // Admin 或拥有 dashboard 权限的用户 → 跳转仪表盘
-            if ($user->hasRole('Administrator') || $user->hasPermissionTo('view_analytics')) {
+            if ($user->isAdministrator() || $user->hasPermissionTo('view_analytics')) {
                 return redirect('/admin/index');
             }
 

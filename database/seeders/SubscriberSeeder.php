@@ -9,12 +9,14 @@ class SubscriberSeeder extends Seeder
 {
     public function run(): void
     {
-        Subscriber::create([
-            'email' => 'adler@example.com',
-            'name' => 'Adler',
-            'source' => 'website',
-            'is_active' => true,
-            'subscribed_at' => now(),
-        ]);
+        Subscriber::updateOrCreate(
+            ['email' => 'adler@example.com'],
+            [
+                'name' => 'Adler',
+                'source' => 'website',
+                'is_active' => true,
+                'subscribed_at' => now(),
+            ]
+        );
     }
 }

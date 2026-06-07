@@ -9,7 +9,7 @@ class MenuSeeder extends Seeder
 {
     public function run(): void
     {
-        Menu::truncate();
+        // 移除 Menu::truncate(); 避免丢失自定义的菜单
 
         $menus = [
             ['id' => 1, 'type' => 'front', 'parent_id' => null, 'label_key' => 'nav_home', 'icon_name' => null, 'path' => '/', 'sort_order' => 1, 'is_active' => true, 'component_name' => 'Home'],
@@ -52,7 +52,10 @@ class MenuSeeder extends Seeder
         ];
 
         foreach ($menus as $menu) {
-            Menu::create($menu);
+            Menu::updateOrCreate(
+                ['id' => $menu['id']],
+                $menu
+            );
         }
     }
 }

@@ -19,8 +19,7 @@ class CheckPermission
             abort(403, '未登录');
         }
 
-        // Administrator 角色绕过所有权限检查
-        if ($user->hasRole('Administrator')) {
+        if ($user->isAdministrator()) {
             return $next($request);
         }
 

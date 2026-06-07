@@ -10,11 +10,7 @@ class AdPositionSeeder extends Seeder
 {
     public function run(): void
     {
-        // 清空旧数据重建（旧中文名在新英文名已有记录时会造成唯一约束冲突）
-        // 使用 DELETE 而非 truncate 以兼容外键约束（advertisements.position_id → nullOnDelete）
-        DB::statement('SET FOREIGN_KEY_CHECKS=0');
-        AdPosition::truncate();
-        DB::statement('SET FOREIGN_KEY_CHECKS=1');
+        // 移除 truncate 避免破坏外键约束和已有关联
 
         $positions = [
             [
@@ -83,7 +79,10 @@ class AdPositionSeeder extends Seeder
         ];
 
         foreach ($positions as $position) {
-            AdPosition::create($position);
+            AdPosition::updateOrCreate(
+                ['name' => $position['name']],
+                $position
+            );
         }
     }
 }

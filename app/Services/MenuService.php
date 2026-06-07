@@ -166,7 +166,7 @@ class MenuService
         }
 
         // 超级管理员拥有所有权限
-        if ($user->hasRole('Administrator')) {
+        if ($user->isAdministrator()) {
             return $menus;
         }
 

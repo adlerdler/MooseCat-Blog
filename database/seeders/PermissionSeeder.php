@@ -16,14 +16,8 @@ class PermissionSeeder extends Seeder
     {
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // 清空现有权限数据
-        DB::statement('SET FOREIGN_KEY_CHECKS=0');
-        DB::table('role_has_permissions')->truncate();
-        DB::table('model_has_permissions')->truncate();
-        DB::table('model_has_roles')->truncate();
-        DB::table('permissions')->truncate();
-        DB::table('roles')->truncate();
-        DB::statement('SET FOREIGN_KEY_CHECKS=1');
+        // 移除清空数据的代码，采用幂等的方式填充
+        // 不再 truncate 表，从而不破坏外键和已有分配关系
 
         $permissions = [
             ['name' => 'manage_posts', 'label' => '文章管理', 'description' => '文章管理权限', 'program_id' => 'content'],
@@ -55,50 +49,47 @@ class PermissionSeeder extends Seeder
             ['name' => 'view_analytics', 'label' => '仪表盘', 'description' => '仪表盘查看权限', 'program_id' => 'dashboard'],
         ];
 
+        $allPermissionNames = [];
         foreach ($permissions as $perm) {
-            Permission::create([
-                'name' => $perm['name'],
-                'guard_name' => 'web',
-                'label' => $perm['label'],
-                'description' => $perm['description'],
-                'program_id' => $perm['program_id'],
-            ]);
+            Permission::updateOrCreate(
+                ['name' => $perm['name'], 'guard_name' => 'web'],
+                [
+                    'label' => $perm['label'],
+                    'description' => $perm['description'],
+                    'program_id' => $perm['program_id'],
+                ]
+            );
+            $allPermissionNames[] = $perm['name'];
         }
 
+        // 统一角色与权限对应关系，通过名称管理而不是写死 ID
         $rolePermissions = [
-            // Administrator (role_id: 1) - 所有 27 个权限
-            ['role_id' => 1, 'permission_id' => 1], ['role_id' => 1, 'permission_id' => 2],
-            ['role_id' => 1, 'permission_id' => 3], ['role_id' => 1, 'permission_id' => 4],
-            ['role_id' => 1, 'permission_id' => 5], ['role_id' => 1, 'permission_id' => 6],
-            ['role_id' => 1, 'permission_id' => 7], ['role_id' => 1, 'permission_id' => 8],
-            ['role_id' => 1, 'permission_id' => 9], ['role_id' => 1, 'permission_id' => 10],
-            ['role_id' => 1, 'permission_id' => 11], ['role_id' => 1, 'permission_id' => 12],
-            ['role_id' => 1, 'permission_id' => 13], ['role_id' => 1, 'permission_id' => 14],
-            ['role_id' => 1, 'permission_id' => 15], ['role_id' => 1, 'permission_id' => 16],
-            ['role_id' => 1, 'permission_id' => 17], ['role_id' => 1, 'permission_id' => 18],
-            ['role_id' => 1, 'permission_id' => 19], ['role_id' => 1, 'permission_id' => 20],
-            ['role_id' => 1, 'permission_id' => 21], ['role_id' => 1, 'permission_id' => 22],
-            ['role_id' => 1, 'permission_id' => 23], ['role_id' => 1, 'permission_id' => 24],
-            ['role_id' => 1, 'permission_id' => 25], ['role_id' => 1, 'permission_id' => 26],
-            ['role_id' => 1, 'permission_id' => 27],
-            // Editor (role_id: 2)
-            ['role_id' => 2, 'permission_id' => 1], ['role_id' => 2, 'permission_id' => 5],
-            ['role_id' => 2, 'permission_id' => 7], ['role_id' => 2, 'permission_id' => 8],
-            ['role_id' => 2, 'permission_id' => 15],
-            // Author (role_id: 3)
-            ['role_id' => 3, 'permission_id' => 1],
-            // Moderator (role_id: 4)
-            ['role_id' => 4, 'permission_id' => 5], ['role_id' => 4, 'permission_id' => 6],
-            ['role_id' => 4, 'permission_id' => 14],
-            // Subscriber (role_id: 5)
-            ['role_id' => 5, 'permission_id' => 6], ['role_id' => 5, 'permission_id' => 7],
-            ['role_id' => 5, 'permission_id' => 8],
-            // API (role_id: 6)
-            ['role_id' => 6, 'permission_id' => 11],
+            'Administrator' => $allPermissionNames,
+            'Editor' => [
+                'manage_posts', 'manage_journals', 'manage_tags', 'manage_comments', 'manage_social_login'
+            ],
+            'Author' => [
+                'manage_posts'
+            ],
+            'Moderator' => [
+                'manage_journals', 'manage_categories', 'manage_settings'
+            ],
+            'Subscriber' => [
+                'manage_categories', 'manage_tags', 'manage_comments'
+            ],
+            // API 角色使用 api guard，不分配 web guard 的权限
+            // 如需 API 专属权限，应单独创建并注册到 api guard
+            'API' => [],
         ];
 
-        foreach ($rolePermissions as $rp) {
-            DB::table('role_has_permissions')->insert($rp);
+        foreach ($rolePermissions as $roleName => $perms) {
+            // 在指定 guard_name 中查找角色
+            $guard = $roleName === 'API' ? 'api' : 'web';
+            $role = Role::where('name', $roleName)->where('guard_name', $guard)->first();
+            
+            if ($role) {
+                $role->syncPermissions($perms);
+            }
         }
     }
 }

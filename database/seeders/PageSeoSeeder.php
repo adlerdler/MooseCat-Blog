@@ -48,7 +48,10 @@ class PageSeoSeeder extends Seeder
         ];
 
         foreach ($pages as $page) {
-            PageSeo::create($page);
+            PageSeo::updateOrCreate(
+                ['page_key' => $page['page_key']],
+                $page
+            );
         }
     }
 }

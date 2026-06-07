@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Models\User;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Auth\Events\Login;
@@ -24,6 +26,10 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Schema::defaultStringLength(191);
+
+        Gate::before(function ($user, $ability) {
+            return $user instanceof User && $user->isAdministrator() ? true : null;
+        });
 
         // 模型 LogsActivity trait 事件触发时不会自动填写 IP/UA，
         // 通过 saving 钩子统一补填（中间件通过 activity() helper 已自带）

@@ -63,7 +63,10 @@ class SocialLinkSeeder extends Seeder
         ];
 
         foreach ($socialLinks as $link) {
-            FooterLink::create($link);
+            FooterLink::updateOrCreate(
+                ['platform' => $link['platform'], 'type' => 'social_link'],
+                $link
+            );
         }
     }
 }

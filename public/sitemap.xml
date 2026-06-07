@@ -2,121 +2,85 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>http://127.0.0.1:8000</loc>
-    <lastmod>2026-06-06T17:18:40+00:00</lastmod>
+    <lastmod>2026-06-07T10:59:45+00:00</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>http://127.0.0.1:8000/categories/theory</loc>
-    <lastmod>2026-06-02T11:46:03+00:00</lastmod>
+    <lastmod>2026-06-07T10:54:41+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>http://127.0.0.1:8000/categories/design</loc>
-    <lastmod>2026-06-02T11:46:05+00:00</lastmod>
+    <lastmod>2026-06-07T10:54:41+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>http://127.0.0.1:8000/categories/culture</loc>
-    <lastmod>2026-06-02T11:46:17+00:00</lastmod>
+    <lastmod>2026-06-07T10:54:41+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>http://127.0.0.1:8000/categories/system-design</loc>
-    <lastmod>2026-06-02T11:46:19+00:00</lastmod>
+    <lastmod>2026-06-07T10:54:41+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>http://127.0.0.1:8000/categories/engineering</loc>
-    <lastmod>2026-06-02T12:01:30+00:00</lastmod>
+    <lastmod>2026-06-07T10:54:41+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>http://127.0.0.1:8000/categories/history</loc>
-    <lastmod>2026-06-06T10:17:40+00:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>http://127.0.0.1:8000/blog/qyNCBkO3-HxQH</loc>
-    <lastmod>2026-06-06T16:38:57+00:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>http://127.0.0.1:8000/blog/the-geometry-of-perception11</loc>
-    <lastmod>2026-06-06T16:09:34+00:00</lastmod>
+    <loc>http://127.0.0.1:8000/blog/the-geometry-of-perception</loc>
+    <lastmod>2026-06-07T10:54:42+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>http://127.0.0.1:8000/blog/typography-as-architecture</loc>
-    <lastmod>2026-06-03T22:37:18+00:00</lastmod>
+    <lastmod>2026-06-07T10:54:42+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>http://127.0.0.1:8000/blog/manifesto-of-the-machine</loc>
-    <lastmod>2026-06-05T09:15:25+00:00</lastmod>
+    <lastmod>2026-06-07T10:54:42+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>http://127.0.0.1:8000/blog/architectural-vectors</loc>
-    <lastmod>2026-06-03T13:18:54+00:00</lastmod>
+    <lastmod>2026-06-07T10:54:42+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>http://127.0.0.1:8000/projects/Vo66t1mq-iESl</loc>
-    <lastmod>2026-06-06T16:17:19+00:00</lastmod>
+    <loc>http://127.0.0.1:8000/blog/the-ethics-of-the-grid</loc>
+    <lastmod>2026-06-07T10:54:42+00:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>http://127.0.0.1:8000/projects/onyx-portfolio</loc>
+    <lastmod>2026-06-07T10:54:42+00:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>http://127.0.0.1:8000/projects/lACh5b2d-dMtj</loc>
-    <lastmod>2026-06-04T07:34:48+00:00</lastmod>
+    <loc>http://127.0.0.1:8000/videos/laravel-11-features</loc>
+    <lastmod>2026-06-07T10:54:42+00:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>http://127.0.0.1:8000/videos/xxxxxxxxxxxx</loc>
-    <lastmod>2026-06-05T21:42:22+00:00</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>http://127.0.0.1:8000/videos/6666666</loc>
-    <lastmod>2026-06-05T21:42:58+00:00</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>http://127.0.0.1:8000/videos/</loc>
-    <lastmod>2026-06-05T21:42:27+00:00</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>http://127.0.0.1:8000/videos/l9wZNWeE-wC24</loc>
-    <lastmod>2026-06-05T21:43:01+00:00</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>http://127.0.0.1:8000/videos/9BW450bo-dsFT</loc>
-    <lastmod>2026-06-01T13:44:39+00:00</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>http://127.0.0.1:8000/videos/tK6uiWYf-6vNz</loc>
-    <lastmod>2026-06-01T13:47:23+00:00</lastmod>
+    <loc>http://127.0.0.1:8000/videos/minimalist-design-principles</loc>
+    <lastmod>2026-06-07T10:54:42+00:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>

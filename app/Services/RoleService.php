@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\Role;
+use App\Models\User;
 use Spatie\Permission\Models\Permission;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -135,16 +136,18 @@ class RoleService
      */
     public function create(array $data): Role
     {
+        $guardName = $this->resolveGuardName($data['name'], $data['guard_name']);
+
         $role = Role::create([
             'name'        => $data['name'],
             'label'       => $data['label'] ?? $data['name'],
             'color'       => $data['color'] ?? 'gray',
             'description' => $data['description'] ?? '',
-            'guard_name'  => $data['guard_name'],
+            'guard_name'  => $guardName,
         ]);
 
         if (isset($data['permissions']) && !empty($data['permissions'])) {
-            $mappedPermissionIds = $this->ensurePermissionsExistInGuard($data['permissions'], $data['guard_name']);
+            $mappedPermissionIds = $this->ensurePermissionsExistInGuard($data['permissions'], $guardName);
             $role->syncPermissions($mappedPermissionIds);
         }
 
@@ -156,20 +159,34 @@ class RoleService
      */
     public function update(Role $role, array $data): Role
     {
+        $guardName = $this->resolveGuardName($data['name'], $data['guard_name']);
+
         $role->update([
             'name'        => $data['name'],
             'label'       => $data['label'] ?? $data['name'],
             'color'       => $data['color'] ?? 'gray',
             'description' => $data['description'] ?? '',
-            'guard_name'  => $data['guard_name'],
+            'guard_name'  => $guardName,
         ]);
 
         if (isset($data['permissions']) && !empty($data['permissions'])) {
-            $mappedPermissionIds = $this->ensurePermissionsExistInGuard($data['permissions'], $data['guard_name']);
+            $mappedPermissionIds = $this->ensurePermissionsExistInGuard($data['permissions'], $guardName);
             $role->syncPermissions($mappedPermissionIds);
         }
 
         return $role;
+    }
+
+    /**
+     * Administrator 必须与后台登录守卫（web）一致，禁止误设为 admin
+     */
+    protected function resolveGuardName(string $roleName, string $guardName): string
+    {
+        if ($roleName === User::SUPER_ADMIN_ROLE) {
+            return 'web';
+        }
+
+        return $guardName;
     }
 
     /**

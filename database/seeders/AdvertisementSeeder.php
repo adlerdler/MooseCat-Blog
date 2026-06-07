@@ -3,18 +3,28 @@
 namespace Database\Seeders;
 
 use App\Models\Advertisement;
+use App\Models\AdPosition;
 use Illuminate\Database\Seeder;
 
 class AdvertisementSeeder extends Seeder
 {
     public function run(): void
     {
+        // 动态获取广告位置（通过 name 而非硬编码 ID）
+        $headerPosition = AdPosition::where('name', 'header')->first();
+        $sidebarPosition = AdPosition::where('name', 'sidebar')->first();
+        $betweenPostsPosition = AdPosition::where('name', 'between_posts')->first();
+        $inContentPosition = AdPosition::where('name', 'in_content')->first();
+        $footerPosition = AdPosition::where('name', 'footer')->first();
+        $popupPosition = AdPosition::where('name', 'popup')->first();
+        $videoBottomPosition = AdPosition::where('name', 'video_bottom')->first();
+
         $advertisements = [
             [
                 'title' => 'Minimalist Hosting',
                 'image_url' => 'https://via.placeholder.com/1200x300',
                 'link_url' => 'https://example.com/hosting',
-                'position_id' => 1,
+                'position' => $headerPosition,
                 'is_active' => true,
                 'clicks_count' => 1250,
                 'views_count' => 15800,
@@ -25,7 +35,7 @@ class AdvertisementSeeder extends Seeder
                 'title' => 'Cloud Server Pro',
                 'image_url' => 'https://via.placeholder.com/1200x300',
                 'link_url' => 'https://example.com/cloud',
-                'position_id' => 1,
+                'position' => $headerPosition,
                 'is_active' => true,
                 'clicks_count' => 890,
                 'views_count' => 12300,
@@ -36,7 +46,7 @@ class AdvertisementSeeder extends Seeder
                 'title' => 'Developer Tools Bundle',
                 'image_url' => 'https://via.placeholder.com/300x250',
                 'link_url' => 'https://example.com/tools',
-                'position_id' => 2,
+                'position' => $sidebarPosition,
                 'is_active' => true,
                 'clicks_count' => 560,
                 'views_count' => 8900,
@@ -47,7 +57,7 @@ class AdvertisementSeeder extends Seeder
                 'title' => 'Learn Laravel 11',
                 'image_url' => 'https://via.placeholder.com/300x250',
                 'link_url' => 'https://example.com/laravel-course',
-                'position_id' => 2,
+                'position' => $sidebarPosition,
                 'is_active' => true,
                 'clicks_count' => 2100,
                 'views_count' => 25600,
@@ -58,7 +68,7 @@ class AdvertisementSeeder extends Seeder
                 'title' => 'Vue.js Mastery',
                 'image_url' => 'https://via.placeholder.com/300x250',
                 'link_url' => 'https://example.com/vue-course',
-                'position_id' => 2,
+                'position' => $sidebarPosition,
                 'is_active' => true,
                 'clicks_count' => 1800,
                 'views_count' => 22400,
@@ -69,7 +79,7 @@ class AdvertisementSeeder extends Seeder
                 'title' => 'Premium UI Kit',
                 'image_url' => 'https://via.placeholder.com/728x90',
                 'link_url' => 'https://example.com/ui-kit',
-                'position_id' => 3,
+                'position' => $betweenPostsPosition,
                 'is_active' => true,
                 'clicks_count' => 430,
                 'views_count' => 6700,
@@ -80,7 +90,7 @@ class AdvertisementSeeder extends Seeder
                 'title' => 'API Development Guide',
                 'image_url' => 'https://via.placeholder.com/728x90',
                 'link_url' => 'https://example.com/api-guide',
-                'position_id' => 3,
+                'position' => $betweenPostsPosition,
                 'is_active' => true,
                 'clicks_count' => 670,
                 'views_count' => 9200,
@@ -91,7 +101,7 @@ class AdvertisementSeeder extends Seeder
                 'title' => 'Database Optimization',
                 'image_url' => 'https://via.placeholder.com/300x600',
                 'link_url' => 'https://example.com/db-optimization',
-                'position_id' => 4,
+                'position' => $inContentPosition,
                 'is_active' => true,
                 'clicks_count' => 320,
                 'views_count' => 5100,
@@ -102,7 +112,7 @@ class AdvertisementSeeder extends Seeder
                 'title' => 'Security Best Practices',
                 'image_url' => 'https://via.placeholder.com/300x600',
                 'link_url' => 'https://example.com/security',
-                'position_id' => 4,
+                'position' => $inContentPosition,
                 'is_active' => false,
                 'clicks_count' => 150,
                 'views_count' => 2800,
@@ -113,7 +123,7 @@ class AdvertisementSeeder extends Seeder
                 'title' => 'Mobile App Development',
                 'image_url' => 'https://via.placeholder.com/320x50',
                 'link_url' => 'https://example.com/mobile-dev',
-                'position_id' => 5,
+                'position' => $footerPosition,
                 'is_active' => true,
                 'clicks_count' => 980,
                 'views_count' => 14500,
@@ -124,7 +134,7 @@ class AdvertisementSeeder extends Seeder
                 'title' => 'DevOps Essentials',
                 'image_url' => 'https://via.placeholder.com/320x50',
                 'link_url' => 'https://example.com/devops',
-                'position_id' => 5,
+                'position' => $footerPosition,
                 'is_active' => true,
                 'clicks_count' => 740,
                 'views_count' => 11200,
@@ -135,7 +145,7 @@ class AdvertisementSeeder extends Seeder
                 'title' => 'JavaScript Frameworks',
                 'image_url' => 'https://via.placeholder.com/320x50',
                 'link_url' => 'https://example.com/js-frameworks',
-                'position_id' => 5,
+                'position' => $footerPosition,
                 'is_active' => true,
                 'clicks_count' => 1560,
                 'views_count' => 19800,
@@ -145,7 +155,24 @@ class AdvertisementSeeder extends Seeder
         ];
 
         foreach ($advertisements as $ad) {
-            Advertisement::create($ad);
+            $position = $ad['position'];
+            if (!$position) {
+                continue;
+            }
+
+            Advertisement::updateOrCreate(
+                ['title' => $ad['title']],
+                [
+                    'image_url' => $ad['image_url'],
+                    'link_url' => $ad['link_url'],
+                    'position_id' => $position->id,
+                    'is_active' => $ad['is_active'],
+                    'clicks_count' => $ad['clicks_count'],
+                    'views_count' => $ad['views_count'],
+                    'start_date' => $ad['start_date'],
+                    'end_date' => $ad['end_date'],
+                ]
+            );
         }
     }
 }

@@ -23,7 +23,7 @@ class Controller extends BaseController
             abort(403, '未登录');
         }
 
-        if ($user->hasRole('Administrator')) {
+        if ($user->isAdministrator()) {
             return;
         }
 

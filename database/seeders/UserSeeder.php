@@ -10,7 +10,7 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        $admin = User::firstOrCreate(
+        $admin = User::updateOrCreate(
             ['email' => 'admin@archyx.com'],
             [
                 'name' => 'Admin User',
@@ -27,9 +27,9 @@ class UserSeeder extends Seeder
                 'last_login_at' => now(),
             ]
         );
-        $admin->assignRole('Administrator');
+        $admin->syncRoles(['Administrator']);
 
-        $editor = User::firstOrCreate(
+        $editor = User::updateOrCreate(
             ['email' => 'editor@archyx.com'],
             [
                 'name' => 'Content Editor',
@@ -46,9 +46,9 @@ class UserSeeder extends Seeder
                 'last_login_at' => now(),
             ]
         );
-        $editor->assignRole('Editor');
+        $editor->syncRoles(['Editor']);
 
-        $author = User::firstOrCreate(
+        $author = User::updateOrCreate(
             ['email' => 'author@archyx.com'],
             [
                 'name' => 'Test Author',
@@ -65,9 +65,9 @@ class UserSeeder extends Seeder
                 'last_login_at' => now(),
             ]
         );
-        $author->assignRole('Author');
+        $author->syncRoles(['Author']);
 
-        $user = User::firstOrCreate(
+        $user = User::updateOrCreate(
             ['email' => 'user@archyx.com'],
             [
                 'name' => 'Test User',
@@ -84,6 +84,6 @@ class UserSeeder extends Seeder
                 'last_login_at' => now(),
             ]
         );
-        $user->assignRole('Subscriber');
+        $user->syncRoles(['Subscriber']);
     }
 }

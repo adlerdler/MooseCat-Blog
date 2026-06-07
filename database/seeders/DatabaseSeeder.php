@@ -14,73 +14,35 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // 清除 spatie/laravel-permission 的缓存
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+
         // 1. 先运行角色和权限 Seeder
         $this->call([
             RoleSeeder::class,
             PermissionSeeder::class,
         ]);
 
-        // 2. 创建用户并分配角色
-        $adminUser = User::firstOrCreate(
-            ['email' => 'admin@archyx.com'],
-            [
-                'name' => 'Admin User',
-                'password' => Hash::make('password'),
-                'level_id' => 1,
-                'status' => 'active',
-                'points' => 1000,
-            ]
-        );
-        $adminUser->assignRole('Administrator');
+        // 2. 先创建用户等级数据（UserSeeder 依赖 level_id 外键）
+        $this->call([
+            UserLevelSeeder::class,
+        ]);
 
-        $editorUser = User::firstOrCreate(
-            ['email' => 'editor@archyx.com'],
-            [
-                'name' => 'Content Editor',
-                'password' => Hash::make('password'),
-                'level_id' => 2,
-                'status' => 'active',
-                'points' => 500,
-            ]
-        );
-        $editorUser->assignRole('Editor');
+        // 3. 创建用户并分配角色 (已移至 UserSeeder 统一管理)
+        $this->call(UserSeeder::class);
 
-        $authorUser = User::firstOrCreate(
-            ['email' => 'author@archyx.com'],
-            [
-                'name' => 'Test Author',
-                'password' => Hash::make('password'),
-                'level_id' => 3,
-                'status' => 'active',
-                'points' => 300,
-            ]
-        );
-        $authorUser->assignRole('Author');
-
-        $testUser = User::firstOrCreate(
-            ['email' => 'user@archyx.com'],
-            [
-                'name' => 'Test User',
-                'password' => Hash::make('password'),
-                'level_id' => 4,
-                'status' => 'active',
-                'points' => 100,
-            ]
-        );
-        $testUser->assignRole('Subscriber');
-
-        // 3. 按顺序调用子 Seeder
+        // 4. 按顺序调用子 Seeder
         $this->call([
             // 基础数据
             AdPositionSeeder::class,
             SettingSeeder::class,
             MenuSeeder::class,
-            UserLevelSeeder::class,
             LanguageSeeder::class,
             SocialLinkSeeder::class,
             FooterLinkSeeder::class,
             ThemeSeeder::class,
             SeoSeeder::class,
+            PageSeoSeeder::class,
             TranslationSeeder::class,
             
             // 用户相关

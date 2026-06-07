@@ -28,7 +28,10 @@ class TranslationSeeder extends Seeder
         ];
 
         foreach ($translations as $translation) {
-            Translation::create($translation);
+            Translation::updateOrCreate(
+                ['group' => $translation['group'], 'key' => $translation['key']],
+                $translation
+            );
         }
     }
 }

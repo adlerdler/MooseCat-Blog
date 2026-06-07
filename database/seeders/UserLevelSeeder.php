@@ -18,7 +18,10 @@ class UserLevelSeeder extends Seeder
         ];
 
         foreach ($levels as $level) {
-            UserLevel::create($level);
+            UserLevel::updateOrCreate(
+                ['level' => $level['level']],
+                $level
+            );
         }
     }
 }

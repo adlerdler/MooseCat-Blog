@@ -24,7 +24,10 @@ class FooterLinkSeeder extends Seeder
         ];
 
         foreach ($footerLinks as $link) {
-            FooterLink::create($link);
+            FooterLink::updateOrCreate(
+                ['label' => $link['label'], 'type' => 'nav_link'],
+                $link
+            );
         }
     }
 }

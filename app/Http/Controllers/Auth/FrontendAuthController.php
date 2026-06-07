@@ -102,9 +102,7 @@ class FrontendAuthController extends Controller
      */
     public function login(LoginRequest $request): RedirectResponse
     {
-        $credentials = $request->validated();
-
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
+        if (Auth::attempt($request->credentials(), $request->boolean('remember'))) {
             $request->session()->regenerate();
             return redirect()->intended('/');
         }

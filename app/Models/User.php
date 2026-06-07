@@ -18,6 +18,11 @@ class User extends Authenticatable implements HasMedia
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasApiTokens, HasFactory, Notifiable, HasRoles, LogsActivity, InteractsWithMedia;
 
+    public const SUPER_ADMIN_ROLE = 'Administrator';
+
+    /** 后台登录使用 web 守卫；admin 为历史误配，校验时需一并识别 */
+    public const ADMIN_ROLE_GUARDS = ['web', 'admin'];
+
     /**
      * The attributes that are mass assignable.
      *
@@ -182,6 +187,20 @@ class User extends Authenticatable implements HasMedia
     public function userLevel(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(UserLevel::class, 'level_id');
+    }
+
+    /**
+     * 是否为超级管理员（兼容 web / 历史 admin 守卫下的 Administrator 角色）
+     */
+    public function isAdministrator(): bool
+    {
+        foreach (self::ADMIN_ROLE_GUARDS as $guard) {
+            if ($this->hasRole(self::SUPER_ADMIN_ROLE, $guard)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

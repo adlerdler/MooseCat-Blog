@@ -11,13 +11,19 @@ class CommentSeeder extends Seeder
 {
     public function run(): void
     {
-        $posts = Post::all();
-        $users = User::all();
+        // 动态获取文章（通过 slug 而非硬编码 ID）
+        $post1 = Post::where('slug', 'the-geometry-of-perception')->first();
+        $post2 = Post::where('slug', 'typography-as-architecture')->first();
+        $post3 = Post::where('slug', 'manifesto-of-the-machine')->first();
+
+        if (!$post1 || !$post2 || !$post3) {
+            return;
+        }
 
         $comments = [
             // 第一篇文章的评论
             [
-                'post_id' => 1,
+                'post_id' => $post1->id,
                 'parent_id' => null,
                 'user_id' => null,
                 'name' => 'John Doe',
@@ -29,8 +35,8 @@ class CommentSeeder extends Seeder
                 'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
             ],
             [
-                'post_id' => 1,
-                'parent_id' => 1,
+                'post_id' => $post1->id,
+                'parent_id' => null, // 先创建父评论
                 'user_id' => null,
                 'name' => 'Alice Chen',
                 'email' => 'alice@example.com',
@@ -43,7 +49,7 @@ class CommentSeeder extends Seeder
             
             // 第二篇文章的评论
             [
-                'post_id' => 2,
+                'post_id' => $post2->id,
                 'parent_id' => null,
                 'user_id' => null,
                 'name' => 'Jane Smith',
@@ -55,8 +61,8 @@ class CommentSeeder extends Seeder
                 'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
             ],
             [
-                'post_id' => 2,
-                'parent_id' => 3,
+                'post_id' => $post2->id,
+                'parent_id' => null, // 先创建父评论
                 'user_id' => null,
                 'name' => 'Architect_X',
                 'email' => 'arch@example.com',
@@ -69,7 +75,7 @@ class CommentSeeder extends Seeder
             
             // 第三篇文章的评论
             [
-                'post_id' => 3,
+                'post_id' => $post3->id,
                 'parent_id' => null,
                 'user_id' => null,
                 'name' => 'Bob Wilson',
@@ -81,7 +87,7 @@ class CommentSeeder extends Seeder
                 'user_agent' => 'Mozilla/5.0 (Linux; Android 10)',
             ],
             [
-                'post_id' => 3,
+                'post_id' => $post3->id,
                 'parent_id' => null,
                 'user_id' => null,
                 'name' => 'Visitor',
@@ -100,6 +106,19 @@ class CommentSeeder extends Seeder
                 'body' => $commentData['body'],
                 'name' => $commentData['name'],
             ], $commentData);
+        }
+
+        // 所有评论创建完成后，再设置子评论的 parent_id
+        $aliceComment = Comment::where('name', 'Alice Chen')->first();
+        $johnComment = Comment::where('name', 'John Doe')->first();
+        if ($aliceComment && $johnComment) {
+            $aliceComment->update(['parent_id' => $johnComment->id]);
+        }
+
+        $architectComment = Comment::where('name', 'Architect_X')->first();
+        $janeComment = Comment::where('name', 'Jane Smith')->first();
+        if ($architectComment && $janeComment) {
+            $architectComment->update(['parent_id' => $janeComment->id]);
         }
     }
 }

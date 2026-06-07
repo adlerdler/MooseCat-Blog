@@ -35,4 +35,12 @@ class LoginRequest extends FormRequest
             }
         });
     }
+
+    /**
+     * 仅返回可用于 Auth::attempt 的字段（captcha 不得参与用户表查询）
+     */
+    public function credentials(): array
+    {
+        return $this->safe()->only(['email', 'password']);
+    }
 }
