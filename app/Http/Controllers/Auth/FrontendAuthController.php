@@ -89,18 +89,13 @@ class FrontendAuthController extends Controller
     /**
      * 登录页面（Inertia）
      */
-    public function showLogin(): Response
+    public function showLogin(): \Symfony\Component\HttpFoundation\Response
     {
-        $response = Inertia::render('front/Auth', [
+        return Inertia::render('front/Auth', [
             'mode'      => 'login',
             'captcha'   => $this->captchaService->create(),
             'providers' => $this->socialLoginService->getEnabledProviders(),
-        ]);
-
-        return $response->withHeaders([
-            'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
-            'Pragma' => 'no-cache',
-        ]);
+        ])->toResponse(request())->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')->header('Pragma', 'no-cache');
     }
 
     /**
@@ -121,18 +116,13 @@ class FrontendAuthController extends Controller
     /**
      * 注册页面（Inertia）
      */
-    public function showRegister(): Response
+    public function showRegister(): \Symfony\Component\HttpFoundation\Response
     {
-        $response = Inertia::render('front/Auth', [
+        return Inertia::render('front/Auth', [
             'mode'      => 'register',
             'captcha'   => $this->captchaService->create(),
             'providers' => $this->socialLoginService->getEnabledProviders(),
-        ]);
-
-        return $response->withHeaders([
-            'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
-            'Pragma' => 'no-cache',
-        ]);
+        ])->toResponse(request())->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')->header('Pragma', 'no-cache');
     }
 
     /**

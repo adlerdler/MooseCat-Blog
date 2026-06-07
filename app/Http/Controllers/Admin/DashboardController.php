@@ -52,19 +52,12 @@ class DashboardController extends Controller
 
     /**
      * Display the login page
-     *
-     * @return Response
      */
-    public function login(): Response
+    public function login(): \Symfony\Component\HttpFoundation\Response
     {
-        $response = Inertia::render('admin/Login', [
+        return Inertia::render('admin/Login', [
             'captcha' => $this->captchaService->create(),
-        ]);
-
-        return $response->withHeaders([
-            'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
-            'Pragma' => 'no-cache',
-        ]);
+        ])->toResponse(request())->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')->header('Pragma', 'no-cache');
     }
 
     /**
