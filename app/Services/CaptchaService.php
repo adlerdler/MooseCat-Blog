@@ -118,8 +118,12 @@ class CaptchaService
         ];
 
         foreach ($candidates as $path) {
-            if (file_exists($path)) {
-                return $path;
+            try {
+                if (@file_exists($path)) {
+                    return $path;
+                }
+            } catch (\Throwable) {
+                // open_basedir 限制，跳过
             }
         }
 
