@@ -23,6 +23,11 @@ return new class extends Migration
             $table->integer('sort_order')->default(0)->comment('排序');
             $table->timestamps();
         });
+
+        // 添加 users 表的外键约束（users 表已先创建）
+        Schema::table('users', function (Blueprint $table) {
+            $table->foreign('level_id')->references('id')->on('user_levels')->nullOnDelete();
+        });
     }
 
     public function down(): void

@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('level_id')->nullable()->constrained('user_levels')->nullOnDelete()->comment('用户等级ID，关联user_levels表');
+            $table->unsignedBigInteger('level_id')->nullable()->comment('用户等级ID，关联user_levels表');
             $table->string('name')->comment('用户名');
             $table->string('email')->unique()->comment('邮箱');
             $table->timestamp('email_verified_at')->nullable()->comment('邮箱验证时间');
