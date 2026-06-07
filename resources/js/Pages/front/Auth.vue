@@ -121,7 +121,12 @@ const forgotForm = useForm({
 });
 
 const submitForgotPassword = () => {
-  forgotForm.post(route('front.password.email'));
+  forgotForm.post(route('front.password.email'), {
+    onError: (errors) => {
+      const msg = errors.credential || errors.email;
+      if (msg) showBottomLeftError(msg);
+    },
+  });
 };
 
 // —— 登录表单 ——
@@ -143,6 +148,10 @@ const submitLogin = () => {
       loginForm.reset('password', 'captcha');
       loginCaptchaInput.value = '';
     },
+    onError: () => {
+      loginCaptchaInput.value = '';
+      refreshCaptcha();
+    },
   });
 };
 
@@ -161,11 +170,15 @@ const submitRegister = () => {
   registerForm.verification_code = emailCode.value;
   registerForm.post(route('front.register.handle'), {
     onFinish: () => {
-      registerForm.reset();
+      registerForm.reset('password', 'password_confirmation', 'captcha');
       captchaInput.value = '';
       emailCode.value = '';
       codeCooldown.value = 0;
       if (cooldownTimer) { clearInterval(cooldownTimer); cooldownTimer = null; }
+    },
+    onError: () => {
+      captchaInput.value = '';
+      refreshCaptcha();
     },
   });
 };

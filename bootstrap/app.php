@@ -39,7 +39,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'password_confirmation',
         ]);
 
-        // 所有 HTTP 异常统一走 ErrorPage.vue（排除 ValidationException 和 AuthenticationException）
+        // 所有 HTTP 异常统一走 ErrorPage.vue（排除 ValidationException、AuthenticationException 和 AccessDeniedException）
         $exceptions->render(function (\Throwable $e, $request) {
             // 验证异常不处理，让 Laravel/Inertia 默认处理
             if ($e instanceof \Illuminate\Validation\ValidationException) {
@@ -48,6 +48,19 @@ return Application::configure(basePath: dirname(__DIR__))
 
             // 认证异常不处理，让后面的 AuthenticationException 处理器处理
             if ($e instanceof \Illuminate\Auth\AuthenticationException) {
+                return null;
+            }
+
+            // 403 权限异常 → 跳转后台无权限页面
+            if ($e instanceof \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException
+                || $e instanceof \Illuminate\Auth\Access\AuthorizationException
+                || $e instanceof \Spatie\Permission\Exceptions\UnauthorizedException
+                || ($e instanceof \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface && $e->getStatusCode() === 403)) {
+                // 后台路由请求跳转 /admin/forbidden
+                if (str_starts_with($request->path(), 'admin')) {
+                    return redirect()->route('admin.forbidden');
+                }
+                // 其他 403 走默认处理
                 return null;
             }
 

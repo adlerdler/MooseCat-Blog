@@ -3,7 +3,7 @@
  * 前台密码重置页（独立全屏）
  * 从邮件链接进入，携带 token 和 email 参数
  */
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import { usePageSeo } from '../../composables/usePageSeo';
@@ -28,8 +28,10 @@ const form = useForm({
 const submitReset = () => {
   form.post(route('front.password.update'), {
     onFinish: () => {
-      form.reset('password');
-      form.reset('password_confirmation');
+      form.reset('password', 'password_confirmation');
+    },
+    onError: (errors) => {
+      // 错误会通过 watch 捕获并显示
     },
   });
 };
@@ -38,14 +40,36 @@ const submitReset = () => {
 const showPassword = ref(false);
 const showConfirm = ref(false);
 
-// 错误信息
-const formErrors = computed(() => {
-  return form.errors.email || form.errors.password || null;
-});
+// 表单错误 → 右下角 Toast
+const bottomLeftToast = ref({ show: false, message: '' });
+const showBottomLeftError = (msg) => {
+  bottomLeftToast.value = { show: true, message: msg };
+  setTimeout(() => { bottomLeftToast.value.show = false; }, 5000);
+};
+
+watch(() => form.errors, (errors) => {
+  const msg = errors.email || errors.password || errors.token;
+  if (msg) showBottomLeftError(msg);
+}, { deep: true });
 </script>
 
 <template>
   <SeoHead />
+
+  <!-- 右下角错误弹窗 -->
+  <Transition name="toast-slide">
+    <div v-if="bottomLeftToast.show"
+      class="fixed bottom-4 right-4 left-4 sm:left-auto sm:right-6 sm:bottom-6 z-50 sm:max-w-sm bg-white border-4 border-construct-black shadow-lg">
+      <div class="flex items-start gap-3 p-3 sm:p-4">
+        <AlertCircle class="w-5 h-5 text-construct-red shrink-0 mt-0.5" />
+        <p class="text-xs sm:text-sm font-mono text-construct-black flex-1">{{ bottomLeftToast.message }}</p>
+        <button @click="bottomLeftToast.show = false" class="text-gray-400 hover:text-construct-red transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="h-1 bg-construct-red" />
+    </div>
+  </Transition>
 
   <div class="min-h-screen bg-construct-paper flex items-center justify-center p-8">
     <div class="w-full max-w-md">
@@ -110,11 +134,6 @@ const formErrors = computed(() => {
                 <EyeOff v-else class="w-5 h-5" />
               </button>
             </div>
-          </div>
-
-          <!-- 错误提示 -->
-          <div v-if="formErrors" class="flex items-center gap-2 text-red-600 text-sm">
-            <AlertCircle class="w-4 h-4" /><span>{{ formErrors }}</span>
           </div>
 
           <!-- 提交按钮 -->

@@ -134,6 +134,10 @@ const handleLogin = () => {
       isLoading.value = false;
       captchaInput.value = '';
     },
+    onError: () => {
+      captchaInput.value = '';
+      refreshCaptcha();
+    },
   });
 };
 
