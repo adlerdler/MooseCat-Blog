@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Services\CaptchaService;
 use Illuminate\Foundation\Http\FormRequest;
 
 class RegisterRequest extends FormRequest
@@ -22,10 +23,19 @@ class RegisterRequest extends FormRequest
         ];
     }
 
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            $captchaService = app(CaptchaService::class);
+            if (! $captchaService->check($this->captcha)) {
+                $validator->errors()->add('captcha', __('auth.invalid_captcha'));
+            }
+        });
+    }
+
     public function messages(): array
     {
         return [
-            'captcha.required'              => __('auth.invalid_captcha'),
             'verification_code.required'    => __('auth.invalid_code'),
             'verification_code.size'        => __('auth.invalid_code'),
         ];

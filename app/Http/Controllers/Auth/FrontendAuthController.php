@@ -203,21 +203,14 @@ class FrontendAuthController extends Controller
      */
     public function register(RegisterRequest $request): RedirectResponse
     {
-        // 校验图片验证码
-        if (! $this->captchaService->check($request->captcha)) {
-            throw ValidationException::withMessages([
-                'captcha' => [__('auth.invalid_captcha')],
-            ]);
-        }
-
         // 校验邮箱验证码
         $email = strtolower(trim($request->email));
         $storedCode = Cache::get("email_code:{$email}");
 
         if (! $storedCode || $storedCode !== $request->verification_code) {
-            throw ValidationException::withMessages([
-                'verification_code' => [__('auth.invalid_code')],
-            ]);
+            return back()->withErrors([
+                'verification_code' => __('auth.invalid_code'),
+            ])->withInput($request->except(['password', 'password_confirmation', 'verification_code', 'captcha']));
         }
 
         // 验证通过后清除验证码
