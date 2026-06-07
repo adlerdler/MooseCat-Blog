@@ -21,44 +21,52 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // 2. 创建用户并分配角色
-        $adminUser = User::create([
-            'name' => 'Admin User',
-            'email' => 'admin@archyx.com',
-            'password' => Hash::make('password'),
-            'level_id' => 1,
-            'status' => 'active',
-            'points' => 1000,
-        ]);
+        $adminUser = User::firstOrCreate(
+            ['email' => 'admin@archyx.com'],
+            [
+                'name' => 'Admin User',
+                'password' => Hash::make('password'),
+                'level_id' => 1,
+                'status' => 'active',
+                'points' => 1000,
+            ]
+        );
         $adminUser->assignRole('Administrator');
 
-        $editorUser = User::create([
-            'name' => 'Content Editor',
-            'email' => 'editor@archyx.com',
-            'password' => Hash::make('password'),
-            'level_id' => 2,
-            'status' => 'active',
-            'points' => 500,
-        ]);
+        $editorUser = User::firstOrCreate(
+            ['email' => 'editor@archyx.com'],
+            [
+                'name' => 'Content Editor',
+                'password' => Hash::make('password'),
+                'level_id' => 2,
+                'status' => 'active',
+                'points' => 500,
+            ]
+        );
         $editorUser->assignRole('Editor');
 
-        $authorUser = User::create([
-            'name' => 'Test Author',
-            'email' => 'author@archyx.com',
-            'password' => Hash::make('password'),
-            'level_id' => 3,
-            'status' => 'active',
-            'points' => 300,
-        ]);
+        $authorUser = User::firstOrCreate(
+            ['email' => 'author@archyx.com'],
+            [
+                'name' => 'Test Author',
+                'password' => Hash::make('password'),
+                'level_id' => 3,
+                'status' => 'active',
+                'points' => 300,
+            ]
+        );
         $authorUser->assignRole('Author');
 
-        $testUser = User::create([
-            'name' => 'Test User',
-            'email' => 'user@archyx.com',
-            'password' => Hash::make('password'),
-            'level_id' => 4,
-            'status' => 'active',
-            'points' => 100,
-        ]);
+        $testUser = User::firstOrCreate(
+            ['email' => 'user@archyx.com'],
+            [
+                'name' => 'Test User',
+                'password' => Hash::make('password'),
+                'level_id' => 4,
+                'status' => 'active',
+                'points' => 100,
+            ]
+        );
         $testUser->assignRole('Subscriber');
 
         // 3. 按顺序调用子 Seeder

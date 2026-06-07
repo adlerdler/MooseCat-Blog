@@ -95,7 +95,11 @@ class CommentSeeder extends Seeder
         ];
 
         foreach ($comments as $commentData) {
-            Comment::create($commentData);
+            Comment::firstOrCreate([
+                'post_id' => $commentData['post_id'],
+                'body' => $commentData['body'],
+                'name' => $commentData['name'],
+            ], $commentData);
         }
     }
 }

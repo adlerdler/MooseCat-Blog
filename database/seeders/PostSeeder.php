@@ -115,10 +115,12 @@ class PostSeeder extends Seeder
         ];
 
         foreach ($posts as $postData) {
-            $post = Post::create($postData);
+            $post = Post::firstOrCreate(['slug' => $postData['slug']], $postData);
 
-            // 关联随机标签
-            $post->tags()->attach($tags->random(rand(2, 4))->pluck('id'));
+            // 关联随机标签（仅在首次创建时）
+            if ($post->wasRecentlyCreated) {
+                $post->tags()->attach($tags->random(rand(2, 4))->pluck('id'));
+            }
         }
     }
 }

@@ -57,7 +57,7 @@ class VideoSeeder extends Seeder
         ];
 
         foreach ($videos as $v) {
-            Video::create($v);
+            Video::firstOrCreate(['slug' => $v['slug']], $v);
         }
     }
 }

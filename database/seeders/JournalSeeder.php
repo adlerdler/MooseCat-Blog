@@ -73,16 +73,17 @@ class JournalSeeder extends Seeder
         ];
 
         foreach ($journals as $j) {
-            Journal::create([
-                'user_id' => $admin->id,
-                'title' => $j['title'],
-                'content' => $j['content'],
-                'mood' => $j['mood'],
-                'weather' => $j['weather'],
-                'date' => $j['date'],
-                'is_public' => $j['is_public'],
-                'likes_count' => $j['likes_count'],
-            ]);
+            Journal::firstOrCreate(
+                ['user_id' => $admin->id, 'title' => $j['title']],
+                [
+                    'content' => $j['content'],
+                    'mood' => $j['mood'],
+                    'weather' => $j['weather'],
+                    'date' => $j['date'],
+                    'is_public' => $j['is_public'],
+                    'likes_count' => $j['likes_count'],
+                ]
+            );
         }
     }
 }

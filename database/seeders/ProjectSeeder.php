@@ -61,8 +61,10 @@ class ProjectSeeder extends Seeder
         ];
 
         foreach ($projects as $p) {
-            $project = Project::create($p);
-            $project->tags()->attach($tags->random(2)->pluck('id'));
+            $project = Project::firstOrCreate(['slug' => $p['slug']], $p);
+            if ($project->wasRecentlyCreated) {
+                $project->tags()->attach($tags->random(2)->pluck('id'));
+            }
         }
     }
 }

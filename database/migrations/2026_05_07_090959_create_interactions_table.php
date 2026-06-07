@@ -19,7 +19,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['user_id', 'interactable_id', 'interactable_type', 'type'], 'user_interaction_unique');
-            $table->unique('visitor_id', 'visitor_interaction_unique');
+            $table->unique(['visitor_id', 'interactable_id', 'interactable_type', 'type'], 'visitor_interaction_unique');
         });
     }
 

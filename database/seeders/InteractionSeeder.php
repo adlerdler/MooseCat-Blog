@@ -15,17 +15,20 @@ class InteractionSeeder extends Seeder
         $user = User::role('Subscriber')->first();
 
         foreach ($posts as $post) {
-            Interaction::create([
+            $interaction = Interaction::firstOrCreate([
                 'user_id' => $user->id,
                 'interactable_id' => $post->id,
                 'interactable_type' => Post::class,
                 'type' => 'like',
                 'visitor_id' => md5('user-' . $user->id),
+            ], [
                 'ip_address' => '127.0.0.1',
                 'user_agent' => 'Seeder/1.0',
             ]);
 
-            $post->increment('likes_count');
+            if ($interaction->wasRecentlyCreated) {
+                $post->increment('likes_count');
+            }
         }
     }
 }

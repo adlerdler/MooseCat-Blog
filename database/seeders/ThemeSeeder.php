@@ -67,7 +67,7 @@ class ThemeSeeder extends Seeder
         ];
 
         foreach ($themes as $theme) {
-            Theme::create($theme);
+            Theme::firstOrCreate(['name' => $theme['name']], $theme);
         }
     }
 }

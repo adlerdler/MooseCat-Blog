@@ -40,10 +40,13 @@ class ResourceSeeder extends Seeder
         ];
 
         foreach ($resources as $r) {
-            Resource::create(array_merge($r, [
-                'author_id' => $author->id,
-                'category_id' => $categories->random()->id,
-            ]));
+            Resource::firstOrCreate(
+                ['title' => $r['title']],
+                array_merge($r, [
+                    'author_id' => $author->id,
+                    'category_id' => $categories->random()->id,
+                ])
+            );
         }
     }
 }
