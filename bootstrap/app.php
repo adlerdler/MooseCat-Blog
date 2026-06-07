@@ -39,10 +39,15 @@ return Application::configure(basePath: dirname(__DIR__))
             'password_confirmation',
         ]);
 
-        // 所有 HTTP 异常统一走 ErrorPage.vue（排除 ValidationException）
+        // 所有 HTTP 异常统一走 ErrorPage.vue（排除 ValidationException 和 AuthenticationException）
         $exceptions->render(function (\Throwable $e, $request) {
             // 验证异常不处理，让 Laravel/Inertia 默认处理
             if ($e instanceof \Illuminate\Validation\ValidationException) {
+                return null;
+            }
+
+            // 认证异常不处理，让后面的 AuthenticationException 处理器处理
+            if ($e instanceof \Illuminate\Auth\AuthenticationException) {
                 return null;
             }
 

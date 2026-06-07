@@ -179,8 +179,8 @@ Route::get('/media/{uuid}.{ext}', function ($uuid, $ext) {
 });
 
 // 管理后台登录路由
-Route::get('/admin/login', [DashboardController::class, 'login'])->name('login')->middleware('guest');
-Route::post('/admin/login', [DashboardController::class, 'handleLogin'])->name('login.handle')->middleware('guest');
+Route::get('/admin/login', [DashboardController::class, 'login'])->name('login');
+Route::post('/admin/login', [DashboardController::class, 'handleLogin'])->name('login.handle');
 
 // 管理后台路由（需要认证）
 Route::middleware(['auth'])->prefix('admin')->group(function () {

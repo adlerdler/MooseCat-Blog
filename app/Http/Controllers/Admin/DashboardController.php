@@ -55,9 +55,9 @@ class DashboardController extends Controller
      */
     public function login(): \Symfony\Component\HttpFoundation\Response|\Illuminate\Http\RedirectResponse
     {
-        // 已登录用户访问登录页 → 跳转前台首页
+        // 已登录用户访问登录页 → 跳转后台首页
         if (Auth::check()) {
-            return redirect('/');
+            return redirect('/admin/index');
         }
 
         return Inertia::render('admin/Login', [
