@@ -40,6 +40,7 @@ watch(() => usePage().props.flash?.user_not_found, (newVal) => {
 
 const props = defineProps({
   mode: { type: String, default: 'login' }, // 'login' | 'register' | 'forgot-password'
+  captcha: { type: String, default: '' },
   providers: { type: Array, default: () => [] },
 });
 
@@ -64,19 +65,13 @@ watch(currentMode, (mode) => {
 const { SeoHead } = usePageSeo({ title: seoTitle.value });
 
 // —— 图片验证码 ——
-const captchaImg = ref('');
+const captchaImg = ref(props.captcha || '');
 const captchaInput = ref('');
+const loginCaptchaInput = ref('');
 
-const loadCaptcha = async () => {
-  try {
-    const res = await fetch('/api/captcha');
-    const data = await res.json();
-    captchaImg.value = data.captcha;
-  } catch {
-    captchaImg.value = '';
-  }
+const refreshCaptcha = () => {
+  window.location.reload();
 };
-onMounted(() => { loadCaptcha(); });
 
 // —— 邮箱验证码发送 ——
 const sendingCode = ref(false);
@@ -103,11 +98,11 @@ const sendEmailCode = async () => {
     } else {
       const data = await res.json();
       showBottomLeftError(data.message || t('auth.invalid_captcha'));
-      loadCaptcha();
+      refreshCaptcha();
     }
   } catch {
     showBottomLeftError(t('auth.email_send_failed'));
-    loadCaptcha();
+    refreshCaptcha();
   }
   sendingCode.value = false;
 };
@@ -131,8 +126,6 @@ const loginForm = useForm({
   remember: false,
 });
 
-const loginCaptchaInput = ref('');
-
 const submitLogin = () => {
   if (!loginCaptchaInput.value.trim()) {
     showBottomLeftError(t('auth.captcha_required') || '请输入验证码');
@@ -143,7 +136,6 @@ const submitLogin = () => {
     onFinish: () => {
       loginForm.reset('password', 'captcha');
       loginCaptchaInput.value = '';
-      loadCaptcha();
     },
   });
 };
@@ -164,7 +156,6 @@ const submitRegister = () => {
   registerForm.post(route('front.register.handle'), {
     onFinish: () => {
       registerForm.reset();
-      loadCaptcha();
       captchaInput.value = '';
       emailCode.value = '';
       codeCooldown.value = 0;
@@ -297,7 +288,7 @@ watch(() => { return { ...registerForm.errors }; }, (errors) => {
               <input v-model="loginCaptchaInput" type="text" required maxlength="4" autocomplete="off" :placeholder="t('auth.captcha_placeholder')"
                 class="flex-1 px-2.5 sm:px-3 py-2.5 sm:py-3 border-2 border-construct-black font-mono text-xs sm:text-sm focus:border-construct-red focus:outline-none uppercase placeholder:normal-case"
                 :disabled="loginForm.processing" />
-              <img v-if="captchaImg" :src="captchaImg" alt="Captcha" class="h-full w-auto border-2 border-construct-black cursor-pointer" @click="loadCaptcha" />
+              <img v-if="captchaImg" :src="captchaImg" alt="Captcha" class="h-full w-auto border-2 border-construct-black cursor-pointer" @click="refreshCaptcha" />
               <div v-else class="border-2 border-construct-black bg-gray-100 flex items-center justify-center px-3 text-[10px] text-gray-400 shrink-0">CAPTCHA</div>
             </div>
           </div>
@@ -423,7 +414,7 @@ watch(() => { return { ...registerForm.errors }; }, (errors) => {
               <input v-model="captchaInput" type="text" required maxlength="4" autocomplete="off" :placeholder="t('auth.captcha_placeholder')"
                 class="flex-1 px-2.5 sm:px-3 py-2.5 sm:py-3 border-2 border-construct-black font-mono text-xs sm:text-sm focus:border-construct-red focus:outline-none uppercase placeholder:normal-case"
                 :disabled="registerForm.processing" />
-              <img v-if="captchaImg" :src="captchaImg" alt="Captcha" class="h-full w-auto border-2 border-construct-black cursor-pointer" @click="loadCaptcha" />
+              <img v-if="captchaImg" :src="captchaImg" alt="Captcha" class="h-full w-auto border-2 border-construct-black cursor-pointer" @click="refreshCaptcha" />
               <div v-else class="border-2 border-construct-black bg-gray-100 flex items-center justify-center px-3 text-[10px] text-gray-400 shrink-0">CAPTCHA</div>
             </div>
           </div>

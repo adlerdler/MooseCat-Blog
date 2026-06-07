@@ -93,6 +93,7 @@ class FrontendAuthController extends Controller
     {
         return Inertia::render('front/Auth', [
             'mode'      => 'login',
+            'captcha'   => $this->captchaService->create(),
             'providers' => $this->socialLoginService->getEnabledProviders(),
         ]);
     }
@@ -119,6 +120,7 @@ class FrontendAuthController extends Controller
     {
         return Inertia::render('front/Auth', [
             'mode'      => 'register',
+            'captcha'   => $this->captchaService->create(),
             'providers' => $this->socialLoginService->getEnabledProviders(),
         ]);
     }

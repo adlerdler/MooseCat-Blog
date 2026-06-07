@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Services\CaptchaService;
 use App\Services\DashboardService;
 use App\Services\MenuService;
 use Illuminate\Http\Request;
@@ -21,17 +22,20 @@ class DashboardController extends Controller
 {
     protected DashboardService $dashboardService;
     protected MenuService $menuService;
+    protected CaptchaService $captchaService;
 
     /**
      * Constructor
      *
      * @param DashboardService $dashboardService
      * @param MenuService $menuService
+     * @param CaptchaService $captchaService
      */
-    public function __construct(DashboardService $dashboardService, MenuService $menuService)
+    public function __construct(DashboardService $dashboardService, MenuService $menuService, CaptchaService $captchaService)
     {
         $this->dashboardService = $dashboardService;
         $this->menuService = $menuService;
+        $this->captchaService = $captchaService;
     }
 
     /**
@@ -53,7 +57,9 @@ class DashboardController extends Controller
      */
     public function login(): Response
     {
-        return Inertia::render('admin/Login');
+        return Inertia::render('admin/Login', [
+            'captcha' => $this->captchaService->create(),
+        ]);
     }
 
     /**

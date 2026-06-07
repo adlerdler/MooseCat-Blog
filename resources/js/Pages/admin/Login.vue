@@ -49,26 +49,23 @@ onUnmounted(() => {
   clearTimeout(notificationTimer);
 });
 
+const props = defineProps({
+  captcha: String,
+});
+
 const email = ref('');
 const password = ref('');
-const captcha = ref('');
-const captchaImg = ref('');
+const captchaInput = ref('');
+const captchaImg = ref(props.captcha || '');
 const rememberMe = ref(false);
 const showPassword = ref(false);
 const isLoading = ref(false);
 
-// 加载验证码
-const loadCaptcha = async () => {
-  try {
-    const res = await fetch('/api/captcha');
-    const data = await res.json();
-    captchaImg.value = data.captcha;
-  } catch {
-    captchaImg.value = '';
-  }
+// 刷新验证码
+const refreshCaptcha = () => {
+  // 重新加载页面获取新验证码
+  window.location.reload();
 };
-
-onMounted(() => { loadCaptcha(); });
 
 // ─── 禁用用户提示（来自后端 disabled 错误，10秒自动消失） ────
 const dismissedDisabledNotice = ref(false);
@@ -115,7 +112,7 @@ const dismissLogoutNotice = () => {
 };
 
 const handleLogin = () => {
-  if (!captcha.value.trim()) {
+  if (!captchaInput.value.trim()) {
     showNotification('请输入验证码', 'alert', true, 5000);
     return;
   }
@@ -125,13 +122,12 @@ const handleLogin = () => {
   router.post('/admin/login', {
     email: email.value,
     password: password.value,
-    captcha: captcha.value,
+    captcha: captchaInput.value,
     remember: rememberMe.value,
   }, {
     onFinish: () => {
       isLoading.value = false;
-      captcha.value = '';
-      loadCaptcha();
+      captchaInput.value = '';
     },
   });
 };
@@ -229,7 +225,7 @@ const togglePasswordVisibility = () => {
             </label>
             <div class="flex gap-2 items-stretch">
               <input
-                v-model="captcha"
+                v-model="captchaInput"
                 type="text"
                 maxlength="4"
                 autocomplete="off"
@@ -237,7 +233,7 @@ const togglePasswordVisibility = () => {
                 class="flex-1 px-4 py-3 border-2 border-construct-black font-mono text-sm tracking-widest uppercase focus:border-construct-red focus:outline-none transition-colors"
                 :disabled="isLoading"
               />
-              <img v-if="captchaImg" :src="captchaImg" alt="Captcha" class="h-full w-auto border-2 border-construct-black cursor-pointer" @click="loadCaptcha" />
+              <img v-if="captchaImg" :src="captchaImg" alt="Captcha" class="h-full w-auto border-2 border-construct-black cursor-pointer" @click="refreshCaptcha" />
               <div v-else class="border-2 border-construct-black bg-gray-100 flex items-center justify-center px-3 text-xs text-gray-400 shrink-0">CAPTCHA</div>
             </div>
           </div>
