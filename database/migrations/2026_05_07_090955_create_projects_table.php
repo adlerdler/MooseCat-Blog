@@ -28,7 +28,7 @@ return new class extends Migration
             $table->integer('sort_order')->default(0)->comment('排序序号');
             $table->unsignedBigInteger('views_count')->default(0)->comment('浏览次数');
             $table->unsignedBigInteger('likes_count')->default(0)->comment('点赞次数');
-            $table->foreignId('author_id')->nullable()->constrained()->nullOnDelete()->comment('作者ID，关联users表');
+            $table->foreignId('author_id')->nullable()->constrained('users')->nullOnDelete()->comment('作者ID，关联users表');
             $table->timestamps();
 
             // 业务索引

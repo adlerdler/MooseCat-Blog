@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('video_url')->nullable()->comment('视频链接');
             $table->string('cover_image')->nullable()->comment('封面图片URL');
             $table->string('status')->default('draft')->comment('状态：draft草稿、published已发布');
-            $table->foreignId('author_id')->nullable()->constrained()->nullOnDelete()->comment('作者ID，关联users表');
+            $table->foreignId('author_id')->nullable()->constrained('users')->nullOnDelete()->comment('作者ID，关联users表');
             $table->foreignId('category_id')->nullable()->constrained()->nullOnDelete()->comment('分类ID，关联categories表');
             $table->string('platform')->default('youtube')->comment('平台：youtube、bilibili、local');
             $table->string('thumbnail')->nullable()->comment('缩略图URL');

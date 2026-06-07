@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('resources', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('author_id')->nullable()->constrained()->nullOnDelete()->comment('作者ID，关联users表');
+            $table->foreignId('author_id')->nullable()->constrained('users')->nullOnDelete()->comment('作者ID，关联users表');
             $table->foreignId('category_id')->nullable()->constrained()->nullOnDelete()->comment('分类ID，关联categories表');
             $table->string('title')->comment('资源标题');
             $table->text('description')->nullable()->comment('资源描述');
