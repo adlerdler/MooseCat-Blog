@@ -1,4 +1,4 @@
-# Evolution of Archyx Blog
+# Evolution of Arkhyx Blog
 
 > 记录项目的演进历程与人类智慧的注入。
 
@@ -18,11 +18,11 @@
   - 通过 AI 治理文件，确立了 Agentic 开发的"宪法"，确保 AI 在开发过程中能自主理解愿景、规范和决策路径，减少沟通损耗。
 - **Status:** 已完成基础环境搭建，集成 Tailwind CSS，并为 AI 助手配置了完整的运行上下文。
 
-### 2026-05-08: 品牌视觉重塑：从 MooseCat 到 Archyx (by Trae)
+### 2026-05-08: 品牌视觉重塑：从 MooseCat 到 Arkhyx (by Trae)
 - **Developer:** Trae (AI)
-- **Decision:** 将项目名称由 MooseCat 变更为 **Archyx**，并全面重写 README.md 视觉文档。
+- **Decision:** 将项目名称由 MooseCat 变更为 **Arkhyx**，并全面重写 README.md 视觉文档。
 - **Rationale:**
-  - **Archyx** (Arch + Onyx/Modern) 更能体现架构的稳重与现代审美的碰撞。
+  - **Arkhyx** (Arch + Onyx/Modern) 更能体现架构的稳重与现代审美的碰撞。
   - 引入 Shields.io 徽章、Unsplash 视觉占位图和 Mermaid 架构图，使文档从"纯文本"进化为"可视化资产"，符合专业开源项目标准。
 - **Status:** 全局搜索替换完成，README.md 已实现中英文双语图文并茂展示。
 
@@ -282,7 +282,7 @@
   - 支持本地存储登录状态，避免重复登录。
 - **Status:**
   - 创建 `Login.vue` 登录页面，包含邮箱和密码输入框。
-  - 登录凭据：邮箱 `Archyx@admin.com`，密码 `Archyx_admin123`。
+  - 登录凭据：邮箱 `Arkhyx@admin.com`，密码 `Arkhyx_admin123`。
   - 添加路由配置：`/admin/login` 登录页，`/admin` 管理后台页（需要认证）。
   - 实现路由守卫：检查 `requiresAuth` 路由元信息，未登录用户自动跳转到登录页。
   - 已登录用户访问登录页自动跳转到管理后台首页。
@@ -943,7 +943,7 @@
 ### 2026-05-31: 前台菜单 + 版权信息真实数据对接 (by Trae)
 - **Developer:** Trae (AI)
 - **Decision:** 前台侧边栏菜单和全屏菜单从 Mock JSON 迁移到 `Menu` 表真实数据；版权信息从硬编码改为动态读取。
-- **Rationale:** 后台添加/编辑菜单对前台无影响；版权信息写死 "Archyx" 无法通过设置修改。
+- **Rationale:** 后台添加/编辑菜单对前台无影响；版权信息写死 "Arkhyx" 无法通过设置修改。
 - **Status:**
   - `HandleInertiaRequests::share()` 非 admin 请求的 `menus` 改为 `Menu::where('is_active', true)->orderBy('sort_order')->get()`。
   - `SidebarMenu.vue` 移动端版权站名改为 `{{ siteName }}` 动态读取。

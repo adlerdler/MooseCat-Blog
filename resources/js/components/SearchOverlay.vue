@@ -147,7 +147,7 @@ const hasResults = computed(() => searchResults.value.length > 0);
             <input
               v-model="searchQuery"
               type="text"
-              :placeholder="t('search_placeholder') || 'SEARCH ARCHYX...'"
+              :placeholder="t('search_placeholder') || 'SEARCH ARKHYX...'"
               class="w-full bg-construct-paper border-4 border-black py-6 md:py-8 pl-14 md:pl-16 pr-8 text-xl md:text-2xl font-display tracking-tight focus:outline-none focus:bg-white transition-all"
               autofocus
             />

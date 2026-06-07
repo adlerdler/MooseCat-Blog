@@ -17,7 +17,7 @@ console.log(
     '%c\n' +
     '  ╔══════════════════════════════════════════════════╗\n' +
     '  ║                                                  ║\n' +
-    '  ║          🚀  Archyx Blog System                 ║\n' +
+    '  ║          🚀  ARKHYX Blog System                 ║\n' +
     '  ║                                                  ║\n' +
     '  ║     A modern, AI-driven content platform        ║\n' +
     '  ║     for developers.                             ║\n' +
@@ -25,16 +25,16 @@ console.log(
     '  ║     Laravel 11  •  Vue 3  •  Inertia.js         ║\n' +
     '  ║                                                  ║\n' +
     '  ║     📦  github.com/adlerdler/                   ║\n' +
-    '  ║         Archyx-Blog-System                      ║\n' +
+    '  ║         ARKHYX-Blog-System                      ║\n' +
     '  ║                                                  ║\n' +
-    '  ║     © 2026 Archyx  |  Open Source               ║\n' +
+    '  ║     © 2026 ARKHYX  |  Open Source               ║\n' +
     '  ║                                                  ║\n' +
     '  ╚══════════════════════════════════════════════════╝\n',
     'color: #e2e8f0; background: #1e293b; font-size: 12px; font-family: "Courier New", monospace; padding: 12px; border-radius: 8px; line-height: 1.6;'
 );
 
 console.log(
-    '%c🔗 Click to visit: %chttps://github.com/adlerdler/Archyx-Blog-System',
+    '%c🔗 Click to visit: %chttps://github.com/adlerdler/ARKHYX-Blog-System',
     'color: #94a3b8; font-size: 11px; font-family: monospace;',
     'color: #60a5fa; font-size: 11px; font-weight: bold; font-family: monospace; text-decoration: underline; cursor: pointer;'
 );
@@ -102,7 +102,7 @@ router.on('navigate', (event) => {
             if (seoData && seoData.title) {
                 document.title = seoData.title;
             } else {
-                document.title = 'Archyx Blog';
+                document.title = 'ARKHYX Blog';
             }
         }
     }, 50);
@@ -137,7 +137,7 @@ document.addEventListener('visibilitychange', () => {
 });
 
 createInertiaApp({
-    title: (title) => title || 'Archyx Blog',
+    title: (title) => title || 'ARKHYX Blog',
     resolve: (name) => {
 
         // components/ 中的独立组件直接返回，不需要 Pages/ 包装器

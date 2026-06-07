@@ -63,8 +63,13 @@ const isLoading = ref(false);
 
 // 刷新验证码
 const refreshCaptcha = () => {
-  // 重新加载页面获取新验证码
-  window.location.reload();
+  captchaInput.value = '';
+  router.reload({
+    only: ['captcha'],
+    onSuccess: (page) => {
+      captchaImg.value = page.props.captcha || '';
+    },
+  });
 };
 
 // ─── 禁用用户提示（来自后端 disabled 错误，10秒自动消失） ────
@@ -169,7 +174,7 @@ const togglePasswordVisibility = () => {
     <div class="w-full max-w-md">
       <!-- 标题 -->
       <div class="text-center mb-12">
-        <h1 class="font-display text-4xl tracking-tighter mb-4">ARCHYX // ADMIN</h1>
+        <h1 class="font-display text-4xl tracking-tighter mb-4">ARKHYX // ADMIN</h1>
         <p class="text-gray-600 uppercase text-xs tracking-widest">{{ t('login_subtitle') }}</p>
       </div>
 

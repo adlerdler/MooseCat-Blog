@@ -118,7 +118,7 @@ class CommentsController extends Controller
     private function sendReplyNotification(Request $request, Comment $comment, Comment $reply, string $penName): void
     {
         $siteConfig = $this->settingService->getSiteConfig();
-        $brandName = $siteConfig['name'] ?? config('app.name', 'Archyx');
+        $brandName = $siteConfig['name'] ?? config('app.name', 'Arkhyx');
         $settings = $this->settingService->getAll();
         $logo = isset($settings['logo']) && $settings['logo'] ? url($settings['logo']) : '';
         $postTitle = $comment->post?->title ?? '文章';

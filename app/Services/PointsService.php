@@ -193,6 +193,6 @@ class PointsService
     protected function getBrandName(): string
     {
         $settingName = \App\Models\Setting::value('name');
-        return $settingName ?: config('app.name', 'ARCHYX');
+        return $settingName ?: config('app.name', 'ARKHYX');
     }
 }

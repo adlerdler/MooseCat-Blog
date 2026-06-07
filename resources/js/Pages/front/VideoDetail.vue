@@ -26,7 +26,7 @@ const props = defineProps({
 
 const { initAccentTheme } = useTheme();
 const { SeoHead } = usePageSeo({
-  title: computed(() => props.video?.meta_title || (props.video?.title ? `${props.video.title} - ARCHYX` : 'VIDEO - ARCHYX')),
+  title: computed(() => props.video?.meta_title || (props.video?.title ? `${props.video.title} - ARKHYX` : 'VIDEO - ARKHYX')),
   description: computed(() => props.video?.meta_description || props.video?.description || ''),
   keywords: computed(() => props.video?.meta_keywords || ''),
   image: computed(() => props.video?.thumbnail || ''),

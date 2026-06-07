@@ -6,7 +6,7 @@
  * - mode="forgot-password" → 重置密码
  */
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
-import { useForm, usePage } from '@inertiajs/vue3';
+import { useForm, usePage, router } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import { usePageSeo } from '../../composables/usePageSeo';
 import { Lock, Mail, User, AlertCircle, Eye, EyeOff, ArrowLeft, X, AlertTriangle, RefreshCw, Shield } from 'lucide-vue-next';
@@ -70,7 +70,13 @@ const captchaInput = ref('');
 const loginCaptchaInput = ref('');
 
 const refreshCaptcha = () => {
-  window.location.reload();
+  loginCaptchaInput.value = '';
+  router.reload({
+    only: ['captcha'],
+    onSuccess: (page) => {
+      captchaImg.value = page.props.captcha || '';
+    },
+  });
 };
 
 // —— 邮箱验证码发送 ——
@@ -221,7 +227,7 @@ watch(() => { return { ...registerForm.errors }; }, (errors) => {
       <!-- 标题 -->
       <div class="text-center mb-4 sm:mb-6 md:mb-10">
         <h1 class="font-display text-xl sm:text-3xl md:text-4xl tracking-tighter mb-1.5 sm:mb-3 md:mb-4">
-          <span class="block sm:inline">ARCHYX</span>
+          <span class="block sm:inline">ARKHYX</span>
           <span class="block sm:hidden text-lg mt-1 uppercase">
             {{ isForgot ? 'RESET PASSWORD' : (isLogin ? 'LOGIN' : 'REGISTER') }}
           </span>

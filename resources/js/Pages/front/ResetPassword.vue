@@ -52,7 +52,7 @@ const formErrors = computed(() => {
       <!-- 标题 -->
       <div class="text-center mb-12">
         <h1 class="font-display text-4xl tracking-tighter mb-4">
-          ARCHYX // <span class="uppercase">RESET PASSWORD</span>
+          ARKHYX // <span class="uppercase">RESET PASSWORD</span>
         </h1>
         <p class="text-gray-600 uppercase text-xs tracking-widest">
           {{ t('auth.reset_password_subtitle') }}

@@ -26,7 +26,7 @@
 import { computed, isRef, h } from 'vue'
 import { Head } from '@inertiajs/vue3'
 
-const SITE_NAME = 'ARCHYX'
+const SITE_NAME = 'ARKHYX'
 
 export function usePageSeo(seoConfig) {
   const getValue = (key) => {

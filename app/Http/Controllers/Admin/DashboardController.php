@@ -57,8 +57,13 @@ class DashboardController extends Controller
      */
     public function login(): Response
     {
-        return Inertia::render('admin/Login', [
+        $response = Inertia::render('admin/Login', [
             'captcha' => $this->captchaService->create(),
+        ]);
+
+        return $response->withHeaders([
+            'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+            'Pragma' => 'no-cache',
         ]);
     }
 

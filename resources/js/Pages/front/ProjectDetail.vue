@@ -28,7 +28,7 @@ const props = defineProps({
 const { initAccentTheme } = useTheme();
 
 const { SeoHead } = usePageSeo({
-  title: computed(() => props.project?.meta_title || (props.project?.title ? `PROJECT // ${props.project.title} - ARCHYX` : 'PROJECT - ARCHYX')),
+  title: computed(() => props.project?.meta_title || (props.project?.title ? `PROJECT // ${props.project.title} - ARKHYX` : 'PROJECT - ARKHYX')),
   description: computed(() => props.project?.meta_description || props.project?.description || ''),
   keywords: computed(() => props.project?.meta_keywords || (props.project?.technologies?.join(', ') || '')),
   image: computed(() => props.project?.image || ''),

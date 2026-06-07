@@ -73,7 +73,7 @@ onMounted(() => {
                 <div class="w-full h-40 md:h-52 bg-accent flex items-center justify-center animate-banner">
                     <div class="text-center">
                         <h1 class="font-black text-5xl md:text-7xl lg:text-8xl text-white tracking-tighter leading-none animate-title">
-                            ARCHYX
+                            ARKHYX
                         </h1>
 
                         <div class="mt-4 inline-block bg-white px-4 py-1 animate-subtitle">

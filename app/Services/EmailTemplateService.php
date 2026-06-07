@@ -24,7 +24,7 @@ class EmailTemplateService
     private const DEFAULT_TEMPLATES = [
         [
             'name'        => 'welcome_email',
-            'subject'     => 'Welcome to Archyx!',
+            'subject'     => 'Welcome to Arkhyx!',
             'content'     => '<h1>Welcome, {{user_name}}!</h1><p>We are glad to have you here.</p>',
             'description' => '新用户注册后发送的欢迎邮件',
             'variables'   => ['user_name', 'site_name'],

@@ -17,7 +17,7 @@ use Spatie\Permission\PermissionRegistrar;
 class RepairAdminRbacCommand extends Command
 {
     protected $signature = 'rbac:repair-admin
-                            {--email=admin@archyx.com : 需要修复的管理员邮箱}';
+                            {--email=admin@arkhyx.com : 需要修复的管理员邮箱}';
 
     protected $description = '修复 Administrator 角色守卫与用户关联（无需重跑 Seeder）';
 

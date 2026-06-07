@@ -16,7 +16,7 @@ class VisitSeeder extends Seeder
         $post1 = Post::where('slug', 'the-geometry-of-perception')->first();
         $post2 = Post::where('slug', 'typography-as-architecture')->first();
         $post3 = Post::where('slug', 'manifesto-of-the-machine')->first();
-        $project1 = Project::where('slug', 'archyx-blog-system')->first();
+        $project1 = Project::where('slug', 'arkhyx-blog-system')->first();
         $video1 = Video::first();
 
         $visits = [];

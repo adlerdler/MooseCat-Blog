@@ -158,7 +158,7 @@ class PostService
         }
 
         $postUrl = url('/posts/' . $post->slug);
-        $brandName = config('app.name', 'Archyx');
+        $brandName = config('app.name', 'Arkhyx');
         $timestamp = now()->format('Y-m-d H:i');
 
         $subject = $type === 'new'

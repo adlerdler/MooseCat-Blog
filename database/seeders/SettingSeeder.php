@@ -13,10 +13,10 @@ class SettingSeeder extends Seeder
             ['id' => 1],
             [
                 // 基本信息
-                'name' => 'ARCHYX',
+                'name' => 'ARKHYX',
                 'description' => 'Constructivist Digital Archive',
-                'site_url' => 'https://archyx.com',
-                'copyright' => '© 2024 ARCHYX. All rights reserved.',
+                'site_url' => 'https://arkhyx.com',
+                'copyright' => '© 2024 ARKHYX. All rights reserved.',
                 'logo' => '/images/logo.png',
                 'favicon' => '/images/favicon.ico',
                 'timezone' => 'Asia/Shanghai',

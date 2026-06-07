@@ -60,7 +60,7 @@ class SubscribeController extends Controller
                             'detail'     => '订阅时间：' . ($subscriber->created_at ? $subscriber->created_at->format('Y-m-d H:i') : now()->format('Y-m-d H:i')),
                             'actionUrl'  => url('/admin/subscribers'),
                             'actionText' => '查看订阅者列表',
-                            'brandName'  => config('app.name', 'Archyx'),
+                            'brandName'  => config('app.name', 'Arkhyx'),
                             'timestamp'  => now()->format('Y-m-d H:i'),
                         ])->render();
 

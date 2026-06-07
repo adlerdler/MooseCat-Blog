@@ -36,7 +36,7 @@ const isZh = computed(() => locale.value === 'zh' || locale.value === 'zh-CN' ||
 
 const texts = computed(() => ({
   pageTitle: isZh.value ? '关于系统' : 'About',
-  pageSubtitle: isZh.value ? 'ABOUT ARCHYX' : 'ABOUT ARCHYX',
+  pageSubtitle: isZh.value ? 'ABOUT ARKHYX' : 'ABOUT ARKHYX',
   version: isZh.value ? '版本' : 'Version',
   releaseDate: isZh.value ? '发布日期' : 'Release Date',
   features: isZh.value ? '系统特性' : 'Features',
@@ -53,7 +53,7 @@ const texts = computed(() => ({
   email: isZh.value ? '邮箱' : 'Email',
   madeWith: isZh.value ? 'MADE WITH PASSION' : 'MADE WITH PASSION',
   allRights: isZh.value ? 'ALL RIGHTS RESERVED.' : 'ALL RIGHTS RESERVED.',
-  copyright: isZh.value ? 'ARCHYX BLOG SYSTEM' : 'ARCHYX BLOG SYSTEM'
+  copyright: isZh.value ? 'ARKHYX BLOG SYSTEM' : 'ARKHYX BLOG SYSTEM'
 }));
 
 const systemInfo = computed(() => ({

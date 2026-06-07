@@ -99,7 +99,7 @@ class MailConfigController extends Controller
             $siteConfig = app(SettingService::class)->getSiteConfig();
             $rawLogo   = $siteConfig['logo'] ?? '';
             $logo      = $rawLogo ? url($rawLogo) : 'https://via.placeholder.com/36x36/EF4444/FFFFFF?text=A';
-            $brandName = $siteConfig['name'] ?: 'ARCHYX';
+            $brandName = $siteConfig['name'] ?: 'ARKHYX';
 
             $user = Auth::user();
             $profile = AuthorProfile::where('user_id', $user->id)->first();

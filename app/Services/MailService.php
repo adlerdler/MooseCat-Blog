@@ -117,7 +117,7 @@ class MailService
     public function getFromName(): string
     {
         $config = MailConfig::getActiveConfig();
-        return $config?->from_name ?? config('app.name', 'Archyx');
+        return $config?->from_name ?? config('app.name', 'Arkhyx');
     }
 
     /**

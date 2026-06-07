@@ -91,10 +91,15 @@ class FrontendAuthController extends Controller
      */
     public function showLogin(): Response
     {
-        return Inertia::render('front/Auth', [
+        $response = Inertia::render('front/Auth', [
             'mode'      => 'login',
             'captcha'   => $this->captchaService->create(),
             'providers' => $this->socialLoginService->getEnabledProviders(),
+        ]);
+
+        return $response->withHeaders([
+            'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+            'Pragma' => 'no-cache',
         ]);
     }
 
@@ -118,10 +123,15 @@ class FrontendAuthController extends Controller
      */
     public function showRegister(): Response
     {
-        return Inertia::render('front/Auth', [
+        $response = Inertia::render('front/Auth', [
             'mode'      => 'register',
             'captcha'   => $this->captchaService->create(),
             'providers' => $this->socialLoginService->getEnabledProviders(),
+        ]);
+
+        return $response->withHeaders([
+            'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+            'Pragma' => 'no-cache',
         ]);
     }
 
@@ -577,7 +587,7 @@ class FrontendAuthController extends Controller
     protected function getBrandName(): string
     {
         $settingName = \App\Models\Setting::value('name');
-        return $settingName ?: config('app.name', 'ARCHYX');
+        return $settingName ?: config('app.name', 'ARKHYX');
     }
 
     /**

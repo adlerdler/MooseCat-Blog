@@ -23,7 +23,7 @@ class AuthorProfileSeeder extends Seeder
                     'avatar' => '/images/avatars/default.png',
                     'role_label' => '作者',
                     'role_title' => '技术博主',
-                    'company' => 'Archyx Studio',
+                    'company' => 'Arkhyx Studio',
                     'status_label' => 'active',
                     'status_text' => '活跃',
                     'is_active' => true,

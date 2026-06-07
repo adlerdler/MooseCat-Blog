@@ -62,7 +62,7 @@ class SendCommentNotification implements ShouldQueue
                 'detail'  => e($comment->body),
                 'actionUrl'  => $postUrl,
                 'actionText' => '查看文章',
-                'brandName'  => config('app.name', 'Archyx'),
+                'brandName'  => config('app.name', 'Arkhyx'),
                 'timestamp'  => now()->format('Y-m-d H:i'),
             ])->render();
 

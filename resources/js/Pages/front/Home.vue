@@ -26,7 +26,7 @@ const props = defineProps({
   themes: { type: Array, default: () => [] }
 })
 
-const marqueeText = 'ARCHYX VOL. 2026 // BUILDING SYSTEM // MINIMALISM //'
+const marqueeText = 'ARKHYX VOL. 2026 // BUILDING SYSTEM // MINIMALISM //'
 const techStack = ['TYPESCRIPT', 'VUE', 'LARAVEL', 'TAILWIND', 'NODE.JS', 'POSTGRES']
 
 // 跑马灯动态复制
@@ -278,7 +278,7 @@ onUnmounted(() => {
             :transition="{ delay: 0.2 }"
           >
             <h1 class="font-display text-5xl sm:text-7xl md:text-8xl lg:text-9xl leading-[0.85] tracking-tighter text-construct-black mb-8 w-full">
-              <div class="ml-4 sm:ml-8 md:ml-16">ARCHYX</div>
+              <div class="ml-4 sm:ml-8 md:ml-16">ARKHYX</div>
               <div class="text-right mt-2 sm:mt-4 pr-4 sm:pr-8 md:pr-0">
                 <span class="text-white">BLOG</span>
               </div>

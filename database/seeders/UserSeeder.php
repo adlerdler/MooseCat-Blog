@@ -11,10 +11,10 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         $admin = User::updateOrCreate(
-            ['email' => 'admin@archyx.com'],
+            ['email' => 'admin@arkhyx.com'],
             [
                 'name' => 'Admin User',
-                'password' => Hash::make('Archyx_admin123'),
+                'password' => Hash::make('Arkhyx_admin123'),
                 'level_id' => 1,
                 'status' => 'active',
                 'points' => 1000,
@@ -30,7 +30,7 @@ class UserSeeder extends Seeder
         $admin->syncRoles(['Administrator']);
 
         $editor = User::updateOrCreate(
-            ['email' => 'editor@archyx.com'],
+            ['email' => 'editor@arkhyx.com'],
             [
                 'name' => 'Content Editor',
                 'password' => Hash::make('password'),
@@ -49,7 +49,7 @@ class UserSeeder extends Seeder
         $editor->syncRoles(['Editor']);
 
         $author = User::updateOrCreate(
-            ['email' => 'author@archyx.com'],
+            ['email' => 'author@arkhyx.com'],
             [
                 'name' => 'Test Author',
                 'password' => Hash::make('password'),
@@ -68,7 +68,7 @@ class UserSeeder extends Seeder
         $author->syncRoles(['Author']);
 
         $user = User::updateOrCreate(
-            ['email' => 'user@archyx.com'],
+            ['email' => 'user@arkhyx.com'],
             [
                 'name' => 'Test User',
                 'password' => Hash::make('password'),

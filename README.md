@@ -1,4 +1,4 @@
-# Archyx Blog System / Archyx 博客系统 🏛️✨
+# Arkhyx Blog System / Arkhyx 博客系统 🏛️✨
 
 <p align="center">
   <img src="https://img.shields.io/badge/Laravel-11.x-FF2D20?style=for-the-badge&logo=laravel" alt="Laravel 11">
@@ -12,10 +12,10 @@
 
 ### 🌟 项目愿景 | Vision
 
-> **Archyx** 旨在构建一个面向开发者、极致极简且由 AI 驱动的现代化内容创作与分发系统。
-> **Archyx** aims to build a modern content creation and distribution system designed for developers, featuring extreme minimalism and AI-driven evolution.
+> **Arkhyx** 旨在构建一个面向开发者、极致极简且由 AI 驱动的现代化内容创作与分发系统。
+> **Arkhyx** aims to build a modern content creation and distribution system designed for developers, featuring extreme minimalism and AI-driven evolution.
 
-![Archyx Hero Image](https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=1200&q=80)
+![Arkhyx Hero Image](https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=1200&q=80)
 *示意图：极简主义与现代技术的融合 | Minimalist fusion of modern technology*
 
 ---
@@ -72,7 +72,7 @@
 
 ```mermaid
 graph TD
-    A[Archyx Root] --> B[app/ Laravel Core]
+    A[Arkhyx Root] --> B[app/ Laravel Core]
     A --> C[resources/js/ Vue Components]
     A --> D[routes/ API & Web]
     A --> E[database/ Migrations]
@@ -118,9 +118,142 @@ php artisan serve & npm run dev
 
 ---
 
+## 🔧 生产环境部署 | Production Deployment
+
+### PHP 扩展要求 | PHP Extensions
+
+本项目需要以下 PHP 扩展（PHP 8.2+）：
+
+| 扩展 | 说明 | 默认安装 |
+| :--- | :--- | :--- |
+| `ctype` | 字符类型检查 | ✅ 是 |
+| `curl` | HTTP 客户端 | ✅ 是 |
+| `dom` | XML 文档处理 | ✅ 是 |
+| `fileinfo` | 文件 MIME 类型检测 | ❌ 需手动 |
+| `hash` | 哈希算法 | ✅ 是 |
+| `mbstring` | 多字节字符串处理 | ✅ 是 |
+| `openssl` | 加密/解密 | ✅ 是 |
+| `pcre` | 正则表达式 | ✅ 是 |
+| `pdo` | 数据库抽象层 | ✅ 是 |
+| `session` | 会话管理 | ✅ 是 |
+| `tokenizer` | PHP 词法分析 | ✅ 是 |
+| `xml` | XML 解析 | ✅ 是 |
+| `gd` | 图片处理（验证码） | ❌ 需手动 |
+| `pdo_mysql` | MySQL 数据库驱动 | ❌ 需手动 |
+| `zip` | 压缩文件（备份功能） | ❌ 需手动 |
+
+**宝塔面板安装方法：**
+软件商店 → PHP 8.3 → 安装扩展 → 勾选 `fileinfo`、`gd`、`pdo_mysql`、`zip` → 安装完成后点击 **重载配置**。
+
+### Nginx 配置 | Nginx Configuration
+
+```nginx
+server {
+    listen 80;
+    listen 443 ssl http2;
+    server_name your-domain.com;
+
+    root /path/to/project/public;
+    index index.php index.html;
+
+    # SSL 配置（按需配置证书路径）
+    # ssl_certificate    /path/to/fullchain.pem;
+    # ssl_certificate_key /path/to/privkey.pem;
+
+    # 静态文件直接返回（必须在 rewrite 之前）
+    location /images/ {
+        try_files $uri =404;
+    }
+
+    location /build/ {
+        try_files $uri =404;
+    }
+
+    # 图片缓存
+    location ~ .*\.(gif|jpg|jpeg|png|bmp|swf)$ {
+        expires 30d;
+        error_log /dev/null;
+        access_log /dev/null;
+    }
+
+    # JS/CSS 缓存
+    location ~ .*\.(js|css)?$ {
+        expires 12h;
+        error_log /dev/null;
+        access_log /dev/null;
+    }
+
+    # 禁止访问敏感文件
+    location ~ ^/(\.user.ini|\.htaccess|\.git|\.env|\.svn|\.project|LICENSE|README.md) {
+        return 404;
+    }
+
+    # SSL 证书验证目录
+    location ~ \.well-known {
+        allow all;
+    }
+
+    # Laravel 入口（伪静态规则）
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    # PHP 处理
+    location ~ \.php$ {
+        fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+
+    access_log /path/to/logs/your-domain.access.log;
+    error_log /path/to/logs/your-domain.error.log;
+}
+```
+
+**关键配置说明：**
+- `try_files $uri $uri/ /index.php?$query_string;` — Laravel 伪静态核心规则
+- `/images/` 和 `/build/` 的 `try_files` 确保静态文件由 Nginx 直接返回，不经过 Laravel
+- 敏感文件（`.env`、`.git` 等）必须返回 404
+
+### 文件权限 | File Permissions
+
+```bash
+# 设置项目所有者为 www（Nginx/FPM 运行用户）
+chown -R www:www /path/to/project
+
+# 目录权限 755，文件权限 644
+chmod -R 755 /path/to/project
+
+# storage 和 bootstrap/cache 需要写入权限
+chmod -R 775 /path/to/project/storage
+chmod -R 775 /path/to/project/bootstrap/cache
+```
+
+### 低内存服务器构建 | Low Memory Server Build
+
+对于 2G 内存以下的服务器，建议在本地构建后上传编译产物：
+
+```bash
+# 本地执行构建
+npm run build
+
+# 上传 public/build 目录到服务器
+scp -r public/build/ user@server:/path/to/project/public/
+```
+
+或在服务器上增加 Swap 分区：
+```bash
+sudo fallocate -l 2G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+```
+
+---
+
 ## 📝 演进历程 | Evolution
 
-查看 [evolution.md](file:///i:/Code%20editing/bolg_laravel_adlerian/laravel-vue-app/evolution.md) 了解 AI 导师与人类导师如何共同塑造 Archyx。
+查看 [evolution.md](file:///i:/Code%20editing/bolg_laravel_adlerian/laravel-vue-app/evolution.md) 了解 AI 导师与人类导师如何共同塑造 Arkhyx。
 
 ---
 

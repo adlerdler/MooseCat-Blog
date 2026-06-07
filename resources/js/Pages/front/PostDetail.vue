@@ -72,7 +72,7 @@ const inContentAd = computed(() => {
 });
 
 const { SeoHead } = usePageSeo({
-  title: computed(() => props.post?.meta_title || (props.post?.title ? `${props.post.title} - ARCHYX` : 'ARCHYX')),
+  title: computed(() => props.post?.meta_title || (props.post?.title ? `${props.post.title} - ARKHYX` : 'ARKHYX')),
   description: computed(() => props.post?.meta_description || props.post?.excerpt || ''),
   keywords: computed(() => props.post?.meta_keywords || (props.post?.tags?.join(', ') || '')),
   image: computed(() => props.post?.cover_image || ''),

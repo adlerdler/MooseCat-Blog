@@ -123,7 +123,7 @@ const username = githubLink?.url?.split('/').pop() || 'adler-decht';
 const nameParts = computed(() => {
   const name = props.author?.display_name || '';
   const parts = name.split(' ');
-  return parts.length >= 2 ? parts : [name || 'ARCHYX', ''];
+  return parts.length >= 2 ? parts : [name || 'ARKHYX', ''];
 });
 
 // 作者角色信息
