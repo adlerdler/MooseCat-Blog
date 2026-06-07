@@ -16,8 +16,8 @@ return new class extends Migration
             $table->string('log_name')->nullable()->comment('日志名称');
             $table->text('description')->comment('日志描述');
             $table->string('event')->nullable()->comment('事件名称');
-            $table->nullableMorphs('subject', 'subject')->comment('操作主体（多态关联）');
-            $table->nullableMorphs('causer', 'causer')->comment('操作者（多态关联）');
+            $table->nullableMorphs('subject', 'subject');
+            $table->nullableMorphs('causer', 'causer');
             $table->json('properties')->nullable()->comment('额外属性JSON');
             $table->uuid('batch_uuid')->nullable()->comment('批次UUID');
             $table->string('ip_address', 45)->nullable()->comment('IP地址');

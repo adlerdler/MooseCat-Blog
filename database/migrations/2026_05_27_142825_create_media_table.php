@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('media', function (Blueprint $table) {
             $table->id();
             $table->uuid()->nullable()->unique()->comment('UUID唯一标识');
-            $table->morphs('model')->comment('多态关联');
+            $table->morphs('model');
             $table->string('collection_name')->comment('集合名称');
             $table->string('name')->comment('文件名称');
             $table->string('file_name')->comment('文件名');

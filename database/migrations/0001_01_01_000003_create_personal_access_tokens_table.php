@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('personal_access_tokens', function (Blueprint $table) {
             $table->id();
-            $table->morphs('tokenable')->comment('令牌持有者（多态关联）');
+            $table->morphs('tokenable');
             $table->string('name')->comment('令牌名称');
             $table->string('token', 64)->unique()->comment('令牌哈希值');
             $table->text('abilities')->nullable()->comment('权限列表');
