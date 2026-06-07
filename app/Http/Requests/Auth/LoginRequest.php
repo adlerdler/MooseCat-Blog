@@ -4,7 +4,6 @@ namespace App\Http\Requests\Auth;
 
 use App\Services\CaptchaService;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\ValidationException;
 
 class LoginRequest extends FormRequest
 {

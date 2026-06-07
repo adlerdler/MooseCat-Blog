@@ -33,8 +33,19 @@ return Application::configure(basePath: dirname(__DIR__))
             //
         ]);
 
-        // 所有 HTTP 异常统一走 ErrorPage.vue
+        // 验证异常交给 Inertia 处理（不跳转到错误页面）
+        $exceptions->dontFlash([
+            'password',
+            'password_confirmation',
+        ]);
+
+        // 所有 HTTP 异常统一走 ErrorPage.vue（排除 ValidationException）
         $exceptions->render(function (\Throwable $e, $request) {
+            // 验证异常不处理，让 Laravel/Inertia 默认处理
+            if ($e instanceof \Illuminate\Validation\ValidationException) {
+                return null;
+            }
+
             // API 请求返回 JSON
             if ($request->expectsJson()) {
                 return null;
