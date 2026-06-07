@@ -53,8 +53,13 @@ class DashboardController extends Controller
     /**
      * Display the login page
      */
-    public function login(): \Symfony\Component\HttpFoundation\Response
+    public function login(): \Symfony\Component\HttpFoundation\Response|\Illuminate\Http\RedirectResponse
     {
+        // 已登录用户访问登录页 → 跳转前台首页
+        if (Auth::check()) {
+            return redirect('/');
+        }
+
         return Inertia::render('admin/Login', [
             'captcha' => $this->captchaService->create(),
         ])->toResponse(request())->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')->header('Pragma', 'no-cache');

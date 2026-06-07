@@ -85,8 +85,13 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // 未登录 → 跳转登录页
         $exceptions->render(function (\Illuminate\Auth\AuthenticationException $e, $request) {
-            if ($request->header('X-Inertia')) {
+            // 后台路由未登录 → 跳转后台登录页
+            if ($request->is('admin') || $request->is('admin/*')) {
                 return redirect()->guest(route('login'));
+            }
+            // 前台路由未登录 → 跳转前台登录页
+            if ($request->header('X-Inertia')) {
+                return redirect()->guest(route('front.login'));
             }
         });
     })->create();
