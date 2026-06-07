@@ -17,9 +17,13 @@ class PermissionSeeder extends Seeder
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
         // 清空现有权限数据
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
         DB::table('role_has_permissions')->truncate();
         DB::table('model_has_permissions')->truncate();
+        DB::table('model_has_roles')->truncate();
         DB::table('permissions')->truncate();
+        DB::table('roles')->truncate();
+        DB::statement('SET FOREIGN_KEY_CHECKS=1');
 
         $permissions = [
             ['name' => 'manage_posts', 'label' => '文章管理', 'description' => '文章管理权限', 'program_id' => 'content'],
