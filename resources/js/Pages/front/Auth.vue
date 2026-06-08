@@ -103,7 +103,7 @@ const sendEmailCode = async () => {
       }, 1000);
     } else {
       const data = await res.json();
-      showBottomLeftError(data.message || t('auth.invalid_captcha'));
+      showBottomLeftError(data.message || t('auth.email_send_failed'));
       refreshCaptcha();
     }
   } catch {

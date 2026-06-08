@@ -99,8 +99,14 @@ class DashboardController extends Controller
                 return redirect($firstPath);
             }
 
-            // 没有任何可访问页面 → 跳转 403
-            return redirect(route('admin.forbidden'));
+            // 没有任何可访问页面 → 拒绝登录
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return back()->withErrors([
+                'email' => '无后台访问权限',
+            ])->onlyInput('email');
         }
 
         return back()->withErrors([

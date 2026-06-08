@@ -17,6 +17,9 @@ namespace App\Services;
 class CaptchaService
 {
     private const SESSION_KEY = 'captcha_code';
+    private const ATTEMPTS_KEY = 'captcha_attempts';
+    private const ATTEMPTS_WINDOW = 120; // 2 分钟窗口
+    private const MAX_ATTEMPTS = 3; // 最多尝试 3 次
 
     private int $width  = 130;
     private int $height = 46;
@@ -40,15 +43,56 @@ class CaptchaService
     }
 
     /**
-     * 校验用户输入（不区分大小写，校验后销毁 session）
+     * 校验用户输入（不区分大小写，2 分钟内最多 3 次尝试）
+     * 返回数组：['valid' => bool, 'remaining' => int]
      */
-    public function check(string $input): bool
+    public function check(string $input): array
     {
-        $stored = session()->pull(self::SESSION_KEY);
+        $stored = session()->get(self::SESSION_KEY);
         if ($stored === null) {
-            return false;
+            return ['valid' => false, 'remaining' => 0, 'message' => '验证码已失效，请刷新'];
         }
-        return strtoupper(trim($input)) === strtoupper($stored);
+
+        // 检查尝试次数
+        $attemptsData = session()->get(self::ATTEMPTS_KEY);
+        $now = time();
+
+        // 如果超过时间窗口，重置计数
+        if ($attemptsData && ($now - $attemptsData['time']) > self::ATTEMPTS_WINDOW) {
+            $attemptsData = null;
+        }
+
+        $attempts = $attemptsData ? $attemptsData['count'] : 0;
+
+        if ($attempts >= self::MAX_ATTEMPTS) {
+            session()->forget(self::SESSION_KEY);
+            session()->forget(self::ATTEMPTS_KEY);
+            return ['valid' => false, 'remaining' => 0, 'message' => '尝试次数已用完，请刷新验证码'];
+        }
+
+        $valid = strtoupper(trim($input)) === strtoupper($stored);
+
+        if ($valid) {
+            // 验证成功，删除验证码和尝试记录
+            session()->forget(self::SESSION_KEY);
+            session()->forget(self::ATTEMPTS_KEY);
+            return ['valid' => true, 'remaining' => 0, 'message' => ''];
+        }
+
+        // 验证失败，增加尝试次数
+        $newAttempts = $attempts + 1;
+        session()->put(self::ATTEMPTS_KEY, [
+            'count' => $newAttempts,
+            'time' => $now,
+        ]);
+
+        $remaining = self::MAX_ATTEMPTS - $newAttempts;
+
+        return [
+            'valid' => false,
+            'remaining' => $remaining,
+            'message' => $remaining > 0 ? "验证码错误，还剩 {$remaining} 次尝试机会" : '尝试次数已用完，请刷新验证码',
+        ];
     }
 
     /**

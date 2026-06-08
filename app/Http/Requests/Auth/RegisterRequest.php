@@ -27,8 +27,9 @@ class RegisterRequest extends FormRequest
     {
         $validator->after(function ($validator) {
             $captchaService = app(CaptchaService::class);
-            if (! $captchaService->check($this->captcha)) {
-                $validator->errors()->add('captcha', __('auth.invalid_captcha'));
+            $result = $captchaService->check($this->captcha);
+            if (! $result['valid']) {
+                $validator->errors()->add('captcha', $result['message'] ?: __('auth.invalid_captcha'));
             }
         });
     }

@@ -17,11 +17,12 @@
 import { computed } from 'vue'
 import { ArrowLeft, AlertTriangle } from 'lucide-vue-next'
 import { useI18n } from 'vue-i18n'
+import { router } from '@inertiajs/vue3'
 
 const props = defineProps({
   errorCode: {
     type: Number,
-    default: 0
+    default: 500
   },
   errorPath: {
     type: String,
@@ -35,14 +36,13 @@ const props = defineProps({
 
 const { t } = useI18n()
 
-// 从 URL 参数获取错误信息
-const urlParams = new URLSearchParams(window.location.search)
-const urlCode = parseInt(urlParams.get('code')) || props.errorCode || 500
-const urlPath = urlParams.get('path') || props.errorPath || ''
+// 统一使用 props 获取错误信息
+const errorCode = computed(() => props.errorCode || 500)
+const errorPath = computed(() => props.errorPath || '')
 
 // 调试信息输出到控制台
 if (props.debug) {
-  console.group(`[Error ${urlCode}] ${props.debug.message}`)
+  console.group(`[Error ${errorCode.value}] ${props.debug.message}`)
   console.error('File:', props.debug.file)
   console.error('Line:', props.debug.line)
   console.error('Trace:', props.debug.trace)
@@ -50,16 +50,16 @@ if (props.debug) {
 }
 
 const pathSegments = computed(() => {
-  const path = urlPath || props.errorPath || window.location.pathname
+  const path = errorPath.value || window.location.pathname
   return path.split('/').filter(segment => segment !== '')
 })
 
 const detectedError = computed(() => {
   const segments = pathSegments.value
-  const errorCode = urlCode
+  const code = errorCode.value
 
   if (segments.length === 0) {
-    return { type: 'unknown', title: 'Page Not Found', hint: '' }
+    return { type: 'unknown', title: t('page_not_found'), hint: '' }
   }
 
   const firstSegment = segments[0].toLowerCase()
@@ -76,40 +76,35 @@ const detectedError = computed(() => {
     'author': { type: 'author', title: t('author_not_found'), hint: t('author_not_found_desc') },
     'category': { type: 'category', title: t('category_not_found'), hint: t('category_not_found_desc') },
     'tag': { type: 'tag', title: t('tag_not_found'), hint: t('tag_not_found_desc') },
-    'admin': { type: 'admin', title: t('access_denied'), hint: t('admin_access_denied_desc'), code: 403 },
+    'admin': { type: 'admin', title: t('access_denied'), hint: t('admin_access_denied_desc') },
     'api': { type: 'api', title: t('api_not_found'), hint: t('api_not_found_desc') }
   }
 
-  if (pathErrorMap[firstSegment]) {
-    const result = pathErrorMap[firstSegment]
-    return {
-      ...result,
-      errorCode: result.code || errorCode,
-      path: props.errorPath || window.location.pathname
-    }
+  const detected = pathErrorMap[firstSegment] || {
+    type: 'page',
+    title: t('page_not_found'),
+    hint: ''
   }
 
   return {
-    type: 'page',
-    title: 'Page Not Found',
-    hint: '',
-    errorCode,
-    path: props.errorPath || window.location.pathname
+    ...detected,
+    errorCode: code,
+    path: errorPath.value || window.location.pathname
   }
 })
 
 const errorInfo = computed(() => {
-  const code = detectedError.value.errorCode || props.errorCode
+  const code = errorCode.value
   const detected = detectedError.value
 
   const codes = {
-    404: {
-      title: detected.title || t('data_corruption'),
-      subtitle: detected.hint ? detected.hint : t('not_found_subtitle'),
-      desc: detected.hint ? '' : t('not_found_desc'),
-      code: detected.type ? `E_${detected.type.toUpperCase()}_NOT_FOUND` : 'E_STRUC_NODE_NOT_FOUND',
+    401: {
+      title: t('unauthorized'),
+      subtitle: t('unauthorized_subtitle'),
+      desc: t('unauthorized_desc'),
+      code: 'E_AUTH_UNAUTHORIZED',
       integrity: 'COMPROMISED',
-      sector: detected.type.toUpperCase() || 'UNKNOWN'
+      sector: 'AUTH'
     },
     403: {
       title: t('access_denied'),
@@ -119,6 +114,46 @@ const errorInfo = computed(() => {
       integrity: 'INTACT',
       sector: 'AUTH'
     },
+    404: {
+      title: detected.title || t('page_not_found'),
+      subtitle: detected.hint || t('not_found_subtitle'),
+      desc: detected.hint ? '' : t('not_found_desc'),
+      code: detected.type ? `E_${detected.type.toUpperCase()}_NOT_FOUND` : 'E_STRUC_NODE_NOT_FOUND',
+      integrity: 'COMPROMISED',
+      sector: detected.type.toUpperCase() || 'UNKNOWN'
+    },
+    405: {
+      title: t('method_not_allowed'),
+      subtitle: t('method_not_allowed_subtitle'),
+      desc: t('method_not_allowed_desc'),
+      code: 'E_HTTP_METHOD_NOT_ALLOWED',
+      integrity: 'INTACT',
+      sector: 'HTTP'
+    },
+    419: {
+      title: t('page_expired'),
+      subtitle: t('page_expired_subtitle'),
+      desc: t('page_expired_desc'),
+      code: 'E_CSRF_TOKEN_EXPIRED',
+      integrity: 'EXPIRED',
+      sector: 'SECURITY'
+    },
+    422: {
+      title: t('unprocessable_entity'),
+      subtitle: t('unprocessable_entity_subtitle'),
+      desc: t('unprocessable_entity_desc'),
+      code: 'E_VALIDATION_FAILED',
+      integrity: 'INTACT',
+      sector: 'VALIDATION'
+    },
+    429: {
+      title: t('too_many_requests'),
+      subtitle: t('too_many_requests_subtitle'),
+      desc: t('too_many_requests_desc'),
+      code: 'E_RATE_LIMIT_EXCEEDED',
+      integrity: 'INTACT',
+      sector: 'RATE_LIMIT'
+    },
     500: {
       title: t('system_error'),
       subtitle: t('server_error_subtitle'),
@@ -126,9 +161,41 @@ const errorInfo = computed(() => {
       code: 'E_SYS_INTERNAL_ERROR',
       integrity: 'DEGRADED',
       sector: 'CORE'
+    },
+    502: {
+      title: t('bad_gateway'),
+      subtitle: t('bad_gateway_subtitle'),
+      desc: t('bad_gateway_desc'),
+      code: 'E_PROXY_BAD_GATEWAY',
+      integrity: 'DEGRADED',
+      sector: 'PROXY'
+    },
+    503: {
+      title: t('service_unavailable'),
+      subtitle: t('service_unavailable_subtitle'),
+      desc: t('service_unavailable_desc'),
+      code: 'E_SYS_MAINTENANCE',
+      integrity: 'OFFLINE',
+      sector: 'CORE'
+    },
+    504: {
+      title: t('gateway_timeout'),
+      subtitle: t('gateway_timeout_subtitle'),
+      desc: t('gateway_timeout_desc'),
+      code: 'E_PROXY_TIMEOUT',
+      integrity: 'TIMEOUT',
+      sector: 'PROXY'
     }
   }
-  return codes[code] || codes[404]
+
+  return codes[code] || {
+    title: t('unknown_error'),
+    subtitle: `${t('error_code')}: ${code}`,
+    desc: t('unknown_error_desc'),
+    code: `E_UNKNOWN_${code}`,
+    integrity: 'UNKNOWN',
+    sector: 'UNKNOWN'
+  }
 })
 
 const currentTimestamp = computed(() => {
@@ -136,11 +203,7 @@ const currentTimestamp = computed(() => {
 })
 
 const goBack = () => {
-  if (window.history.length > 1) {
-    window.history.back()
-  } else {
-    window.location.href = '/'
-  }
+  router.visit('/')
 }
 </script>
 
@@ -158,7 +221,7 @@ const goBack = () => {
       <!-- Large Geometric Error Code -->
       <div class="relative mb-4">
         <div class="font-display text-[20vw] md:text-[16vw] lg:text-[14vw] leading-none tracking-tighter text-construct-black text-center select-none">
-          {{ urlCode }}
+          {{ errorCode }}
         </div>
         <div class="absolute top-1/2 left-0 w-full h-3 bg-accent -translate-y-1/2 mix-blend-multiply" />
       </div>
@@ -174,7 +237,7 @@ const goBack = () => {
           </div>
 
           <h2 class="text-sm md:text-base lg:text-lg font-bold tracking-widest text-construct-black mb-3 uppercase">
-            {{ errorInfo.subtitle }} // {{ urlCode }}
+            {{ errorInfo.subtitle }} // {{ errorCode }}
           </h2>
 
           <p v-if="errorInfo.desc" class="text-xs md:text-sm font-medium opacity-60 max-w-lg leading-relaxed mb-6 uppercase tracking-wide">

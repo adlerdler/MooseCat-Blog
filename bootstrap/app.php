@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Inertia\Inertia;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -60,8 +61,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 if (str_starts_with($request->path(), 'admin')) {
                     return redirect()->route('admin.forbidden');
                 }
-                // 其他 403 走默认处理
-                return null;
+                // 前台 403 继续走 ErrorPage
             }
 
             // API 请求返回 JSON
@@ -73,31 +73,18 @@ return Application::configure(basePath: dirname(__DIR__))
             $statusCode = 500;
             if ($e instanceof \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface) {
                 $statusCode = $e->getStatusCode();
-            } elseif ($e instanceof \Symfony\Component\HttpKernel\Exception\NotFoundHttpException) {
-                $statusCode = 500;
-            } elseif ($e instanceof \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException) {
-                $statusCode = 500;
+            } elseif ($e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException) {
+                $statusCode = 404;
+            } elseif ($e instanceof \Symfony\Component\Routing\Exception\RouteNotFoundException) {
+                $statusCode = 404;
             }
 
-            // 调试模式下保存错误详情到 session
-            if (config('app.debug')) {
-                session()->flash('error_debug', [
-                    'message' => $e->getMessage(),
-                    'file' => $e->getFile(),
-                    'line' => $e->getLine(),
-                    'trace' => collect($e->getTrace())
-                        ->take(20)
-                        ->map(fn($t) => [
-                            'file' => $t['file'] ?? 'unknown',
-                            'line' => $t['line'] ?? 0,
-                            'function' => $t['function'] ?? 'unknown',
-                            'class' => $t['class'] ?? '',
-                        ])
-                        ->toArray(),
-                ]);
+            // 404/403/500/503 以外的状态码走默认处理
+            if (!in_array($statusCode, [404, 403, 500, 503])) {
+                return null;
             }
 
-            // 重定向到错误路由，确保 Inertia 正常渲染
+            // 重定向到错误页面路由，确保 Inertia 正常渲染
             return redirect()->to("/error/{$statusCode}?path=" . urlencode($request->path()));
         });
 

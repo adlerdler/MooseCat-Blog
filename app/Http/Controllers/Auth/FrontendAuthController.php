@@ -147,6 +147,13 @@ class FrontendAuthController extends Controller
 
             $email = strtolower(trim($request->email));
 
+            // 检查邮箱是否已注册（已注册的不需要发送验证码）
+            if (User::where('email', $email)->exists()) {
+                return response()->json([
+                    'message' => '该邮箱已被注册',
+                ], 422);
+            }
+
             // 60秒发送频率限制
             $cooldownKey = "email_code_cooldown:{$email}";
             if (Cache::has($cooldownKey)) {

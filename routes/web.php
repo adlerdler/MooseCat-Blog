@@ -58,10 +58,8 @@ Route::get('/error/{code}', function ($code) {
         session()->forget('error_debug');
     }
 
-    return Inertia::render('ErrorPage', $data)
-        ->toResponse(request())
-        ->setStatusCode((int) $code);
-})->where('code', '404|403|500|503')->name('error');
+    return Inertia::render('ErrorPage', $data);
+})->where('code', '[0-9]+')->name('error');
 
 // 测试路由（不涉及数据库）
 Route::get('/test', function () {
