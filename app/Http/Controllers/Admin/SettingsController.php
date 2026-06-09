@@ -141,7 +141,7 @@ class SettingsController extends Controller
         ];
 
         foreach ($validated as $key => $value) {
-            if ($value === null || $value === '') {
+            if (in_array($key, $userNotificationFields)) {
                 continue;
             }
 
