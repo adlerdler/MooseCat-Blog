@@ -60,7 +60,13 @@ class TagService
     public function createTag(array $data): Tag
     {
         return DB::transaction(function () use ($data) {
-            $data['slug'] = $data['slug'] ?? Str::slug($data['name']);
+            $baseSlug = $data['slug'] ?? Str::slug($data['name']);
+            $slug = $baseSlug;
+            $count = 1;
+            while (Tag::where('slug', $slug)->exists()) {
+                $slug = $baseSlug . '-' . $count++;
+            }
+            $data['slug'] = $slug;
             return Tag::create($data);
         });
     }
@@ -74,6 +80,15 @@ class TagService
         return DB::transaction(function () use ($tag, $data) {
             if (isset($data['name']) && !isset($data['slug'])) {
                 $data['slug'] = Str::slug($data['name']);
+            }
+            if (isset($data['slug'])) {
+                $baseSlug = $data['slug'];
+                $slug = $baseSlug;
+                $count = 1;
+                while (Tag::where('slug', $slug)->where('id', '!=', $tag->id)->exists()) {
+                    $slug = $baseSlug . '-' . $count++;
+                }
+                $data['slug'] = $slug;
             }
             $tag->update($data);
             return $tag;

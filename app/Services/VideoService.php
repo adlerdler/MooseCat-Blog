@@ -73,7 +73,11 @@ class VideoService
     public function createVideo(array $data): Video
     {
         return DB::transaction(function () use ($data) {
-            $data['slug'] = $data['slug'] ?? (Str::random(8) . '-' . Str::random(4));
+            $slug = $data['slug'] ?? (Str::random(8) . '-' . Str::random(4));
+            while (Video::where('slug', $slug)->exists()) {
+                $slug = Str::random(8) . '-' . Str::random(4);
+            }
+            $data['slug'] = $slug;
             $data['status'] = $data['status'] ?? 'draft';
             
             $tags = $data['tags'] ?? [];

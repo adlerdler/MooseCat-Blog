@@ -15,6 +15,7 @@ import {
   Plus
 } from 'lucide-vue-next';
 import { useTheme } from '../../composables/useTheme';
+import { useToast } from '../../composables/useToast';
 
 const props = defineProps({
   visible: Boolean
@@ -24,6 +25,7 @@ const emit = defineEmits(['close', 'uploaded']);
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
+const { error: toastError } = useToast();
 
 const isDragging = ref(false);
 const fileInput = ref(null);
@@ -113,12 +115,16 @@ const startUpload = async () => {
   
   isUploading.value = false;
   
+  const failedCount = uploadFiles.value.filter(f => f.status === 'error').length;
+
   // If all success, wait a bit and close
   if (uploadFiles.value.every(f => f.status === 'success')) {
     setTimeout(() => {
       emit('uploaded', uploadFiles.value);
       closeModal();
     }, 1500);
+  } else if (failedCount > 0) {
+    toastError(`${failedCount} 个文件上传失败，请检查格式或大小后重试`);
   }
 };
 

@@ -238,7 +238,11 @@ const handleSave = (data) => {
         console.error('Post update error:', err);
         toastError(t('toast.update_error'));
       },
-      onSuccess: () => toastSuccess(t('toast.update_success')),
+      onSuccess: () => {
+        toastSuccess(t('toast.update_success'));
+        isFormVisible.value = false;
+        editingPost.value = null;
+      },
     });
   } else {
     router.post(route('admin.posts.store'), payload, {
@@ -247,11 +251,13 @@ const handleSave = (data) => {
         console.error('Post create error:', err);
         toastError(t('toast.create_error'));
       },
-      onSuccess: () => toastSuccess(t('toast.create_success')),
+      onSuccess: () => {
+        toastSuccess(t('toast.create_success'));
+        isFormVisible.value = false;
+        editingPost.value = null;
+      },
     });
   }
-  isFormVisible.value = false;
-  editingPost.value = null;
 };
 
 const handleCancel = () => {

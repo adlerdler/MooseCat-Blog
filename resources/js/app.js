@@ -155,13 +155,12 @@ createInertiaApp({
             );
             
             // 使用持久化布局：所有 admin/ 开头的页面使用 AdminLayout，但排除登录页面
-            page.then((module) => {
+            return page.then((module) => {
                 if (name.startsWith('admin/') && name !== 'admin/Login') {
-                    module.default.layout = AdminLayout;
+                    module.default.layout = module.default.layout || AdminLayout;
                 }
+                return module;
             });
-            
-            return page;
         } catch (error) {
             console.error('[ERROR] Failed to resolve page:', name, error);
             throw error;

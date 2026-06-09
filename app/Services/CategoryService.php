@@ -61,7 +61,13 @@ class CategoryService
     public function createCategory(array $data): Category
     {
         return DB::transaction(function () use ($data) {
-            $data['slug'] = $data['slug'] ?? Str::slug($data['name']);
+            $baseSlug = $data['slug'] ?? Str::slug($data['name']);
+            $slug = $baseSlug;
+            $count = 1;
+            while (Category::where('slug', $slug)->exists()) {
+                $slug = $baseSlug . '-' . $count++;
+            }
+            $data['slug'] = $slug;
             return Category::create($data);
         });
     }
@@ -75,6 +81,15 @@ class CategoryService
         return DB::transaction(function () use ($category, $data) {
             if (isset($data['name']) && !isset($data['slug'])) {
                 $data['slug'] = Str::slug($data['name']);
+            }
+            if (isset($data['slug'])) {
+                $baseSlug = $data['slug'];
+                $slug = $baseSlug;
+                $count = 1;
+                while (Category::where('slug', $slug)->where('id', '!=', $category->id)->exists()) {
+                    $slug = $baseSlug . '-' . $count++;
+                }
+                $data['slug'] = $slug;
             }
             $category->update($data);
             return $category;

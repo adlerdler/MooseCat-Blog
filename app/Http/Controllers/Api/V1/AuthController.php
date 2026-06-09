@@ -24,7 +24,10 @@ class AuthController extends Controller
     {
         $user = User::where('email', $request->email)->first();
 
-        if (! $user || ! Hash::check($request->password, $user->password)) {
+        // 防止时序攻击：如果用户不存在，则使用一个格式合法的虚拟哈希值让 Hash::check 运行以对齐耗时
+        $passwordHash = $user ? $user->password : '$2y$10$I6/pG5wV/lPex3wWbK3Qx.c3V9y7T9V9m5d1n9o8p7q6r5s4t3u2v';
+
+        if (! $user || ! Hash::check($request->password, $passwordHash)) {
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect.'],
             ]);

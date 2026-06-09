@@ -33,14 +33,7 @@ class ResourceService
             ->paginate($perPage);
     }
 
-    /**
-     * 根据slug获取资源
-     * Get resource by slug
-     */
-    public function getResourceBySlug(string $slug): ?Resource
-    {
-        return Resource::where('slug', $slug)->with(['category'])->first();
-    }
+
 
     /**
      * 获取所有资源
@@ -61,7 +54,6 @@ class ResourceService
     public function createResource(array $data): Resource
     {
         return DB::transaction(function () use ($data) {
-            $data['slug'] = $data['slug'] ?? Str::slug($data['title']);
             return Resource::create($data);
         });
     }
@@ -73,9 +65,6 @@ class ResourceService
     public function updateResource(Resource $resource, array $data): Resource
     {
         return DB::transaction(function () use ($resource, $data) {
-            if (isset($data['title']) && !isset($data['slug'])) {
-                $data['slug'] = Str::slug($data['title']);
-            }
             $resource->update($data);
             return $resource;
         });

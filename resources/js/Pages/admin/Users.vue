@@ -60,6 +60,8 @@ const editingUser = ref(null);
 const serverErrors = ref({});
 const showDeleteConfirm = ref(false);
 const deletingUserId = ref(null);
+const showStatusConfirm = ref(false);
+const pendingStatusUser = ref(null);
 
 // Load saved view mode from localStorage
 const savedViewMode = localStorage.getItem('admin_users_view_mode');
@@ -90,6 +92,13 @@ const paginatedUsers = computed(() => {
 });
 
 const toggleStatus = (user) => {
+  pendingStatusUser.value = user;
+  showStatusConfirm.value = true;
+};
+
+const confirmToggleStatus = () => {
+  const user = pendingStatusUser.value;
+  if (!user) return;
   const newStatus = user.status === 'active' ? 'inactive' : 'active';
   const form = useForm({ status: newStatus });
   form.patch(route('admin.users.toggle-status', user.id), {
@@ -97,9 +106,13 @@ const toggleStatus = (user) => {
     onSuccess: () => {
       toastSuccess(newStatus === 'active' ? t('toast.activated_success') : t('toast.deactivated_success'));
       user.status = newStatus;
+      showStatusConfirm.value = false;
+      pendingStatusUser.value = null;
     },
     onError: (errors) => {
       console.error('Status update error:', errors);
+      showStatusConfirm.value = false;
+      pendingStatusUser.value = null;
     }
   });
 };
@@ -421,6 +434,16 @@ const handleFilterChange = ({ key, value }) => {
       confirm-variant="danger"
       @confirm="confirmDelete"
       @cancel="showDeleteConfirm = false"
+    />
+    <!-- Status Toggle Confirm Dialog -->
+    <ConfirmDialog
+      :visible="showStatusConfirm"
+      :title="pendingStatusUser?.status === 'active' ? t('admin_deactivate_user') || '禁用用户' : t('admin_activate_user') || '启用用户'"
+      :content="pendingStatusUser?.status === 'active' ? `确认要禁用用户 &quot;${pendingStatusUser?.name}&quot; 吗？该用户将无法登录。` : `确认要启用用户 &quot;${pendingStatusUser?.name}&quot; 吗？`"
+      :confirm-text="pendingStatusUser?.status === 'active' ? t('admin_deactivate') || '禁用' : t('admin_activate') || '启用'"
+      :confirm-variant="pendingStatusUser?.status === 'active' ? 'danger' : 'primary'"
+      @confirm="confirmToggleStatus"
+      @cancel="showStatusConfirm = false; pendingStatusUser = null"
     />
   </div>
 </template>

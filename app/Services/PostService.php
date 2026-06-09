@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Models\Post;
 use App\Models\Subscriber;
 use App\Events\SeoFilesNeedRegenerate;
+use App\Jobs\SendEmailJob;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -47,7 +48,11 @@ class PostService
     public function createPost(array $data): Post
     {
         return DB::transaction(function () use ($data) {
-            $data['slug'] = $data['slug'] ?? (Str::random(8) . '-' . Str::random(4));
+            $slug = $data['slug'] ?? (Str::random(8) . '-' . Str::random(4));
+            while (Post::where('slug', $slug)->exists()) {
+                $slug = Str::random(8) . '-' . Str::random(4);
+            }
+            $data['slug'] = $slug;
             $data['status'] = $data['status'] ?? 'published';
             $data['published_at'] = $data['published_at'] ?? now();
 
@@ -175,11 +180,9 @@ class PostService
             'timestamp'  => $timestamp,
         ])->render();
 
-        // 逐个发送给订阅者（afterResponse 模式，不阻塞请求）
+        // 逐个推入异步队列发送给订阅者（保留收件人隐私，且由 Queue Worker 异步限速发送）
         foreach ($subscribers as $email) {
-            dispatch(function () use ($email, $subject, $htmlBody) {
-                app(MailService::class)->send($email, $subject, $htmlBody);
-            })->afterResponse();
+            SendEmailJob::dispatch($email, $subject, $htmlBody);
         }
     }
 }

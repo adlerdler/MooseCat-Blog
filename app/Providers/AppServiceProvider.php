@@ -27,6 +27,9 @@ class AppServiceProvider extends ServiceProvider
     {
         Schema::defaultStringLength(191);
 
+        // 加载 public/locales/ JSON 翻译文件
+        $this->loadJsonTranslationsFrom(public_path('locales'));
+
         Gate::before(function ($user, $ability) {
             return $user instanceof User && $user->isAdministrator() ? true : null;
         });

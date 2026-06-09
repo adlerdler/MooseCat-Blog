@@ -27,9 +27,8 @@ class RegisterRequest extends FormRequest
     {
         $validator->after(function ($validator) {
             $captchaService = app(CaptchaService::class);
-            $result = $captchaService->check($this->captcha);
-            if (! $result['valid']) {
-                $validator->errors()->add('captcha', $result['message'] ?: __('auth.invalid_captcha'));
+            if (! $captchaService->check($this->captcha)) {
+                $validator->errors()->add('captcha', 'captcha_invalid');
             }
         });
     }
@@ -37,8 +36,8 @@ class RegisterRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'verification_code.required'    => __('auth.invalid_code'),
-            'verification_code.size'        => __('auth.invalid_code'),
+            'verification_code.required'    => 'verification_code_required',
+            'verification_code.size'        => 'verification_code_invalid',
         ];
     }
 }

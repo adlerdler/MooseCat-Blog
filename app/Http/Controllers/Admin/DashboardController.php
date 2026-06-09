@@ -53,16 +53,29 @@ class DashboardController extends Controller
     /**
      * Display the login page
      */
-    public function login(): \Symfony\Component\HttpFoundation\Response|\Illuminate\Http\RedirectResponse
+    public function login()
     {
-        // 已登录用户访问登录页 → 跳转后台首页
+        // 已登录用户访问登录页 → 引导跳转
         if (Auth::check()) {
-            return redirect('/admin/index');
+            $user = Auth::user();
+            if ($user->isAdministrator() || $user->hasPermissionTo('view_analytics')) {
+                return redirect('/admin/index');
+            }
+
+            // 智能跳转到该用户第一个可访问的后台页面（例如：文章管理、分类管理等）
+            $menus = $this->menuService->getFilteredAdminMenus($user);
+            $firstPath = $this->findFirstMenuPath($menus);
+
+            if ($firstPath) {
+                return redirect($firstPath);
+            }
+
+            return redirect('/');
         }
 
         return Inertia::render('admin/Login', [
             'captcha' => $this->captchaService->create(),
-        ])->toResponse(request())->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')->header('Pragma', 'no-cache');
+        ]);
     }
 
     /**

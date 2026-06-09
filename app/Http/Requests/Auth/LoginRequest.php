@@ -27,9 +27,8 @@ class LoginRequest extends FormRequest
     {
         $validator->after(function ($validator) {
             $this->captchaService = app(CaptchaService::class);
-            $result = $this->captchaService->check($this->captcha);
-            if (! $result['valid']) {
-                $validator->errors()->add('captcha', $result['message'] ?: __('auth.invalid_captcha'));
+            if (! $this->captchaService->check($this->captcha)) {
+                $validator->errors()->add('captcha', 'captcha_invalid');
             }
         });
     }

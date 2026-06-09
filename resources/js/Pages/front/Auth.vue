@@ -79,6 +79,8 @@ const refreshCaptcha = () => {
   });
 };
 
+import axios from 'axios';
+
 // —— 邮箱验证码发送 ——
 const sendingCode = ref(false);
 const codeCooldown = ref(0);
@@ -89,26 +91,23 @@ const sendEmailCode = async () => {
   if (sendingCode.value || codeCooldown.value > 0) return;
   sendingCode.value = true;
   try {
-    const res = await fetch('/api/send-verification-code', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '' },
-      body: JSON.stringify({ email: registerForm.email }),
+    const res = await axios.post('/api/send-verification-code', {
+      email: registerForm.email,
     });
-    if (res.ok) {
-      showBottomLeftError(t('auth.code_sent'));
-      codeCooldown.value = 60;
-      cooldownTimer = setInterval(() => {
-        codeCooldown.value--;
-        if (codeCooldown.value <= 0) { clearInterval(cooldownTimer); cooldownTimer = null; }
-      }, 1000);
-    } else {
-      const data = await res.json();
-      showBottomLeftError(data.message || t('auth.email_send_failed'));
-      refreshCaptcha();
+    showBottomLeftError(t('auth.code_sent'));
+    codeCooldown.value = 60;
+    cooldownTimer = setInterval(() => {
+      codeCooldown.value--;
+      if (codeCooldown.value <= 0) { clearInterval(cooldownTimer); cooldownTimer = null; }
+    }, 1000);
+  } catch (error) {
+    if (error.response && error.response.status === 419) {
+      // 会话过期，静默刷新页面以重新获取有效 CSRF Token
+      window.location.reload();
+      return;
     }
-  } catch {
-    showBottomLeftError(t('auth.email_send_failed'));
-    refreshCaptcha();
+    const message = error.response?.data?.message || t('auth.email_send_failed');
+    showBottomLeftError(message);
   }
   sendingCode.value = false;
 };
@@ -204,16 +203,16 @@ const providerNames = { google: 'Google', github: 'GitHub' };
 // 表单错误 → 右下角 Toast 弹窗
 watch(() => { return { ...loginForm.errors }; }, (errors) => {
   const msg = errors.email || errors.password || errors.captcha;
-  if (msg) showBottomLeftError(msg);
+  if (msg) showBottomLeftError(t(msg) || msg);
 }, { deep: true });
 
 watch(() => { return { ...forgotForm.errors }; }, (errors) => {
-  if (errors.credential) showBottomLeftError(errors.credential);
+  if (errors.credential) showBottomLeftError(t(errors.credential) || errors.credential);
 }, { deep: true });
 
 watch(() => { return { ...registerForm.errors }; }, (errors) => {
   const msg = errors.name || errors.email || errors.password || errors.captcha || errors.verification_code;
-  if (msg) showBottomLeftError(msg);
+  if (msg) showBottomLeftError(t(msg) || msg);
 }, { deep: true });
 </script>
 

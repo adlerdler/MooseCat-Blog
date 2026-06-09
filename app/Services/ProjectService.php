@@ -66,7 +66,11 @@ class ProjectService
     public function createProject(array $data): Project
     {
         return DB::transaction(function () use ($data) {
-            $data['slug'] = $data['slug'] ?? Str::random(8) . '-' . Str::random(4);
+            $slug = $data['slug'] ?? Str::random(8) . '-' . Str::random(4);
+            while (Project::where('slug', $slug)->exists()) {
+                $slug = Str::random(8) . '-' . Str::random(4);
+            }
+            $data['slug'] = $slug;
             $tags = $data['tags'] ?? [];
             unset($data['tags']);
 

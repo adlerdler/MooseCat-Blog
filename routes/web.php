@@ -117,7 +117,9 @@ Route::middleware(['maintenance'])->group(function () {
     Route::post('/likes/toggle', [LikeController::class, 'toggle'])->name('likes.toggle');
 
     // 评论相关路由
-    Route::post('/posts/{post}/comments', [CommentController::class, 'store'])->name('comments.store');
+    Route::post('/posts/{post}/comments', [CommentController::class, 'store'])
+        ->name('comments.store')
+        ->middleware('throttle:5,1');
 
     // 分类相关路由
     Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
@@ -135,14 +137,16 @@ Route::middleware(['maintenance'])->group(function () {
 // ============================================================
 
 // 未登录用户（guest）— 登录/注册/OAuth
-Route::middleware(['maintenance', 'guest', 'registration'])->group(function () {
+Route::middleware(['maintenance', 'guest', 'registration', 'cache.headers:no_store;no_cache;must_revalidate;max_age=0'])->group(function () {
     Route::get('/login', [FrontendAuthController::class, 'showLogin'])->name('front.login');
     Route::post('/login', [FrontendAuthController::class, 'login'])->name('front.login.handle');
     Route::get('/register', [FrontendAuthController::class, 'showRegister'])->name('front.register');
     Route::post('/register', [FrontendAuthController::class, 'register'])->name('front.register.handle');
     Route::get('/auth/{provider}/redirect', [FrontendAuthController::class, 'redirect'])->name('front.social.redirect');
     Route::get('/auth/{provider}/callback', [FrontendAuthController::class, 'callback'])->name('front.social.callback');
-    Route::post('/forgot-password', [FrontendAuthController::class, 'sendResetLink'])->name('front.password.email');
+    Route::post('/forgot-password', [FrontendAuthController::class, 'sendResetLink'])
+        ->middleware('throttle:3,1')
+        ->name('front.password.email');
     Route::get('/reset-password/{token}', [FrontendAuthController::class, 'showResetForm'])->name('front.password.reset');
     Route::post('/reset-password', [FrontendAuthController::class, 'reset'])->name('front.password.update');
 });
@@ -177,7 +181,9 @@ Route::get('/media/{uuid}.{ext}', function ($uuid, $ext) {
 });
 
 // 管理后台登录路由
-Route::get('/admin/login', [DashboardController::class, 'login'])->name('login');
+Route::get('/admin/login', [DashboardController::class, 'login'])
+    ->name('login')
+    ->middleware('cache.headers:no_store;no_cache;must_revalidate;max_age=0');
 Route::post('/admin/login', [DashboardController::class, 'handleLogin'])->name('login.handle');
 
 // 管理后台路由（需要认证）

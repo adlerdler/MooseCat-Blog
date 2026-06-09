@@ -7,14 +7,16 @@ use Illuminate\Support\Facades\Cache;
 
 class SocialLoginService
 {
-    protected int $cacheTtl = 86400; // 24小时
+    public function __construct(
+        protected CacheService $cacheService
+    ) {}
 
     /**
      * 获取指定 Provider 的配置（带缓存）
      */
     public function getConfig(string $provider): ?SocialLoginConfig
     {
-        return Cache::remember("social_login:{$provider}", $this->cacheTtl, function () use ($provider) {
+        return $this->cacheService->remember("social_login:{$provider}", function () use ($provider) {
             return SocialLoginConfig::where('provider', $provider)
                 ->where('enabled', true)
                 ->first();
@@ -26,7 +28,7 @@ class SocialLoginService
      */
     public function getEnabledProviders(): array
     {
-        return Cache::remember('social_login:enabled', $this->cacheTtl, function () {
+        return $this->cacheService->remember('social_login:enabled', function () {
             return SocialLoginConfig::where('enabled', true)
                 ->get(['provider', 'name'])
                 ->toArray();
@@ -51,8 +53,8 @@ class SocialLoginService
             $data
         );
 
-        Cache::forget("social_login:{$provider}");
-        Cache::forget('social_login:enabled');
+        $this->cacheService->forget("social_login:{$provider}");
+        $this->cacheService->forget('social_login:enabled');
 
         return $config;
     }

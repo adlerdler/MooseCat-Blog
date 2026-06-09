@@ -52,6 +52,11 @@ return Application::configure(basePath: dirname(__DIR__))
                 return null;
             }
 
+            // 限流异常不处理，直接返回 429 状态码，避免前台因频繁点击被重定向至错误页面
+            if ($e instanceof \Illuminate\Http\Exceptions\ThrottleRequestsException) {
+                return null;
+            }
+
             // 403 权限异常 → 跳转后台无权限页面
             if ($e instanceof \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException
                 || $e instanceof \Illuminate\Auth\Access\AuthorizationException
@@ -61,7 +66,8 @@ return Application::configure(basePath: dirname(__DIR__))
                 if (str_starts_with($request->path(), 'admin')) {
                     return redirect()->route('admin.forbidden');
                 }
-                // 前台 403 继续走 ErrorPage
+                // 其他 403 走默认处理
+                return null;
             }
 
             // API 请求返回 JSON
@@ -73,15 +79,28 @@ return Application::configure(basePath: dirname(__DIR__))
             $statusCode = 500;
             if ($e instanceof \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface) {
                 $statusCode = $e->getStatusCode();
-            } elseif ($e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException) {
-                $statusCode = 404;
-            } elseif ($e instanceof \Symfony\Component\Routing\Exception\RouteNotFoundException) {
-                $statusCode = 404;
+            } elseif ($e instanceof \Symfony\Component\HttpKernel\Exception\NotFoundHttpException) {
+                $statusCode = 500;
+            } elseif ($e instanceof \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException) {
+                $statusCode = 500;
             }
 
-            // 404/403/500/503 以外的状态码走默认处理
-            if (!in_array($statusCode, [404, 403, 500, 503])) {
-                return null;
+            // 调试模式下保存错误详情到 session
+            if (config('app.debug')) {
+                session()->flash('error_debug', [
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'trace' => collect($e->getTrace())
+                        ->take(20)
+                        ->map(fn($t) => [
+                            'file' => $t['file'] ?? 'unknown',
+                            'line' => $t['line'] ?? 0,
+                            'function' => $t['function'] ?? 'unknown',
+                            'class' => $t['class'] ?? '',
+                        ])
+                        ->toArray(),
+                ]);
             }
 
             // 重定向到错误页面路由，确保 Inertia 正常渲染

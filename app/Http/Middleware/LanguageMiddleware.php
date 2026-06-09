@@ -14,7 +14,7 @@ class LanguageMiddleware
      *
      * @var array
      */
-    protected $supportedLocales = ['zh_CN', 'en', 'ja'];
+    protected $supportedLocales = ['zh-CN', 'en', 'zh-TW'];
 
     /**
      * Handle an incoming request.

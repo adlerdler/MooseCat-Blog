@@ -13,20 +13,15 @@ class Controller extends BaseController
 
     /**
      * 检查权限：超级管理员直接放行，其他用户查权限表。
-     * 仅在方法体内直接调用时使用；构造函数中请用 '$this->middleware(\"permission:xxx\")'。
+     * 仅在方法体内直接调用时使用；构造函数中请用 '$this->middleware("permission:xxx")'。
      */
     protected function requirePermission(string $permission): void
     {
-        $user = Auth::user();
-
-        if (!$user) {
-            abort(403, '未登录');
+        if (!Auth::check()) {
+            throw new \Illuminate\Auth\AuthenticationException('未登录');
         }
 
-        if ($user->isAdministrator()) {
-            return;
-        }
-
-        abort_unless($user->hasPermissionTo($permission), 403, "无权限: {$permission}");
+        // 借助 Laravel 原生 Gate 校验权限（管理员已在 AppServiceProvider Gate::before 中全局放行）
+        \Illuminate\Support\Facades\Gate::authorize($permission);
     }
 }

@@ -34,7 +34,7 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::get('/posts', [PostController::class, 'index']);
     Route::get('/posts/{post:slug}', [PostController::class, 'show']);
 
-    Route::post('/posts/{post}/comments', [CommentController::class, 'store']);
+    Route::post('/posts/{post}/comments', [CommentController::class, 'store'])->middleware('throttle:5,1');
     Route::get('/posts/{post}/comments', [CommentController::class, 'index']);
 
     Route::get('/videos', [VideoController::class, 'index']);

@@ -89,23 +89,34 @@ class FrontendAuthController extends Controller
     /**
      * 登录页面（Inertia）
      */
-    public function showLogin(): \Symfony\Component\HttpFoundation\Response
+    public function showLogin(): Response
     {
         return Inertia::render('front/Auth', [
             'mode'      => 'login',
             'captcha'   => $this->captchaService->create(),
             'providers' => $this->socialLoginService->getEnabledProviders(),
-        ])->toResponse(request())->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')->header('Pragma', 'no-cache');
+        ]);
     }
 
-    /**
-     * 处理邮箱密码登录
-     */
     public function login(LoginRequest $request): RedirectResponse
     {
         if (Auth::attempt($request->credentials(), $request->boolean('remember'))) {
+            $user = Auth::user();
+
+            // 检查用户是否被禁用
+            if ($user->status === 'inactive') {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return back()->withErrors([
+                    'disabled' => '该用户已被禁用，请联系管理员',
+                ])->onlyInput('email');
+            }
+
             $request->session()->regenerate();
-            return redirect()->intended('/');
+            $slug = $user->authorProfile?->slug ?? 'admin-user';
+            return redirect("/profile/{$slug}");
         }
 
         return back()->withErrors([
@@ -116,13 +127,13 @@ class FrontendAuthController extends Controller
     /**
      * 注册页面（Inertia）
      */
-    public function showRegister(): \Symfony\Component\HttpFoundation\Response
+    public function showRegister(): Response
     {
         return Inertia::render('front/Auth', [
             'mode'      => 'register',
             'captcha'   => $this->captchaService->create(),
             'providers' => $this->socialLoginService->getEnabledProviders(),
-        ])->toResponse(request())->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')->header('Pragma', 'no-cache');
+        ]);
     }
 
     /**
@@ -351,7 +362,7 @@ class FrontendAuthController extends Controller
 
             Log::info("[OAuth] User retrieved from {$provider}", [
                 'id'    => $socialUser->getId(),
-                'email' => $socialUser->getEmail(),
+                'email' => preg_replace('/(.{2}).*(@.*)/', '$1***$2', $socialUser->getEmail() ?? ''),
                 'name'  => $socialUser->getName(),
             ]);
         } catch (\Exception $e) {
@@ -372,7 +383,14 @@ class FrontendAuthController extends Controller
             ->first();
 
         if ($socialAccount) {
-            Auth::login($socialAccount->user);
+            $user = $socialAccount->user;
+            if ($user->status === 'inactive') {
+                return redirect('/login')->withErrors([
+                    'email' => '该用户已被禁用，请联系管理员',
+                ]);
+            }
+
+            Auth::login($user);
             request()->session()->regenerate();
             return redirect()->intended('/');
         }
@@ -435,6 +453,12 @@ class FrontendAuthController extends Controller
 
             // 通知管理员（异步，不阻塞注册流程）
             $this->notifyAdminsNewUser($user);
+        }
+
+        if ($user->status === 'inactive') {
+            return redirect('/login')->withErrors([
+                'email' => '该用户已被禁用，请联系管理员',
+            ]);
         }
 
         Auth::login($user);
