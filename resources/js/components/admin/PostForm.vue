@@ -2,13 +2,15 @@
 import { ref, computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useTheme } from '../../composables/useTheme';
-import { Image as ImageIcon } from 'lucide-vue-next';
+import { Image as ImageIcon, Upload as UploadIcon } from 'lucide-vue-next';
+import { useToast } from '../../composables/useToast';
 import TagInput from './TagInput.vue';
 import ContentFormModal from './ContentFormModal.vue';
 import MediaPickerModal from './MediaPickerModal.vue';
 
 const { t } = useI18n();
 const { isDarkMode } = useTheme();
+const { success: toastSuccess, error: toastError } = useToast();
 
 const props = defineProps({
   editData: {
@@ -116,6 +118,94 @@ const showMediaPicker = ref(false);
 const handleMediaSelect = (file) => {
   formData.value.thumbnail = file.url;
   showMediaPicker.value = false;
+};
+
+// Markdown 导入
+const mdFileInput = ref(null);
+
+const triggerMdImport = () => {
+  mdFileInput.value?.click();
+};
+
+const handleMdImport = (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const text = e.target.result || '';
+    
+    let title = file.name.replace(/\.md$/i, '');
+    let content = text;
+    let excerpt = '';
+    let tags = '';
+    let date = formData.value.date;
+
+    // 正则表达式匹配 YAML Front Matter
+    const frontMatterRegex = /^---\r?\n([\s\S]*?)\r?\n---\r?\n/;
+    const match = text.match(frontMatterRegex);
+
+    if (match) {
+      const yamlBlock = match[1];
+      content = text.substring(match[0].length); // 提取正文内容
+
+      // 简易 YAML 解析
+      const lines = yamlBlock.split('\n');
+      lines.forEach(line => {
+        const index = line.indexOf(':');
+        if (index > -1) {
+          const key = line.substring(0, index).trim().toLowerCase();
+          let val = line.substring(index + 1).trim();
+          val = val.replace(/^['"]|['"]$/g, ''); // 去除包围的外层引号
+
+          if (key === 'title') {
+            title = val;
+          } else if (key === 'excerpt' || key === 'description' || key === 'summary') {
+            excerpt = val;
+          } else if (key === 'tags') {
+            tags = val.replace(/[\[\]]/g, '').split(',').map(t => t.trim()).filter(Boolean).join(', ');
+          } else if (key === 'date') {
+            try {
+              const parsedDate = new Date(val);
+              if (!isNaN(parsedDate.getTime())) {
+                date = toDatetimeLocal(parsedDate);
+              }
+            } catch (err) {
+              // 忽略解析错误，保留原时间
+            }
+          }
+        }
+      });
+    }
+
+    // 兜底：如果 yaml 中未定义摘要，提取正文前 150 字并过滤 Markdown 字符作为推荐摘要
+    if (!excerpt) {
+      excerpt = content
+        .replace(/[#*`\-_\[\]\(\)\n]/g, ' ') // 过滤 Markdown 符号
+        .replace(/\s+/g, ' ')                // 压缩空白
+        .substring(0, 150)
+        .trim();
+      if (content.length > 150) {
+        excerpt += '...';
+      }
+    }
+
+    // 填充至表单
+    formData.value.title = title;
+    formData.value.content = content;
+    formData.value.excerpt = excerpt;
+    if (tags) {
+      formData.value.tags = tags;
+    }
+    formData.value.date = date;
+
+    toastSuccess('Markdown 导入成功，已自动填充表单！');
+    
+    // 清空选择框以支持重复选择同一文件
+    event.target.value = '';
+  };
+
+  reader.readAsText(file);
 };
 </script>
 
@@ -250,9 +340,26 @@ const handleMediaSelect = (file) => {
       </div>
 
       <div>
-        <label :class="['block text-sm font-bold mb-2', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
-          {{ t('admin_post_form_content') }} *
-        </label>
+        <div class="flex items-center justify-between mb-2">
+          <label :class="['block text-sm font-bold', isDarkMode ? 'text-gray-300' : 'text-gray-700']">
+            {{ t('admin_post_form_content') }} *
+          </label>
+          <button
+            type="button"
+            @click="triggerMdImport"
+            class="flex items-center gap-1.5 text-xs font-bold text-construct-red hover:underline focus:outline-none cursor-pointer"
+          >
+            <UploadIcon size="14" />
+            导入 Markdown
+          </button>
+          <input
+            ref="mdFileInput"
+            type="file"
+            accept=".md"
+            class="hidden"
+            @change="handleMdImport"
+          />
+        </div>
         <textarea
           v-model="formData.content"
           rows="10"

@@ -86,9 +86,10 @@ const renderedContent = computed(() => {
   let html = marked.parse(props.content);
 
   if (props.addHeadingIds) {
-    html = html.replace(/<h([1-6])>([^<]*)<\/h\1>/g, (match, level, text) => {
-      const id = text.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-');
-      return `<h${level} id="${id}">${text}</h${level}>`;
+    html = html.replace(/<h([1-6])>([\s\S]*?)<\/h\1>/g, (match, level, rawText) => {
+      const text = rawText.replace(/<[^>]+>/g, '').trim();
+      const id = text.toLowerCase().replace(/\s+/g, '-').replace(/[^\w\u4e00-\u9fa5-]/g, '');
+      return `<h${level} id="${id}">${rawText}</h${level}>`;
     });
   }
 
@@ -309,6 +310,40 @@ onMounted(async () => {
       color: #858585;
       font-size: 0.75rem;
     }
+  }
+
+  // 表格样式
+  :deep(table) {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 2rem 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    border-spacing: 0;
+    border: 1px solid rgba(128, 128, 128, 0.25);
+  }
+
+  :deep(th) {
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+    padding: 0.75rem 1rem;
+    border: 1px solid rgba(128, 128, 128, 0.25);
+    background-color: rgba(128, 128, 128, 0.1);
+  }
+
+  :deep(td) {
+    padding: 0.75rem 1rem;
+    border: 1px solid rgba(128, 128, 128, 0.25);
+  }
+
+  :deep(tr:nth-child(even)) {
+    background-color: rgba(128, 128, 128, 0.03);
+  }
+
+  :deep(tr:hover) {
+    background-color: rgba(128, 128, 128, 0.06);
   }
 }
 </style>

@@ -42,7 +42,7 @@ const props = defineProps({
 const pageProps = usePage().props;
 const { getSingleAd } = useAdSlot({ ads: pageProps.frontAds ?? [], adPositions: pageProps.frontAdPositions ?? [] });
 
-const { t } = useI18n();
+const { t } = useI18n({ useScope: 'global' });
 
 const likeStorageKey = computed(() => props.post ? `liked_post_${props.post.id}` : '');
 
@@ -86,15 +86,23 @@ const tableOfContents = computed(() => {
   if (!props.post?.content) return [];
   
   const headings = [];
-  const lines = props.post.content.split('\n');
+  // 兼容 Windows \r\n 换行符，防止正则 $ 尾部锚点因 \r 导致匹配失败
+  const lines = props.post.content.split(/\r?\n/);
   
   lines.forEach(line => {
-    const headingMatch = line.match(/^(#{1,3})\s+(.+)$/);
+    // 匹配 # 至 ###### 开头的标题，支持任意空格前缀
+    const headingMatch = line.match(/^\s*(#{1,6})\s+(.+)$/);
     if (headingMatch) {
       const level = headingMatch[1].length;
-      const text = headingMatch[2].trim();
-      const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-      headings.push({ level, text, id });
+      let text = headingMatch[2].trim();
+      // 过滤行尾可能带有的 # 字符 (如: ## 标题 ##)
+      text = text.replace(/\s*#+\s*$/, '').trim();
+      // 过滤可能带有的粗体、代码块等 Markdown 标记字符，保证目录文字干净
+      const cleanText = text.replace(/[\*\`\_]/g, '');
+      
+      // 生成支持中英文/Unicode的 ID，需与 MarkdownRenderer 中的 ID 生成算法一致
+      const id = cleanText.toLowerCase().replace(/\s+/g, '-').replace(/[^\w\u4e00-\u9fa5-]/g, '');
+      headings.push({ level, text: cleanText, id });
     }
   });
   
@@ -365,7 +373,7 @@ onUnmounted(() => {
                   {
                     'pl-0 text-sm font-bold': heading.level === 1,
                     'pl-2 text-xs font-medium': heading.level === 2,
-                    'pl-4 text-[11px] opacity-70': heading.level === 3
+                    'pl-4 text-[11px] opacity-70': heading.level >= 3
                   }
                 ]"
               >
